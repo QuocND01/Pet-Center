@@ -15,7 +15,9 @@ public partial class OrderDetail
 
     public decimal UnitPrice { get; set; }
 
-    public string? ImportDetailBatch { get; set; }
+    public Guid? ImportStockDetailId { get; set; }
+
+    public virtual ImportStockDetail? ImportStockDetail { get; set; }
 
     public virtual Order? Order { get; set; }
 

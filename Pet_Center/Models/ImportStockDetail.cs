@@ -19,5 +19,7 @@ public partial class ImportStockDetail
 
     public virtual ImportStock? Import { get; set; }
 
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+
     public virtual Product? Product { get; set; }
 }
