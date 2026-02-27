@@ -61,7 +61,7 @@ public partial class PetCenterContext : DbContext
     {
         modelBuilder.Entity<Address>(entity =>
         {
-            entity.HasKey(e => e.AddressId).HasName("PK__Addresse__091C2A1BBBC4D51A");
+            entity.HasKey(e => e.AddressId).HasName("PK__Addresse__091C2A1B350957E5");
 
             entity.Property(e => e.AddressId)
                 .HasDefaultValueSql("(newid())")
@@ -84,7 +84,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Brand>(entity =>
         {
-            entity.HasKey(e => e.BrandId).HasName("PK__Brands__DAD4F3BE70BF9823");
+            entity.HasKey(e => e.BrandId).HasName("PK__Brands__DAD4F3BE099C4489");
 
             entity.Property(e => e.BrandId)
                 .HasDefaultValueSql("(newid())")
@@ -96,7 +96,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Cart>(entity =>
         {
-            entity.HasKey(e => e.CartId).HasName("PK__Cart__51BCD7975004C15C");
+            entity.HasKey(e => e.CartId).HasName("PK__Cart__51BCD7975E72E1D5");
 
             entity.ToTable("Cart");
 
@@ -119,7 +119,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__Categori__19093A2BB51CB2E6");
+            entity.HasKey(e => e.CategoryId).HasName("PK__Categori__19093A2B81FE1694");
 
             entity.Property(e => e.CategoryId)
                 .HasDefaultValueSql("(newid())")
@@ -131,7 +131,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<CategoryAttribute>(entity =>
         {
-            entity.HasKey(e => e.CategoryAttributeId).HasName("PK__Category__21D38D92802DD8F9");
+            entity.HasKey(e => e.CategoryAttributeId).HasName("PK__Category__21D38D92175E55BB");
 
             entity.Property(e => e.CategoryAttributeId)
                 .HasDefaultValueSql("(newid())")
@@ -148,13 +148,13 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Customer>(entity =>
         {
-            entity.HasKey(e => e.CustomerId).HasName("PK__Customer__A4AE64B8B1A3059D");
+            entity.HasKey(e => e.CustomerId).HasName("PK__Customer__A4AE64B816120372");
 
             entity.HasIndex(e => e.Email, "IX_Customers_Email");
 
             entity.HasIndex(e => e.PhoneNumber, "IX_Customers_PhoneNumber");
 
-            entity.HasIndex(e => e.Email, "UQ__Customer__A9D10534B205213B").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Customer__A9D10534886AE6FF").IsUnique();
 
             entity.Property(e => e.CustomerId)
                 .HasDefaultValueSql("(newid())")
@@ -173,7 +173,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<CustomerVoucher>(entity =>
         {
-            entity.HasKey(e => new { e.CustomerId, e.VoucherId }).HasName("PK__Customer__A70083241F2A1AC6");
+            entity.HasKey(e => new { e.CustomerId, e.VoucherId }).HasName("PK__Customer__A7008324E867FF3E");
 
             entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
             entity.Property(e => e.VoucherId).HasColumnName("VoucherID");
@@ -182,17 +182,17 @@ public partial class PetCenterContext : DbContext
             entity.HasOne(d => d.Customer).WithMany(p => p.CustomerVouchers)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__CustomerV__Custo__0E6E26BF");
+                .HasConstraintName("FK__CustomerV__Custo__01142BA1");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.CustomerVouchers)
                 .HasForeignKey(d => d.VoucherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__CustomerV__Vouch__0F624AF8");
+                .HasConstraintName("FK__CustomerV__Vouch__02084FDA");
         });
 
         modelBuilder.Entity<Image>(entity =>
         {
-            entity.HasKey(e => e.ImageId).HasName("PK__Images__7516F4EC63B11492");
+            entity.HasKey(e => e.ImageId).HasName("PK__Images__7516F4EC16358434");
 
             entity.Property(e => e.ImageId)
                 .HasDefaultValueSql("(newid())")
@@ -203,7 +203,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<ImportStock>(entity =>
         {
-            entity.HasKey(e => e.ImportId).HasName("PK__ImportSt__8697678A627ECF21");
+            entity.HasKey(e => e.ImportId).HasName("PK__ImportSt__8697678A07484436");
 
             entity.Property(e => e.ImportId)
                 .HasDefaultValueSql("(newid())")
@@ -218,17 +218,17 @@ public partial class PetCenterContext : DbContext
             entity.HasOne(d => d.Staff).WithMany(p => p.ImportStocks)
                 .HasForeignKey(d => d.StaffId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ImportSto__Staff__1F98B2C1");
+                .HasConstraintName("FK__ImportSto__Staff__07C12930");
 
             entity.HasOne(d => d.Supplier).WithMany(p => p.ImportStocks)
                 .HasForeignKey(d => d.SupplierId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ImportSto__Suppl__1EA48E88");
+                .HasConstraintName("FK__ImportSto__Suppl__06CD04F7");
         });
 
         modelBuilder.Entity<ImportStockDetail>(entity =>
         {
-            entity.HasKey(e => e.ImportStockDetailId).HasName("PK__ImportSt__CDCE9B69EC6C1E83");
+            entity.HasKey(e => e.ImportStockDetailId).HasName("PK__ImportSt__CDCE9B69A166333F");
 
             entity.Property(e => e.ImportStockDetailId)
                 .HasDefaultValueSql("(newid())")
@@ -239,16 +239,16 @@ public partial class PetCenterContext : DbContext
 
             entity.HasOne(d => d.Import).WithMany(p => p.ImportStockDetails)
                 .HasForeignKey(d => d.ImportId)
-                .HasConstraintName("FK__ImportSto__Impor__236943A5");
+                .HasConstraintName("FK__ImportSto__Impor__0B91BA14");
 
             entity.HasOne(d => d.Product).WithMany(p => p.ImportStockDetails)
                 .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK__ImportSto__Produ__245D67DE");
+                .HasConstraintName("FK__ImportSto__Produ__0C85DE4D");
         });
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BAFF8AB4E1A");
+            entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BAF4BE2922C");
 
             entity.HasIndex(e => e.CustomerId, "IX_Orders_CustomerID");
 
@@ -273,48 +273,50 @@ public partial class PetCenterContext : DbContext
             entity.HasOne(d => d.Address).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.AddressId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Orders__AddressI__7F2BE32F");
+                .HasConstraintName("FK__Orders__AddressI__1332DBDC");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Orders__Customer__7E37BEF6");
+                .HasConstraintName("FK__Orders__Customer__123EB7A3");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.StaffId)
-                .HasConstraintName("FK__Orders__StaffID__00200768");
+                .HasConstraintName("FK__Orders__StaffID__14270015");
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30CE1F2B3DA");
+            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30CCDA4F965");
 
             entity.HasIndex(e => e.ProductId, "IX_OrderDetails_ProductID");
 
-            entity.HasIndex(e => new { e.OrderId, e.ProductId }, "UQ__OrderDet__08D097C02B1F007B").IsUnique();
+            entity.HasIndex(e => new { e.OrderId, e.ProductId }, "UQ__OrderDet__08D097C0A9BF2B4C").IsUnique();
 
             entity.Property(e => e.OrderDetailId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("OrderDetailID");
-            entity.Property(e => e.ImportDetailBatch)
-                .HasMaxLength(255)
-                .IsUnicode(false);
+            entity.Property(e => e.ImportStockDetailId).HasColumnName("ImportStockDetailID");
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
+            entity.HasOne(d => d.ImportStockDetail).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.ImportStockDetailId)
+                .HasConstraintName("FK__OrderDeta__Impor__1AD3FDA4");
+
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
-                .HasConstraintName("FK__OrderDeta__Order__04E4BC85");
+                .HasConstraintName("FK__OrderDeta__Order__18EBB532");
 
             entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK__OrderDeta__Produ__05D8E0BE");
+                .HasConstraintName("FK__OrderDeta__Produ__19DFD96B");
         });
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.ProductId).HasName("PK__Products__B40CC6ED3FEC0F29");
+            entity.HasKey(e => e.ProductId).HasName("PK__Products__B40CC6ED2A906317");
 
             entity.Property(e => e.ProductId)
                 .HasDefaultValueSql("(newid())")
@@ -355,7 +357,7 @@ public partial class PetCenterContext : DbContext
                         .HasConstraintName("FK__ProductIm__Produ__6754599E"),
                     j =>
                     {
-                        j.HasKey("ProductId", "ImageId").HasName("PK__ProductI__635DA9A3301C9349");
+                        j.HasKey("ProductId", "ImageId").HasName("PK__ProductI__635DA9A38631CC7F");
                         j.ToTable("ProductImages");
                         j.IndexerProperty<Guid>("ProductId").HasColumnName("ProductID");
                         j.IndexerProperty<Guid>("ImageId").HasColumnName("ImageID");
@@ -364,9 +366,9 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<ProductAttribute>(entity =>
         {
-            entity.HasKey(e => e.ProductAttributeId).HasName("PK__ProductA__00CE6727EDB2D5AB");
+            entity.HasKey(e => e.ProductAttributeId).HasName("PK__ProductA__00CE6727479B0F94");
 
-            entity.HasIndex(e => new { e.ProductId, e.CategoryAttributeId }, "UQ__ProductA__8611FE35B3DF4F59").IsUnique();
+            entity.HasIndex(e => new { e.ProductId, e.CategoryAttributeId }, "UQ__ProductA__8611FE35D914D793").IsUnique();
 
             entity.Property(e => e.ProductAttributeId)
                 .HasDefaultValueSql("(newid())")
@@ -387,7 +389,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<ProductFeedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__ProductF__6A4BEDF6E6BE5AE9");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__ProductF__6A4BEDF65485B8F7");
 
             entity.Property(e => e.FeedbackId)
                 .HasDefaultValueSql("(newid())")
@@ -406,26 +408,26 @@ public partial class PetCenterContext : DbContext
             entity.HasOne(d => d.Customer).WithMany(p => p.ProductFeedbacks)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ProductFe__Custo__17036CC0");
+                .HasConstraintName("FK__ProductFe__Custo__22751F6C");
 
             entity.HasOne(d => d.Order).WithMany(p => p.ProductFeedbacks)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ProductFe__Order__18EBB532");
+                .HasConstraintName("FK__ProductFe__Order__245D67DE");
 
             entity.HasOne(d => d.Product).WithMany(p => p.ProductFeedbacks)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ProductFe__Produ__17F790F9");
+                .HasConstraintName("FK__ProductFe__Produ__236943A5");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.ProductFeedbacks)
                 .HasForeignKey(d => d.StaffId)
-                .HasConstraintName("FK__ProductFe__Staff__19DFD96B");
+                .HasConstraintName("FK__ProductFe__Staff__25518C17");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A4CE0EF42");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3AFD33A555");
 
             entity.Property(e => e.RoleId)
                 .HasDefaultValueSql("(newid())")
@@ -436,9 +438,9 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Staff>(entity =>
         {
-            entity.HasKey(e => e.StaffId).HasName("PK__Staffs__96D4AAF72FB2AF8D");
+            entity.HasKey(e => e.StaffId).HasName("PK__Staffs__96D4AAF705FF9F0B");
 
-            entity.HasIndex(e => e.Email, "UQ__Staffs__A9D10534D68FA364").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Staffs__A9D10534B2945F26").IsUnique();
 
             entity.Property(e => e.StaffId)
                 .HasDefaultValueSql("(newid())")
@@ -466,7 +468,7 @@ public partial class PetCenterContext : DbContext
                         .HasConstraintName("FK__StaffRole__Staff__4CA06362"),
                     j =>
                     {
-                        j.HasKey("StaffId", "RoleId").HasName("PK__StaffRol__2E7B0614C5258A15");
+                        j.HasKey("StaffId", "RoleId").HasName("PK__StaffRol__2E7B0614BEA9CA3D");
                         j.ToTable("StaffRoles");
                         j.IndexerProperty<Guid>("StaffId").HasColumnName("StaffID");
                         j.IndexerProperty<Guid>("RoleId").HasColumnName("RoleID");
@@ -475,7 +477,7 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Supplier>(entity =>
         {
-            entity.HasKey(e => e.SupplierId).HasName("PK__Supplier__4BE666947052300C");
+            entity.HasKey(e => e.SupplierId).HasName("PK__Supplier__4BE66694E3E93050");
 
             entity.Property(e => e.SupplierId)
                 .HasDefaultValueSql("(newid())")
@@ -494,9 +496,9 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Voucher>(entity =>
         {
-            entity.HasKey(e => e.VoucherId).HasName("PK__Vouchers__3AEE79C121CA8FD7");
+            entity.HasKey(e => e.VoucherId).HasName("PK__Vouchers__3AEE79C1074D2BB0");
 
-            entity.HasIndex(e => e.Code, "UQ__Vouchers__A25C5AA78DC756EA").IsUnique();
+            entity.HasIndex(e => e.Code, "UQ__Vouchers__A25C5AA7B0D62728").IsUnique();
 
             entity.Property(e => e.VoucherId)
                 .HasDefaultValueSql("(newid())")
