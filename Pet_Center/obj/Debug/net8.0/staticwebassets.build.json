@@ -1,1 +1,12 @@
-{"Version":1,"Hash":"ZWhWrzNDv4Y2va2st+xRItimK5zUk8zl0qg/kgVu8cY=","Source":"Pet_Center","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "BY4fvbs5pp4BNWrGy5PXR8cYRI+1r+rUAPh21utNqxA=",
+  "Source": "Pet_Center",
+  "BasePath": "_content/Pet_Center",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
