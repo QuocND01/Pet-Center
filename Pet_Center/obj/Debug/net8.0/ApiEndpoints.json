@@ -1,5 +1,67 @@
 [
   {
+    "ContainingType": "Pet_Center.Controllers.AuthController",
+    "Method": "AdminOnly",
+    "RelativePath": "api/auth/admin-only",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Pet_Center.Controllers.AuthController",
+    "Method": "CustomerLogin",
+    "RelativePath": "api/auth/customer-login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Pet_Center.DTOs.LoginDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Pet_Center.Controllers.AuthController",
+    "Method": "MyOrders",
+    "RelativePath": "api/auth/my-orders",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Pet_Center.Controllers.AuthController",
+    "Method": "StaffLogin",
+    "RelativePath": "api/auth/staff-login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Pet_Center.DTOs.LoginDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Pet_Center.Controllers.AuthController",
+    "Method": "StaffOnly",
+    "RelativePath": "api/auth/staff-only",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Pet_Center.Controllers.ProductsController",
     "Method": "GetProducts",
     "RelativePath": "api/Products",
