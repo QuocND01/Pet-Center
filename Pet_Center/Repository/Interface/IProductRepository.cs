@@ -1,6 +1,6 @@
-﻿using Pet_Center.Models;
+﻿using ProductAPI.Models;
 
-namespace Pet_Center.Repository.Interface
+namespace ProductAPI.Repository.Interface
 {
     public interface IProductRepository
     {

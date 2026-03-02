@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Pet_Center.Models;
+namespace ProductAPI.Models;
 
 public partial class Role
 {

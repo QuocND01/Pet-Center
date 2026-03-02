@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Pet_Center.Models;
-using Pet_Center.Repository.Interface;
+using ProductAPI.Models;
+using ProductAPI.Repository.Interface;
 
-namespace Pet_Center.Repository
+namespace ProductAPI.Repository
 {
     public class StaffRepository : IStaffRepository
     {

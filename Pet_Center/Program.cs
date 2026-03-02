@@ -1,14 +1,16 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Pet_Center.Models;
-using Pet_Center.Profiles;
-using Pet_Center.Repository;
-using Pet_Center.Repository.Interface;
-using Pet_Center.Security;
-using Pet_Center.Service;
-using Pet_Center.Service.Interface;
+using ProductAPI.Models;
+using ProductAPI.Profiles;
+using ProductAPI.Repository;
+using ProductAPI.Repository.Interface;
+using ProductAPI.Security;
+using ProductAPI.Service;
+using ProductAPI.Service.Interface;
+using ProductAPI.Models;
+using ProductAPI.Service.Interface;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,6 +81,11 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
 // Đăng ký Service và Repository
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 var app = builder.Build();
 

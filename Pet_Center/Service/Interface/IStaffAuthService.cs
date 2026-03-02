@@ -1,4 +1,4 @@
-﻿namespace Pet_Center.Service.Interface
+﻿namespace ProductAPI.Service.Interface
 {
     public interface IStaffAuthService
     {

@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Pet_Center.DTOs;
-using Pet_Center.Models;
-using Pet_Center.Service.Interface;
+using ProductAPI.DTOs;
+using ProductAPI.Models;
+using ProductAPI.Service.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Pet_Center.Controllers
+namespace ProductAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -60,12 +60,14 @@ namespace Pet_Center.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<CreateProductDTO>> PostProduct(CreateProductDTO product)
+        public async Task<IActionResult> PostProduct([FromForm] CreateProductDTO product)
         {
+            if (product == null)
+                return BadRequest("Product is null");
+
             await _productService.AddProductAsync(product);
 
-            return Ok(product);
-
+            return Ok();
         }
 
         // DELETE: api/Products/5

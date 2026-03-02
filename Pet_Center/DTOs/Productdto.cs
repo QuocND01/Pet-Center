@@ -1,6 +1,6 @@
-﻿using Pet_Center.Models;
+﻿using ProductAPI.Models;
 
-namespace Pet_Center.DTOs
+namespace ProductAPI.DTOs
 {
     public class ReadProductDTO
     {
@@ -59,7 +59,7 @@ namespace Pet_Center.DTOs
         public Guid? CategoryId { get; set; }
         public Guid? SupplierId { get; set; }
 
-        public List<string>? Images { get; set; }
+        public List<IFormFile>? ImageFiles { get; set; }
 
         public List<CreateProductAttributeDTO>? Attributes { get; set; }
     }

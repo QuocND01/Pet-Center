@@ -1,7 +1,7 @@
-﻿using Pet_Center.Models;
+﻿using ProductAPI.Models;
 using System.Threading.Tasks;
 
-namespace Pet_Center.Repository.Interface
+namespace ProductAPI.Repository.Interface
 {
     public interface ICustomerRepository
     {
