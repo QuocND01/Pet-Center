@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using Pet_Center.DTOs;
-using Pet_Center.Models;
+using ProductAPI.DTOs;
+using ProductAPI.Models;
 
-namespace Pet_Center.Profiles
+namespace ProductAPI.Profiles
 {
     public class ProductProfile : Profile
     {
@@ -30,14 +30,13 @@ namespace Pet_Center.Profiles
 
 
             CreateMap<CreateProductDTO, Product>()
-     .ForMember(dest => dest.ProductId,opt => opt.Ignore())
-     .ForMember(dest => dest.AddedAt,opt => opt.Ignore())
-     .ForMember(dest => dest.UpdateAt,opt => opt.Ignore())
-     .ForMember(dest => dest.Images,opt => opt.MapFrom(src =>src.Images == null? new List<Image>()
-                 : src.Images.Select(url => new Image
-                 {
-                     ImageUrl = url
-                 })))
+     .ForMember(dest => dest.ProductId, opt => opt.Ignore())
+     .ForMember(dest => dest.AddedAt, opt => opt.Ignore())
+     .ForMember(dest => dest.UpdateAt, opt => opt.Ignore())
+
+     // 🔥 Ảnh xử lý ở Service → không map ở đây
+     .ForMember(dest => dest.Images, opt => opt.Ignore())
+
      .ForMember(dest => dest.ProductAttributes,
          opt => opt.MapFrom(src =>
              src.Attributes == null

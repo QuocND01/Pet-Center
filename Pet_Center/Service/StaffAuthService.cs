@@ -1,8 +1,8 @@
-﻿using Pet_Center.Repository.Interface;
-using Pet_Center.Security;
-using Pet_Center.Service.Interface;
+﻿using ProductAPI.Repository.Interface;
+using ProductAPI.Security;
+using ProductAPI.Service.Interface;
 
-namespace Pet_Center.Service
+namespace ProductAPI.Service
 {
     public class StaffAuthService : IStaffAuthService
     {

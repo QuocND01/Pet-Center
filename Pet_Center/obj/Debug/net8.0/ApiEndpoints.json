@@ -19,7 +19,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "Pet_Center.DTOs.LoginDto",
+        "Type": "ProductAPI.DTOs.LoginDto",
         "IsRequired": true
       }
     ],
@@ -45,7 +45,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "Pet_Center.DTOs.LoginDto",
+        "Type": "ProductAPI.DTOs.LoginDto",
         "IsRequired": true
       }
     ],
@@ -62,7 +62,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "Pet_Center.Controllers.ProductsController",
+    "ContainingType": "ProductAPI.Controllers.ProductsController",
     "Method": "GetProducts",
     "RelativePath": "api/Products",
     "HttpMethod": "GET",
@@ -71,7 +71,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Pet_Center.DTOs.ReadProductDTO, Pet_Center, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[ProductAPI.DTOs.ReadProductDTO, ProductAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -82,7 +82,7 @@
     ]
   },
   {
-    "ContainingType": "Pet_Center.Controllers.ProductsController",
+    "ContainingType": "ProductAPI.Controllers.ProductsController",
     "Method": "PostProduct",
     "RelativePath": "api/Products",
     "HttpMethod": "POST",
@@ -90,25 +90,55 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "product",
-        "Type": "Pet_Center.DTOs.CreateProductDTO",
-        "IsRequired": true
+        "Name": "ProductName",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "ProductPrice",
+        "Type": "System.Decimal",
+        "IsRequired": false
+      },
+      {
+        "Name": "ProductDescription",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "StockQuantity",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "BrandId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "CategoryId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "SupplierId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "ImageFiles",
+        "Type": "System.Collections.Generic.List\u00601[[Microsoft.AspNetCore.Http.IFormFile, Microsoft.AspNetCore.Http.Features, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "Attributes",
+        "Type": "System.Collections.Generic.List\u00601[[ProductAPI.DTOs.CreateProductAttributeDTO, ProductAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": false
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "Pet_Center.DTOs.CreateProductDTO",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
-    "ContainingType": "Pet_Center.Controllers.ProductsController",
+    "ContainingType": "ProductAPI.Controllers.ProductsController",
     "Method": "GetProduct",
     "RelativePath": "api/Products/{id}",
     "HttpMethod": "GET",
@@ -123,7 +153,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Pet_Center.DTOs.ReadProductDTO",
+        "Type": "ProductAPI.DTOs.ReadProductDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -134,7 +164,7 @@
     ]
   },
   {
-    "ContainingType": "Pet_Center.Controllers.ProductsController",
+    "ContainingType": "ProductAPI.Controllers.ProductsController",
     "Method": "PutProduct",
     "RelativePath": "api/Products/{id}",
     "HttpMethod": "PUT",
@@ -148,14 +178,14 @@
       },
       {
         "Name": "product",
-        "Type": "Pet_Center.DTOs.UpdateProductDTO",
+        "Type": "ProductAPI.DTOs.UpdateProductDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "Pet_Center.Controllers.ProductsController",
+    "ContainingType": "ProductAPI.Controllers.ProductsController",
     "Method": "DeleteProduct",
     "RelativePath": "api/Products/{id}",
     "HttpMethod": "DELETE",
@@ -169,26 +199,5 @@
       }
     ],
     "ReturnTypes": []
-  },
-  {
-    "ContainingType": "Pet_Center.Controllers.WeatherForecastController",
-    "Method": "Get",
-    "RelativePath": "WeatherForecast",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Pet_Center.WeatherForecast, Pet_Center, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ],
-    "EndpointName": "GetWeatherForecast"
   }
 ]

@@ -1,4 +1,4 @@
-﻿namespace Pet_Center.DTOs
+﻿namespace ProductAPI.DTOs
 {
     public class ProductAttributedto
     {

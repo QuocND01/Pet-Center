@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Pet_Center.DTOs;
-using Pet_Center.Service.Interface;
+using ProductAPI.DTOs;
+using ProductAPI.Service.Interface;
 
 namespace Pet_Center.Controllers
 {

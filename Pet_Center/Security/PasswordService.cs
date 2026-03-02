@@ -1,4 +1,4 @@
-﻿namespace Pet_Center.Security
+﻿namespace ProductAPI.Security
 {
     public class PasswordService
     {

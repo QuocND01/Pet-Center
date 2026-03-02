@@ -3,7 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Pet_Center.Security
+namespace ProductAPI.Security
 {
     public class JwtService : IJwtService
     {

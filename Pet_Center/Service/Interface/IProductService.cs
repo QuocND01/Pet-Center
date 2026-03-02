@@ -1,6 +1,6 @@
-﻿using Pet_Center.DTOs;
+﻿using ProductAPI.DTOs;
 
-namespace Pet_Center.Service.Interface
+namespace ProductAPI.Service.Interface
 {
     public interface IProductService
     {
