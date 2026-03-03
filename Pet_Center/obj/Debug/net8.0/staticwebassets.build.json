@@ -1,1 +1,12 @@
-{"Version":1,"Hash":"/Oynxn+jDkDUnPQNJiNxFdFlvyt+5zgQYV0Lwg4vbV8=","Source":"ProductAPI","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "4Nyuultty/4gP1vHSC6mc7Rez1yYiEbybiUnDuT89xc=",
+  "Source": "ProductAPI",
+  "BasePath": "_content/ProductAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
