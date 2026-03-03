@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Humanizer;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Repository.Interface;
@@ -87,8 +88,70 @@ namespace ProductAPI.Service
                 throw new Exception("Product not found");
 
             _mapper.Map(updateproduct, product);
+            product.UpdateAt = DateTime.Now;
 
+            product.Images ??= new List<Image>();
+            product.ProductAttributes ??= new List<ProductAttribute>();
+
+            // 1️⃣ UPDATE IMAGES
+            if (updateproduct.Images != null && updateproduct.Images.Any())
+            {
+                var newImages = new List<Image>();
+
+                // 1️⃣ Upload trước
+                foreach (var file in updateproduct.Images)
+                {
+                    var uploadResult = await _cloudinaryService
+                        .UploadImageAsync(file, "products");
+
+                    if (uploadResult == null ||
+                        uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        throw new Exception("Upload ảnh thất bại");
+                    }
+
+                    newImages.Add(new Image
+                    {
+                        ImageId = Guid.NewGuid(),
+                        ImageUrl = uploadResult.SecureUrl.ToString(),
+                        PublicId = uploadResult.PublicId,
+                        IsActive = true
+                    });
+                }
+
+                // 2️⃣ Xóa ảnh cũ
+                foreach (var img in product.Images)
+                {
+                    await _cloudinaryService.DeleteImageAsync(img.PublicId);
+                }
+
+                product.Images.Clear();
+
+                // 3️⃣ Add ảnh mới
+                foreach (var img in newImages)
+                {
+                    product.Images.Add(img);
+                }
+            }
+
+            // 2️⃣ UPDATE ATTRIBUTES
+            if (updateproduct.Attributes != null)
+            {
+                await _productRepository.DeleteProductAttributesByProductIdAsync(product.ProductId);
+                product.ProductAttributes.Clear();
+
+                foreach (var attr in updateproduct.Attributes)
+                {
+                    product.ProductAttributes.Add(new ProductAttribute
+                    {
+                        ProductId = product.ProductId,
+                        CategoryAttributeId = attr.CategoryAttributeId,
+                        AttributeValue = attr.AttributeValue
+                    });
+                }
+            }
             await _productRepository.UpdateProductAsync(product);
-        }   
+        }
     }
-}
+
+    }

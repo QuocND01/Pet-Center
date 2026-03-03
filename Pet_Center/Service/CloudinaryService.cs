@@ -43,6 +43,8 @@ public class CloudinaryService : ICloudinaryService
 
         var deletionParams = new DeletionParams(publicId);
         var result = await _cloudinary.DestroyAsync(deletionParams);
+        Console.WriteLine($"Deleting: {publicId}");
+        Console.WriteLine($"Result: {result.Result}");
         return result;
     }
 

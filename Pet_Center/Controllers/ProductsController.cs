@@ -47,13 +47,9 @@ namespace ProductAPI.Controllers
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(Guid id, UpdateProductDTO product)
+        public async Task<IActionResult> PutProduct(Guid id,[FromForm] UpdateProductDTO product)
         {
-
             await _productService.UpdateProductAsync(id, product);
-
-
-
             return NoContent();
         }
 

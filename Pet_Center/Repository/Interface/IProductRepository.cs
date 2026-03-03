@@ -9,5 +9,7 @@ namespace ProductAPI.Repository.Interface
         Task AddProductAsync(Product product);
         Task UpdateProductAsync(Product product);
         Task DeleteProductAsync(Guid id);
+
+        Task DeleteProductAttributesByProductIdAsync(Guid productId);
     }
 }

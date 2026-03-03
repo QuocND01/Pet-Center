@@ -286,19 +286,79 @@
         ],
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductDTO"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProductDTO"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProductDTO"
+                "type": "object",
+                "properties": {
+                  "ProductName": {
+                    "type": "string"
+                  },
+                  "ProductPrice": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "ProductDescription": {
+                    "type": "string"
+                  },
+                  "StockQuantity": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "BrandId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "CategoryId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "SupplierId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "Images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  },
+                  "Attributes": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/UpdateProductAttributeDTO"
+                    }
+                  }
+                }
+              },
+              "encoding": {
+                "ProductName": {
+                  "style": "form"
+                },
+                "ProductPrice": {
+                  "style": "form"
+                },
+                "ProductDescription": {
+                  "style": "form"
+                },
+                "StockQuantity": {
+                  "style": "form"
+                },
+                "BrandId": {
+                  "style": "form"
+                },
+                "CategoryId": {
+                  "style": "form"
+                },
+                "SupplierId": {
+                  "style": "form"
+                },
+                "Images": {
+                  "style": "form"
+                },
+                "Attributes": {
+                  "style": "form"
+                }
               }
             }
           }
@@ -467,58 +527,6 @@
           },
           "attributeValue": {
             "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateProductDTO": {
-        "type": "object",
-        "properties": {
-          "productName": {
-            "type": "string",
-            "nullable": true
-          },
-          "productPrice": {
-            "type": "number",
-            "format": "double"
-          },
-          "productDescription": {
-            "type": "string",
-            "nullable": true
-          },
-          "stockQuantity": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "brandId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "supplierId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "images": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          },
-          "attributes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpdateProductAttributeDTO"
-            },
             "nullable": true
           }
         },

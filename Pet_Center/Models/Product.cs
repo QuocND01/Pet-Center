@@ -24,6 +24,7 @@ public partial class Product
     public DateTime? AddedAt { get; set; }
 
     public DateTime? UpdateAt { get; set; }
+    public bool IsActive { get; set; } = true;
 
     public virtual Brand? Brand { get; set; }
 
