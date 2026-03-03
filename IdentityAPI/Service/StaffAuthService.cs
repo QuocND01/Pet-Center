@@ -42,7 +42,7 @@ namespace IdentityAPI.Service
                 .Select(r => r.RoleName)
                 .ToList();
 
-            return _jwtService.GenerateToken(staff.Email!, roles);
+            return _jwtService.GenerateToken(staff.StaffId,staff.Email!, roles);
         }
     }
 }

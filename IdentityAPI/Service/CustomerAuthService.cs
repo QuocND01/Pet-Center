@@ -32,9 +32,9 @@ namespace IdentityAPI.Service
             if (!_passwordService.Verify(password, customer.PasswordHash))
                 return null;
 
-            var roles = new List<string> { "ROLE_CUSTOMER" };
+            var roles = new List<string> { "Customer" };
 
-            return _jwtService.GenerateToken(customer.Email, roles);
+            return _jwtService.GenerateToken(customer.CustomerId,customer.Email, roles);
         }
     }
 }

@@ -14,11 +14,13 @@ namespace IdentityAPI.Security
             _config = config;
         }
 
-        public string GenerateToken(string email, List<string> roles)
+        public string GenerateToken(Guid userId,string email, List<string> roles)
         {
             var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, email)
+            new Claim(ClaimTypes.Name, email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         };
 
             foreach (var role in roles)
