@@ -5,10 +5,19 @@ namespace IdentityAPI.Repository.Interface
 {
     public interface ICustomerRepository
     {
+        // ==================================== Login ====================================
         Task<Customer?> GetByEmailAsync(string email);
 
+        
+        // ==================================== For Staff and Admin ====================================
         Task<List<Customer>> GetAllCustomersAsync();
 
         Task<Customer?> GetCustomerByIdAsync(Guid customerId);
+
+        // ==================================== For Customer ====================================
+
+        Task<Customer?> GetByIdAsync(Guid customerId);
+
+        Task<bool> UpdateAsync(Customer customer);
     }
 }

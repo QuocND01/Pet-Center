@@ -69,7 +69,6 @@ namespace IdentityAPI
             builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
             builder.Services.AddScoped<PasswordService>();
 
-            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
 
             builder.Services.AddAuthorization();

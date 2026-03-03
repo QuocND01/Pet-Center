@@ -1,0 +1,23 @@
+﻿namespace IdentityAPI.DTOs.Response
+{
+    public class CustomerProfileResponseDto
+    {
+        public Guid CustomerId { get; set; }
+
+        public string FullName { get; set; } = null!;
+
+        public string Email { get; set; } = null!;
+
+        public string PhoneNumber { get; set; } = null!;
+
+        public DateOnly? BirthDay { get; set; }
+
+        public string Gender { get; set; } = null!;
+
+        public bool? EmailVerified { get; set; }
+
+        public bool? IsActive { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
+    }
+}

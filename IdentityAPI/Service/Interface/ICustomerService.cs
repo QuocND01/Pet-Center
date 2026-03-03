@@ -1,4 +1,5 @@
 ﻿using IdentityAPI.DTOs.Response;
+using IdentityAPI.DTOs.Resquest;
 
 namespace IdentityAPI.Service.Interface
 {
@@ -7,5 +8,9 @@ namespace IdentityAPI.Service.Interface
         Task<List<CustomerResponseDto>> GetAllCustomersAsync();
 
         Task<CustomerResponseDto?> GetCustomerByIdAsync(Guid customerId);
+
+        Task<CustomerProfileResponseDto?> GetProfileAsync(Guid customerId);
+
+        Task<bool> UpdateProfileAsync(Guid customerId, UpdateCustomerProfileRequestDto request);
     }
 }

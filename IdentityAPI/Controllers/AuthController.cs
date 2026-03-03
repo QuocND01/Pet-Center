@@ -68,7 +68,7 @@ namespace IdentityAPI.Controllers
             });
         }
 
-        [Authorize(Roles = "ROLE_CUSTOMER")]
+        [Authorize(Roles = "Customer")]
         [HttpGet("my-orders")]
         public IActionResult MyOrders()
         {
