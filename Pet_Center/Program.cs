@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using ProductAPI.Models;
 using ProductAPI.Models;
@@ -86,6 +87,8 @@ builder.Services
 
 // Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
+
 
 // Đăng ký Service và Repository
 builder.Services.AddScoped<IProductService, ProductService>();

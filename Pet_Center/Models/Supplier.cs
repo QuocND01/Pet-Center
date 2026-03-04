@@ -21,7 +21,7 @@ public partial class Supplier
 
     public string? SupplierDescription { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<ImportStock> ImportStocks { get; set; } = new List<ImportStock>();
 
