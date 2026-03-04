@@ -5,7 +5,6 @@ using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Repository.Interface;
 using ProductAPI.Service.Interface;
-using ProductAPI.Service.Interface;
 
 namespace ProductAPI.Service
 {

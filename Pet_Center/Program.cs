@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,7 @@ using ProductAPI.Repository;
 using ProductAPI.Repository.Interface;
 using ProductAPI.Service;
 using ProductAPI.Service.Interface;
+using ProductAPI.Validation;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +61,13 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();
+
 
 builder.Services.AddAuthorization();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
