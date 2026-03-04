@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DTOs\Response\**" />
+    <Compile Remove="DTOs\Resquest\**" />
+    <Content Remove="DTOs\Response\**" />
+    <Content Remove="DTOs\Resquest\**" />
+    <EmbeddedResource Remove="DTOs\Response\**" />
+    <EmbeddedResource Remove="DTOs\Resquest\**" />
+    <None Remove="DTOs\Response\**" />
+    <None Remove="DTOs\Resquest\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="CloudinaryDotNet" Version="1.28.0" />
@@ -24,11 +35,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DTOs\Response\" />
-    <Folder Include="DTOs\Resquest\" />
   </ItemGroup>
 
 </Project>

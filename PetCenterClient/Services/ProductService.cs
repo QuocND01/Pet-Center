@@ -56,7 +56,7 @@ int page = 1)
 
 
             return await _http.GetFromJsonAsync<OdataResponse<ReadProductDTO>>(
-                "odata/Products" + url
+                "odata/products" //+ url
             );
         }
 
