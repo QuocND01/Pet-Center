@@ -318,6 +318,9 @@ public partial class PetCenterContext : DbContext
         {
             entity.HasKey(e => e.ProductId).HasName("PK__Products__B40CC6ED2A906317");
 
+            entity.HasIndex(e => new { e.ProductName, e.BrandId, e.CategoryId })
+         .IsUnique();
+
             entity.Property(e => e.ProductId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ProductID");

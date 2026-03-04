@@ -10,6 +10,7 @@ D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\AutoMapper.dll
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\Azure.Core.dll
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\Azure.Identity.dll
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\BCrypt.Net-Next.dll
+D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\CloudinaryDotNet.dll
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\Humanizer.dll
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\Microsoft.AspNetCore.OData.dll
@@ -287,4 +288,3 @@ D:\Desktop\C# Projects\Pet-Center\Pet_Center\obj\Debug\net8.0\refint\ProductAPI.
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\obj\Debug\net8.0\ProductAPI.pdb
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\obj\Debug\net8.0\ProductAPI.genruntimeconfig.cache
 D:\Desktop\C# Projects\Pet-Center\Pet_Center\obj\Debug\net8.0\ref\ProductAPI.dll
-D:\Desktop\C# Projects\Pet-Center\Pet_Center\bin\Debug\net8.0\CloudinaryDotNet.dll

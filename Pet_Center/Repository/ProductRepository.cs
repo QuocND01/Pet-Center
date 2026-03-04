@@ -23,7 +23,7 @@ namespace ProductAPI.Repository
         public async Task DeleteProductAsync(Guid id)
         {
             Product p = _db.Products.Find(id);
-             p.IsActive = false;
+            p.IsActive = false;
             await _db.SaveChangesAsync();
         }
 
@@ -42,16 +42,22 @@ namespace ProductAPI.Repository
         }
 
 
-        public async Task<IEnumerable<Product>> GetAllProductAsync()
+        public IQueryable<Product> GetAllProduct()
         {
-            return await _db.Products
+            try
+            {
+                return _db.Products
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .Include(p => p.Supplier)
                 .Include(p => p.Images)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.IsActive == true)
-                .ToListAsync();
+                .AsQueryable();
+            }
+            catch (Exception ex) {
+                throw new Exception(ex.Message);
+            }
         }
 
         public Task<Product?> GetProductByIdAsync(Guid id)
@@ -65,12 +71,23 @@ namespace ProductAPI.Repository
                 .FirstOrDefaultAsync(x => x.ProductId == id);
         }
 
-   
+
 
         public async Task UpdateProductAsync(Product product)
         {
             _db.Products.Update(product);
             await _db.SaveChangesAsync();
         }
+
+
+        public async Task<bool> CheckProductExist(string productName, Guid brandId, Guid categoryId)
+        {
+            return await _db.Products.AnyAsync(p =>
+        p.ProductName == productName &&
+        p.BrandId == brandId &&
+        p.CategoryId == categoryId &&
+        p.IsActive);
+        }
+
     }
 }
