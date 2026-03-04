@@ -14,16 +14,16 @@ namespace ProductAPI.DTOs
         public DateTime? UpdateAt { get; set; }
 
         // Brand
-        public Guid? BrandId { get; set; }
+        public Guid BrandId { get; set; }
         public string? BrandName { get; set; }
         public string? BrandLogo { get; set; }
 
         // Category
-        public Guid? CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
         public string? CategoryName { get; set; }
 
         // Supplier
-        public Guid? SupplierId { get; set; }
+        public Guid SupplierId { get; set; }
         public string? SupplierName { get; set; }
 
         // Images
@@ -44,7 +44,7 @@ namespace ProductAPI.DTOs
         public Guid? CategoryId { get; set; }
         public Guid? SupplierId { get; set; }
 
-        public List<string>? Images { get; set; }
+        public List<IFormFile>? Images { get; set; }
 
         public List<UpdateProductAttributeDTO>? Attributes { get; set; }
     }
@@ -55,9 +55,9 @@ namespace ProductAPI.DTOs
         public string? ProductDescription { get; set; }
         public int? StockQuantity { get; set; }
 
-        public Guid? BrandId { get; set; }
-        public Guid? CategoryId { get; set; }
-        public Guid? SupplierId { get; set; }
+        public Guid BrandId { get; set; }
+        public Guid CategoryId { get; set; }
+        public Guid SupplierId { get; set; }
 
         public List<IFormFile>? ImageFiles { get; set; }
 

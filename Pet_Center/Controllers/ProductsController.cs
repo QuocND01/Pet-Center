@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
@@ -24,10 +26,10 @@ namespace ProductAPI.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ReadProductDTO>>> GetProducts()
+        [EnableQuery(PageSize = 10)]
+        public IQueryable<ReadProductDTO> Get()
         {
-            var product = await _productService.GetAllProductAsync();
-            return Ok(product);
+            return _productService.GetAllProduct();
         }
 
         // GET: api/Products/5
@@ -47,13 +49,9 @@ namespace ProductAPI.Controllers
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(Guid id, UpdateProductDTO product)
+        public async Task<IActionResult> PutProduct(Guid id,[FromForm] UpdateProductDTO product)
         {
-
             await _productService.UpdateProductAsync(id, product);
-
-
-
             return NoContent();
         }
 
@@ -64,10 +62,19 @@ namespace ProductAPI.Controllers
         {
             if (product == null)
                 return BadRequest("Product is null");
-
-            await _productService.AddProductAsync(product);
-
-            return Ok();
+            try
+            {
+                await _productService.AddProductAsync(product);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message); // 409
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE: api/Products/5

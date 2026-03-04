@@ -1,0 +1,24 @@
+﻿using PetCenterClient.DTOs;
+using ProductAPI.DTOs;
+
+namespace PetCenterClient.Services.Interface
+{
+    public interface IProductService
+    {
+        Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
+                string? search,
+                bool? isActive,
+                decimal? minPrice,
+                decimal? maxPrice,
+                DateTime? fromDate,
+                DateTime? toDate,
+                string? sortBy,
+                string sortOrder = "asc",
+                int page = 1);
+
+        Task<ReadProductDTO> GetProductByIdAsync(Guid? id);
+        Task AddProductAsync(CreateProductDTO createproduct);
+        Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct);
+        Task DeleteProductAsync(Guid? id);
+    }
+}

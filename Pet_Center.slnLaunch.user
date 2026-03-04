@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Pet_Center\\ProductAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "PetCenterClient\\PetCenterClient.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

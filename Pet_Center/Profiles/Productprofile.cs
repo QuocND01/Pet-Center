@@ -22,6 +22,7 @@ namespace ProductAPI.Profiles
             .ForMember(dest => dest.Attributes,
                 opt => opt.MapFrom(src => src.ProductAttributes));
 
+
             CreateMap<ProductAttribute, ProductAttributedto>()
                 .ForMember(dest => dest.AttributeName,
                     opt => opt.MapFrom(src => src.CategoryAttribute.AttributeName))
@@ -30,22 +31,21 @@ namespace ProductAPI.Profiles
 
 
             CreateMap<CreateProductDTO, Product>()
-     .ForMember(dest => dest.ProductId, opt => opt.Ignore())
-     .ForMember(dest => dest.AddedAt, opt => opt.Ignore())
-     .ForMember(dest => dest.UpdateAt, opt => opt.Ignore())
-
-     // 🔥 Ảnh xử lý ở Service → không map ở đây
-     .ForMember(dest => dest.Images, opt => opt.Ignore())
-
-     .ForMember(dest => dest.ProductAttributes,
-         opt => opt.MapFrom(src =>
-             src.Attributes == null
-                 ? new List<ProductAttribute>()
-                 : src.Attributes.Select(a => new ProductAttribute
-                 {
-                     CategoryAttributeId = a.CategoryAttributeId,
-                     AttributeValue = a.AttributeValue
-                 })));
+                .ForMember(dest => dest.ProductId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdateAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Images, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductAttributes,
+                     opt => opt.MapFrom(src =>
+                         src.Attributes == null
+                             ? new List<ProductAttribute>()
+                             : src.Attributes.Select(a => new ProductAttribute
+                             {
+                                 CategoryAttributeId = a.CategoryAttributeId,
+                                 AttributeValue = a.AttributeValue
+                             })
+                     )
+                );
 
 
             CreateMap<UpdateProductDTO, Product>()
@@ -54,6 +54,7 @@ namespace ProductAPI.Profiles
                 .ForMember(dest => dest.UpdateAt, opt => opt.Ignore())
                 .ForMember(dest => dest.Images, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductAttributes, opt => opt.Ignore());
+
         }
     }
 
