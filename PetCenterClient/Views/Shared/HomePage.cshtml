@@ -1,0 +1,154 @@
+﻿@using PetCenterClient.DTOs
+@using ProductAPI.DTOs
+@model OdataResponse<ReadProductDTO>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<form asp-action="Index" method="get" class="row g-2 mb-3">
+
+    <!-- Search name -->
+    <div class="col-md-3">
+        <input type="text"
+               name="search"
+               value="@Context.Request.Query["search"]"
+               class="form-control"
+               placeholder="Search by name..." />
+    </div>
+
+    <!-- Filter Active -->
+    <div class="col-md-2">
+        <select name="isActive" class="form-control">
+            <option value="">-- Status --</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+        </select>
+    </div>
+
+    <!-- Sort By -->
+    <div class="col-md-2">
+        <select name="sortBy" class="form-control">
+            <option value="">-- Sort by --</option>
+            <option value="Name">Name</option>
+            <option value="Price">Price</option>
+            <option value="CreatedAt">Created Date</option>
+        </select>
+    </div>
+
+    <!-- Sort Order -->
+    <div class="col-md-2">
+        <select name="sortOrder" class="form-control">
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Apply</button>
+    </div>
+
+    <!-- Price range -->
+    <div class="col-md-2">
+        <input type="number"
+               name="minPrice"
+               value="@Context.Request.Query["minPrice"]"
+               class="form-control"
+               placeholder="Min price" />
+    </div>
+
+    <div class="col-md-2">
+        <input type="number"
+               name="maxPrice"
+               value="@Context.Request.Query["maxPrice"]"
+               class="form-control"
+               placeholder="Max price" />
+    </div>
+
+    <!-- Created date range -->
+    <div class="col-md-2">
+        <input type="date"
+               name="fromDate"
+               value="@Context.Request.Query["fromDate"]"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <input type="date"
+               name="toDate"
+               value="@Context.Request.Query["toDate"]"
+               class="form-control" />
+    </div>
+
+</form>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Values.First().ProductName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Values.First().ProductPrice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Values.First().ProductDescription)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Values.First().StockQuantity)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Values.First().BrandName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Values.First().CategoryName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Values.First().SupplierName)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Values)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductPrice)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductDescription)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StockQuantity)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BrandName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SupplierName)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ProductId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ProductId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ProductId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

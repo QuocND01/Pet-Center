@@ -1,16 +1,18 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using ProductAPI.Models;
-
+using ProductAPI.Models;
+using ProductAPI.Odata;
 using ProductAPI.Profiles;
 using ProductAPI.Repository;
 using ProductAPI.Repository.Interface;
 using ProductAPI.Security;
 using ProductAPI.Service;
 using ProductAPI.Service.Interface;
-
+using ProductAPI.Service.Interface;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,6 +79,23 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<PetCenterContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
+
+
+builder.Services
+    .AddControllers()
+    .AddOData(opt => opt
+        .AddRouteComponents(
+            "odata",
+            EdmModelBuilder.GetEdmModel()
+        )
+        .Select()
+        .Filter()
+        .OrderBy()
+        .Expand()
+        .Count()
+        .SetMaxTop(100)
+    );
+
 
 // Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());

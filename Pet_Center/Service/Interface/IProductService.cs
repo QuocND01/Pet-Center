@@ -1,10 +1,11 @@
 ﻿using ProductAPI.DTOs;
+using ProductAPI.Models;
 
 namespace ProductAPI.Service.Interface
 {
     public interface IProductService
     {
-        Task<IEnumerable<ReadProductDTO>> GetAllProductAsync();
+        IQueryable<ReadProductDTO> GetAllProduct();
         Task<ReadProductDTO> GetProductByIdAsync(Guid id);
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid id, UpdateProductDTO updateproduct);
