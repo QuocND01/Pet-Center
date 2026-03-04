@@ -14,16 +14,21 @@ namespace PetCenterClient.Services
         }
 
         public async Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
-string? search,
-bool? isActive,
-decimal? minPrice,
-decimal? maxPrice,
-DateTime? fromDate,
-DateTime? toDate,
-string? sortBy,
-string sortOrder = "asc",
-int page = 1)
+           string? search,
+           bool? isActive,
+           decimal? minPrice,
+           decimal? maxPrice,
+           DateTime? fromDate,
+           DateTime? toDate,
+           string? sortBy,
+           string sortOrder = "asc",
+           int page = 1)
         {
+            int pageSize = 10;
+
+            if (page < 1)
+                page = 1;
+
             var filters = new List<string>();
 
             if (!string.IsNullOrEmpty(search))
@@ -46,20 +51,32 @@ int page = 1)
             if (!string.IsNullOrEmpty(sortBy))
                 query.Add($"$orderby={sortBy} {sortOrder}");
 
-            query.Add("$count=true");     // BẮT BUỘC nếu muốn Count
-            query.Add("$top=10");
-            if (page < 1)
-                page = 1;
-            query.Add($"$skip={(page - 1) * 10}");
+            query.Add("$count=true");
 
-            var url = query.Any()
-                ? "?" + string.Join("&", query)
-                : string.Empty;
+            int skip = (page - 1) * pageSize;
 
+            query.Add($"$skip={skip}");
+            query.Add($"$top={pageSize}");
 
-            return await _http.GetFromJsonAsync<OdataResponse<ReadProductDTO>>(
+            var url = "?" + string.Join("&", query);
+
+            var response = await _http.GetFromJsonAsync<OdataResponse<ReadProductDTO>>(
                 "odata/products" + url
             );
+
+            // 🔥 Lấy totalCount ở đây
+            int totalCount = response?.Count ?? 0;
+
+            // Nếu skip vượt quá tổng record → quay về page 1
+            if (skip >= totalCount && totalCount > 0)
+            {
+                return await GetAllProductAsync(
+                    search, isActive, minPrice, maxPrice,
+                    fromDate, toDate, sortBy, sortOrder, 1
+                );
+            }
+
+            return response;
         }
 
 
