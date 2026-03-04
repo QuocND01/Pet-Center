@@ -48,7 +48,9 @@ int page = 1)
 
             query.Add("$count=true");     // BẮT BUỘC nếu muốn Count
             query.Add("$top=10");
-            query.Add("$skip={(page - 1) * 10}");
+            if (page < 1)
+                page = 1;
+            query.Add($"$skip={(page - 1) * 10}");
 
             var url = query.Any()
                 ? "?" + string.Join("&", query)
@@ -56,7 +58,7 @@ int page = 1)
 
 
             return await _http.GetFromJsonAsync<OdataResponse<ReadProductDTO>>(
-                "odata/products" //+ url
+                "odata/products" + url
             );
         }
 
