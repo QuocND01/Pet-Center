@@ -44,7 +44,7 @@ namespace ProductAPI.DTOs
         public Guid? CategoryId { get; set; }
         public Guid? SupplierId { get; set; }
 
-        public List<IFormFile>? Images { get; set; }
+        public List<IFormFile>? ImageFiles { get; set; }
 
         public List<UpdateProductAttributeDTO>? Attributes { get; set; }
     }

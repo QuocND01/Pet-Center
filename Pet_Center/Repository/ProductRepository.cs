@@ -37,7 +37,7 @@ namespace ProductAPI.Repository
             if (attributes.Any())
             {
                 _db.ProductAttributes.RemoveRange(attributes);
-                await _db.SaveChangesAsync();
+               await _db.SaveChangesAsync();
             }
         }
 

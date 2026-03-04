@@ -95,18 +95,19 @@ namespace ProductAPI.Service
                 throw new Exception("Product not found");
 
             _mapper.Map(updateproduct, product);
+
             product.UpdateAt = DateTime.Now;
 
             product.Images ??= new List<Image>();
             product.ProductAttributes ??= new List<ProductAttribute>();
 
             // 1️⃣ UPDATE IMAGES
-            if (updateproduct.Images != null && updateproduct.Images.Any())
+            if (updateproduct.ImageFiles != null && updateproduct.ImageFiles.Any())
             {
                 var newImages = new List<Image>();
 
                 // 1️⃣ Upload trước
-                foreach (var file in updateproduct.Images)
+                foreach (var file in updateproduct.ImageFiles)
                 {
                     var uploadResult = await _cloudinaryService
                         .UploadImageAsync(file, "products");
@@ -119,15 +120,17 @@ namespace ProductAPI.Service
 
                     newImages.Add(new Image
                     {
-                        ImageId = Guid.NewGuid(),
+                        //ImageId = Guid.NewGuid(),
                         ImageUrl = uploadResult.SecureUrl.ToString(),
+                        ProductId = id,
                         PublicId = uploadResult.PublicId,
                         IsActive = true
                     });
                 }
 
                 // 2️⃣ Xóa ảnh cũ
-                foreach (var img in product.Images)
+                var oldImages = product.Images.ToList();
+                foreach (var img in oldImages)
                 {
                     await _cloudinaryService.DeleteImageAsync(img.PublicId);
                 }
@@ -145,7 +148,6 @@ namespace ProductAPI.Service
             if (updateproduct.Attributes != null)
             {
                 await _productRepository.DeleteProductAttributesByProductIdAsync(product.ProductId);
-                product.ProductAttributes.Clear();
 
                 foreach (var attr in updateproduct.Attributes)
                 {

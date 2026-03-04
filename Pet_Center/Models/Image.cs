@@ -9,9 +9,11 @@ public partial class Image
 
     public string ImageUrl { get; set; } = null!;
 
+    public Guid ProductId { get; set; }   // FK
+
     public string PublicId { get; set; } = null!;
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual Product Product { get; set; } = null!;  // ❗ chỉ 1 Product
 }
