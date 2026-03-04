@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ProductAPI.DTOs;
-using ProductAPI.Service.Interface;
+﻿using InventoryAPI.DTOs;
+using InventoryAPI.Service.Interface;
+using Microsoft.AspNetCore.Mvc;
 
-namespace ProductAPI.Controllers
+namespace InventoryAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

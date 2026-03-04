@@ -1,6 +1,6 @@
-﻿using ProductAPI.Models;
+﻿using InventoryAPI.Models;
 
-namespace ProductAPI.Repository.Interface
+namespace InventoryAPI.Repository.Interface
 {
     public interface ISupplierRepository
     {

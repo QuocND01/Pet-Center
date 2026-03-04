@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ProductAPI.Models;
-using ProductAPI.Repository.Interface;
+﻿using InventoryAPI.Models;
+using InventoryAPI.Repository.Interface;
+using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace ProductAPI.Repository
+namespace InventoryAPI.Repository
 {
     public class SupplierRepository : ISupplierRepository
     {

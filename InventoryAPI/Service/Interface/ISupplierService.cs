@@ -1,6 +1,6 @@
-﻿using ProductAPI.DTOs;
+﻿using InventoryAPI.DTOs;
 
-namespace ProductAPI.Service.Interface
+namespace InventoryAPI.Service.Interface
 {
     
         public interface ISupplierService

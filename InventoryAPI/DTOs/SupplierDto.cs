@@ -1,4 +1,4 @@
-﻿namespace ProductAPI.DTOs
+﻿namespace InventoryAPI.DTOs
 {
     public class ReadSupplierDto
     {

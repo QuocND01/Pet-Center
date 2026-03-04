@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using ProductAPI.DTOs;
-using ProductAPI.Models;
-using ProductAPI.Repository.Interface;
-using ProductAPI.Service.Interface;
+using InventoryAPI.DTOs;
+using InventoryAPI.Models;
+using InventoryAPI.Repository.Interface;
+using InventoryAPI.Service.Interface;
 
 
-namespace ProductAPI.Service
+namespace InventoryAPI.Service
 {
     public class SupplierService : ISupplierService
     {

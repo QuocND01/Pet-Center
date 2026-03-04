@@ -87,7 +87,7 @@ builder.Services
 
 // Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
+
 
 
 // Đăng ký Service và Repository
