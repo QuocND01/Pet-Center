@@ -9,9 +9,7 @@ using ProductAPI.Odata;
 using ProductAPI.Profiles;
 using ProductAPI.Repository;
 using ProductAPI.Repository.Interface;
-using ProductAPI.Security;
 using ProductAPI.Service;
-using ProductAPI.Service.Interface;
 using ProductAPI.Service.Interface;
 using System.Text;
 
@@ -20,7 +18,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -61,15 +58,6 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
-
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
-
-builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
-builder.Services.AddScoped<PasswordService>();
-builder.Services.AddScoped<ISupplierService, SupplierService>();
-builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
 builder.Services.AddAuthorization();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

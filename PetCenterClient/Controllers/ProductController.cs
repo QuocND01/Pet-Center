@@ -5,11 +5,11 @@ using ProductAPI.DTOs;
 
 namespace PetCenterClient.Controllers
 {
-    public class ReadProdutDTOsController : Controller
+    public class ProductsController : Controller
     {
         private readonly IProductService _productService;
 
-        public ReadProdutDTOsController(IProductService productService)
+        public ProductsController(IProductService productService)
         {
             _productService = productService;
         }
@@ -29,11 +29,11 @@ namespace PetCenterClient.Controllers
             int pagesize = 3;
             var result = await _productService.GetAllProductAsync(
                search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, sortOrder, pagesize);
-            var totalItems = result.Count;
+            int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
-            return View(result);
+            return View("~/Views/Shared/HomePage.cshtml", result);
         }
 
         // GET: ReadProdutDTOs/Details/5
