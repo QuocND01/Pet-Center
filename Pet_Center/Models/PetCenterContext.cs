@@ -192,13 +192,28 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Image>(entity =>
         {
-            entity.HasKey(e => e.ImageId).HasName("PK__Images__7516F4EC16358434");
+            entity.HasKey(e => e.ImageId);
 
             entity.Property(e => e.ImageId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ImageID");
-            entity.Property(e => e.ImageUrl).HasMaxLength(500);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            entity.Property(e => e.ImageUrl)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.PublicId)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ProductId)
+                .HasColumnName("ProductID");
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.Images)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ImportStock>(entity =>
@@ -347,24 +362,9 @@ public partial class PetCenterContext : DbContext
                 .HasForeignKey(d => d.SupplierId)
                 .HasConstraintName("FK__Products__Suppli__60A75C0F");
 
-            entity.HasMany(d => d.Images).WithMany(p => p.Products)
-                .UsingEntity<Dictionary<string, object>>(
-                    "ProductImage",
-                    r => r.HasOne<Image>().WithMany()
-                        .HasForeignKey("ImageId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__ProductIm__Image__68487DD7"),
-                    l => l.HasOne<Product>().WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__ProductIm__Produ__6754599E"),
-                    j =>
-                    {
-                        j.HasKey("ProductId", "ImageId").HasName("PK__ProductI__635DA9A38631CC7F");
-                        j.ToTable("ProductImages");
-                        j.IndexerProperty<Guid>("ProductId").HasColumnName("ProductID");
-                        j.IndexerProperty<Guid>("ImageId").HasColumnName("ImageID");
-                    });
+            entity.Property(e => e.ProductId)
+                .HasColumnName("ProductID");
+
         });
 
         modelBuilder.Entity<ProductAttribute>(entity =>
