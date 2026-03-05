@@ -1,5 +1,7 @@
 
 using FeedbackAPI.Models;
+using FeedbackAPI.Service;
+using FeedbackAPI.Service.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +21,7 @@ namespace FeedbackAPI
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<PetCenterContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+            builder.Services.AddScoped<IFeedbackService, FeedbackService>();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             var app = builder.Build();
 
