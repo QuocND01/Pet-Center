@@ -18,9 +18,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // AutoMapper configuration
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ImportStockProfile>());
 // Dependency Injection
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IImportStockRepository, ImportStockRepository>();
+builder.Services.AddScoped<IImportStockService, ImportStockService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
