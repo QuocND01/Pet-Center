@@ -97,12 +97,29 @@ builder.Services
 
 // Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<Brandprofile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<Categoryprofile>());
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowClient",
+        policy =>
+        {
+            policy.WithOrigins("https://localhost:7010")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 
 
 // Đăng ký Service và Repository
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
@@ -119,6 +136,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
