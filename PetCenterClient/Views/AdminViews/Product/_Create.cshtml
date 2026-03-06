@@ -1,9 +1,20 @@
 ﻿@model ProductAPI.DTOs.CreateProductDTO
 
+<style>
 
+    .image-preview {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 2px dashed #ccc;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+
+</style>
 <form method="post"
       enctype="multipart/form-data"
-      asp-action="Create">
+      asp-action="Create" asp-controller="Products">
 
     <div class="row">
 
@@ -32,26 +43,54 @@
                    class="form-control" />
         </div>
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="BrandId"></label>
-            <select asp-for="BrandId"
-                    asp-items="ViewBag.Brands"
-                    class="form-control"></select>
+        <select asp-for="BrandId"
+                asp-items="@(ViewBag.Brands as SelectList)"
+                class="form-control">
+            <option value="">-- Select Brand --</option>
+        </select>
+
+        <select asp-for="CategoryId"
+                asp-items="@(ViewBag.Categories as SelectList)"
+                class="form-control">
+            <option value="">-- Select Category --</option>
+        </select>
+        <div class="col-md-12 mt-3">
+
+            <label class="form-label">Attributes</label>
+
+            <div id="attributeList"></div>
+
         </div>
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="CategoryId"></label>
-            <select asp-for="CategoryId"
-                    asp-items="ViewBag.Categories"
-                    class="form-control"></select>
+
+    </div>
+
+    <div class="col-md-12 mb-3">
+
+        <label class="form-label">Product Images</label>
+
+        <div id="imageList" class="d-flex flex-wrap gap-3">
+
+            <div class="image-item">
+                <input type="file"
+                       name="ImageFiles"
+                       accept="image/*"
+                       hidden
+                       onchange="previewSelectedImage(this,'preview_0')" />
+
+                <img id="preview_0"
+                     src="https://via.placeholder.com/120"
+                     class="image-preview"
+                     onclick="this.previousElementSibling.click()" />
+            </div>
+
         </div>
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="SupplierId"></label>
-            <select asp-for="SupplierId"
-                    asp-items="ViewBag.Suppliers"
-                    class="form-control"></select>
-        </div>
+        <button type="button"
+                id="addImage"
+                class="btn btn-success mt-2">
+            + Add Image
+        </button>
 
     </div>
 
@@ -63,48 +102,31 @@
 
 <script>
 
-    let attributeIndex = 1
+        let imageIndex = 1
 
-    $(document).ready(function(){
+    $("#addImage").click(function(){
 
-    $("#attributeList").on("click",".add-attribute",function(){
+        const html = `
 
-    const html = `
+        <div class="image-item">
 
-    <div class="row mb-2 attribute-item">
+            <input type="file"
+                   name="ImageFiles"
+                   accept="image/*"
+                   hidden
+                   onchange="previewSelectedImage(this,'preview_${imageIndex}')"/>
 
-    <div class="col-md-5">
-    <input name="Attributes[${attributeIndex}].AttributeName"
-           class="form-control"
-           placeholder="Attribute name"/>
-    </div>
+            <img id="preview_${imageIndex}"
+                 src="https://via.placeholder.com/120"
+                 class="image-preview"
+                 onclick="this.previousElementSibling.click()" />
 
-    <div class="col-md-5">
-    <input name="Attributes[${attributeIndex}].AttributeValue"
-           class="form-control"
-           placeholder="Attribute value"/>
-    </div>
+        </div>
+        `
 
-    <div class="col-md-2">
-    <button type="button"
-            class="btn btn-danger remove-attribute w-100">
-    -
-    </button>
-    </div>
+        $("#imageList").append(html)
 
-    </div>`
-
-    $("#attributeList").append(html)
-
-    attributeIndex++
-
-    })
-
-    $("#attributeList").on("click",".remove-attribute",function(){
-
-    $(this).closest(".attribute-item").remove()
-
-    })
+        imageIndex++
 
     })
 
@@ -126,4 +148,57 @@
 
     }
 
+
+    // Script lấy category attribute tương ứng với category
+
+            $(document).ready(function () {
+
+        $("#CategoryId").change(function () {
+
+            const categoryId = $(this).val()
+             console.log("categoryId da chon"+ $(this).val())
+            console.log("categoryid la : " + categoryId)
+            if (!categoryId) return
+
+           $.get(`https://localhost:7239/api/Categories/${categoryId}/attributes`, function (data) {
+
+                $("#attributeList").empty()
+
+                let index = 0
+
+                    data.forEach(attr => {
+
+        const html = `
+        <div class="row mb-2">
+
+            <div class="col-md-5">
+                <input class="form-control"
+                       value="${attr.attributeName}"
+                       readonly />
+            </div>
+
+            <div class="col-md-7">
+                <input name="Attributes[${index}].AttributeValue"
+                       class="form-control"
+                       placeholder="Enter value"/>
+
+                <input type="hidden"
+                       name="Attributes[${index}].CategoryAttributeId"
+                       value="${attr.categoryAttributeId}" />
+            </div>
+
+        </div>
+        `
+
+        $("#attributeList").append(html)
+
+        index++
+
+    })
+
+            })
+
+        })
+
+    })
 </script>

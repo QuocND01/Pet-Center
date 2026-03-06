@@ -80,16 +80,63 @@ namespace PetCenterClient.Services
             return response;
         }
 
-
-
         public async Task<ReadProductDTO> GetProductByIdAsync(Guid? id)
         {
             return await _http.GetFromJsonAsync<ReadProductDTO>($"api/Products/{id}");
         }
 
-        public async Task AddProductAsync(CreateProductDTO createproduct)
+        public async Task AddProductAsync(CreateProductDTO model)
         {
-            await _http.PostAsJsonAsync("api/Products", createproduct);
+            var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(model.ProductName), "ProductName");
+            content.Add(new StringContent(model.ProductPrice.ToString()), "ProductPrice");
+
+            if (model.ProductDescription != null)
+                content.Add(new StringContent(model.ProductDescription), "ProductDescription");
+
+            if (model.StockQuantity != null)
+                content.Add(new StringContent(model.StockQuantity.ToString()), "StockQuantity");
+
+            content.Add(new StringContent(model.BrandId.ToString()), "BrandId");
+            content.Add(new StringContent(model.CategoryId.ToString()), "CategoryId");
+
+            // gửi attributes
+            if (model.Attributes != null)
+            {
+                for (int i = 0; i < model.Attributes.Count; i++)
+                {
+                    content.Add(
+                        new StringContent(model.Attributes[i].CategoryAttributeId.ToString()),
+                        $"Attributes[{i}].CategoryAttributeId"
+                    );
+
+                    content.Add(
+                        new StringContent(model.Attributes[i].AttributeValue),
+                        $"Attributes[{i}].AttributeValue"
+                    );
+                }
+            }
+
+            // gửi ảnh
+            if (model.ImageFiles != null)
+            {
+                foreach (var file in model.ImageFiles)
+                {
+                    var streamContent = new StreamContent(file.OpenReadStream());
+                    streamContent.Headers.ContentType =
+                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+                    content.Add(streamContent, "ImageFiles", file.FileName);
+                }
+            }
+
+            var response = await _http.PostAsync("api/Products", content);
+
+            var result = await response.Content.ReadAsStringAsync();
+
+            Console.WriteLine("Status: " + response.StatusCode);
+            Console.WriteLine("Response: " + result);
         }
 
         public async Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct)

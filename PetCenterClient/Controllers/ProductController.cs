@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using ProductAPI.DTOs;
 
@@ -9,10 +10,14 @@ namespace PetCenterClient.Controllers
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
+        private readonly IBrandService _brandService;
+        private readonly ICategoryService _categoryService;
 
-        public ProductsController(IProductService productService)
+        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService)
         {
             _productService = productService;
+            _brandService = brandService;
+            _categoryService = categoryService;
         }
 
         // GET: ReadProdutDTOs
@@ -79,11 +84,16 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            
+            var brands = await _brandService.GetAllBrandAsync() ?? new List<ReadBrandDTOs>();
+            var categories = await _categoryService.GetAllCategoryAsync() ?? new List<ReadCategoryDTOs>();
+            Console.WriteLine("number of brand: "+ brands.Count());
+            Console.WriteLine("number of category: "+ categories.Count());
+            ViewBag.Brands = new SelectList(brands, "BrandId", "BrandName");
+            ViewBag.Categories = new SelectList(categories, "CategoryId", "CategoryName");
 
-            return PartialView("~/Views/AdminViews/Product/_Create.cshtml", new CreateProductDTO());
+            return PartialView("~/Views/AdminViews/Product/_Create.cshtml");
         }
 
         // POST: ReadProdutDTOs/Create
@@ -91,13 +101,38 @@ namespace PetCenterClient.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [HttpPost]
         public async Task<IActionResult> Create(CreateProductDTO model)
         {
-            if (!ModelState.IsValid)
-                return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
 
-            await _productService.AddProductAsync(model);
+            Console.WriteLine("ProductName: " + model.ProductName);
+            Console.WriteLine("CategoryId: " + model.CategoryId);
+            Console.WriteLine("BrandId: " + model.BrandId);
+
+            if (model.Attributes != null)
+            {
+                Console.WriteLine("Attribute count: " + model.Attributes.Count);
+            }
+            else
+            {
+                Console.WriteLine("Attributes NULL");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
+                return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
+            }
+            try
+            {
+                await _productService.AddProductAsync(model);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
             return RedirectToAction("Index");
         }

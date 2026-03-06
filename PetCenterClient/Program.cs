@@ -4,16 +4,27 @@ using PetCenterClient.Services.Interface;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
-
-
-builder.Services.AddAuthorization();
-builder.Services.AddControllersWithViews();
 var apiUrl = builder.Configuration["Api:url"];
+
 builder.Services.AddHttpClient<IProductService, ProductService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+
+builder.Services.AddHttpClient<IBrandService, BrandService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<ICategoryService, CategoryService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+
+builder.Services.AddAuthorization();
+builder.Services.AddControllersWithViews();
+
 
 var app = builder.Build();
 

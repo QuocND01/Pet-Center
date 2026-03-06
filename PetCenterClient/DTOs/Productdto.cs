@@ -24,9 +24,6 @@ namespace ProductAPI.DTOs
         public Guid CategoryId { get; set; }
         public string? CategoryName { get; set; }
 
-        // Supplier
-        public Guid SupplierId { get; set; }
-        public string? SupplierName { get; set; }
 
         // Images
         public List<string>? Images { get; set; }
@@ -44,9 +41,8 @@ namespace ProductAPI.DTOs
 
         public Guid? BrandId { get; set; }
         public Guid? CategoryId { get; set; }
-        public Guid? SupplierId { get; set; }
 
-        public List<IFormFile>? Images { get; set; }
+        public List<IFormFile>? ImageFiles { get; set; }
 
         public List<UpdateProductAttributeDTO>? Attributes { get; set; }
     }
@@ -59,7 +55,6 @@ namespace ProductAPI.DTOs
 
         public Guid BrandId { get; set; }
         public Guid CategoryId { get; set; }
-        public Guid SupplierId { get; set; }
 
         public List<IFormFile>? ImageFiles { get; set; }
 
