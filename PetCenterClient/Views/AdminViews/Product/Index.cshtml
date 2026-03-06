@@ -1,0 +1,347 @@
+﻿@using PetCenterClient.DTOs
+@using ProductAPI.DTOs
+@model OdataResponse<ReadProductDTO>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Products";
+}
+
+<h2 class="mb-3">Product List</h2>
+
+<form asp-action="Indexadmin" asp-controller="Products" method="get" class="row g-2 mb-3">
+
+    <!-- Search name -->
+    <div class="col-md-3">
+        <input type="text"
+               name="search"
+               value="@Context.Request.Query["search"]"
+               class="form-control"
+               placeholder="Search product name..." />
+    </div
+
+    <!-- Sort by -->
+    <div class="col-md-2">
+        <select name="sortBy" class="form-control">
+            <option value="">-- Sort By --</option>
+            <option value="ProductName">Name</option>
+            <option value="ProductPrice">Price</option>
+            <option value="CreatedAt">Created Date</option>
+        </select>
+    </div>
+
+    <!-- Sort order -->
+    <div class="col-md-2">
+        <select name="sortOrder" class="form-control">
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+        </select>
+    </div>
+
+    <!-- Min price -->
+    <div class="col-md-2">
+        <input type="number"
+               name="minPrice"
+               value="@Context.Request.Query["minPrice"]"
+               class="form-control"
+               placeholder="Min price" />
+    </div>
+
+    <!-- Max price -->
+    <div class="col-md-2">
+        <input type="number"
+               name="maxPrice"
+               value="@Context.Request.Query["maxPrice"]"
+               class="form-control"
+               placeholder="Max price" />
+    </div>
+
+    <!-- From date -->
+    <div class="col-md-2">
+        <input type="date"
+               name="fromDate"
+               value="@Context.Request.Query["fromDate"]"
+               class="form-control" />
+    </div>
+
+    <!-- To date -->
+    <div class="col-md-2">
+        <input type="date"
+               name="toDate"
+               value="@Context.Request.Query["toDate"]"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">
+            Apply
+        </button>
+    </div>
+
+</form>
+
+<p>
+    <button class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#productModal"
+            data-url="@Url.Action("Create", "Products")">
+
+        <i class="bi bi-plus-circle"></i> Add Product
+    </button>
+</p>
+
+<table class="table table-hover table-striped align-middle">
+
+    <thead class="table-dark">
+        <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Brand</th>
+            <th>Category</th>
+            <th>Supplier</th>
+            <th style="width:160px;">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @if (Model?.Values != null && Model.Values.Any())
+        {
+            foreach (var p in Model.Values)
+            {
+                <tr>
+
+                    <td>
+                        <img src="@p.Images?.FirstOrDefault()"
+                             style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />
+                    </td>
+
+                    <td>@p.ProductName</td>
+
+                    <td>
+                        @p.ProductPrice.ToString("N0") ₫
+                    </td>
+
+                    <td>@p.StockQuantity</td>
+
+                    <td>@p.BrandName</td>
+
+                    <td>@p.CategoryName</td>
+
+                    <td>@p.SupplierName</td>
+
+
+
+                    <td>
+
+                        <!-- VIEW -->
+                        <button class="btn btn-sm btn-info text-white"
+                                data-bs-toggle="modal"
+                                data-bs-target="#productModal"
+                                data-url="@Url.Action("Details", "Products", new { id = p.ProductId })">
+
+                            <i class="bi bi-eye"></i>
+                        </button>
+
+                        <!-- EDIT -->
+                        <button class="btn btn-sm btn-warning text-white"
+                                data-bs-toggle="modal"
+                                data-bs-target="#productModal"
+                                data-url="@Url.Action("Edit", "Products", new { id = p.ProductId })">
+
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+
+                        <!-- DELETE -->
+                        <button class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#productModal"
+                                data-url="@Url.Action("Delete", "Products", new { id = p.ProductId })">
+
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </td>
+
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="9" class="text-center text-muted py-3">
+                    No products available.
+                </td>
+            </tr>
+        }
+
+    </tbody>
+
+</table>
+
+
+<!-- PRODUCT MODAL -->
+
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="productModalBody"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Loading Overlay -->
+
+<div id="pageLoadingOverlay"
+     style="display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background: rgba(255,255,255,0.7);
+            z-index:2000;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;">
+
+    <div class="spinner-border text-primary"
+         role="status"
+         style="width:3rem;height:3rem"></div>
+
+    <p class="mt-2">Processing, Please wait...</p>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+
+    <div id="liveToast"
+         class="toast bg-success text-white"
+         role="alert">
+
+        <div class="toast-body"></div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        // Load modal content
+
+                $('#productModal').on('show.bs.modal', function (e) {
+
+            var button = $(e.relatedTarget);
+            var url = button.data('url');
+
+            var modalBody = $("#productModalBody");
+
+            modalBody.html("Loading...");
+
+            modalBody.load(url);
+
+        });
+
+
+
+        // Submit form bằng AJAX
+
+        $('#productModal').on('submit', 'form', function (e) {
+
+            e.preventDefault();
+
+            var form = $(this);
+
+            var formData = new FormData(form[0]);
+
+            $("#pageLoadingOverlay").css("display", "flex");
+
+            $.ajax({
+
+                url: form.attr('action'),
+
+                type: form.attr('method'),
+
+                data: formData,
+
+                contentType: false,
+
+                processData: false,
+
+                success: function (res) {
+
+                    $("#pageLoadingOverlay").hide();
+
+                    if (res.success) {
+
+                        $('#productModal').modal('hide');
+
+                        showToast("Success");
+
+                        setTimeout(function () {
+
+                            location.reload();
+
+                        }, 800);
+
+                    }
+
+                },
+
+                error: function () {
+
+                    $("#pageLoadingOverlay").hide();
+
+                    showToast("Error");
+
+                }
+
+            });
+
+        });
+
+
+
+        function showToast(message) {
+
+            $('#liveToast .toast-body').text(message);
+
+            var toast = new bootstrap.Toast(document.getElementById('liveToast'));
+
+            toast.show();
+
+        }
+
+        
+        document.querySelector("form").addEventListener("submit", function () {
+
+            this.querySelectorAll("input, select").forEach(el => {
+                if (!el.value) {
+                    el.removeAttribute("name");
+                }
+            });
+
+        });
+    </script>
+
+}

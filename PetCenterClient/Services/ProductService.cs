@@ -14,15 +14,15 @@ namespace PetCenterClient.Services
         }
 
         public async Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
-           string? search,
-           bool? isActive,
-           decimal? minPrice,
-           decimal? maxPrice,
-           DateTime? fromDate,
-           DateTime? toDate,
-           string? sortBy,
-           string sortOrder = "asc",
-           int page = 1)
+     string? search,
+     bool? isActive,
+     decimal? minPrice,
+     decimal? maxPrice,
+     DateTime? fromDate,
+     DateTime? toDate,
+     string? sortBy,
+     string sortOrder = "asc",
+     int page = 1)
         {
             int pageSize = 10;
 
@@ -32,16 +32,19 @@ namespace PetCenterClient.Services
             var filters = new List<string>();
 
             if (!string.IsNullOrEmpty(search))
-                filters.Add($"contains(Name,'{search}')");
+            {
+                search = search.Replace("'", "''");
+                filters.Add($"contains(ProductName,'{search}')");
+            }
 
             if (isActive.HasValue)
                 filters.Add($"IsActive eq {isActive.Value.ToString().ToLower()}");
 
             if (minPrice.HasValue)
-                filters.Add($"Price ge {minPrice.Value}");
+                filters.Add($"ProductPrice ge {minPrice.Value}");
 
             if (maxPrice.HasValue)
-                filters.Add($"Price le {maxPrice.Value}");
+                filters.Add($"ProductPrice le {maxPrice.Value}");
 
             var query = new List<string>();
 
@@ -49,7 +52,17 @@ namespace PetCenterClient.Services
                 query.Add("$filter=" + string.Join(" and ", filters));
 
             if (!string.IsNullOrEmpty(sortBy))
-                query.Add($"$orderby={sortBy} {sortOrder}");
+            {
+                var column = sortBy.ToLower() switch
+                {
+                    "price" => "ProductPrice",
+                    "name" => "ProductName",
+                    "date" => "AddedAt",
+                    _ => "ProductName"
+                };
+
+                query.Add($"$orderby={column} {sortOrder}");
+            }
 
             query.Add("$count=true");
 
@@ -64,20 +77,9 @@ namespace PetCenterClient.Services
                 "odata/products" + url
             );
 
-            // 🔥 Lấy totalCount ở đây
-            int totalCount = response?.Count ?? 0;
-
-            // Nếu skip vượt quá tổng record → quay về page 1
-            if (skip >= totalCount && totalCount > 0)
-            {
-                return await GetAllProductAsync(
-                    search, isActive, minPrice, maxPrice,
-                    fromDate, toDate, sortBy, sortOrder, 1
-                );
-            }
-
             return response;
         }
+
 
 
         public async Task<ReadProductDTO> GetProductByIdAsync(Guid? id)

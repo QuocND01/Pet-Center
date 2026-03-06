@@ -1,0 +1,171 @@
+﻿@using PetCenterClient.DTOs
+@using ProductAPI.DTOs
+@model OdataResponse<ReadProductDTO>
+
+@{
+    ViewData["Title"] = "Products";
+}
+
+<link rel="stylesheet" href="~/css/UserViews/Home/HomePage.css" />
+
+<div class="container mt-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-box"></i> Product List
+        </h2>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create Product
+        </a>
+    </div>
+
+    <form asp-action="Index" asp-controller="Products" method="get" class="row g-2 mb-3">
+        <!-- Search name -->
+        <div class="col-md-3">
+            <input type="text"
+                   name="search"
+                   value="@Context.Request.Query["search"]"
+                   class="form-control"
+                   placeholder="Search by name..." />
+        </div>
+
+        <!-- Sort By -->
+        <div class="col-md-2">
+            <select name="sortBy" class="form-control">
+                <option value="">-- Sort by --</option>
+                <option value="Name">Name</option>
+                <option value="Price">Price</option>
+                <option value="CreatedAt">Created Date</option>
+            </select>
+        </div>
+
+        <!-- Sort Order -->
+        <div class="col-md-2">
+            <select name="sortOrder" class="form-control">
+                <option value="asc">Asc</option>
+                <option value="desc">Desc</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Apply</button>
+        </div>
+
+        <!-- Price range -->
+        <div class="col-md-2">
+            <input type="number"
+                   name="minPrice"
+                   value="@Context.Request.Query["minPrice"]"
+                   class="form-control"
+                   placeholder="Min price" />
+        </div>
+
+        <div class="col-md-2">
+            <input type="number"
+                   name="maxPrice"
+                   value="@Context.Request.Query["maxPrice"]"
+                   class="form-control"
+                   placeholder="Max price" />
+        </div>
+
+        <!-- Created date range -->
+        <div class="col-md-2">
+            <input type="date"
+                   name="fromDate"
+                   value="@Context.Request.Query["fromDate"]"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+            <input type="date"
+                   name="toDate"
+                   value="@Context.Request.Query["toDate"]"
+                   class="form-control" />
+        </div>
+
+    </form>
+
+    <!-- PRODUCT GRID -->
+    @if (Model?.Values != null && Model.Values.Any())
+    {
+        <div class="product-grid">
+
+            @foreach (var item in Model.Values)
+            {
+                <div class="product-card">
+
+                    <div class="product-image">
+                        <img src="@item.Images.FirstOrDefault()"
+                             alt="@item.ProductName" />
+                    </div>
+
+                    <!-- INFO -->
+                    <div class="product-info">
+
+                        <h5 class="product-title">
+                            @item.ProductName
+                        </h5>
+
+                        <p class="text-muted small">
+                            @item.ProductDescription
+                        </p>
+
+                        <div class="product-meta">
+
+                            <span class="product-price">
+                                @item.ProductPrice.ToString("N0") ₫
+                            </span>
+
+                            @if (item.StockQuantity > 0)
+                            {
+                                <span class="badge bg-success">
+                                    In Stock
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+                                    Out Of Stock
+                                </span>
+                            }
+
+                        </div>
+
+                        <div class="product-extra mt-2 small text-muted">
+
+                            <div>Brand: @item.BrandName</div>
+                            <div>Category: @item.CategoryName</div>
+                            <div>Supplier: @item.SupplierName</div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="text-center p-5">
+            <i class="bi bi-box display-4 text-muted"></i>
+            <p class="text-muted mt-2">No products found</p>
+        </div>
+    }
+
+</div>
+
+<script>
+    document.querySelector("form").addEventListener("submit", function () {
+
+        this.querySelectorAll("input, select").forEach(el => {
+            if (!el.value) {
+                el.removeAttribute("name");
+            }
+        });
+
+    });
+</script>

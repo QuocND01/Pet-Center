@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PetCenterClient.Services.Interface;
 using ProductAPI.DTOs;
@@ -17,24 +18,48 @@ namespace PetCenterClient.Controllers
         // GET: ReadProdutDTOs
         public async Task<IActionResult> Index(
           string? search,
- bool? isActive,
- decimal? minPrice,
- decimal? maxPrice,
- DateTime? fromDate,
- DateTime? toDate,
- string? sortBy,
- string sortOrder = "asc",
- int page = 1)
+             bool? isActive,
+             decimal? minPrice,
+             decimal? maxPrice,
+             DateTime? fromDate,
+             DateTime? toDate,
+             string? sortBy,
+             string sortOrder = "asc",
+             int page = 1)
         {
             int pagesize = 3;
             var result = await _productService.GetAllProductAsync(
-               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, sortOrder, pagesize);
+               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, sortOrder, page);
             int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
-            return View("~/Views/Shared/HomePage.cshtml", result);
+            return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
+
+
+
+        public async Task<IActionResult> Indexadmin(
+          string? search,
+             bool? isActive,
+             decimal? minPrice,
+             decimal? maxPrice,
+             DateTime? fromDate,
+             DateTime? toDate,
+             string? sortBy,
+             string sortOrder = "asc",
+             int page = 1)
+        {
+            int pagesize = 3;
+            var result = await _productService.GetAllProductAsync(
+               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, sortOrder, page);
+            int totalItems = result?.Count ?? 0;
+            var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            return View("~/Views/AdminViews/Product/Index.cshtml", result);
+        }
+
 
         // GET: ReadProdutDTOs/Details/5
         public async Task<IActionResult> Details(Guid? id)
@@ -56,7 +81,9 @@ namespace PetCenterClient.Controllers
         // GET: ReadProdutDTOs/Create
         public IActionResult Create()
         {
-            return View();
+            
+
+            return PartialView("~/Views/AdminViews/Product/_Create.cshtml", new CreateProductDTO());
         }
 
         // POST: ReadProdutDTOs/Create
@@ -64,14 +91,15 @@ namespace PetCenterClient.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [HttpPost]
         public async Task<IActionResult> Create(CreateProductDTO model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+                return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
 
             await _productService.AddProductAsync(model);
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         // GET: ReadProdutDTOs/Edit/5

@@ -60,6 +60,8 @@ namespace ProductAPI.Repository
             }
         }
 
+    
+
         public Task<Product?> GetProductByIdAsync(Guid id)
         {
             return _db.Products.Include(p => p.Brand)
