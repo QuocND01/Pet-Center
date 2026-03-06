@@ -15,6 +15,11 @@ builder.Services.AddHttpClient<IProductService, ProductService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<IStaffService, StaffService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Api:IdentityUrl"]);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
