@@ -1,0 +1,482 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Dashboard</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-dark border-right text-white p-3" id="sidebar-wrapper" style="min-height:100vh">
+            <h4 class="text-center">WorldBook Admin</h4>
+            <div class="list-group list-group-flush">
+                <a asp-controller="Statistics" asp-action="Dashboard" class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="bi bi-speedometer2"></i> Dashboard & Statistics
+                </a>
+                <a asp-controller="Products" asp-action="Indexadmin" class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="bi bi-book"></i> Manage Products
+                </a>
+                @* @if (User.IsInRole("Admin"))
+                { *@
+                    <a asp-controller="Category" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                        <i class="bi bi-tags"></i> Manage Categorys
+                    </a>
+                    <a asp-controller="Authors" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                        <i class="bi bi-people"></i> Manage Authors
+                    </a>
+                    <a asp-controller="Publisher" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                        <i class="bi bi-book-half"></i> Manage Publishers
+                    </a>
+                    <a asp-controller="Suppliers" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                        <i class="bi bi-building"></i> Manage Suppliers
+                    </a>
+                    <a asp-controller="ManageStaff" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                        <i class="bi bi-person-badge"></i> Manage Staff
+                    </a>
+                    <a asp-controller="Voucher" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                        <i class="bi bi-ticket-perforated"></i> Manage Voucher
+                    </a>
+                @* } *@
+                <a asp-controller="Order" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="bi bi-ticket-perforated"></i> Manage Order
+                </a>
+                <a asp-controller="AdminFeedback" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="bi bi-ticket-perforated"></i> Manage Feedback
+                </a>
+
+                <a asp-controller="Reports" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="bi bi-graph-up"></i> Reports
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-primary" id="menu-toggle">☰</button>
+                    <!-- Thông tin tài khoản -->
+                    <div class="ms-auto d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center px-3 py-2 bg-white border rounded shadow-sm">
+                            <i class="bi bi-person-circle fs-4 text-primary me-2"></i>
+                            <div>
+                                <div class="fw-semibold text-dark">@User.Identity?.Name</div>
+                                <div class="small text-muted">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        @:Admin
+                                    }
+                                    else if (User.IsInRole("Staff"))
+                                    {
+                                        @:Staff
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item"><a asp-controller="Logins" asp-action="Logout" class="nav-link">Logout</a></li>
+                        </ul>
+                    </div>
+            </nav>
+
+            <div class="container-fluid p-4">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <!-- Nội dung sẽ được set bằng JS -->
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <!-- Chat box cho ADMIN -->
+        <div id="admin-chat-container">
+            <!-- Nút tròn bật chat -->
+            <button id="admin-chat-toggle" class="shadow">
+                <i class="bi bi-chat-dots"></i>
+                <span id="admin-chat-badge" class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="display: none;">
+                    <span id="admin-chat-count">1</span>
+                </span>
+            </button>
+
+            <!-- Hộp chat -->
+            <div id="admin-chat-box" class="shadow">
+                <div id="admin-chat-header">
+                    <strong><i class="bi bi-person-lines-fill"></i> Admin Chat</strong>
+                    <button id="admin-chat-close" class="btn btn-sm btn-light"><i class="bi bi-x-lg"></i></button>
+                </div>
+
+                <div id="admin-chat-messages"></div>
+
+                <div id="admin-chat-input-area">
+                    <input type="text" id="admin-chat-input" placeholder="Nhập tin nhắn..." />
+                    <button id="admin-chat-send"><i class="bi bi-send"></i></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <style>
+        /* Vị trí khung chat */
+        #admin-chat-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 3000; /* nằm trên sidebar nhưng không phá layout */
+        }
+
+        /* Nút bật chat */
+        #admin-chat-toggle {
+            width: 60px;
+            height: 60px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 26px;
+            transition: transform 0.2s ease, background 0.2s;
+            position: relative;
+        }
+
+            #admin-chat-toggle:hover {
+                transform: scale(1.1);
+                background-color: #0b5ed7;
+            }
+
+        #admin-chat-badge {
+            min-width: 24px;
+            height: 24px;
+            padding: 0 6px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            animation: bounce 0.5s infinite;
+        }
+
+        @@keyframes bounce {
+            0%, 100%
+
+        {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.2);
+        }
+
+        }
+
+        /* Khung chat box */
+        #admin-chat-box {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            width: 340px;
+            height: 450px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            overflow: hidden;
+            animation: fadeInUp 0.25s ease;
+        }
+
+        @@keyframes fadeInUp {
+            from
+
+        {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        }
+
+        #admin-chat-header {
+            background: #0d6efd;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #admin-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        #admin-chat-input-area {
+            display: flex;
+            border-top: 1px solid #ddd;
+            padding: 8px;
+            gap: 5px;
+        }
+
+        #admin-chat-input {
+            flex: 1;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+
+        #admin-chat-send {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            transition: background 0.2s;
+        }
+
+            #admin-chat-send:hover {
+                background: #0b5ed7;
+            }
+
+        #wrapper.toggled #sidebar-wrapper {
+            margin-left: -250px; /* Ẩn sidebar ra ngoài màn hình */
+            transition: all 0.3s ease;
+        }
+
+        /* Sidebar bình thường */
+        #sidebar-wrapper {
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        /* Khi sidebar bị ẩn thì phần content giãn ra */
+        #wrapper.toggled #page-content-wrapper {
+            margin-left: 0;
+            transition: all 0.3s ease;
+        }
+
+        #menu-toggle {
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+            #menu-toggle:hover {
+                background-color: #0d6efd;
+                color: #fff;
+                transform: scale(1.05);
+            }
+
+        .navbar .fw-semibold {
+            font-size: 1rem;
+        }
+
+        .navbar .small {
+            font-size: 0.85rem;
+        }
+
+        .navbar .btn-danger {
+            transition: all 0.2s ease;
+        }
+
+            .navbar .btn-danger:hover {
+                transform: scale(1.05);
+                background-color: #dc3545;
+            }
+    </style>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+    </script>
+    <script>
+        // Điều khiển bật/tắt
+        const toggle = document.getElementById("admin-chat-toggle");
+        const box = document.getElementById("admin-chat-box");
+        const close = document.getElementById("admin-chat-close");
+        const send = document.getElementById("admin-chat-send");
+        const input = document.getElementById("admin-chat-input");
+        const messages = document.getElementById("admin-chat-messages");
+        const badge = document.getElementById("admin-chat-badge");
+        const badgeCount = document.getElementById("admin-chat-count");
+
+        // Lưu userName người dùng hiện tại đang chat (để trả lời lại)
+        let currentChatUserName = null;
+        let notificationCount = 0;
+
+        function saveChatHistory() {
+            const state = {
+                messages: messages.innerHTML,
+                currentChatUserName: currentChatUserName,
+                notificationCount: notificationCount
+            };
+            sessionStorage.setItem("worldbook_admin_chat_state", JSON.stringify(state));
+        }
+
+        function loadChatHistory() {
+            const state = sessionStorage.getItem("worldbook_admin_chat_state");
+            if (state) {
+                try {
+                    const parsed = JSON.parse(state);
+                    messages.innerHTML = parsed.messages || "";
+                    currentChatUserName = parsed.currentChatUserName || null;
+                    notificationCount = parsed.notificationCount || 0;
+
+                    // Hiển thị badge nếu có thông báo chưa đọc
+                    if (notificationCount > 0) {
+                        badge.style.display = "flex";
+                        badgeCount.textContent = notificationCount;
+                    }
+
+                    console.log(`Loaded chat history for user: ${currentChatUserName}`);
+                } catch (err) {
+                    console.error("Error loading chat state:", err);
+                }
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            loadChatHistory();
+        });
+
+        toggle.onclick = () => {
+            if (!currentChatUserName || messages.innerHTML.trim() === "") {
+                alert("Chưa có user nào liên hệ admin!");
+                return;
+            }
+
+            box.style.display = "flex";
+            toggle.style.display = "none";
+
+            badge.style.display = "none";
+            notificationCount = 0;
+            saveChatHistory();
+        };
+
+        close.onclick = () => {
+            box.style.display = "none";
+            toggle.style.display = "flex";
+            saveChatHistory();
+        };
+
+        // Kết nối SignalR
+        const adminConn = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .build();
+
+        adminConn.start()
+            .then(() => console.log("Admin connected"))
+            .catch(err => console.error("SignalR error:", err));
+
+        // Nhận yêu cầu ban đầu từ user (liên hệ admin)
+        adminConn.on("ReceiveUserNotification", (userName, message) => {
+            currentChatUserName = userName; // Lưu userName
+            addMessage(`👤 <b>${userName}:</b> ${message}`, false);
+            console.log(`🔔 User ${userName} requested admin chat`);
+
+            if (box.style.display !== "flex") {
+                notificationCount++;
+                showNotification();
+            }
+            saveChatHistory();
+        });
+
+        // Nhận tin nhắn tiếp theo từ user
+        adminConn.on("ReceiveUserMessage", (userName, message) => {
+            currentChatUserName = userName; // Cập nhật userName
+            addMessage(`👤 <b>${userName}:</b> ${message}`, false);
+            console.log(`💬 User ${userName} sent: ${message}`);
+
+            if (box.style.display !== "flex") {
+                notificationCount++;
+                showNotification();
+            }
+            saveChatHistory();
+        });
+
+        function showNotification() {
+            badge.style.display = "flex";
+            badgeCount.textContent = notificationCount;
+        }
+
+        // Hàm thêm tin nhắn vào khung
+        function addMessage(content, isAdmin = false) {
+            const div = document.createElement("div");
+            if (isAdmin) {
+                div.className = "text-end text-primary";
+            } else {
+                div.className = "text-start text-dark";
+            }
+            div.innerHTML = `<div class="p-2">${content}</div>`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Gửi tin nhắn từ admin trả lời user cụ thể
+        send.onclick = async () => {
+            const msg = input.value.trim();
+            if (!msg) {
+                alert("Vui lòng nhập tin nhắn");
+                return;
+            }
+
+            if (!currentChatUserName) {
+                alert("Chưa có user nào liên hệ admin");
+                return;
+            }
+
+            addMessage(`<b>Admin:</b> ${msg}`, true);
+            input.value = "";
+            saveChatHistory();
+
+            try {
+                console.log(`Admin sending to ${currentChatUserName}: ${msg}`);
+                //Gửi cho user cụ thể thay vì SendMessageToAll
+                await adminConn.invoke("SendMessageToUser", currentChatUserName, msg);
+            } catch (err) {
+                console.error("Send error:", err);
+                addMessage("Gửi thất bại", false);
+                saveChatHistory();
+            }
+        };
+
+                $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+
+        input.addEventListener("keypress", e => {
+            if (e.key === "Enter") send.click();
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

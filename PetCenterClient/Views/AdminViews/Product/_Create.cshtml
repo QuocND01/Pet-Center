@@ -1,0 +1,129 @@
+﻿@model ProductAPI.DTOs.CreateProductDTO
+
+
+<form method="post"
+      enctype="multipart/form-data"
+      asp-action="Create">
+
+    <div class="row">
+
+        <div class="col-md-12 mb-3">
+            <label asp-for="ProductName" class="form-label"></label>
+            <input asp-for="ProductName" class="form-control" />
+        </div>
+
+        <div class="col-md-12 mb-3">
+            <label asp-for="ProductDescription"></label>
+<textarea asp-for="ProductDescription"
+          class="form-control"></textarea>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label asp-for="ProductPrice"></label>
+            <input asp-for="ProductPrice"
+                   type="number"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label asp-for="StockQuantity"></label>
+            <input asp-for="StockQuantity"
+                   type="number"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="BrandId"></label>
+            <select asp-for="BrandId"
+                    asp-items="ViewBag.Brands"
+                    class="form-control"></select>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="CategoryId"></label>
+            <select asp-for="CategoryId"
+                    asp-items="ViewBag.Categories"
+                    class="form-control"></select>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="SupplierId"></label>
+            <select asp-for="SupplierId"
+                    asp-items="ViewBag.Suppliers"
+                    class="form-control"></select>
+        </div>
+
+    </div>
+
+    <button class="btn btn-primary">
+        Create Product
+    </button>
+
+</form>
+
+<script>
+
+    let attributeIndex = 1
+
+    $(document).ready(function(){
+
+    $("#attributeList").on("click",".add-attribute",function(){
+
+    const html = `
+
+    <div class="row mb-2 attribute-item">
+
+    <div class="col-md-5">
+    <input name="Attributes[${attributeIndex}].AttributeName"
+           class="form-control"
+           placeholder="Attribute name"/>
+    </div>
+
+    <div class="col-md-5">
+    <input name="Attributes[${attributeIndex}].AttributeValue"
+           class="form-control"
+           placeholder="Attribute value"/>
+    </div>
+
+    <div class="col-md-2">
+    <button type="button"
+            class="btn btn-danger remove-attribute w-100">
+    -
+    </button>
+    </div>
+
+    </div>`
+
+    $("#attributeList").append(html)
+
+    attributeIndex++
+
+    })
+
+    $("#attributeList").on("click",".remove-attribute",function(){
+
+    $(this).closest(".attribute-item").remove()
+
+    })
+
+    })
+
+    function previewSelectedImage(input, previewId){
+
+    const file = input.files[0]
+
+    if(!file) return
+
+    const reader = new FileReader()
+
+    reader.onload = function(e){
+
+    document.getElementById(previewId).src = e.target.result
+
+    }
+
+    reader.readAsDataURL(file)
+
+    }
+
+</script>
