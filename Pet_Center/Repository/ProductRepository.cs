@@ -49,7 +49,6 @@ namespace ProductAPI.Repository
                 return _db.Products
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.Supplier)
                 .Include(p => p.Images)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.IsActive == true)
@@ -66,7 +65,6 @@ namespace ProductAPI.Repository
         {
             return _db.Products.Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.Supplier)
                 .Include(p => p.Images)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.IsActive == true)

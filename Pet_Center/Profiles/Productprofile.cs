@@ -15,8 +15,6 @@ namespace ProductAPI.Profiles
                 opt => opt.MapFrom(src => src.Brand.BrandLogo))
             .ForMember(dest => dest.CategoryName,
                 opt => opt.MapFrom(src => src.Category.CategoryName))
-            .ForMember(dest => dest.SupplierName,
-                opt => opt.MapFrom(src => src.Supplier.SupplierName))
             .ForMember(dest => dest.Images,
                 opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl)))
             .ForMember(dest => dest.Attributes,
