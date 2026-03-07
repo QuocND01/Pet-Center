@@ -15,10 +15,6 @@
         <h2 class="fw-bold">
             <i class="bi bi-box"></i> Product List
         </h2>
-
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Create Product
-        </a>
     </div>
 
     <form asp-action="Index" asp-controller="Products" method="get" class="row g-2 mb-3">
@@ -47,10 +43,6 @@
                 <option value="asc">Asc</option>
                 <option value="desc">Desc</option>
             </select>
-        </div>
-
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Apply</button>
         </div>
 
         <!-- Price range -->
@@ -85,6 +77,10 @@
                    class="form-control" />
         </div>
 
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Apply</button>
+        </div>
+
     </form>
 
     <!-- PRODUCT GRID -->
@@ -94,55 +90,55 @@
 
             @foreach (var item in Model.Values)
             {
-                <div class="product-card">
+                <a asp-controller="Products"
+                   asp-action="DetailsForcustomer"
+                   asp-route-id="@item.ProductId"
+                   class="text-decoration-none text-dark">
 
-                    <div class="product-image">
-                        <img src="@item.Images.FirstOrDefault()"
-                             alt="@item.ProductName" />
-                    </div>
+                    <div class="product-card">
 
-                    <!-- INFO -->
-                    <div class="product-info">
+                        <div class="product-image">
+                            <img src="@item.Images?.FirstOrDefault()"
+                                 alt="@item.ProductName" />
+                        </div>
 
-                        <h5 class="product-title">
-                            @item.ProductName
-                        </h5>
+                        <div class="product-info">
 
-                        <p class="text-muted small">
-                            @item.ProductDescription
-                        </p>
+                            <h5 class="product-title">
+                                @item.ProductName
+                            </h5>
 
-                        <div class="product-meta">
+                            <p class="text-muted small">
+                                @item.ProductDescription
+                            </p>
 
-                            <span class="product-price">
-                                @item.ProductPrice.ToString("N0") ₫
-                            </span>
+                            <div class="product-meta">
 
-                            @if (item.StockQuantity > 0)
-                            {
-                                <span class="badge bg-success">
-                                    In Stock
+                                <span class="product-price">
+                                    @item.ProductPrice.ToString("N0") ₫
                                 </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">
-                                    Out Of Stock
-                                </span>
-                            }
+
+                                @if (item.StockQuantity > 0)
+                                {
+                                    <span class="badge bg-success">In Stock</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Out Of Stock</span>
+                                }
+
+                            </div>
+
+                            <div class="product-extra mt-2 small text-muted">
+                                <div>Brand: @item.BrandName</div>
+                                <div>Category: @item.CategoryName</div>
+                            </div>
 
                         </div>
 
-                        <div class="product-extra mt-2 small text-muted">
-
-                            <div>Brand: @item.BrandName</div>
-                            <div>Category: @item.CategoryName</div>
-
-                        </div>
-
                     </div>
 
-                </div>
+                </a>
             }
 
         </div>

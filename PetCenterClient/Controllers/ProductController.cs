@@ -79,8 +79,22 @@ namespace PetCenterClient.Controllers
             {
                 return NotFound();
             }
+            return PartialView("~/Views/AdminViews/Product/_Details.cshtml", readProdutDTOs);
+        }
 
-            return View(readProdutDTOs);
+        public async Task<IActionResult> DetailsForcustomer(Guid? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var readProdutDTOs = await _productService.GetProductByIdAsync(id);
+            if (readProdutDTOs == null)
+            {
+                return NotFound();
+            }
+            return View("~/Views/CustomerViews/Product/Details.cshtml", readProdutDTOs);
         }
 
         // GET: ReadProdutDTOs/Create
@@ -150,7 +164,7 @@ namespace PetCenterClient.Controllers
             {
                 return NotFound();
             }
-            return View(updateProduct);
+            return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", updateProduct);
         }
 
         // POST: ReadProdutDTOs/Edit/5
@@ -158,14 +172,14 @@ namespace PetCenterClient.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, UpdateProductDTO model)
+        public async Task<IActionResult> Edit(Guid ProductId, UpdateProductDTO model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
-            await _productService.UpdateProductAsync(id, model);
+            await _productService.UpdateProductAsync(ProductId, model);
 
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = true });
         }
 
         // GET: ReadProdutDTOs/Delete/5
@@ -176,13 +190,13 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var deleteProdutDTOs = await _productService.GetProductByIdAsync(id);
-            if (deleteProdutDTOs == null)
+            var model = await _productService.GetProductByIdAsync(id);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(deleteProdutDTOs);
+            return PartialView("~/Views/AdminViews/Product/_Delete.cshtml", model);
         }
 
         // POST: ReadProdutDTOs/Delete/5
@@ -190,13 +204,14 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var deleteProdutDTOs = await _productService.GetProductByIdAsync(id);
-            if (deleteProdutDTOs != null)
+            var product = await _productService.GetProductByIdAsync(id);
+
+            if (product != null)
             {
                 await _productService.DeleteProductAsync(id);
             }
 
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = true });
         }
 
         private bool ReadProdutDTOsExists(Guid id)

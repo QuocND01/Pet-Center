@@ -1,0 +1,112 @@
+﻿@model ProductAPI.DTOs.ReadProductDTO
+
+<style>
+
+    .product-image {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-right: 8px;
+    }
+
+</style>
+
+<div class="row">
+
+    <div class="col-md-12 mb-3">
+        <label class="fw-bold">Product Name</label>
+        <div>@Model.ProductName</div>
+    </div>
+
+    <div class="col-md-12 mb-3">
+        <label class="fw-bold">Description</label>
+        <div>@Model.ProductDescription</div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="fw-bold">Price</label>
+        <div>@Model.ProductPrice</div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="fw-bold">Stock Quantity</label>
+        <div>@Model.StockQuantity</div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="fw-bold">Brand</label>
+        <div>@Model.BrandName</div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="fw-bold">Category</label>
+        <div>@Model.CategoryName</div>
+    </div>
+
+    <!-- Images -->
+
+    <div class="col-md-12 mb-3">
+
+        <label class="fw-bold">Product Images</label>
+
+        <div class="d-flex flex-wrap mt-2">
+
+            @if (Model.Images != null && Model.Images.Any())
+            {
+                foreach (var img in Model.Images)
+                {
+                    <img src="@img" class="product-image" />
+                }
+            }
+            else
+            {
+                <span>No images</span>
+            }
+
+        </div>
+
+    </div>
+
+    <!-- Attributes -->
+
+    <div class="col-md-12">
+
+        <label class="fw-bold">Attributes</label>
+
+        <table class="table table-bordered mt-2">
+
+            <thead>
+                <tr>
+                    <th>Attribute</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model.Attributes != null && Model.Attributes.Any())
+                {
+                    foreach (var attr in Model.Attributes)
+                    {
+                        <tr>
+                            <td>@attr.AttributeName</td>
+                            <td>@attr.AttributeValue</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="2">No attributes</td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

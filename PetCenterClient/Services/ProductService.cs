@@ -139,9 +139,59 @@ namespace PetCenterClient.Services
             Console.WriteLine("Response: " + result);
         }
 
-        public async Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct)
+        public async Task UpdateProductAsync(Guid? id, UpdateProductDTO model)
         {
-            await _http.PutAsJsonAsync($"api/Products/{id}", updateproduct);
+            var form = new MultipartFormDataContent();
+
+            form.Add(new StringContent(model.ProductName), "ProductName");
+            form.Add(new StringContent(model.ProductPrice.ToString()), "ProductPrice");
+
+            if (!string.IsNullOrEmpty(model.ProductDescription))
+                form.Add(new StringContent(model.ProductDescription), "ProductDescription");
+
+            if (model.StockQuantity != null)
+                form.Add(new StringContent(model.StockQuantity.ToString()), "StockQuantity");
+
+            if (model.BrandId != null)
+                form.Add(new StringContent(model.BrandId.ToString()), "BrandId");
+
+            if (model.CategoryId != null)
+                form.Add(new StringContent(model.CategoryId.ToString()), "CategoryId");
+
+            // Upload images
+            if (model.ImageFiles != null)
+            {
+                foreach (var file in model.ImageFiles)
+                {
+                    var stream = file.OpenReadStream();
+                    var content = new StreamContent(stream);
+                    content.Headers.ContentType =
+                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+                    form.Add(content, "ImageFiles", file.FileName);
+                }
+            }
+
+            // Attributes
+            if (model.Attributes != null)
+            {
+                for (int i = 0; i < model.Attributes.Count; i++)
+                {
+                    form.Add(new StringContent(model.Attributes[i].CategoryAttributeId.ToString()),
+                             $"Attributes[{i}].CategoryAttributeId");
+
+                    form.Add(new StringContent(model.Attributes[i].AttributeValue ?? ""),
+                             $"Attributes[{i}].AttributeValue");
+                }
+            }
+            foreach (var attr in model.Attributes)
+            {
+                Console.WriteLine(attr.CategoryAttributeId);
+            }
+
+            var response = await _http.PutAsync($"api/Products/{id}", form);
+
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteProductAsync(Guid? id)
