@@ -2,14 +2,15 @@
 using InventoryAPI.Models;
 using System;
 using Microsoft.EntityFrameworkCore;
+using InventoryAPI.Data;
 
 namespace InventoryAPI.Repository
 {
     public class ImportStockRepository : IImportStockRepository
     {
-        private readonly PetCenterContext _context;
+        private readonly InventoryContext _context;
 
-        public ImportStockRepository(PetCenterContext context)
+        public ImportStockRepository(InventoryContext context)
         {
             _context = context;
         }

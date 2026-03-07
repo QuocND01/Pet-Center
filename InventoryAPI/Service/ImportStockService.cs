@@ -3,6 +3,7 @@ using InventoryAPI.DTOs;
 using InventoryAPI.Models;
 using InventoryAPI.Repository.Interface;
 using InventoryAPI.Service.Interface;
+using InventoryAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using static InventoryAPI.Models.ImportStock;
@@ -12,12 +13,12 @@ namespace InventoryAPI.Service
     public class ImportStockService : IImportStockService
     {
         private readonly IImportStockRepository _repo;
-        private readonly PetCenterContext _context;
+        private readonly InventoryContext _context;
         private readonly IMapper _mapper;
 
         public ImportStockService(
             IImportStockRepository repo,
-            PetCenterContext context,
+            InventoryContext context,
             IMapper mapper)
         {
             _repo = repo;
@@ -82,22 +83,23 @@ namespace InventoryAPI.Service
             if (importStock == null)
                 throw new Exception("Import not found");
 
+            // Increae stock quantity of each product in details
             // ❗ Chỉ cho confirm khi đang Draft
 
-            
+
             if (importStock.Status != ImportStatus.Draft)
                 throw new Exception("Only draft import can be confirmed");
 
-            foreach (var detail in importStock.ImportStockDetails)
-            {
-                var product = await _context.Products
-                    .FirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
+            //foreach (var detail in importStock.ImportStockDetails)
+            //{
+            //    var product = await _context.Products
+            //        .FirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
 
-                if (product == null)
-                    throw new Exception("Product not found");
+            //    if (product == null)
+            //        throw new Exception("Product not found");
 
-                product.StockQuantity += detail.Quantity;
-            }
+            //    product.StockQuantity += detail.Quantity;
+            //}
 
             // ✅ Set status = Confirmed (1)
             importStock.Status = ImportStatus.Confirmed;
