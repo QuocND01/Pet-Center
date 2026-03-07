@@ -1,0 +1,167 @@
+﻿@using ProductAPI.DTOs
+@model ReadProductDTO
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+
+
+<link rel="stylesheet" href="~/css/UserViews/Product/Details.css" />
+
+
+<style>
+    .main-image img {
+        width: 100%;
+        max-height: 420px;
+        object-fit: cover;
+    }
+
+    .thumb-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 2px solid #eee;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .thumb-image:hover {
+            border-color: #0d6efd;
+        }
+
+</style>
+<div class="container mt-4">
+
+    <div class="row">
+
+        <!-- PRODUCT IMAGES -->
+
+        <div class="col-md-5">
+
+            <div class="main-image mb-3">
+
+                <img id="mainProductImage"
+                     src="@Model.Images?.FirstOrDefault()"
+                     class="img-fluid rounded shadow" />
+
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+                @if (Model.Images != null)
+                {
+                    foreach (var img in Model.Images)
+                    {
+                        <img src="@img"
+                             class="thumb-image"
+                             onclick="changeImage('@img')" />
+                    }
+                }
+
+            </div>
+
+        </div>
+
+        <!-- PRODUCT INFO -->
+
+        <div class="col-md-7">
+
+            <h2 class="fw-bold">
+                @Model.ProductName
+            </h2>
+
+            <div class="text-muted mb-2">
+                Brand: <strong>@Model.BrandName</strong>
+            </div>
+
+            <div class="text-muted mb-3">
+                Category: <strong>@Model.CategoryName</strong>
+            </div>
+
+            <h3 class="text-danger fw-bold">
+                @Model.ProductPrice.ToString("N0") ₫
+            </h3>
+
+            <div class="mb-3">
+
+                @if (Model.StockQuantity > 0)
+                {
+                    <span class="badge bg-success fs-6">
+                        In Stock (@Model.StockQuantity)
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-danger fs-6">
+                        Out Of Stock
+                    </span>
+                }
+
+            </div>
+
+            <p class="mt-3">
+                @Model.ProductDescription
+            </p>
+
+            <!-- ATTRIBUTES -->
+            @if (Model.Attributes != null && Model.Attributes.Any())
+            {
+                <h5 class="mt-4">Product Specifications</h5>
+
+                <table class="table table-bordered">
+
+                    <tbody>
+
+                        @foreach (var attr in Model.Attributes)
+                        {
+                            <tr>
+                                <td style="width:200px">
+                                    @attr.AttributeName
+                                </td>
+
+                                <td>
+                                    @attr.AttributeValue
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+            }
+
+            <!-- ACTIONS -->
+
+            <div class="mt-4 d-flex gap-2">
+
+                <input type="number"
+                       value="1"
+                       min="1"
+                       max="@Model.StockQuantity"
+                       class="form-control w-25" />
+
+                <button class="btn btn-primary">
+
+                    <i class="bi bi-cart"></i>
+                    Add To Cart
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    function changeImage(src)
+    {
+        document.getElementById("mainProductImage").src = src;
+    }
+
+</script>
