@@ -4,9 +4,10 @@ using InventoryAPI.Repository;
 using InventoryAPI.Repository.Interface;
 using InventoryAPI.Service;
 using InventoryAPI.Service.Interface;
-using InventoryAPI.Models;
+
 using Microsoft.EntityFrameworkCore;
 using InventoryAPI.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<InventoryContext>(options =>
@@ -25,6 +26,7 @@ builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IImportStockRepository, ImportStockRepository>();
 builder.Services.AddScoped<IImportStockService, ImportStockService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
