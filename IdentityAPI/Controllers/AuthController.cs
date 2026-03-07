@@ -90,5 +90,12 @@ namespace IdentityAPI.Controllers
         }
 
         // hello
+
+        [HttpGet("hash")]
+        public IActionResult Hash(string password)
+        {
+            var hash = BCrypt.Net.BCrypt.HashPassword(password);
+            return Ok(hash);
+        }
     }
 }
