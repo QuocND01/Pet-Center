@@ -1,0 +1,657 @@
+﻿@using PetCenterClient.DTOs
+@model CustomerProfileResponseDto
+
+@{
+    ViewData["Title"] = "Customer Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - PetCenter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --primary-dark: #27ae60;
+            --primary-light: #58d68d;
+            --secondary: #34495e;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --border-color: #ecf0f1;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        /* Header Section */
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+        .profile-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .profile-title i {
+                color: var(--primary);
+            }
+
+        .edit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .edit-btn:hover {
+                background: var(--primary-dark);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 16px rgba(46, 204, 113, 0.3);
+            }
+
+        /* Card Styles */
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 24px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @@keyframes slideUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        /* Avatar Card */
+        .avatar-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .avatar-card::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200px;
+                height: 200px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+            }
+
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 3px solid white;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .avatar-email {
+            font-size: 13px;
+            opacity: 0.9;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* Info Card */
+        .info-card {
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+            .info-card.hidden {
+                display: none;
+            }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            word-break: break-word;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+            .status-badge.verified {
+                background: rgba(39, 174, 96, 0.1);
+                color: var(--success);
+            }
+
+            .status-badge.unverified {
+                background: rgba(241, 196, 15, 0.1);
+                color: var(--warning);
+            }
+
+            .status-badge.active {
+                background: rgba(46, 204, 113, 0.1);
+                color: var(--primary);
+            }
+
+            .status-badge.inactive {
+                background: rgba(231, 76, 60, 0.1);
+                color: var(--danger);
+            }
+
+        /* Edit Form */
+        .edit-form {
+            display: none;
+            padding: 30px;
+        }
+
+            .edit-form.active {
+                display: block;
+            }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-dark);
+                margin-bottom: 6px;
+            }
+
+            .form-group input,
+            .form-group select {
+                width: 100%;
+                padding: 10px 12px;
+                border: 2px solid var(--border-color);
+                border-radius: 8px;
+                font-size: 13px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                transition: all 0.3s ease;
+            }
+
+                .form-group input:focus,
+                .form-group select:focus {
+                    outline: none;
+                    border-color: var(--primary);
+                    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+                }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+            .action-buttons button {
+                flex: 1;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+        }
+
+            .btn-save:hover {
+                background: var(--primary-dark);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 16px rgba(46, 204, 113, 0.3);
+            }
+
+        .btn-cancel {
+            background: var(--border-color);
+            color: var(--text-dark);
+        }
+
+            .btn-cancel:hover {
+                background: #d5dbdb;
+            }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+            .loading.active {
+                display: block;
+            }
+
+        .spinner {
+            width: 35px;
+            height: 35px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @@keyframes spin {
+            to
+
+        {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        .loading-text {
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+            font-size: 13px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 300px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+            .alert.show {
+                display: block;
+            }
+
+        @@keyframes slideDown {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .alert.success {
+            background: rgba(39, 174, 96, 0.95);
+            color: white;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert.error {
+            background: rgba(231, 76, 60, 0.95);
+            color: white;
+            border-left: 4px solid var(--danger);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 20px 0;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .profile-container
+
+        {
+            max-width: 100%;
+        }
+
+        .profile-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .profile-title {
+            font-size: 24px;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .avatar-card,
+        .info-card,
+        .edit-form {
+            padding: 25px 20px;
+        }
+
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+        }
+
+        .avatar-name {
+            font-size: 18px;
+        }
+
+        .alert {
+            min-width: auto;
+            left: 20px;
+            right: 20px;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1 class="profile-title">
+                <i class="fas fa-user-circle"></i> My Profile
+            </h1>
+            <button class="edit-btn" id="editToggleBtn">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+        </div>
+
+        <!-- Alert Messages -->
+        <div class="alert success" id="successAlert">
+            <i class="fas fa-check-circle"></i> <span id="successMessage"></span>
+        </div>
+        <div class="alert error" id="errorAlert">
+            <i class="fas fa-exclamation-circle"></i> <span id="errorMessage"></span>
+        </div>
+
+        <!-- Avatar Card -->
+        <div class="profile-card">
+            <div class="avatar-card">
+                <div class="avatar-circle">👤</div>
+                <div class="avatar-name">@Model.FullName</div>
+                <div class="avatar-email">@Model.Email</div>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="profile-card">
+            <div class="info-card" id="infoDisplay">
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value">@Model.FullName</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Email</span>
+                        <span class="info-value">@Model.Email</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Phone</span>
+                        <span class="info-value">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Date of Birth</span>
+                        <span class="info-value">@Model.BirthDay.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Gender</span>
+                        <span class="info-value">@(Model.Gender == "Male" ? "Male" : Model.Gender == "Female" ? "Female" : "Other")</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="info-group">
+                    <span class="info-label">Member Since</span>
+                    <span class="info-value">@Model.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                </div>
+            </div>
+
+            <!-- Edit Form -->
+            <form class="edit-form" id="editForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" value="@Model.FullName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" value="@Model.PhoneNumber">
+                </div>
+
+                <div class="form-group">
+                    <label for="birthDay">Date of Birth</label>
+                    <input type="date" id="birthDay" name="birthDay" value="@Model.BirthDay.ToString("yyyy-MM-dd")" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-save">Save</button>
+                </div>
+            </form>
+
+            <div class="loading" id="loadingState">
+                <div class="spinner"></div>
+                <p class="loading-text">Saving...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const editToggleBtn = document.getElementById('editToggleBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const editForm = document.getElementById('editForm');
+        const infoDisplay = document.getElementById('infoDisplay');
+        const loadingState = document.getElementById('loadingState');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+
+        // Set current gender
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentGender = '@Model.Gender';
+            document.getElementById('gender').value = currentGender;
+        });
+
+        // Toggle Edit Mode
+        editToggleBtn.addEventListener('click', () => {
+            editForm.classList.add('active');
+            infoDisplay.classList.add('hidden');
+            editToggleBtn.style.display = 'none';
+
+            // Scroll to form
+            setTimeout(() => {
+                editForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        });
+
+        // Cancel Edit
+        cancelBtn.addEventListener('click', () => {
+            editForm.classList.remove('active');
+            infoDisplay.classList.remove('hidden');
+            editToggleBtn.style.display = 'flex';
+            editForm.reset();
+        });
+
+        // Show Alert
+        function showAlert(message, type) {
+            const alert = type === 'success' ? successAlert : errorAlert;
+            const msgElement = type === 'success' ? document.getElementById('successMessage') : document.getElementById('errorMessage');
+
+            msgElement.textContent = message;
+            alert.classList.add('show');
+
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 4000);
+        }
+
+        // Submit Form
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                fullName: document.getElementById('fullName').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                birthDay: document.getElementById('birthDay').value,
+                gender: document.getElementById('gender').value
+            };
+
+            loadingState.classList.add('active');
+
+            try {
+                const response = await fetch('@Url.Action("UpdateProfile", "Customer")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Profile updated successfully!', 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showAlert(result.message || 'Failed to update profile', 'error');
+                    loadingState.classList.remove('active');
+                }
+            } catch (error) {
+                showAlert('An error occurred. Please try again.', 'error');
+                loadingState.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

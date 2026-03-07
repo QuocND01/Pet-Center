@@ -26,10 +26,16 @@ builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<ICustomerService, CustomerService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
 builder.Services.AddSession();
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
 
 
 var app = builder.Build();

@@ -22,7 +22,6 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Login(LoginDto dto)
         {
             var result = await _authService.LoginAsync(dto);
-
             if (result == null)
             {
                 ViewBag.Error = "Email or password incorrect";
@@ -38,6 +37,16 @@ namespace PetCenterClient.Controllers
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Login");
+        }
+
+        [HttpGet]
+        public IActionResult CheckAuth()
+        {
+            var token = HttpContext.Session.GetString("JWT");
+            if (string.IsNullOrEmpty(token))
+                return Json(new { isAuthenticated = false });
+
+            return Json(new { isAuthenticated = true, token = token });
         }
     }
 }
