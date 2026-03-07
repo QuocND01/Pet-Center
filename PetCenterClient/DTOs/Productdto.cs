@@ -2,7 +2,7 @@
 using PetCenterClient.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace ProductAPI.DTOs
+namespace PetCenterClient.DTOs
 {
     public class ReadProductDTO
     {
