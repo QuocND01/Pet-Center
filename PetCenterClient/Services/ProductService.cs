@@ -157,6 +157,15 @@ namespace PetCenterClient.Services
             if (model.CategoryId != null)
                 form.Add(new StringContent(model.CategoryId.ToString()), "CategoryId");
 
+            // Existing Images (ảnh còn giữ lại)
+            if (model.ExistingImages != null)
+            {
+                foreach (var img in model.ExistingImages)
+                {
+                    form.Add(new StringContent(img), "ExistingImages");
+                }
+            }
+
             // Upload images
             if (model.ImageFiles != null)
             {
@@ -182,10 +191,6 @@ namespace PetCenterClient.Services
                     form.Add(new StringContent(model.Attributes[i].AttributeValue ?? ""),
                              $"Attributes[{i}].AttributeValue");
                 }
-            }
-            foreach (var attr in model.Attributes)
-            {
-                Console.WriteLine(attr.CategoryAttributeId);
             }
 
             var response = await _http.PutAsync($"product-service/Products/{id}", form);

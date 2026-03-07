@@ -43,6 +43,7 @@ namespace PetCenterClient.DTOs
         public Guid? CategoryId { get; set; }
 
         public List<IFormFile>? ImageFiles { get; set; }
+        public List<string>? ExistingImages { get; set; }
 
         public List<UpdateProductAttributeDTO>? Attributes { get; set; }
     }

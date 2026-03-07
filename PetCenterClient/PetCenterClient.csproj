@@ -7,16 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\AdminViews\Supplier\**" />
     <Compile Remove="Views\Product\**" />
+    <Content Remove="Views\AdminViews\Supplier\**" />
     <Content Remove="Views\Product\**" />
+    <EmbeddedResource Remove="Views\AdminViews\Supplier\**" />
     <EmbeddedResource Remove="Views\Product\**" />
+    <None Remove="Views\AdminViews\Supplier\**" />
     <None Remove="Views\Product\**" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="DTOs\Response\" />
     <Folder Include="DTOs\Resquest\" />
-    <Folder Include="Views\AdminViews\Supplier\" />
   </ItemGroup>
 
   <ItemGroup>

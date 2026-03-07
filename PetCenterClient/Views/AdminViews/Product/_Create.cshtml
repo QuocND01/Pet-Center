@@ -11,6 +11,16 @@
         border-radius: 8px;
     }
 
+    .remove-image {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+    }
+
 </style>
 <form method="post"
       enctype="multipart/form-data"
@@ -71,7 +81,8 @@
 
         <div id="imageList" class="d-flex flex-wrap gap-3">
 
-            <div class="image-item">
+            <div class="image-item position-relative">
+
                 <input type="file"
                        name="ImageFiles"
                        accept="image/*"
@@ -82,6 +93,13 @@
                      src="https://via.placeholder.com/120"
                      class="image-preview"
                      onclick="this.previousElementSibling.click()" />
+
+                <button type="button"
+                        class="btn btn-danger btn-sm remove-image"
+                        onclick="removeImage(this)">
+                    ✖
+                </button>
+
             </div>
 
         </div>
@@ -102,103 +120,123 @@
 
 <script>
 
-        let imageIndex = 1
+    let imageIndex = 1
 
-    $("#addImage").click(function(){
+    $(document).ready(function () {
 
-        const html = `
+        // ADD IMAGE
+        $("#addImage").click(function () {
 
-        <div class="image-item">
+            const html = `
+            <div class="image-item position-relative">
 
-            <input type="file"
-                   name="ImageFiles"
-                   accept="image/*"
-                   hidden
-                   onchange="previewSelectedImage(this,'preview_${imageIndex}')"/>
+                <input type="file"
+                       name="ImageFiles"
+                       accept="image/*"
+                       hidden
+                       onchange="previewSelectedImage(this,'preview_${imageIndex}')"/>
 
-            <img id="preview_${imageIndex}"
-                 src="https://via.placeholder.com/120"
-                 class="image-preview"
-                 onclick="this.previousElementSibling.click()" />
+                <img id="preview_${imageIndex}"
+                     src="https://via.placeholder.com/120"
+                     class="image-preview"
+                     onclick="this.previousElementSibling.click()" />
 
-        </div>
-        `
+                <button type="button"
+                        class="btn btn-danger btn-sm remove-image"
+                        onclick="removeImage(this)">
+                    ✖
+                </button>
 
-        $("#imageList").append(html)
+            </div>
+            `
 
-        imageIndex++
+            $("#imageList").append(html)
 
-    })
+            imageIndex++
 
-    function previewSelectedImage(input, previewId){
-
-    const file = input.files[0]
-
-    if(!file) return
-
-    const reader = new FileReader()
-
-    reader.onload = function(e){
-
-    document.getElementById(previewId).src = e.target.result
-
-    }
-
-    reader.readAsDataURL(file)
-
-    }
+        })
 
 
-    // Script lấy category attribute tương ứng với category
-
-            $(document).ready(function () {
-
+        // LOAD CATEGORY ATTRIBUTES
         $("#CategoryId").change(function () {
 
             const categoryId = $(this).val()
-             console.log("categoryId da chon"+ $(this).val())
-            console.log("categoryid la : " + categoryId)
+
             if (!categoryId) return
 
-           $.get(`https://localhost:7004/api/Categories/${categoryId}/attributes`, function (data) {
+            $.get(`https://localhost:7004/api/Categories/${categoryId}/attributes`, function (data) {
 
                 $("#attributeList").empty()
 
                 let index = 0
 
-                    data.forEach(attr => {
+                data.forEach(attr => {
 
-        const html = `
-        <div class="row mb-2">
+                    const html = `
+                    <div class="row mb-2">
 
-            <div class="col-md-5">
-                <input class="form-control"
-                       value="${attr.attributeName}"
-                       readonly />
-            </div>
+                        <div class="col-md-5">
+                            <input class="form-control"
+                                   value="${attr.attributeName}"
+                                   readonly />
+                        </div>
 
-            <div class="col-md-7">
-                <input name="Attributes[${index}].AttributeValue"
-                       class="form-control"
-                       placeholder="Enter value"/>
+                        <div class="col-md-7">
+                            <input name="Attributes[${index}].AttributeValue"
+                                   class="form-control"
+                                   placeholder="Enter value"/>
 
-                <input type="hidden"
-                       name="Attributes[${index}].CategoryAttributeId"
-                       value="${attr.categoryAttributeId}" />
-            </div>
+                            <input type="hidden"
+                                   name="Attributes[${index}].CategoryAttributeId"
+                                   value="${attr.categoryAttributeId}" />
+                        </div>
 
-        </div>
-        `
+                    </div>
+                    `
 
-        $("#attributeList").append(html)
+                    $("#attributeList").append(html)
 
-        index++
+                    index++
 
-    })
+                })
 
             })
 
         })
 
     })
+
+
+    // REMOVE IMAGE
+    function removeImage(button){
+
+        if($(".image-item").length <= 1){
+            alert("Product must have at least 1 image")
+            return
+        }
+
+        $(button).closest(".image-item").remove()
+
+    }
+
+
+    // PREVIEW IMAGE
+    function previewSelectedImage(input, previewId){
+
+        const file = input.files[0]
+
+        if(!file) return
+
+        const reader = new FileReader()
+
+        reader.onload = function(e){
+
+            document.getElementById(previewId).src = e.target.result
+
+        }
+
+        reader.readAsDataURL(file)
+
+    }
+
 </script>
