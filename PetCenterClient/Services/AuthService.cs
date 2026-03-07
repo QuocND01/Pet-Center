@@ -15,7 +15,7 @@ namespace PetCenterClient.Services
         public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
         {
             var response = await _http.PostAsJsonAsync(
-                "auth/customer-login",
+                "api/auth/customer-login",
                 dto
             );
 

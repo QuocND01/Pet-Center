@@ -7,6 +7,122 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/PetCenterClient.styles.css" asp-append-version="true" />
+
+    <style>
+        /* Avatar Styles */
+        .user-menu {
+            position: relative;
+            display: none !important; /* Ẩn mặc định */
+        }
+
+            .user-menu:not(.hidden) {
+                display: block !important; /* Chỉ hiển thị khi không có class hidden */
+            }
+
+            .user-menu.hidden {
+                display: none !important;
+            }
+
+        /* Login button - hiển thị mặc định */
+        .login-nav-item {
+            display: block;
+        }
+
+            .login-nav-item.hidden {
+                display: none !important;
+            }
+
+        .avatar-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border: 2px solid #27ae60;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            padding: 0;
+            margin: 0;
+            box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+        }
+
+            .avatar-btn:hover {
+                background: linear-gradient(135deg, #27ae60, #229954);
+                box-shadow: 0 4px 12px rgba(46, 204, 113, 0.5);
+                transform: scale(1.05);
+            }
+
+            .avatar-btn:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3);
+            }
+
+        .dropdown-menu-user {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 160px;
+            z-index: 1000;
+            margin-top: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+            .dropdown-menu-user.show {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            .dropdown-menu-user a,
+            .dropdown-menu-user button {
+                display: block;
+                width: 100%;
+                padding: 12px 16px;
+                color: #333;
+                text-decoration: none;
+                border: none;
+                background: none;
+                text-align: left;
+                font-size: 14px;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+
+                .dropdown-menu-user a:first-child,
+                .dropdown-menu-user button:first-child {
+                    border-radius: 8px 8px 0 0;
+                }
+
+                .dropdown-menu-user a:last-child,
+                .dropdown-menu-user button:last-child {
+                    border-radius: 0 0 8px 8px;
+                }
+
+                .dropdown-menu-user a:hover,
+                .dropdown-menu-user button:hover {
+                    background: #f5f5f5;
+                    color: #2ecc71;
+                    padding-left: 20px;
+                }
+
+                .dropdown-menu-user a.logout:hover,
+                .dropdown-menu-user button.logout:hover {
+                    background: #ffe6e6;
+                    color: #dc3545;
+                }
+    </style>
 </head>
 <body>
     <header>
@@ -32,13 +148,20 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="IndexAdmin">Admin</a>
                         </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item login-nav-item">
+                            <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Login</a>
+                        </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Auth"
-                               asp-action="Login">
-                                Login
-                            </a>
+                        <li class="nav-item user-menu hidden">
+                            <div class="position-relative">
+                                <button class="avatar-btn" id="avatarBtn" type="button" aria-label="User menu">👤</button>
+                                <div class="dropdown-menu-user" id="userDropdown">
+                                    <a href="@Url.Action("Profile", "Customer")">👤 Profile</a>
+                                    <button type="button" class="logout" id="logoutBtn">🚪 Logout</button>
+                                </div>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -59,6 +182,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/auth.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
