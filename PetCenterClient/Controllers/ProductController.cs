@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
-using ProductAPI.DTOs;
 
 namespace PetCenterClient.Controllers
 {
