@@ -1,4 +1,5 @@
-﻿using InventoryAPI.Models;
+﻿using InventoryAPI.Data;
+using InventoryAPI.Models;
 using InventoryAPI.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -7,9 +8,9 @@ namespace InventoryAPI.Repository
 {
     public class SupplierRepository : ISupplierRepository
     {
-        private readonly PetCenterContext _context;
+        private readonly InventoryContext _context;
 
-        public SupplierRepository(PetCenterContext context)
+        public SupplierRepository(InventoryContext context)
         {
             _context = context;
         }

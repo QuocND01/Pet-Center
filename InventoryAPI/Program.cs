@@ -6,9 +6,10 @@ using InventoryAPI.Service;
 using InventoryAPI.Service.Interface;
 using InventoryAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using InventoryAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<PetCenterContext>(options =>
+builder.Services.AddDbContext<InventoryContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 // Add services to the container.
 

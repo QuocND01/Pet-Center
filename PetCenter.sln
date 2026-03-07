@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36930.0
+VisualStudioVersion = 17.14.36623.8 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductAPI", "Pet_Center\ProductAPI.csproj", "{A66095E9-A90C-436A-9089-427B7A7ACFF1}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddressAPI", "AddressAPI\AddressAPI.csproj", "{51739149-E9E4-49A2-9A51-A5308A994940}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersAPI", "OrdersAPI\OrdersAPI.csproj", "{4D773FC5-D74D-46E4-A237-34535FBC9652}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateWay", "ApiGateWay\ApiGateWay.csproj", "{E90DD3DE-F41C-409A-9B04-ED3C86ADB7C7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{4D773FC5-D74D-46E4-A237-34535FBC9652}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D773FC5-D74D-46E4-A237-34535FBC9652}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D773FC5-D74D-46E4-A237-34535FBC9652}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E90DD3DE-F41C-409A-9B04-ED3C86ADB7C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E90DD3DE-F41C-409A-9B04-ED3C86ADB7C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E90DD3DE-F41C-409A-9B04-ED3C86ADB7C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E90DD3DE-F41C-409A-9B04-ED3C86ADB7C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
