@@ -6,9 +6,9 @@ namespace IdentityAPI.Repository
 {
     public class CustomerRepository : ICustomerRepository
     {
-        private readonly PetCenterContext _context;
+        private readonly PetCenterIdentityServiceDBContext _context;
 
-        public CustomerRepository(PetCenterContext context)
+        public CustomerRepository(PetCenterIdentityServiceDBContext context)
         {
             _context = context;
         }

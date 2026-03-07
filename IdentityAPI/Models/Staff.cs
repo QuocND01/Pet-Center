@@ -25,11 +25,5 @@ public partial class Staff
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<ImportStock> ImportStocks { get; set; } = new List<ImportStock>();
-
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    public virtual ICollection<ProductFeedback> ProductFeedbacks { get; set; } = new List<ProductFeedback>();
-
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
 }

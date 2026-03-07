@@ -1,5 +1,5 @@
-﻿using IdentityAPI.DTOs.Request;
-using IdentityAPI.DTOs.Response;
+﻿using IdentityAPI.DTOs.Response;
+using IdentityAPI.DTOs.Resquest;
 using IdentityAPI.Models;
 using IdentityAPI.Repository.Interface;
 using IdentityAPI.Security;

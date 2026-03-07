@@ -78,7 +78,7 @@ namespace IdentityAPI
             builder.Services.AddSwaggerGen();
 
 
-            builder.Services.AddDbContext<PetCenterContext>(options =>
+            builder.Services.AddDbContext<PetCenterIdentityServiceDBContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 
             var app = builder.Build();

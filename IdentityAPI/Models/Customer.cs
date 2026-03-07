@@ -28,12 +28,4 @@ public partial class Customer
     public DateTime? UpdatedAt { get; set; }
 
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
-
-    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
-
-    public virtual ICollection<CustomerVoucher> CustomerVouchers { get; set; } = new List<CustomerVoucher>();
-
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    public virtual ICollection<ProductFeedback> ProductFeedbacks { get; set; } = new List<ProductFeedback>();
 }
