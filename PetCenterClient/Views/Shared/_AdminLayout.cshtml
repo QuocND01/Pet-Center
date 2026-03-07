@@ -317,7 +317,7 @@
             $("#wrapper").toggleClass("toggled");
         });
     </script>
-    <script>
+    @* <script>
         // Điều khiển bật/tắt
         const toggle = document.getElementById("admin-chat-toggle");
         const box = document.getElementById("admin-chat-box");
@@ -476,7 +476,7 @@
         input.addEventListener("keypress", e => {
             if (e.key === "Enter") send.click();
         });
-    </script>
+    </script> *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
