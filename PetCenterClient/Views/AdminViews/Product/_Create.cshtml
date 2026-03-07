@@ -160,7 +160,7 @@
             console.log("categoryid la : " + categoryId)
             if (!categoryId) return
 
-           $.get(`https://localhost:7239/api/Categories/${categoryId}/attributes`, function (data) {
+           $.get(`https://localhost:7004/api/Categories/${categoryId}/attributes`, function (data) {
 
                 $("#attributeList").empty()
 

@@ -2,6 +2,8 @@
 {
     public class ProductAttributedto
     {
+
+        public Guid CategoryAttributeId { get; set; }
         public string AttributeName { get; set; } = null!;
         public string? AttributeValue { get; set; }
     }

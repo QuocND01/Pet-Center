@@ -14,7 +14,7 @@ namespace PetCenterClient.Services
 
         public async Task<IEnumerable<ReadBrandDTOs>> GetAllBrandAsync()
         {
-            return await _http.GetFromJsonAsync<IEnumerable<ReadBrandDTOs>>("api/Brands");
+            return await _http.GetFromJsonAsync<IEnumerable<ReadBrandDTOs>>("product-service/Brands");
         }
     }
 }

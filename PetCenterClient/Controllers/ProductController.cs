@@ -147,7 +147,7 @@ namespace PetCenterClient.Controllers
                 Console.WriteLine(ex.Message);
             }
 
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
 
         // GET: ReadProdutDTOs/Edit/5
