@@ -102,12 +102,24 @@ namespace ProductAPI.Service
             product.Images ??= new List<Image>();
             product.ProductAttributes ??= new List<ProductAttribute>();
 
-            // 1️⃣ UPDATE IMAGES
+            // 1️⃣ xử lý ảnh bị xoá
+            var existingImages = updateproduct.ExistingImages ?? new List<string>();
+
+            var currentImages = product.Images.ToList();
+
+            foreach (var img in currentImages)
+            {
+                if (!existingImages.Contains(img.ImageUrl))
+                {
+                    await _cloudinaryService.DeleteImageAsync(img.PublicId);
+
+                    product.Images.Remove(img);
+                }
+            }
+
+            // 2️⃣ upload ảnh mới
             if (updateproduct.ImageFiles != null && updateproduct.ImageFiles.Any())
             {
-                var newImages = new List<Image>();
-
-                // 1️⃣ Upload trước
                 foreach (var file in updateproduct.ImageFiles)
                 {
                     var uploadResult = await _cloudinaryService
@@ -119,29 +131,13 @@ namespace ProductAPI.Service
                         throw new Exception("Upload ảnh thất bại");
                     }
 
-                    newImages.Add(new Image
+                    product.Images.Add(new Image
                     {
-                        //ImageId = Guid.NewGuid(),
                         ImageUrl = uploadResult.SecureUrl.ToString(),
-                        ProductId = id,
                         PublicId = uploadResult.PublicId,
+                        ProductId = product.ProductId,
                         IsActive = true
                     });
-                }
-
-                // 2️⃣ Xóa ảnh cũ
-                var oldImages = product.Images.ToList();
-                foreach (var img in oldImages)
-                {
-                    await _cloudinaryService.DeleteImageAsync(img.PublicId);
-                }
-
-                product.Images.Clear();
-
-                // 3️⃣ Add ảnh mới
-                foreach (var img in newImages)
-                {
-                    product.Images.Add(img);
                 }
             }
 
