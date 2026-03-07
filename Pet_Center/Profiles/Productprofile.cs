@@ -22,10 +22,12 @@ namespace ProductAPI.Profiles
 
 
             CreateMap<ProductAttribute, ProductAttributedto>()
-                .ForMember(dest => dest.AttributeName,
-                    opt => opt.MapFrom(src => src.CategoryAttribute.AttributeName))
-                .ForMember(dest => dest.AttributeValue,
-                    opt => opt.MapFrom(src => src.AttributeValue));
+       .ForMember(dest => dest.CategoryAttributeId,
+           opt => opt.MapFrom(src => src.CategoryAttributeId))
+       .ForMember(dest => dest.AttributeName,
+           opt => opt.MapFrom(src => src.CategoryAttribute.AttributeName))
+       .ForMember(dest => dest.AttributeValue,
+           opt => opt.MapFrom(src => src.AttributeValue));
 
 
             CreateMap<CreateProductDTO, Product>()

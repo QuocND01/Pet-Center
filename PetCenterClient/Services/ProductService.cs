@@ -73,7 +73,7 @@ namespace PetCenterClient.Services
             var url = "?" + string.Join("&", query);
 
             var response = await _http.GetFromJsonAsync<OdataResponse<ReadProductDTO>>(
-                "odata/products" + url
+                "product-service/odata/Products" + url
             );
 
             return response;
@@ -81,7 +81,7 @@ namespace PetCenterClient.Services
 
         public async Task<ReadProductDTO> GetProductByIdAsync(Guid? id)
         {
-            return await _http.GetFromJsonAsync<ReadProductDTO>($"api/Products/{id}");
+            return await _http.GetFromJsonAsync<ReadProductDTO>($"product-service/Products/{id}");
         }
 
         public async Task AddProductAsync(CreateProductDTO model)
@@ -130,7 +130,7 @@ namespace PetCenterClient.Services
                 }
             }
 
-            var response = await _http.PostAsync("api/Products", content);
+            var response = await _http.PostAsync("product-service/Products", content);
 
             var result = await response.Content.ReadAsStringAsync();
 
@@ -188,14 +188,14 @@ namespace PetCenterClient.Services
                 Console.WriteLine(attr.CategoryAttributeId);
             }
 
-            var response = await _http.PutAsync($"api/Products/{id}", form);
+            var response = await _http.PutAsync($"product-service/Products/{id}", form);
 
             response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteProductAsync(Guid? id)
         {
-            await _http.DeleteAsync($"api/Products/{id}");
+            await _http.DeleteAsync($"product-service/Products/{id}");
         }
     }
 
