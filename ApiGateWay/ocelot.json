@@ -4,13 +4,13 @@
       "UpstreamPathTemplate": "/auth/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
 
-      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamPathTemplate": "/api/auth/{everything}",
       "DownstreamScheme": "https",
 
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          //"Port": 7001
+          "Port": 7001
         }
       ]
     },
