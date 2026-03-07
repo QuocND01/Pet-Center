@@ -1,4 +1,4 @@
-﻿namespace IdentityAPI.DTOs.Request
+﻿namespace IdentityAPI.DTOs.Resquest
 {
     public class StaffCreateDto
     {

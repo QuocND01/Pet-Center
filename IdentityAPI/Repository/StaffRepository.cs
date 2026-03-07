@@ -6,9 +6,9 @@ namespace IdentityAPI.Repository
 {
     public class StaffRepository : IStaffRepository
     {
-        private readonly PetCenterContext _context;
+        private readonly PetCenterIdentityServiceDBContext _context;
 
-        public StaffRepository(PetCenterContext context)
+        public StaffRepository(PetCenterIdentityServiceDBContext context)
         {
             _context = context;
         }

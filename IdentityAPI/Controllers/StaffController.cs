@@ -1,4 +1,4 @@
-﻿using IdentityAPI.DTOs.Request;
+﻿using IdentityAPI.DTOs.Resquest;
 using IdentityAPI.Service.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

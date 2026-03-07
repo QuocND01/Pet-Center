@@ -1,5 +1,5 @@
-﻿using IdentityAPI.DTOs.Request;
-using IdentityAPI.DTOs.Response;
+﻿using IdentityAPI.DTOs.Response;
+using IdentityAPI.DTOs.Resquest;
 
 namespace IdentityAPI.Service.Interface
 {
