@@ -24,6 +24,13 @@ namespace PetCenterClient.Services
 
             return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
         }
+
+        public async Task<LoginResponseDto?> StaffLoginAsync(LoginDto dto)
+        {
+            var response = await _http.PostAsJsonAsync("api/auth/staff-login", dto);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+        }
     }
 }
 

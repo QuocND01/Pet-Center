@@ -89,10 +89,46 @@ namespace PetCenterClient.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ UpdateProfile Error: {ex.Message}");
-                Console.WriteLine($"❌ StackTrace: {ex.StackTrace}");
                 return false;
             }
+        }
+
+        public async Task<List<CustomerListDto>> GetAllCustomersAsync()
+        {
+            try
+            {
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+                if (string.IsNullOrEmpty(token)) return new List<CustomerListDto>();
+
+                _http.DefaultRequestHeaders.Authorization = null;
+                _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _http.GetAsync("api/customers");
+                if (!response.IsSuccessStatusCode) return new List<CustomerListDto>();
+
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<CustomerListDto>>>();
+                return result?.Data ?? new List<CustomerListDto>();
+            }
+            catch { return new List<CustomerListDto>(); }
+        }
+
+        public async Task<CustomerDetailDto?> GetCustomerByIdAsync(Guid id)
+        {
+            try
+            {
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+                if (string.IsNullOrEmpty(token)) return null;
+
+                _http.DefaultRequestHeaders.Authorization = null;
+                _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _http.GetAsync($"api/customers/{id}");
+                if (!response.IsSuccessStatusCode) return null;
+
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<CustomerDetailDto>>();
+                return result?.Data;
+            }
+            catch { return null; }
         }
     }
     }

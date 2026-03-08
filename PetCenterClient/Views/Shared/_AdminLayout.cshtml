@@ -37,6 +37,9 @@
                     <a asp-controller="ManageStaff" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
                         <i class="bi bi-person-badge"></i> Manage Staff
                     </a>
+                <a asp-controller="ManageCustomer" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="bi bi-people-fill"></i> Manage Customers
+                </a>
                     <a asp-controller="Voucher" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
                         <i class="bi bi-ticket-perforated"></i> Manage Voucher
                     </a>
@@ -62,23 +65,32 @@
                     <!-- Thông tin tài khoản -->
                     <div class="ms-auto d-flex align-items-center gap-3">
                         <div class="d-flex align-items-center px-3 py-2 bg-white border rounded shadow-sm">
-                            <i class="bi bi-person-circle fs-4 text-primary me-2"></i>
+                            <i class="bi bi-person-circle fs-4 text-success me-2"></i>
                             <div>
-                                <div class="fw-semibold text-dark">@User.Identity?.Name</div>
-                                <div class="small text-muted">
-                                    @if (User.IsInRole("Admin"))
-                                    {
-                                        @:Admin
+                                <div class="fw-semibold text-dark">@Context.Session.GetString("Name")</div>
+                                <div class="small">
+                                    @{
+                                        var role = Context.Session.GetString("Role");
                                     }
-                                    else if (User.IsInRole("Staff"))
+                                    @if (role == "Admin")
                                     {
-                                        @:Staff
+                                        <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:600;">
+                                            <i class="bi bi-shield-fill me-1"></i>Admin
+                                        </span>
+                                    }
+                                    else if (role == "Staff")
+                                    {
+                                        <span class="badge" style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:600;">
+                                            <i class="bi bi-person-badge-fill me-1"></i>Staff
+                                        </span>
                                     }
                                 </div>
                             </div>
                         </div>
                         <ul class="navbar-nav ms-auto">
-                            <li class="nav-item"><a asp-controller="Logins" asp-action="Logout" class="nav-link">Logout</a></li>
+                            <li class="nav-item">
+                                <a asp-controller="Auth" asp-action="AdminLogout" class="nav-link">Logout</a>
+                            </li>
                         </ul>
                     </div>
             </nav>
