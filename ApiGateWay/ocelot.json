@@ -77,15 +77,6 @@
                 }
             ]
         },
-
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost"
-          //"Port": 7003
-        }
-      ]
-    },
-
     {
       "UpstreamPathTemplate": "/product-service/odata/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -106,12 +97,6 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-            "UpstreamPathTemplate": "/product-service/{everything}",
-            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "https",
-            "DownstreamHostAndPorts": [
-                {
                     "Host": "localhost",
                     "Port": 7004
                 }
