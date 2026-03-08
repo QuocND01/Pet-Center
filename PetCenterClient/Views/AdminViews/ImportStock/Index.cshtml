@@ -1,0 +1,97 @@
+﻿@using PetCenterClient.DTOs
+@model List<ReadImportHeaderDto>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Import Stocks</h2>
+
+<a asp-action="Create" class="btn btn-primary mb-2">Create Import</a>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.IdSort">
+                    ImportId
+                </a>
+            </th>
+
+            <th>Supplier</th>
+
+            <th>Staff</th>
+
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.TotalSort">
+                    Total
+                </a>
+            </th>
+
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.DateSort">
+                    Date
+                </a>
+            </th>
+
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.StatusSort">
+                    Status
+                </a>
+            </th>
+
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (var item in Model)
+        {
+            string statusText = item.Status switch
+            {
+                0 => "Pending",
+                1 => "Confirmed",
+                2 => "Cancelled",
+                _ => "Unknown"
+            };
+
+            <tr>
+                <td>@item.ImportId</td>
+                <td>@item.SupplierId</td>
+                <td>@item.StaffId</td>
+                <td>@item.TotalAmount</td>
+                <td>@item.ImportDate?.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <span class="badge
+                            @(item.Status == 0 ? "bg-warning" :
+                                                    item.Status == 1 ? "bg-success" :
+                                                    "bg-danger")">
+                    @statusText
+                </span>
+            </td>
+
+                <td>
+                    <a asp-action="Details"
+                       asp-route-id="@item.ImportId"
+                       class="btn btn-info btn-sm">
+                        View
+                    </a>
+
+                    <a asp-action="Confirm"
+                       asp-route-id="@item.ImportId"
+                       class="btn btn-success btn-sm">
+                        Confirm
+                    </a>
+
+                    <a asp-action="Cancel"
+                       asp-route-id="@item.ImportId"
+                       class="btn btn-danger btn-sm">
+                        Cancel
+                    </a>
+                </td>
+            </tr>
+                }
+
+    </tbody>
+</table>

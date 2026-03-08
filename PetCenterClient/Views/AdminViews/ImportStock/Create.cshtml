@@ -1,0 +1,53 @@
+﻿@using PetCenterClient.DTOs
+@model CreateImportStockDto
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<h2>Create Import</h2>
+
+<form asp-action="Create" method="post">
+
+    <div>
+        <label>Supplier</label>
+        <input asp-for="SupplierId" class="form-control" />
+    </div>
+
+    <div>
+        <label>Staff</label>
+        <input asp-for="StaffId" class="form-control" />
+    </div>
+
+    <h3>Products</h3>
+
+    <table class="table" id="detailTable">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <tr>
+                <td>
+                    <input name="Details[0].ProductId" class="form-control" />
+                </td>
+
+                <td>
+                    <input name="Details[0].Quantity" class="form-control" />
+                </td>
+
+                <td>
+                    <input name="Details[0].ImportPrice" class="form-control" />
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+
+</form>

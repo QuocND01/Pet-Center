@@ -28,7 +28,7 @@ public partial class ImportStock
 
     public enum ImportStatus
     {
-        Draft = 0,
+        Pending = 0,
         Confirmed = 1,
         Cancelled = 2
     }
