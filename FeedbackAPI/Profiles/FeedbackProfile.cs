@@ -10,9 +10,7 @@ namespace FeedbackAPI.Profiles
         {
             CreateMap<CreateFeedbackDTO, ProductFeedback>();
 
-            CreateMap<ProductFeedback, FeedbackResponseDTO>()
-                .ForMember(dest => dest.CustomerName,
-                           opt => opt.MapFrom(src => src.Customer.FullName));
+            CreateMap<ProductFeedback, FeedbackResponseDTO>();
         }
     }
 }

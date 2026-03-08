@@ -22,7 +22,7 @@ namespace FeedbackAPI.Service.Interface
             DateTime? toDate);
 
         //Soft delete
-        Task DeleteFeedbackAsync(Guid feedbackId); 
+        Task DeleteFeedbackAsync(Guid feedbackId);
 
         //Reply
         Task ReplyFeedbackAsync(Guid feedbackId, Guid staffId, string reply);
