@@ -62,7 +62,7 @@ namespace FeedbackAPI.Repository
 
             if (feedback != null)
             {
-                feedback.IsVisible = !(feedback.IsVisible ?? true);
+                feedback.IsVisible = !feedback.IsVisible;
                 await _db.SaveChangesAsync();
             }
         }

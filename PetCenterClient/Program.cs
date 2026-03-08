@@ -41,6 +41,11 @@ builder.Services.AddHttpClient<IImportStockService, ImportStockService>(client =
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<IFeedbackService, FeedbackService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
 builder.Services.AddSession();
 
 builder.Services.AddAuthorization();

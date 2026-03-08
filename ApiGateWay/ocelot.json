@@ -105,9 +105,23 @@
           "Port": 7004
         }
       ]
+    },
+
+    {
+      "UpstreamPathTemplate": "/feedback/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+
+      "DownstreamPathTemplate": "/api/feedback/{everything}",
+      "DownstreamScheme": "https",
+
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7116
+        }
+      ]
     }
   ],
-
 
       "GlobalConfiguration": {
         "BaseUrl": "https://localhost:5000"

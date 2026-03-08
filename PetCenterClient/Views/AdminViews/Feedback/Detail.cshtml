@@ -1,52 +1,44 @@
 ﻿@model PetCenterClient.DTOs.FeedbackDTO
+<link rel="stylesheet" href="~/css/feedback.css" />
 
-<h2>Feedback Detail</h2>
+<div class="container">
 
-<div class="card">
+	<h2>Feedback Detail</h2>
 
-    <div class="card-body">
+	<p><b>Product:</b> @Model.ProductId</p>
+	<p><b>Customer:</b> @Model.CustomerId</p>
+	<p><b>Rating:</b> @Model.Rating ⭐</p>
+	<p><b>Comment:</b> @Model.Comment</p>
+	<p><b>Created Date:</b> @Model.CreatedDate</p>
+	<p><b>Visible:</b> @Model.IsVisible</p>
 
-        <p><b>Product:</b> @Model.ProductId</p>
+	@if (Model.Reply != null)
+	{
+		<h3>Staff Reply</h3>
 
-        <p><b>Customer:</b> @Model.CustomerId</p>
+		<p>@Model.Reply</p>
 
-        <p><b>Rating:</b> @Model.Rating ⭐</p>
+		@if (Model.ReplyDate != null)
+		{
+			<p>Reply Date: @Model.ReplyDate</p>
+		}
 
-        <p><b>Comment:</b></p>
+		<form method="post" action="/Feedback/DeleteReply">
+			<input type="hidden" name="id" value="@Model.FeedbackId" />
+			<button class="btn btn-delete">Delete Reply</button>
+		</form>
+	}
+	else
+	{
+		<p>No reply yet.</p>
 
-        <p>@Model.Comment</p>
+		<a class="btn btn-reply" href="/Feedback/Reply/@Model.FeedbackId">
+			Reply now
+		</a>
+	}
 
-        <hr />
+	<br /><br />
 
-        <h4>Admin Reply</h4>
-
-        @if (string.IsNullOrEmpty(Model.Reply))
-        {
-
-            <form asp-action="Reply" method="post">
-
-                <input type="hidden"
-                       name="FeedbackId"
-                       value="@Model.FeedbackId" />
-
-    <textarea name="Reply"
-          class="form-control">
-</textarea>
-
-                <br />
-
-                <button class="btn btn-success">
-                    Reply
-                </button>
-
-            </form>
-
-        }
-        else
-        {
-            <p>@Model.Reply</p>
-        }
-
-    </div>
+	<a class="btn btn-back" href="/Feedback/AdminList">Back</a>
 
 </div>

@@ -1,25 +1,26 @@
 ﻿@model List<PetCenterClient.DTOs.FeedbackDTO>
+<link rel="stylesheet" href="~/css/feedback.css" />
 
-<h2>My Feedback</h2>
+<div class="container">
 
-<table class="table">
+	<h2>My Feedback</h2>
 
-	<thead>
+	<a class="btn btn-reply" href="/Feedback/Create">
+		Create Feedback
+	</a>
+
+	<table>
+
 		<tr>
-
 			<th>Product</th>
 			<th>Rating</th>
 			<th>Comment</th>
-			<th>Admin Reply</th>
-
+			<th>Reply</th>
+			<th>Date</th>
 		</tr>
-	</thead>
-
-	<tbody>
 
 		@foreach (var f in Model)
 		{
-
 			<tr>
 
 				<td>@f.ProductId</td>
@@ -28,12 +29,24 @@
 
 				<td>@f.Comment</td>
 
-				<td>@f.Reply</td>
+				<td>
+
+					@if (f.Reply != null)
+					{
+						@f.Reply
+					}
+					else
+					{
+						<span style="color:gray;">No reply yet</span>
+					}
+
+				</td>
+
+				<td>@f.CreatedDate.ToString("dd/MM/yyyy")</td>
 
 			</tr>
-
 		}
 
-	</tbody>
+	</table>
 
-</table>
+</div>

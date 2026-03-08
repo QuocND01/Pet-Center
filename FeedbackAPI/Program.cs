@@ -20,7 +20,7 @@ namespace FeedbackAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<PetCenterContext>(options =>
-     options.UseSqlServer(builder.Configuration.GetConnectionString("FeedbackServiceDB")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
