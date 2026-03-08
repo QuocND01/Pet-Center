@@ -1,0 +1,114 @@
+﻿@model OrderResponseDTO
+@using PetCenterClient.DTOs
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    var details = ViewBag.OrderDetails as List<OrderDetailVM> ?? new List<OrderDetailVM>();
+    var isStaff = User.IsInRole("Staff");
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Đơn hàng</a></li>
+            <li class="breadcrumb-item active">Chi tiết #@Model.OrderId.ToString().Substring(0, 8)</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0"><i class="fas fa-box-open me-2"></i>Mã đơn hàng: @Model.OrderId</h5>
+            <span class="badge bg-light text-primary fs-6">Trạng thái: @Model.Status</span>
+        </div>
+
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-muted text-uppercase fw-bold border-bottom pb-2">Thông tin giao hàng</h6>
+                    <p class="mb-1"><strong>Ngày đặt:</strong> @string.Format("{0:dd/MM/yyyy HH:mm}", Model.OrderDate)</p>
+                    <p class="mb-1"><strong>Địa chỉ nhận:</strong> @(Model.AddressSnapshot ?? "Chưa cập nhật")</p>
+                    <p class="mb-1"><strong>Giao lúc:</strong> @(Model.DeliveredDate?.ToString("dd/MM/yyyy") ?? "Đang chờ xử lý...")</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h6 class="text-muted text-uppercase fw-bold border-bottom pb-2">Thanh toán</h6>
+                    <p class="fs-4 fw-bold text-danger">Tổng cộng: @Model.TotalAmount.ToString("N0") VNĐ</p>
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <small class="text-muted">Đã giảm: -@Model.DiscountAmount?.ToString("N0") VNĐ</small>
+                    }
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 80px;">Ảnh</th>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Giá</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in details)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@item.ImageUrl" class="rounded border shadow-sm"
+                                         style="width: 60px; height: 60px; object-fit: cover;"
+                                         onerror="this.src='/no-image.png'" />
+                                </td>
+                                <td><strong>@item.ProductName</strong><br /><small class="text-muted">ID: @item.ProductId</small></td>
+                                <td class="text-center">@item.UnitPrice.ToString("N0")</td>
+                                <td class="text-center">x @item.Quantity</td>
+                                <td class="text-end fw-bold">@item.SubTotal.ToString("N0") VNĐ</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white py-3 d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                <i class="fas fa-chevron-left me-1"></i>Quay lại
+            </a>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-info text-white px-4" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>In hóa đơn
+                </button>
+
+                @if (isStaff)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.OrderId" class="btn btn-warning">Cập nhật</a>
+                }
+
+                @if (Model.Status == 1)
+                {
+                    @* Chuyển sang trang xác nhận thay vì dùng form trực tiếp *@
+                    <a asp-action="Delete" asp-route-id="@Model.OrderId" class="btn btn-danger">Hủy đơn hàng</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        .btn, nav, .breadcrumb, form {
+            display: none !important;
+        }
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .card-header {
+            background-color: white !important;
+            color: black !important;
+            border-bottom: 2px solid #000 !important;
+        }
+    }
+</style>

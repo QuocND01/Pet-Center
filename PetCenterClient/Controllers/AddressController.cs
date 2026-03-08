@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using PetCenterClient.DTOs; // Đảm bảo đúng namespace chứa DTOs
+using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Controllers
@@ -8,10 +8,13 @@ namespace PetCenterClient.Controllers
     public class AddressController : Controller
     {
         private readonly IAddressServiceClient _addressService;
+        private readonly ICustomerService _customerService;
 
-        public AddressController(IAddressServiceClient addressService)
+        // FIX: Đã thêm ICustomerService vào Constructor và gán giá trị
+        public AddressController(IAddressServiceClient addressService, ICustomerService customerService)
         {
             _addressService = addressService;
+            _customerService = customerService;
         }
 
         // 1. DANH SÁCH (READ ALL)
@@ -30,28 +33,36 @@ namespace PetCenterClient.Controllers
         }
 
         // 3. THÊM MỚI (GET)
-        public IActionResult Create() => View();
+        public IActionResult Create()
+        {
+            // Tránh lỗi Null ở View bằng cách khởi tạo model trống
+            return View(new AddressCreateDTO());
+        }
 
-        // 4. THÊM MỚI (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AddressCreateDTO dto)
         {
-            // Lấy ID người dùng từ Claims
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return RedirectToAction("Login", "Account");
+            var profile = await _customerService.GetProfileAsync();
+            if (profile == null) return RedirectToAction("Login", "Auth");
 
-            dto.CustomerId = Guid.Parse(userIdClaim.Value);
+            dto.CustomerId = profile.CustomerId;
+            ModelState.Remove("CustomerId"); // Bỏ qua lỗi validation cho ID vì mình đã gán tay
 
             if (ModelState.IsValid)
             {
+                // GỌI API LƯU DỮ LIỆU
                 var success = await _addressService.CreateAsync(dto);
+
                 if (success)
                 {
-                    TempData["Success"] = "Thêm địa chỉ mới thành công!";
+                    TempData["Success"] = "Thêm địa chỉ thành công!";
                     return RedirectToAction(nameof(Index));
                 }
-                ModelState.AddModelError("", "Không thể tạo địa chỉ. Vui lòng thử lại.");
+
+                // NẾU THẤT BẠI: Hãy kiểm tra logs ở project AddressAPI 
+                // hoặc thêm dòng này để hiện lỗi lên giao diện
+                ModelState.AddModelError("", "API từ chối lưu. Có thể do trùng dữ liệu hoặc lỗi DB.");
             }
             return View(dto);
         }
@@ -74,16 +85,15 @@ namespace PetCenterClient.Controllers
             return View(editDto);
         }
 
-        // 6. CHỈNH SỬA (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, AddressCreateDTO dto)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return RedirectToAction("Login", "Account");
+            // Dùng CustomerService để lấy ID từ Session JWT cho đồng bộ
+            var profile = await _customerService.GetProfileAsync();
+            if (profile == null) return RedirectToAction("Login", "Auth");
 
-            // Đảm bảo CustomerId luôn đúng với người đang đăng nhập
-            dto.CustomerId = Guid.Parse(userIdClaim.Value);
+            dto.CustomerId = profile.CustomerId; // Lấy ID chuẩn
 
             if (ModelState.IsValid)
             {
@@ -97,7 +107,7 @@ namespace PetCenterClient.Controllers
             return View(dto);
         }
 
-        // 7. XÓA (GET - Xác nhận)
+        // 7. XÓA (GET)
         public async Task<IActionResult> Delete(Guid id)
         {
             var address = await _addressService.GetByIdAsync(id);
@@ -105,20 +115,15 @@ namespace PetCenterClient.Controllers
             return View(address);
         }
 
-        // 8. XÓA (POST - Thực hiện)
+        // 8. XÓA (POST)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var success = await _addressService.DeleteAsync(id);
-            if (success)
-            {
-                TempData["Success"] = "Đã xóa địa chỉ.";
-            }
-            else
-            {
-                TempData["Error"] = "Xóa thất bại.";
-            }
+            if (success) TempData["Success"] = "Đã xóa địa chỉ.";
+            else TempData["Error"] = "Xóa thất bại.";
+
             return RedirectToAction(nameof(Index));
         }
     }

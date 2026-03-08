@@ -18,7 +18,7 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // 2. Đăng ký PetCenterContext vào DI Container
-builder.Services.AddDbContext<PetCenterContext>(options =>
+builder.Services.AddDbContext<PetCenterIdentityServiceDBContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAddressService, AddressService>();

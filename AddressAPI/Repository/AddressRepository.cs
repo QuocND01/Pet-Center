@@ -6,8 +6,8 @@ namespace AddressAPI.Repository
 {
     public class AddressRepository : IAddressRepository
     {
-        private readonly PetCenterContext _context;
-        public AddressRepository(PetCenterContext context) => _context = context;
+        private readonly PetCenterIdentityServiceDBContext _context;
+        public AddressRepository(PetCenterIdentityServiceDBContext context) => _context = context;
 
         public async Task<IEnumerable<Address>> GetAllAsync() => await _context.Addresses.ToListAsync();
         public async Task<Address?> GetByIdAsync(Guid id) => await _context.Addresses.FindAsync(id);

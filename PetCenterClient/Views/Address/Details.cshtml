@@ -1,27 +1,28 @@
-﻿@model AddressCreateDTO
-@using System.Security.Claims
-<h2>Thêm địa chỉ mới</h2>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create">
-            
-            <p>Chào bạn, ID của bạn là: @User.FindFirst(ClaimTypes.NameIdentifier)?.Value</p>
-            <div class="mb-3">
-                <label>Địa chỉ chi tiết</label>
-                <input asp-for="AddressDetails" class="form-control" />
-            </div>
-            <div class="row">
-                <div class="col"><input asp-for="Province" placeholder="Tỉnh" class="form-control" /></div>
-                <div class="col"><input asp-for="District" placeholder="Huyện" class="form-control" /></div>
-            </div>
-            <div class="form-check mb-3">
-                <input asp-for="IsDefault" class="form-check-input" type="checkbox" />
-                <label class="form-check-label" asp-for="IsDefault">Đặt làm mặc định</label>
-                <span asp-validation-for="IsDefault" class="text-danger"></span>
-            </div>
-            <button type="submit" class="btn btn-primary mt-3">Lưu lại</button>
-            <a asp-action="Index" class="btn btn-secondary mt-3">Quay lại</a>
-        </form>
+﻿@model AddressResponseDTO
+
+<div class="container mt-4">
+    <h4>Chi tiết địa chỉ</h4>
+    <hr />
+    <dl class="row border p-3 bg-light">
+        <dt class="col-sm-3">Địa chỉ chi tiết:</dt>
+        <dd class="col-sm-9">@Model.AddressDetails</dd>
+
+        <dt class="col-sm-3">Tỉnh/Thành:</dt>
+        <dd class="col-sm-9">@Model.Province</dd>
+
+        <dt class="col-sm-3">Quận/Huyện:</dt>
+        <dd class="col-sm-9">@Model.District</dd>
+
+        <dt class="col-sm-3">Phường/Xã:</dt>
+        <dd class="col-sm-9">@Model.Ward</dd>
+
+        <dt class="col-sm-3">Trạng thái:</dt>
+        <dd class="col-sm-9">
+            @(Model.IsDefault == true ? "Mặc định" : "Thường")
+        </dd>
+    </dl>
+    <div class="mt-3">
+        <a asp-action="Edit" asp-route-id="@Model.AddressId" class="btn btn-warning">Sửa</a>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
     </div>
 </div>

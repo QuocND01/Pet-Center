@@ -1,4 +1,4 @@
-using PetCenterClient.Services;
+﻿using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,6 +44,10 @@ builder.Services.AddHttpClient<IOrderServiceClient, OrderServiceClient>(client =
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+builder.Services.AddHttpClient<IOrderDetailServiceClient, OrderDetailServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 
 builder.Services.AddSession();
 
@@ -54,22 +58,20 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
-app.UseSession();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
+app.UseRouting(); // 1. Phải Routing trước
 
-app.UseAuthorization();
+app.UseSession(); // 2. Rồi mới tới Session
+
+app.UseAuthorization(); // 3. Cuối cùng mới Authorize
 
 app.MapControllerRoute(
     name: "default",

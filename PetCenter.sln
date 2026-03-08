@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36623.8 d17.14
+VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductAPI", "Pet_Center\ProductAPI.csproj", "{A66095E9-A90C-436A-9089-427B7A7ACFF1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityAPI", "IdentityAPI\IdentityAPI.csproj", "{0AD067EF-DB79-40C2-A5AD-BE74DC19996E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetCenterClient", "PetCenterClient\PetCenterClient.csproj", "{53806FB9-0674-3256-C18C-3D8E4F9433C8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderAPI", "OrderAPI\OrderAPI.csproj", "{FCA273D1-97B8-43F0-9BDD-4AB481C27B07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryAPI", "InventoryAPI\InventoryAPI.csproj", "{1505A1D6-F493-4B52-8FE3-527912E62828}"
 EndProject
@@ -41,10 +39,6 @@ Global
 		{53806FB9-0674-3256-C18C-3D8E4F9433C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53806FB9-0674-3256-C18C-3D8E4F9433C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53806FB9-0674-3256-C18C-3D8E4F9433C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FCA273D1-97B8-43F0-9BDD-4AB481C27B07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FCA273D1-97B8-43F0-9BDD-4AB481C27B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FCA273D1-97B8-43F0-9BDD-4AB481C27B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FCA273D1-97B8-43F0-9BDD-4AB481C27B07}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1505A1D6-F493-4B52-8FE3-527912E62828}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1505A1D6-F493-4B52-8FE3-527912E62828}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1505A1D6-F493-4B52-8FE3-527912E62828}.Release|Any CPU.ActiveCfg = Release|Any CPU

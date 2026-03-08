@@ -20,7 +20,7 @@ namespace PetCenterClient.Services
         // Hàm hỗ trợ đính kèm Token vào Header
         private void AddAuthHeader()
         {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWToken");
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
             if (!string.IsNullOrEmpty(token))
             {
                 _http.DefaultRequestHeaders.Authorization =
