@@ -12,32 +12,59 @@ namespace FeedbackAPI.Repository
             _db = db;
         }
 
+        //Get all active feedback
         public IQueryable<ProductFeedback> GetAll()
         {
             return _db.ProductFeedbacks
-                .Include(f => f.Customer)
-                .Include(f => f.Product)
-                .Where(f => f.IsActive == true);
+                .Where(f => f.IsActive == true)
+                .AsQueryable();
         }
 
-        public Task<ProductFeedback?> GetByIdAsync(Guid id)
+        //Get by id
+        public async Task<ProductFeedback?> GetByIdAsync(Guid id)
         {
-            return _db.ProductFeedbacks
-                .Include(f => f.Customer)
-                .Include(f => f.Product)
+            return await _db.ProductFeedbacks
                 .FirstOrDefaultAsync(f => f.FeedbackId == id);
         }
 
+        //Add new feedback
         public async Task AddAsync(ProductFeedback feedback)
         {
-            _db.ProductFeedbacks.Add(feedback);
+            await _db.ProductFeedbacks.AddAsync(feedback);
             await _db.SaveChangesAsync();
         }
 
+        //Update feedback
         public async Task UpdateAsync(ProductFeedback feedback)
         {
             _db.ProductFeedbacks.Update(feedback);
             await _db.SaveChangesAsync();
+        }
+
+        //Soft delete
+        public async Task SoftDeleteAsync(Guid id)
+        {
+            var feedback = await _db.ProductFeedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == id);
+
+            if (feedback != null)
+            {
+                feedback.IsActive = false;
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        //Toggle visibility
+        public async Task ToggleVisibilityAsync(Guid id)
+        {
+            var feedback = await _db.ProductFeedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == id);
+
+            if (feedback != null)
+            {
+                feedback.IsVisible = !(feedback.IsVisible ?? true);
+                await _db.SaveChangesAsync();
+            }
         }
     }
 }

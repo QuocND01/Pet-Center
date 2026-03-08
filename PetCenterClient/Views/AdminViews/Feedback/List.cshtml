@@ -1,0 +1,60 @@
+﻿@model List<PetCenterClient.DTOs.FeedbackDTO>
+
+<h2>Feedback Management</h2>
+
+<table class="table table-bordered">
+
+	<thead>
+		<tr>
+			<th>Product</th>
+			<th>Customer</th>
+			<th>Rating</th>
+			<th>Comment</th>
+			<th>Reply</th>
+			<th>Status</th>
+			<th>Action</th>
+		</tr>
+	</thead>
+
+	<tbody>
+
+		@foreach (var f in Model)
+		{
+			<tr>
+
+				<td>@f.ProductId</td>
+
+				<td>@f.CustomerId</td>
+
+				<td>@f.Rating ⭐</td>
+
+				<td>@f.Comment</td>
+
+				<td>@f.Reply</td>
+
+				<td>
+					@(f.IsVisible == true ? "Visible" : "Hidden")
+				</td>
+
+				<td>
+
+					<a asp-action="Detail"
+					   asp-route-id="@f.FeedbackId"
+					   class="btn btn-info">
+						Detail
+					</a>
+
+					<a asp-action="Toggle"
+					   asp-route-id="@f.FeedbackId"
+					   class="btn btn-warning">
+						Hide/Show
+					</a>
+
+				</td>
+
+			</tr>
+		}
+
+	</tbody>
+
+</table>

@@ -1,0 +1,39 @@
+﻿@model List<PetCenterClient.DTOs.FeedbackDTO>
+
+<h2>My Feedback</h2>
+
+<table class="table">
+
+	<thead>
+		<tr>
+
+			<th>Product</th>
+			<th>Rating</th>
+			<th>Comment</th>
+			<th>Admin Reply</th>
+
+		</tr>
+	</thead>
+
+	<tbody>
+
+		@foreach (var f in Model)
+		{
+
+			<tr>
+
+				<td>@f.ProductId</td>
+
+				<td>@f.Rating ⭐</td>
+
+				<td>@f.Comment</td>
+
+				<td>@f.Reply</td>
+
+			</tr>
+
+		}
+
+	</tbody>
+
+</table>

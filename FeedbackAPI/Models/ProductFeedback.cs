@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FeedbackAPI.Models;
 
-public partial class ProductFeedback
+public class ProductFeedback
 {
     public Guid FeedbackId { get; set; }
 
@@ -28,12 +28,4 @@ public partial class ProductFeedback
     public bool? IsVisible { get; set; }
 
     public bool? IsActive { get; set; }
-
-    public virtual Customer Customer { get; set; } = null!;
-
-    public virtual Order Order { get; set; } = null!;
-
-    public virtual Product Product { get; set; } = null!;
-
-    public virtual Staff? Staff { get; set; }
 }

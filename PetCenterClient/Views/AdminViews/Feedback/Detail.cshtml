@@ -1,0 +1,52 @@
+﻿@model PetCenterClient.DTOs.FeedbackDTO
+
+<h2>Feedback Detail</h2>
+
+<div class="card">
+
+    <div class="card-body">
+
+        <p><b>Product:</b> @Model.ProductId</p>
+
+        <p><b>Customer:</b> @Model.CustomerId</p>
+
+        <p><b>Rating:</b> @Model.Rating ⭐</p>
+
+        <p><b>Comment:</b></p>
+
+        <p>@Model.Comment</p>
+
+        <hr />
+
+        <h4>Admin Reply</h4>
+
+        @if (string.IsNullOrEmpty(Model.Reply))
+        {
+
+            <form asp-action="Reply" method="post">
+
+                <input type="hidden"
+                       name="FeedbackId"
+                       value="@Model.FeedbackId" />
+
+    <textarea name="Reply"
+          class="form-control">
+</textarea>
+
+                <br />
+
+                <button class="btn btn-success">
+                    Reply
+                </button>
+
+            </form>
+
+        }
+        else
+        {
+            <p>@Model.Reply</p>
+        }
+
+    </div>
+
+</div>
