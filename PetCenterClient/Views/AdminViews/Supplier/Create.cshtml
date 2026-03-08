@@ -1,4 +1,4 @@
-﻿@model ReadSupplierDto
+﻿@model CreateSupplierDto
 @using PetCenterClient.DTOs;
 @{
     Layout = null;
@@ -8,35 +8,58 @@
 
     <div asp-validation-summary="All" class="text-danger"></div>
 
-    <input type="hidden" asp-for="SupplierId" />
+<div class="mb-3">
+    <label class="form-label">Tax ID</label>
+    <input class="form-control" asp-for="TaxId" />
+    <small class="text-muted">Optional. Maximum 50 characters.</small>
+    <span asp-validation-for="TaxId" class="text-danger"></span>
+</div>
 
-    <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input class="form-control" asp-for="SupplierName" />
-        <span asp-validation-for="SupplierName" class="text-danger"></span>
-    </div>
+<div class="mb-3">
+    <label class="form-label">Supplier Name</label>
+    <input class="form-control" asp-for="SupplierName" />
+    <small class="text-muted">Required. Maximum 150 characters.</small>
+    <span asp-validation-for="SupplierName" class="text-danger"></span>
+</div>
 
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input class="form-control" asp-for="SupplierEmail" />
-        <span asp-validation-for="SupplierEmail" class="text-danger"></span>
-    </div>
+<div class="mb-3">
+    <label class="form-label">Email</label>
+    <input class="form-control" asp-for="SupplierEmail" />
+    <small class="text-muted">Enter a valid email address.</small>
+    <span asp-validation-for="SupplierEmail" class="text-danger"></span>
+</div>
 
-    <div class="mb-3">
-        <label class="form-label">Phone</label>
-        <input class="form-control" asp-for="SupplierPhoneNumber" />
-        <span asp-validation-for="SupplierPhoneNumber" class="text-danger"></span>
-    </div>
+<div class="mb-3">
+    <label class="form-label">Phone Number</label>
+    <input class="form-control" asp-for="SupplierPhoneNumber" />
+    <small class="text-muted">Must be 9–15 digits.</small>
+    <span asp-validation-for="SupplierPhoneNumber" class="text-danger"></span>
+</div>
 
-    <div class="mb-3">
-        <label class="form-label">Address</label>
-        <input class="form-control" asp-for="SupplierAddress" />
-        <span asp-validation-for="SupplierAddress" class="text-danger"></span>
-    </div>
+<div class="mb-3">
+    <label class="form-label">Address</label>
+    <input class="form-control" asp-for="SupplierAddress" />
+    <small class="text-muted">Required. Maximum 100 characters.</small>
+    <span asp-validation-for="SupplierAddress" class="text-danger"></span>
+</div>
 
-    <div class="modal-footer px-0 pb-0">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-success">Save Changes</button>
-    </div>
+<div class="mb-3">
+    <label class="form-label">Contact Person</label>
+    <input class="form-control" asp-for="ContactPersion" />
+    <small class="text-muted">Optional. Maximum 50 characters.</small>
+    <span asp-validation-for="ContactPersion" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Description</label>
+    <textarea class="form-control" asp-for="SupplierDescription"></textarea>
+    <small class="text-muted">Optional. Maximum 500 characters.</small>
+    <span asp-validation-for="SupplierDescription" class="text-danger"></span>
+</div>
+
+<div class="modal-footer px-0 pb-0">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="submit" class="btn btn-success">Create Supplier</button>
+</div>
 
 </form>

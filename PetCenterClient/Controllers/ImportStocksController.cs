@@ -65,7 +65,7 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Create(CreateImportStockDto dto)
         {
             if (!ModelState.IsValid)
-                return View(dto);
+                return View("~/Views/AdminViews/ImportStock/Create.cshtml", dto);
 
             await _service.CreateAsync(dto);
 
