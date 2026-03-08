@@ -16,6 +16,7 @@
   <ItemGroup>
     <Folder Include="DTOs\Response\" />
     <Folder Include="DTOs\Resquest\" />
+    <Folder Include="Views\Order - Copy\" />
   </ItemGroup>
 
   <ItemGroup>
