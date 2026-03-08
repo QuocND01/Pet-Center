@@ -27,7 +27,7 @@ namespace InventoryAPI.Service
             _mapper = mapper;
         }
 
-        public async Task<Guid> CreateAsync(CreateImportStockDto dto)
+        public async Task<Guid> CreateAsync(CreateImportStockDto dto, Guid staffGuid)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -36,7 +36,7 @@ namespace InventoryAPI.Service
             importStock.ImportId = Guid.NewGuid();
             importStock.ImportDate = DateTime.UtcNow;
             importStock.Status = ImportStatus.Pending;
-
+            importStock.StaffId = staffGuid;
             // Tính total
             importStock.TotalAmount = importStock.ImportStockDetails
                 .Sum(x => x.Quantity * x.ImportPrice);
