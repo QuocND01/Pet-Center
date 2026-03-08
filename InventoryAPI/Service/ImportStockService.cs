@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using InventoryAPI.Data;
 using InventoryAPI.DTOs;
 using InventoryAPI.Models;
 using InventoryAPI.Repository.Interface;
 using InventoryAPI.Service.Interface;
-using InventoryAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using static InventoryAPI.Models.ImportStock;
@@ -30,33 +31,15 @@ namespace InventoryAPI.Service
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var importStock = new ImportStock
-            {
-                ImportId = Guid.NewGuid(),
-                SupplierId = dto.SupplierId,
-                StaffId = dto.StaffId,
-                ImportDate = DateTime.UtcNow,
-                Status  = ImportStatus.Draft,
-            };
+            var importStock = _mapper.Map<ImportStock>(dto);
 
-            decimal total = 0;
+            importStock.ImportId = Guid.NewGuid();
+            importStock.ImportDate = DateTime.UtcNow;
+            importStock.Status = ImportStatus.Pending;
 
-            foreach (var item in dto.Details)
-            {
-                var detail = new ImportStockDetail
-                {
-                    ImportStockDetailId = Guid.NewGuid(),
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    ImportPrice = item.ImportPrice,
-                    StockLeft = item.Quantity
-                };
-
-                total += item.Quantity * item.ImportPrice;
-                importStock.ImportStockDetails.Add(detail);
-            }
-
-            importStock.TotalAmount = total;
+            // Tính total
+            importStock.TotalAmount = importStock.ImportStockDetails
+                .Sum(x => x.Quantity * x.ImportPrice);
 
             await _repo.AddAsync(importStock);
             await _repo.SaveChangesAsync();
@@ -66,10 +49,10 @@ namespace InventoryAPI.Service
             return importStock.ImportId;
         }
 
-        public async Task<ImportStockDto?> GetByIdAsync(Guid id)
+        public async Task<ReadImportStockDto?> GetByIdAsync(Guid id)
         {
             var entity = await _repo.GetByIdAsync(id);
-            return entity == null ? null : _mapper.Map<ImportStockDto>(entity);
+            return entity == null ? null : _mapper.Map<ReadImportStockDto>(entity);
         }
 
         public async Task ConfirmAsync(Guid id)
@@ -87,7 +70,7 @@ namespace InventoryAPI.Service
             // ❗ Chỉ cho confirm khi đang Draft
 
 
-            if (importStock.Status != ImportStatus.Draft)
+            if (importStock.Status != ImportStatus.Pending)
                 throw new Exception("Only draft import can be confirmed");
 
             //foreach (var detail in importStock.ImportStockDetails)
@@ -118,13 +101,20 @@ namespace InventoryAPI.Service
                 throw new Exception("Import not found");
 
             // ❗ Chỉ cho cancel khi đang Draft
-            if (importStock.Status != ImportStatus.Draft)
+            if (importStock.Status != ImportStatus.Pending)
                 throw new Exception("Only draft import can be cancelled");
 
             importStock.Status = ImportStatus.Cancelled;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+        }
+        public async Task<List<ReadImportHeaderDto>> GetAllImportsAsync()
+        {
+            return await _context.ImportStocks
+                .OrderByDescending(i => i.ImportDate)
+                .ProjectTo<ReadImportHeaderDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
         }
     }
 }

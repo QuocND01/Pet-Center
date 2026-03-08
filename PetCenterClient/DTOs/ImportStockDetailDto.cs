@@ -1,4 +1,4 @@
-﻿namespace InventoryAPI.DTOs
+﻿namespace PetCenterClient.DTOs
 {
     public class ImportStockDetailDto
     {

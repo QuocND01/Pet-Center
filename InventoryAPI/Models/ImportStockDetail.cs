@@ -23,7 +23,7 @@ public partial class ImportStockDetail
     [Column(TypeName = "decimal(18, 2)")]
     public decimal ImportPrice { get; set; }
 
-    public int? StockLeft { get; set; }
+    public int StockLeft { get; set; }
 
     [ForeignKey("ImportId")]
     [InverseProperty("ImportStockDetails")]

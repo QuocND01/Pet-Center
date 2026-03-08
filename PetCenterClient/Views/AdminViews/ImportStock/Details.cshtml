@@ -1,0 +1,40 @@
+﻿@using PetCenterClient.DTOs
+@model ReadImportStockDto
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Import Detail</h2>
+
+<div>
+    <p><b>Supplier:</b> @Model.SupplierId</p>
+    <p><b>Staff:</b> @Model.StaffId</p>
+    <p><b>Total:</b> @Model.TotalAmount</p>
+    <p><b>Status:</b> @Model.Status</p>
+</div>
+
+<h3>Products</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Import Price</th>
+            <th>Stock Left</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var d in Model.Details)
+        {
+            <tr>
+                <td>@d.ProductId</td>
+                <td>@d.Quantity</td>
+                <td>@d.ImportPrice</td>
+                <td>@d.StockLeft</td>
+            </tr>
+        }
+    </tbody>
+</table>

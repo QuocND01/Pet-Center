@@ -30,6 +30,10 @@ builder.Services.AddHttpClient<ICustomerService, CustomerService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+builder.Services.AddHttpClient<IImportStockService, ImportStockService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 
 builder.Services.AddSession();
 

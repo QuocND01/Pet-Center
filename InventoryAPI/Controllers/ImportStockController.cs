@@ -15,6 +15,12 @@ namespace InventoryAPI.Controllers
         {
             _service = service;
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAllImports()
+        {
+            var imports = await _service.GetAllImportsAsync();
+            return Ok(imports);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateImportStockDto dto)
