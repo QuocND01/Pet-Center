@@ -6,5 +6,8 @@ namespace PetCenterClient.Services.Interface
     {
         Task<CustomerProfileResponseDto?> GetProfileAsync();
         Task<bool> UpdateProfileAsync(UpdateCustomerProfileRequestDto dto);
+
+        Task<List<CustomerListDto>> GetAllCustomersAsync();
+        Task<CustomerDetailDto?> GetCustomerByIdAsync(Guid id);
     }
 }

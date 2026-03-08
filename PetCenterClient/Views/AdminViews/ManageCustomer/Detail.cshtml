@@ -1,0 +1,422 @@
+﻿@model PetCenterClient.DTOs.CustomerDetailDto
+@{
+    ViewData["Title"] = "Customer Detail";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var initials = string.Join("", Model.FullName.Split(' ').Take(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
+    var genderIcon = Model.Gender?.ToLower() == "male" ? "bi-gender-male" : Model.Gender?.ToLower() == "female" ? "bi-gender-female" : "bi-gender-ambiguous";
+    var genderColor = Model.Gender?.ToLower() == "male" ? "#3b82f6" : Model.Gender?.ToLower() == "female" ? "#ec4899" : "#8b5cf6";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+    :root {
+        --accent: #6366f1;
+        --accent-light: #eef2ff;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --border: #e2e8f0;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --radius: 16px;
+        --radius-sm: 10px;
+    }
+
+    .page-bg {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--surface-2);
+        min-height: 100vh;
+        padding: 32px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 24px;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        transition: all 0.2s;
+    }
+
+        .back-btn:hover {
+            background: var(--surface);
+            color: var(--accent);
+            text-decoration: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .profile-sidebar {
+        background: var(--surface);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        animation: cardIn 0.35s ease both;
+    }
+
+    .sidebar-banner {
+        height: 90px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+    }
+
+    .sidebar-body {
+        padding: 0 24px 28px;
+        text-align: center;
+    }
+
+    .avatar-wrap {
+        margin-top: -36px;
+        margin-bottom: 16px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .big-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: white;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+        margin: 0 auto;
+    }
+
+    .status-ring {
+        position: absolute;
+        bottom: 3px;
+        right: 3px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+
+    .profile-name {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .profile-email-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+        word-break: break-all;
+    }
+
+    .status-badge-lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+    .active-badge {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .inactive-badge {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .sidebar-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0 -24px 20px;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 13px;
+    }
+
+    .meta-label {
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .meta-value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .verified-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11.5px;
+        font-weight: 500;
+        padding: 3px 9px;
+        border-radius: 12px;
+    }
+
+    .verified-yes {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .verified-no {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .info-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .info-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        animation: cardIn 0.4s ease both;
+    }
+
+        .info-card:nth-child(1) {
+            animation-delay: .05s;
+        }
+
+        .info-card:nth-child(2) {
+            animation-delay: .12s;
+        }
+
+    .card-section-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .card-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+    .fields-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .field-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .field-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .field-label i {
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+    .field-value {
+        font-size: 14.5px;
+        font-weight: 500;
+        color: var(--text-primary);
+        padding: 10px 14px;
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        word-break: break-word;
+    }
+
+        .field-value.empty {
+            color: var(--text-muted);
+            font-weight: 400;
+            font-style: italic;
+        }
+
+    .field-full {
+        grid-column: 1 / -1;
+    }
+
+    @@keyframes cardIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width: 900px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .fields-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="page-bg">
+    <a asp-controller="ManageCustomer" asp-action="Index" class="back-btn">
+        <i class="bi bi-arrow-left"></i> Back to Customer List
+    </a>
+
+    <div class="profile-grid">
+        <!-- LEFT: Identity card -->
+        <div class="profile-sidebar">
+            <div class="sidebar-banner"></div>
+            <div class="sidebar-body">
+                <div class="avatar-wrap">
+                    <div class="big-avatar">@initials</div>
+                    <div class="status-ring" style="background:@(Model.IsActive ? "#10b981" : "#ef4444")"></div>
+                </div>
+                <div class="profile-name">@Model.FullName</div>
+                <div class="profile-email-sub">@Model.Email</div>
+                <div class="status-badge-lg @(Model.IsActive ? "active-badge" : "inactive-badge")">
+                    <i class="bi @(Model.IsActive ? "bi-check-circle-fill" : "bi-x-circle-fill")"></i>
+                    @(Model.IsActive ? "Active Account" : "Inactive Account")
+                </div>
+                <div class="sidebar-divider"></div>
+                <div class="meta-item">
+                    <span class="meta-label"><i class="bi bi-shield-check"></i> Email</span>
+                    <span class="verified-chip @(Model.EmailVerified ? "verified-yes" : "verified-no")">
+                        <i class="bi @(Model.EmailVerified ? "bi-patch-check-fill" : "bi-exclamation-circle")"></i>
+                        @(Model.EmailVerified ? "Verified" : "Unverified")
+                    </span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label"><i class="bi bi-calendar3"></i> Joined</span>
+                    <span class="meta-value">@Model.CreatedAt.ToString("MMM d, yyyy")</span>
+                </div>
+                @if (Model.Gender != null)
+                {
+                    <div class="meta-item">
+                        <span class="meta-label"><i class="bi @genderIcon" style="color:@genderColor"></i> Gender</span>
+                        <span class="meta-value">@Model.Gender</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- RIGHT: Detail cards -->
+        <div class="info-stack">
+            <div class="info-card">
+                <div class="card-section-title"><i class="bi bi-person-vcard"></i> Personal Information</div>
+                <div class="fields-grid">
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi bi-person"></i> Full Name</span>
+                        <div class="field-value">@Model.FullName</div>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi bi-envelope"></i> Email Address</span>
+                        <div class="field-value">@Model.Email</div>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi bi-telephone"></i> Phone Number</span>
+                        <div class="field-value @(string.IsNullOrEmpty(Model.PhoneNumber) ? "empty" : "")">
+                            @(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)
+                        </div>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi bi-cake"></i> Date of Birth</span>
+                        <div class="field-value @(Model.BirthDay == null ? "empty" : "")">
+                            @(Model.BirthDay.HasValue ? Model.BirthDay.Value.ToString("MMMM d, yyyy") : "Not provided")
+                        </div>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi @genderIcon"></i> Gender</span>
+                        <div class="field-value @(string.IsNullOrEmpty(Model.Gender) ? "empty" : "")">
+                            @(string.IsNullOrEmpty(Model.Gender) ? "Not specified" : Model.Gender)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="card-section-title"><i class="bi bi-geo-alt"></i> Location & Account</div>
+                <div class="fields-grid">
+                    <div class="field-item field-full">
+                        <span class="field-label"><i class="bi bi-house"></i> Address</span>
+                        <div class="field-value @(string.IsNullOrEmpty(Model.Address) ? "empty" : "")">
+                            @(string.IsNullOrEmpty(Model.Address) ? "No address provided" : Model.Address)
+                        </div>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi bi-toggle-on"></i> Account Status</span>
+                        <div class="field-value">
+                            <span style="display:inline-flex;align-items:center;gap:6px;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:@(Model.IsActive ? "#10b981" : "#ef4444");display:inline-block"></span>
+                                @(Model.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi bi-shield-check"></i> Email Verified</span>
+                        <div class="field-value">
+                            <span class="verified-chip @(Model.EmailVerified ? "verified-yes" : "verified-no")">
+                                <i class="bi @(Model.EmailVerified ? "bi-patch-check-fill" : "bi-exclamation-circle")"></i>
+                                @(Model.EmailVerified ? "Verified" : "Not Verified")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="field-item">
+                        <span class="field-label"><i class="bi bi-calendar-plus"></i> Member Since</span>
+                        <div class="field-value">@Model.CreatedAt.ToString("MMMM d, yyyy")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

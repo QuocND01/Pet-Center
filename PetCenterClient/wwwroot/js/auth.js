@@ -99,23 +99,19 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
-
-        // Kiểm tra auth status ngay khi page load
         const isAuthenticated = await checkAuthStatus();
-
-        // Chỉ setup dropdown nếu user đã login
         if (isAuthenticated) {
             setupAvatarDropdown();
             setupLogout();
         } else {
             console.log('⏭️ Skipping dropdown setup - user not authenticated');
         }
-
-        // Kiểm tra lại sau 1 giây
         setTimeout(async () => {
-            console.log('🔄 Re-checking auth status after 1 second');
             await checkAuthStatus();
         }, 1000);
+
+        // Setup nút Admin
+        await setupAdminNavBtn();
     });
 
     window.Auth = {
@@ -124,4 +120,30 @@
         setToken: (token) => localStorage.setItem('JWT', token),
         clearToken: () => localStorage.removeItem('JWT')
     };
+
+    // Check và setup nút Admin trên navbar
+    async function setupAdminNavBtn() {
+        const adminBtn = document.getElementById('adminNavBtn');
+        if (!adminBtn) return;
+
+        adminBtn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/Auth/CheckAdminAuth');
+                const data = await res.json();
+                if (data.isAuthenticated) {
+                    window.location.href = '/ManageCustomer/Index';
+                } else {
+                    window.location.href = '/Auth/AdminLogin';
+                }
+            } catch {
+                window.location.href = '/Auth/AdminLogin';
+            }
+        });
+    }
+
+    // Gọi trong DOMContentLoaded — thêm vào cuối hàm DOMContentLoaded đang có
+    document.addEventListener('DOMContentLoaded', async function () {
+        await setupAdminNavBtn();
+    });
 })();
