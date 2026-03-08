@@ -62,8 +62,8 @@
 
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost"
-                    //"Port": 7003
+                    "Host": "localhost",
+                    "Port": 7007
                 }
             ]
         },
@@ -90,6 +90,19 @@
                 {
                     "Host": "localhost",
                     "Port": 7004
+                }
+            ]
+        },
+
+        {
+            "UpstreamPathTemplate": "/address-service/{everything}",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+            "DownstreamPathTemplate": "/api/{everything}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7297
                 }
             ]
         }

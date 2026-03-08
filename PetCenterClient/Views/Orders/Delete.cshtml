@@ -1,0 +1,14 @@
+﻿@model PetCenterClient.DTOs.OrderResponseDTO
+
+<div class="container mt-4">
+    <div class="alert alert-danger">
+        <h4>⚠️ Xác nhận hủy đơn hàng</h4>
+        <p>Bạn có chắc chắn muốn hủy đơn hàng đặt ngày <strong>@Model.OrderDate?.ToString("dd/MM/yyyy")</strong> với tổng tiền <strong>@Model.TotalAmount.ToString("N0") VNĐ</strong>?</p>
+    </div>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="OrderId" />
+        <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+    </form>
+</div>

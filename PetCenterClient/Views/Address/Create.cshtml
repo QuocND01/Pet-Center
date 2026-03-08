@@ -1,0 +1,28 @@
+﻿@model AddressResponseDTO
+
+<div class="container mt-4">
+    <h4>Chi tiết địa chỉ</h4>
+    <hr />
+    <dl class="row border p-3 bg-light">
+        <dt class="col-sm-3">Địa chỉ chi tiết:</dt>
+        <dd class="col-sm-9">@Model.AddressDetails</dd>
+
+        <dt class="col-sm-3">Tỉnh/Thành:</dt>
+        <dd class="col-sm-9">@Model.Province</dd>
+
+        <dt class="col-sm-3">Quận/Huyện:</dt>
+        <dd class="col-sm-9">@Model.District</dd>
+
+        <dt class="col-sm-3">Phường/Xã:</dt>
+        <dd class="col-sm-9">@Model.Ward</dd>
+
+        <dt class="col-sm-3">Trạng thái:</dt>
+        <dd class="col-sm-9">
+            @(Model.IsDefault == true ? "Mặc định" : "Thường")
+        </dd>
+    </dl>
+    <div class="mt-3">
+        <a asp-action="Edit" asp-route-id="@Model.AddressId" class="btn btn-warning">Sửa</a>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+    </div>
+</div>
