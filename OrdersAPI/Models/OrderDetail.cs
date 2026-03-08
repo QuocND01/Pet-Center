@@ -17,9 +17,5 @@ public partial class OrderDetail
 
     public Guid? ImportStockDetailId { get; set; }
 
-    public virtual ImportStockDetail? ImportStockDetail { get; set; }
-
     public virtual Order? Order { get; set; }
-
-    public virtual Product? Product { get; set; }
 }

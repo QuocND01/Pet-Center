@@ -1,5 +1,6 @@
 ﻿using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
@@ -7,7 +8,7 @@ namespace PetCenterClient.Services
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly string _route = "orders/Orders"; 
+        private readonly string _route = "orders/Orders";
 
         public OrderServiceClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
@@ -17,9 +18,12 @@ namespace PetCenterClient.Services
 
         private void AddAuthHeader()
         {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWToken");
+            // Đảm bảo tên "JWT" khớp với lúc bạn lưu khi Login
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
             if (!string.IsNullOrEmpty(token))
-                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            {
+                _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
         }
 
         public async Task<List<OrderResponseDTO>> GetAllAsync()
@@ -51,8 +55,8 @@ namespace PetCenterClient.Services
         public async Task<bool> DeleteAsync(Guid id)
         {
             AddAuthHeader();
-            var res = await _http.DeleteAsync($"{_route}/{id}");
-            return res.IsSuccessStatusCode;
+            var response = await _http.DeleteAsync($"{_route}/{id}");
+            return response.IsSuccessStatusCode;
         }
     }
 }

@@ -1,28 +1,50 @@
-﻿@model AddressResponseDTO
+﻿@model AddressCreateDTO
+@using System.Security.Claims
 
 <div class="container mt-4">
-    <h4>Chi tiết địa chỉ</h4>
+    <h2>Thêm địa chỉ mới</h2>
     <hr />
-    <dl class="row border p-3 bg-light">
-        <dt class="col-sm-3">Địa chỉ chi tiết:</dt>
-        <dd class="col-sm-9">@Model.AddressDetails</dd>
+    <div class="row">
+        <div class="col-md-8">
+            @* Tăng độ rộng để chia 3 cột tỉnh/huyện/xã *@
+            <form asp-action="Create" method="post">
+                @* Đổi thành All để hiện mọi lỗi validation, giúp bạn debug dễ hơn *@
+                <div asp-validation-summary="All" class="text-danger"></div>
 
-        <dt class="col-sm-3">Tỉnh/Thành:</dt>
-        <dd class="col-sm-9">@Model.Province</dd>
 
-        <dt class="col-sm-3">Quận/Huyện:</dt>
-        <dd class="col-sm-9">@Model.District</dd>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Địa chỉ chi tiết</label>
+                    <input asp-for="AddressDetails" class="form-control" placeholder="Số nhà, tên đường..." />
+                    <span asp-validation-for="AddressDetails" class="text-danger"></span>
+                </div>
 
-        <dt class="col-sm-3">Phường/Xã:</dt>
-        <dd class="col-sm-9">@Model.Ward</dd>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Tỉnh/Thành</label>
+                        <input asp-for="Province" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Quận/Huyện</label>
+                        <input asp-for="District" class="form-control" />
+                    </div>
+                    @* FIX: Thêm trường Ward còn thiếu *@
+                    <div class="col-md-4">
+                        <label class="form-label">Phường/Xã</label>
+                        <input asp-for="Ward" class="form-control" />
+                        <span asp-validation-for="Ward" class="text-danger"></span>
+                    </div>
+                </div>
 
-        <dt class="col-sm-3">Trạng thái:</dt>
-        <dd class="col-sm-9">
-            @(Model.IsDefault == true ? "Mặc định" : "Thường")
-        </dd>
-    </dl>
-    <div class="mt-3">
-        <a asp-action="Edit" asp-route-id="@Model.AddressId" class="btn btn-warning">Sửa</a>
-        <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+                <div class="form-check mb-3">
+                    <input asp-for="IsDefault" class="form-check-input" type="checkbox" />
+                    <label class="form-check-label" asp-for="IsDefault">Đặt làm địa chỉ mặc định</label>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary px-4">Lưu lại</button>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
