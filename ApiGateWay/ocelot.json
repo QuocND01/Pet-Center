@@ -1,4 +1,4 @@
-﻿{
+{
   "Routes": [
     {
       "UpstreamPathTemplate": "/api/auth/{everything}",
@@ -70,13 +70,14 @@
       "UpstreamPathTemplate": "/orders/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
 
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 7007
-                }
-            ]
-        },
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ]
+    },
+
     {
       "UpstreamPathTemplate": "/product-service/odata/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -97,29 +98,25 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-                    "Host": "localhost",
-                    "Port": 7004
-                }
-            ]
-        },
+          "Host": "localhost",
+          "Port": 7004
+        }
+      ]
+    },
 
+    {
+      "UpstreamPathTemplate": "/address-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
         {
-            "UpstreamPathTemplate": "/address-service/{everything}",
-            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-            "DownstreamPathTemplate": "/api/{everything}",
-            "DownstreamScheme": "https",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 7297
-                }
-            ]
+          "Host": "localhost",
+          "Port": 7297
         }
       ]
     }
   ],
-
-
       "GlobalConfiguration": {
         "BaseUrl": "https://localhost:5000"
       }
