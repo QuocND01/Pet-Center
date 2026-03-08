@@ -37,6 +37,12 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
+                        <label asp-for="BirthDay" class="form-label font-weight-bold">Birthday</label>
+                        <input asp-for="BirthDay" type="date" class="form-control" />
+                        <span asp-validation-for="BirthDay" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
                         <label asp-for="Password" class="form-label font-weight-bold"></label>
                         <input asp-for="Password" type="password" class="form-control" />
                         <span asp-validation-for="Password" class="text-danger"></span>
