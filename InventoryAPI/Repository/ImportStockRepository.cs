@@ -15,16 +15,29 @@ namespace InventoryAPI.Repository
             _context = context;
         }
 
-        public async Task AddAsync(ImportStock importStock)
+        public async Task AddAsync(ImportStock entity)
         {
-            await _context.ImportStocks.AddAsync(importStock);
+            await _context.ImportStocks.AddAsync(entity);
         }
 
         public async Task<ImportStock?> GetByIdAsync(Guid id)
         {
             return await _context.ImportStocks
+                .FirstOrDefaultAsync(x => x.ImportId == id);
+        }
+
+        public async Task<ImportStock?> GetWithDetailsAsync(Guid id)
+        {
+            return await _context.ImportStocks
                 .Include(x => x.ImportStockDetails)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
+        }
+
+        public async Task<List<ImportStock>> GetAllAsync()
+        {
+            return await _context.ImportStocks
+                .OrderByDescending(x => x.ImportDate)
+                .ToListAsync();
         }
 
         public async Task SaveChangesAsync()

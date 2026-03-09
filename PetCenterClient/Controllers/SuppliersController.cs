@@ -46,6 +46,7 @@ namespace PetCenterClient.Controllers
 
         // GET: Edit
         [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
             var supplier = await _supplierService.GetByIdAsync(id);
@@ -53,7 +54,19 @@ namespace PetCenterClient.Controllers
             if (supplier == null)
                 return NotFound();
 
-            return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", supplier);
+            var dto = new UpdateSupplierDto
+            {
+                SupplierId = supplier.SupplierId,
+                TaxId = supplier.TaxId,
+                SupplierName = supplier.SupplierName,
+                SupplierEmail = supplier.SupplierEmail,
+                SupplierPhoneNumber = supplier.SupplierPhoneNumber,
+                SupplierAddress = supplier.SupplierAddress,
+                ContactPerson = supplier.ContactPerson,
+                SupplierDescription = supplier.SupplierDescription
+            };
+
+            return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", dto);
         }
 
         // POST: Edit
