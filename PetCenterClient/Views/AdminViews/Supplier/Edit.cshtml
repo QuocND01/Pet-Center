@@ -1,31 +1,63 @@
-﻿@model ReadSupplierDto
-@using PetCenterClient.DTOs;
+﻿@using PetCenterClient.DTOs
+@model UpdateSupplierDto
 @{
-    Layout = null; // Bắt buộc là null
+    Layout = null;
 }
 
 <form id="editForm">
-    @* ASP.NET Core Hidden Field *@
+    @Html.AntiForgeryToken()
+
     <input type="hidden" asp-for="SupplierId" />
 
+    <div asp-validation-summary="All" class="text-danger"></div>
+
     <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input class="form-control" asp-for="SupplierName" required />
+        <label class="form-label">Tax ID</label>
+        <input class="form-control" asp-for="TaxId" />
+        <small class="text-muted">Optional. Maximum 50 characters.</small>
+        <span asp-validation-for="TaxId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Supplier Name</label>
+        <input class="form-control" asp-for="SupplierName" />
+        <small class="text-muted">Required. Maximum 150 characters.</small>
+        <span asp-validation-for="SupplierName" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label class="form-label">Email</label>
-        <input type="email" class="form-control" asp-for="SupplierEmail" required />
+        <input class="form-control" asp-for="SupplierEmail" />
+        <small class="text-muted">Enter a valid email address.</small>
+        <span asp-validation-for="SupplierEmail" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Phone</label>
+        <label class="form-label">Phone Number</label>
         <input class="form-control" asp-for="SupplierPhoneNumber" />
+        <small class="text-muted">Must be 9–15 digits.</small>
+        <span asp-validation-for="SupplierPhoneNumber" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label class="form-label">Address</label>
         <input class="form-control" asp-for="SupplierAddress" />
+        <small class="text-muted">Required. Maximum 100 characters.</small>
+        <span asp-validation-for="SupplierAddress" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Contact Person</label>
+        <input class="form-control" asp-for="ContactPerson" />
+        <small class="text-muted">Optional. Maximum 50 characters.</small>
+        <span asp-validation-for="ContactPerson" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" asp-for="SupplierDescription"></textarea>
+        <small class="text-muted">Optional. Maximum 500 characters.</small>
+        <span asp-validation-for="SupplierDescription" class="text-danger"></span>
     </div>
 
     <div class="modal-footer px-0 pb-0">

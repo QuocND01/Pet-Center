@@ -1,10 +1,10 @@
-﻿@model CreateSupplierDto
-@using PetCenterClient.DTOs;
+﻿@using PetCenterClient.DTOs
+@model CreateSupplierDto
 @{
     Layout = null;
 }
 
-<form id="editForm">
+<form id="createForm">
 
     <div asp-validation-summary="All" class="text-danger"></div>
 
@@ -45,9 +45,9 @@
 
 <div class="mb-3">
     <label class="form-label">Contact Person</label>
-    <input class="form-control" asp-for="ContactPersion" />
+    <input class="form-control" asp-for="ContactPerson" />
     <small class="text-muted">Optional. Maximum 50 characters.</small>
-    <span asp-validation-for="ContactPersion" class="text-danger"></span>
+    <span asp-validation-for="ContactPerson" class="text-danger"></span>
 </div>
 
 <div class="mb-3">

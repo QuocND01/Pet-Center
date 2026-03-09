@@ -4,8 +4,10 @@ namespace InventoryAPI.Repository.Interface
 {
     public interface IImportStockRepository
     {
-        Task AddAsync(ImportStock importStock);
+        Task AddAsync(ImportStock entity);
         Task<ImportStock?> GetByIdAsync(Guid id);
+        Task<ImportStock?> GetWithDetailsAsync(Guid id);
+        Task<List<ImportStock>> GetAllAsync();
         Task SaveChangesAsync();
     }
 }

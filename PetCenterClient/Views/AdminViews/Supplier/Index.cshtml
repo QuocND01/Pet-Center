@@ -110,9 +110,10 @@
                 }
 
                 },
-                error: function () {
-                    alert("Error saving data!");
-                }
+                    error: function (xhr) {
+        console.log(xhr.responseText);
+        alert("Error saving data: " + xhr.responseText);
+    }
             });
         });
 
