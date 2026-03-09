@@ -18,7 +18,7 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        // Hàm helper để gán token
+        // Hàm helper để gán token cho BE
         private void AddAuthorizationHeader()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
