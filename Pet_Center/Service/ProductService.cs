@@ -158,7 +158,11 @@ namespace ProductAPI.Service
             }
             await _productRepository.UpdateProductAsync(product);
         }
-
+        public async Task<List<SelectProductDto>> GetProductSelectListAsync()
+        {
+            // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
+            return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.IsActive);
+        }
     }
 
     }

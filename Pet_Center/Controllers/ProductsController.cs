@@ -91,5 +91,12 @@ namespace ProductAPI.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("select")]
+        public async Task<IActionResult> GetProductSelect()
+        {
+            var result = await _productService.GetProductSelectListAsync();
+            return Ok(result);
+        }
     }
 }

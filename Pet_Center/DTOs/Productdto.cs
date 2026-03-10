@@ -46,7 +46,8 @@ namespace ProductAPI.DTOs
         public List<UpdateProductAttributeDTO>? Attributes { get; set; }
     }
 
-    public class CreateProductDTO{
+    public class CreateProductDTO
+    {
         public string ProductName { get; set; } = null!;
         public decimal ProductPrice { get; set; }
         public string? ProductDescription { get; set; }
@@ -59,4 +60,9 @@ namespace ProductAPI.DTOs
 
         public List<CreateProductAttributeDTO>? Attributes { get; set; }
     }
-}
+    public class SelectProductDto
+    {
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; } = null!;
+    }
+    }

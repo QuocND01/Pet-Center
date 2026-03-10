@@ -1,16 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using ProductAPI.Models;
 using ProductAPI.Repository.Interface;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace ProductAPI.Repository
 {
     public class ProductRepository : IProductRepository
     {
         private readonly PetCenterContext _db;
-
-        public ProductRepository(PetCenterContext db)
+        private readonly IMapper _mapper;
+        public ProductRepository(PetCenterContext db, IMapper mapper)
         {
             _db = db;
+            _mapper = mapper;
         }
 
 
@@ -87,6 +92,18 @@ namespace ProductAPI.Repository
         p.BrandId == brandId &&
         p.CategoryId == categoryId &&
         p.IsActive);
+        }
+
+        public async Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null)
+        {
+            IQueryable<Product> query = _db.Products.AsNoTracking();
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            // Sử dụng ProjectTo để SQL chỉ chọn đúng các cột có trong DTO
+            return await query.ProjectTo<T>(_mapper.ConfigurationProvider)
+                              .ToListAsync();
         }
 
     }

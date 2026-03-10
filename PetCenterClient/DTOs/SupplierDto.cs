@@ -71,4 +71,11 @@ namespace PetCenterClient.DTOs
         [StringLength(500)]
         public string? SupplierDescription { get; set; }
     }
+    public class SupplierSelectDto { 
+        public Guid  SupplierId { get; set; }
+        public string SupplierName { get; set; } = null!;
+    }
+    
+        
+    
 }
