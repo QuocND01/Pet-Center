@@ -19,6 +19,8 @@ namespace PetCenterClient.DTOs
     public class CreateImportStockDto
     {
         public Guid SupplierId { get; set; }
+
+        
         public List<CreateImportStockDetailDto> Details { get; set; } = new();
     }
 

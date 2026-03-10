@@ -55,6 +55,7 @@ namespace ProductAPI.Profiles
                 .ForMember(dest => dest.Images, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductAttributes, opt => opt.Ignore());
 
+            CreateMap<Product, SelectProductDto>();
         }
     }
 

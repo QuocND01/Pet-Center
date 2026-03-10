@@ -61,4 +61,10 @@ namespace PetCenterClient.DTOs
 
         public List<CreateProductAttributeDTO>? Attributes { get; set; }
     }
+    public class ProductSelectDto
+    {
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; } = null!;
+
+    }
 }

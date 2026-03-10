@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
@@ -8,11 +9,16 @@ namespace PetCenterClient.Controllers
     public class ImportStocksController : Controller
     {
         private readonly IImportStockService _service;
+        private readonly ISupplierService _suppService;
+        private readonly IProductService _productService;
         private readonly ILogger<ImportStocksController> _logger;
-        public ImportStocksController(IImportStockService service, ILogger<ImportStocksController> logger)
+        
+        public ImportStocksController(IImportStockService service, ILogger<ImportStocksController> logger, ISupplierService suppService, IProductService productService)
         {
             _service = service;
             _logger = logger;
+            _suppService = suppService;
+            _productService = productService;
         }
 
 
@@ -56,8 +62,14 @@ namespace PetCenterClient.Controllers
             return View("~/Views/AdminViews/ImportStock/Details.cshtml",import);
         }
 
-        public IActionResult Create()
-        {
+        public async Task<IActionResult> Create()
+        {   
+
+            var selectDto = await _suppService.GetSupplierSelectAsync();
+            var products = await _productService.GetProductSelectAsync();
+
+            ViewBag.SupplierList = new SelectList(selectDto, "SupplierId", "SupplierName");
+            ViewBag.ProductList = new SelectList(products, "ProductId", "ProductName");
             return View("~/Views/AdminViews/ImportStock/Create.cshtml", new CreateImportStockDto());
         }
 
@@ -65,7 +77,15 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Create(CreateImportStockDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                var selectDto = await _suppService.GetSupplierSelectAsync();
+                var products = await _productService.GetProductSelectAsync();
+
+                ViewBag.SupplierList = new SelectList(selectDto, "SupplierId", "SupplierName");
+                ViewBag.ProductList = new SelectList(products, "ProductId", "ProductName");
+
                 return View("~/Views/AdminViews/ImportStock/Create.cshtml", dto);
+            }
 
             await _service.CreateAsync(dto);
 

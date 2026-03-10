@@ -26,8 +26,10 @@ namespace PetCenterClient.Controllers
 
         // GET: Create
         public IActionResult Create()
-        {
+        {   
+            
             return View("~/Views/AdminViews/Supplier/Create.cshtml");
+
         }
 
         // POST: Create
@@ -42,6 +44,7 @@ namespace PetCenterClient.Controllers
             await _supplierService.CreateAsync(dto);
 
             return Json(new { success = true });
+
         }
 
         // GET: Edit

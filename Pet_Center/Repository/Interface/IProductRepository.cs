@@ -1,4 +1,5 @@
 ﻿using ProductAPI.Models;
+using System.Linq.Expressions;
 
 namespace ProductAPI.Repository.Interface
 {
@@ -14,5 +15,7 @@ namespace ProductAPI.Repository.Interface
         Task DeleteProductAttributesByProductIdAsync(Guid productId);
 
         Task<bool> CheckProductExist(string productName, Guid brandId, Guid categoryId);
+
+        Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null); 
     }
 }

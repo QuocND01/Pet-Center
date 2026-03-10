@@ -82,5 +82,16 @@ namespace PetCenterClient.Services
             var res = await _httpClient.DeleteAsync($"/inventory/Suppliers/{id}");
             return res.IsSuccessStatusCode;
         }
+        public async Task<List<SupplierSelectDto>> GetSupplierSelectAsync()
+        {
+            
+            var suppliers = await GetAllAsync();
+
+            return suppliers.Select(s => new SupplierSelectDto
+            {
+                SupplierId = s.SupplierId,
+                SupplierName = s.SupplierName
+            }).ToList();
+        }
     }
 }

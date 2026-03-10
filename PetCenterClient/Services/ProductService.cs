@@ -1,15 +1,21 @@
 ﻿using PetCenterClient.DTOs;
+
 using PetCenterClient.Services.Interface;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
     public class ProductService : IProductService
     {
         private readonly HttpClient _http;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProductService(HttpClient http)
+        public ProductService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
@@ -201,6 +207,34 @@ namespace PetCenterClient.Services
         public async Task DeleteProductAsync(Guid? id)
         {
             await _http.DeleteAsync($"product-service/Products/{id}");
+        }
+
+        public async Task<List<ProductSelectDto>> GetProductSelectAsync()
+        {
+            AddAuthorizationHeader();
+
+            var res = await _http.GetAsync("product-service/products/select");
+
+            if (!res.IsSuccessStatusCode)
+                return new List<ProductSelectDto>();
+
+            var json = await res.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<List<ProductSelectDto>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? new List<ProductSelectDto>();
+        }
+        private void AddAuthorizationHeader()
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                // Xóa các giá trị cũ để tránh cộng dồn header
+                _http.DefaultRequestHeaders.Authorization = null;
+                _http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
         }
     }
 
