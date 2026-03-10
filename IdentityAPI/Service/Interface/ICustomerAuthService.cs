@@ -2,6 +2,6 @@
 {
     public interface ICustomerAuthService
     {
-        Task<string?> LoginAsync(string email, string password);
+        Task<(bool success, string token, string errorType, string message)> LoginAsync(string email, string password);
     }
 }

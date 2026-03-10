@@ -1,4 +1,5 @@
-﻿using IdentityAPI.Service.Interface;
+﻿using IdentityAPI.DTOs.Resquest;
+using IdentityAPI.Service.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,6 +51,32 @@ namespace IdentityAPI.Controllers
                 status = 200,
                 message = "Get customer detail successfully",
                 data = result
+            });
+        }
+
+        // ===== CHANGE CUSTOMER STATUS (Admin only) =====
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id:guid}/status")]
+        public async Task<IActionResult> ChangeCustomerStatus(Guid id, [FromBody] ChangeCustomerStatusRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerService.ChangeCustomerStatusAsync(id, request.IsActive);
+
+            if (!result)
+            {
+                return NotFound(new
+                {
+                    status = 404,
+                    message = "Customer not found"
+                });
+            }
+
+            return Ok(new
+            {
+                status = 200,
+                message = $"Customer status changed to {(request.IsActive ? "Active" : "Inactive")} successfully"
             });
         }
     }

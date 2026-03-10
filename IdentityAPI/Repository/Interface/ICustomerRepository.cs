@@ -8,7 +8,9 @@ namespace IdentityAPI.Repository.Interface
         // ==================================== Login ====================================
         Task<Customer?> GetByEmailAsync(string email);
 
-        
+        Task<Customer?> GetByEmailAsyncWithoutActiveCheck(string email);
+
+
         // ==================================== For Staff and Admin ====================================
         Task<List<Customer>> GetAllCustomersAsync();
 
