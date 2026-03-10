@@ -22,10 +22,10 @@ namespace PetCenterClient.Controllers
             }
 
             ViewData["CurrentFilter"] = searchTerm;
-            return View(staffs);
+            return View("~/Views/AdminViews/ManageStaff/Index.cshtml", staffs);
         }
 
-        public IActionResult Create() => View();
+        public IActionResult Create() => View("~/Views/AdminViews/ManageStaff/Create.cshtml");
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -44,7 +44,7 @@ namespace PetCenterClient.Controllers
             }
 
             ModelState.AddModelError("", "An error occurred while calling the API. Please try again.");
-            return View(dto);
+            return View("~/Views/AdminViews/ManageStaff/Create.cshtml", dto);
         }
 
         [HttpGet]
@@ -56,14 +56,14 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
             // Đảm bảo staff.BirthDay đã có giá trị từ API trả về
-            return View(staff);
+            return View("~/Views/AdminViews/ManageStaff/Edit.cshtml", staff);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(Guid id, StaffDto dto)
         {
             if (await _service.UpdateAsync(id, dto)) return RedirectToAction(nameof(Index));
-            return View(dto);
+            return View("~/Views/AdminViews/ManageStaff/Edit.cshtml", dto);
         }
 
         // 1. Xem chi tiết nhân viên
@@ -71,7 +71,7 @@ namespace PetCenterClient.Controllers
         {
             var staff = await _service.GetByIdAsync(id);
             if (staff == null) return NotFound();
-            return View(staff);
+            return View("~/Views/AdminViews/ManageStaff/Details.cshtml", staff);
         }
 
         // 2. Hiện trang xác nhận xóa (GET)
@@ -81,7 +81,7 @@ namespace PetCenterClient.Controllers
         {
             var staff = await _service.GetByIdAsync(id);
             if (staff == null) return NotFound();
-            return View(staff);
+            return View("~/Views/AdminViews/ManageStaff/Delete.cshtml", staff);
         }
 
         // 3. Thực hiện xóa thực tế (POST)
