@@ -26,20 +26,23 @@ namespace IdentityAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var token = await _customerAuthService.LoginAsync(dto.Email, dto.Password);
+            var (success, token, errorType, message) = await _customerAuthService.LoginAsync(dto.Email, dto.Password);
 
-            if (token == null)
+            if (!success)
             {
                 return Unauthorized(new
                 {
-                    message = "Email or password incorrect"
+                    success = false,
+                    message = message,
+                    errorType = errorType
                 });
             }
 
             return Ok(new
             {
+                success = true,
                 message = "Login success",
-                token
+                token = token
             });
         }
 

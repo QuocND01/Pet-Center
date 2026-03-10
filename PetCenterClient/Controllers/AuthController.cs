@@ -22,14 +22,23 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Login(LoginDto dto)
         {
             var result = await _authService.LoginAsync(dto);
-            if (result == null)
+
+            if (result == null || !result.Success)
             {
-                ViewBag.Error = "Email or password incorrect";
+                // ✅ Kiểm tra error type để hiển thị thông báo phù hợp
+                if (result?.ErrorType == "AccountInactive")
+                {
+                    ViewBag.Error = "Your account has been deactivated. Please contact support for assistance.";
+                }
+                else
+                {
+                    ViewBag.Error = result?.message ?? "Email or password incorrect";
+                }
+
                 return View("~/Views/CustomerViews/Auth/Login.cshtml");
             }
 
             HttpContext.Session.SetString("JWT", result.token);
-
             return RedirectToAction("Index", "Products");
         }
 

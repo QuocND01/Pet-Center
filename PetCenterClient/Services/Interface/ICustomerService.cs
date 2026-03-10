@@ -9,5 +9,7 @@ namespace PetCenterClient.Services.Interface
 
         Task<List<CustomerListDto>> GetAllCustomersAsync();
         Task<CustomerDetailDto?> GetCustomerByIdAsync(Guid id);
+
+        Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive);
     }
 }

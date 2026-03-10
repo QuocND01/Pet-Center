@@ -22,19 +22,32 @@ namespace IdentityAPI.Service
             _jwtService = jwtService;
         }
 
-        public async Task<string?> LoginAsync(string email, string password)
+        public async Task<(bool success, string token, string errorType, string message)> LoginAsync(string email, string password)
         {
-            var customer = await _customerRepository.GetByEmailAsync(email);
-
+            // Tìm customer bằng email (không check IsActive)
+            var customer = await _customerRepository.GetByEmailAsyncWithoutActiveCheck(email);
             if (customer == null)
-                return null;
+            {
+                return (false, null, "InvalidCredentials", "Email or password incorrect");
+            }
 
+            // Kiểm tra password
             if (!_passwordService.Verify(password, customer.PasswordHash))
-                return null;
+            {
+                return (false, null, "InvalidCredentials", "Email or password incorrect");
+            }
 
+            // ✅ Kiểm tra account có active không (sử dụng != true để handle nullable)
+            if (customer.IsActive != true)
+            {
+                return (false, null, "AccountInactive", "Your account has been deactivated. Please contact support.");
+            }
+
+            // Login thành công
             var roles = new List<string> { "Customer" };
+            var token = _jwtService.GenerateToken(customer.CustomerId, customer.Email, roles);
 
-            return _jwtService.GenerateToken(customer.CustomerId,customer.Email, roles);
+            return (true, token, null, "Login success");
         }
     }
 }

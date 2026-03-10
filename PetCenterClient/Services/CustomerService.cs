@@ -130,6 +130,35 @@ namespace PetCenterClient.Services
             }
             catch { return null; }
         }
+
+        public async Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive)
+        {
+            try
+            {
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+                if (string.IsNullOrEmpty(token))
+                    return false;
+
+                _http.DefaultRequestHeaders.Authorization = null;
+                _http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+
+                var data = new { isActive };
+                var jsonString = System.Text.Json.JsonSerializer.Serialize(data);
+                var jsonContent = new StringContent(jsonString, System.Text.Encoding.UTF8, "application/json");
+
+                var response = await _http.PutAsync($"api/customers/{customerId}/status", jsonContent);
+
+                if (!response.IsSuccessStatusCode)
+                    return false;
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
     }
 

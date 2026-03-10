@@ -46,23 +46,47 @@ namespace IdentityAPI.Controllers
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateCustomerProfileRequestDto request)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (userIdClaim == null)
-                return Unauthorized("Invalid token");
-
-            var userId = Guid.Parse(userIdClaim);
-
-            var result = await _customerService.UpdateProfileAsync(userId, request);
-
-            if (!result)
-                return NotFound("Customer not found");
-
-            return Ok(new
+            // ✅ Validate ModelState
+            if (!ModelState.IsValid)
             {
-                status = 200,
-                message = "Profile updated successfully"
-            });
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                var errorMessage = string.Join("; ", errors.Select(e => e.ErrorMessage));
+                return BadRequest(new
+                {
+                    status = 400,
+                    message = "Validation failed",
+                    errors = errorMessage
+                });
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(new { status = 401, message = "Invalid token" });
+
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized(new { status = 401, message = "Invalid token format" });
+
+            try
+            {
+                var result = await _customerService.UpdateProfileAsync(userId, request);
+                if (!result)
+                    return NotFound(new { status = 404, message = "Customer not found" });
+
+                return Ok(new
+                {
+                    status = 200,
+                    message = "Profile updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = 500,
+                    message = "An error occurred while updating profile",
+                    error = ex.Message
+                });
+            }
         }
     }
 }

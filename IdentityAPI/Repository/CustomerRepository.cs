@@ -20,6 +20,12 @@ namespace IdentityAPI.Repository
                 .FirstOrDefaultAsync(x => x.Email == email && x.IsActive == true);
         }
 
+        public async Task<Customer?> GetByEmailAsyncWithoutActiveCheck(string email)
+        {
+            return await _context.Customers
+                .FirstOrDefaultAsync(x => x.Email == email);
+        }
+
         // ==================================== For Staff and Admin ====================================
         public async Task<List<Customer>> GetAllCustomersAsync()
         {
