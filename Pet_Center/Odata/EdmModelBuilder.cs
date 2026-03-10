@@ -13,8 +13,13 @@ namespace ProductAPI.Odata
             // EntitySet = endpoint chính
             builder.EntitySet<ReadProductDTO>("Products");
 
+            builder.EntitySet<ReadBrandDTOs>("Brands");
+
             builder.EntityType<ReadProductDTO>()
                .HasKey(p => p.ProductId);
+
+            builder.EntityType<ReadBrandDTOs>()
+               .HasKey(p => p.BrandId);
 
             return builder.GetEdmModel();
         }

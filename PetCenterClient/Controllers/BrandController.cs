@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 
@@ -14,78 +16,141 @@ namespace PetCenterClient.Controllers
             _brandService = brandService;
         }
         // GET: BrandController
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string? search, int page = 1)
         {
-            return View(await _brandService.GetAllBrandAsync());
+           var result = await _brandService.GetAllBrandAsync(search, page);
+            return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
 
-        // GET: BrandController/Details/5
-        public ActionResult Details(int id)
+
+        public async Task<ActionResult> Indexadmin(string? search, int page = 1)
         {
-            return View();
+            var result = await _brandService.GetAllBrandAsync(search, page);
+            return View("~/Views/AdminViews/Brand/Index.cshtml", result);
         }
+
+
+        // GET: BrandController/Details/5
+        public async Task<ActionResult> DetailsAsync(Guid id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var readBrand = await _brandService.GetBrandByIdAsync(id);
+            if (readBrand == null)
+            {
+                return NotFound();
+            }
+            return PartialView("~/Views/CustomerView/Brand/_Details.cshtml", readBrand);
+        }
+
+        public async Task<ActionResult> DetailsAsyncAdmin(Guid id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var readBrand = await _brandService.GetBrandByIdAsync(id);
+            if (readBrand == null)
+            {
+                return NotFound();
+            }
+            return PartialView("~/Views/AdminViews/Brand/_Details.cshtml", readBrand);
+        }
+
 
         // GET: BrandController/Create
         public ActionResult Create()
         {
-            return View();
+            return PartialView("~/Views/AdminViews/Brand/_Create.cshtml");
         }
 
         // POST: BrandController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Create(CreateBrandDTOs model)
         {
+            if (!ModelState.IsValid)
+            {
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
+                return PartialView("~/Views/AdminViews/Brand/_Create.cshtml", model);
+            }
             try
             {
-                return RedirectToAction(nameof(Index));
+                await _brandService.AddBrandAsync(model);
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                Console.WriteLine(ex.Message);
             }
+
+            return Json(new { success = true });
         }
 
         // GET: BrandController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(Guid? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var updateBrand = await _brandService.GetBrandByIdAsync(id);
+            if (updateBrand == null)
+            {
+                return NotFound();
+            }
+            return PartialView("~/Views/AdminViews/Brand/_Edit.cshtml", updateBrand);
         }
 
         // POST: BrandController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Edit(Guid id, UpdateBrandDTOs model)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            if (!ModelState.IsValid)
+                return View(model);
+
+            await _brandService.UpdateBrandAsync(id, model);
+
+            return Json(new { success = true });
         }
 
+        // GET: ReadProdutDTOs/Delete/5
+        public async Task<IActionResult> Delete(Guid? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var model = await _brandService.GetBrandByIdAsync(id);
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("~/Views/AdminViews/Brand/_Delete.cshtml", model);
+        }
         // GET: BrandController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: BrandController/Delete/5
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            try
+            var brand = await _brandService.GetBrandByIdAsync(id);
+
+            if (brand != null)
             {
-                return RedirectToAction(nameof(Index));
+                await _brandService.DeleteBrandAsync(id);
             }
-            catch
-            {
-                return View();
-            }
+
+            return Json(new { success = true });
         }
     }
 }
