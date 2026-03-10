@@ -99,11 +99,9 @@ namespace PetCenterClient.Controllers
         // GET: ReadProdutDTOs/Create
         public async Task<IActionResult> Create()
         {
-            var brands = await _brandService.GetAllBrandAsync() ?? new List<ReadBrandDTOs>();
+            var brands = await _brandService.GetAllBrandAsync("", 1 ) ?? new OdataResponse<ReadBrandDTOs>();
             var categories = await _categoryService.GetAllCategoryAsync() ?? new List<ReadCategoryDTOs>();
-            Console.WriteLine("number of brand: "+ brands.Count());
-            Console.WriteLine("number of category: "+ categories.Count());
-            ViewBag.Brands = new SelectList(brands, "BrandId", "BrandName");
+            ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
             ViewBag.Categories = new SelectList(categories, "CategoryId", "CategoryName");
 
             return PartialView("~/Views/AdminViews/Product/_Create.cshtml");

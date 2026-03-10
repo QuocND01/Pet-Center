@@ -2,14 +2,14 @@
 {
     public interface IFeedbackService
     {
-        Task<List<FeedbackResponseDTO>> GetFeedbackByProductAsync(Guid productId);
+        //Task<List<FeedbackResponseDTO>> GetFeedbackByProductAsync(Guid productId);
 
-        Task<FeedbackResponseDTO> GetFeedbackByIdAsync(Guid id);
+        //Task<FeedbackResponseDTO> GetFeedbackByIdAsync(Guid id);
 
-        Task CreateFeedbackAsync(CreateFeedbackDTO model);
+        //Task CreateFeedbackAsync(CreateFeedbackDTO model);
 
-        Task ReplyFeedbackAsync(Guid id, string reply);
+        //Task ReplyFeedbackAsync(Guid id, string reply);
 
-        Task ToggleVisibilityAsync(Guid id);
+        //Task ToggleVisibilityAsync(Guid id);
     }
 }
