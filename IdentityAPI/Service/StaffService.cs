@@ -11,11 +11,13 @@ namespace IdentityAPI.Service
     {
         private readonly IStaffRepository _repo;
         private readonly PasswordService _pwService;
+        private readonly ILogger<StaffService> _logger;
 
-        public StaffService(IStaffRepository repo, PasswordService pwService)
+        public StaffService(IStaffRepository repo, PasswordService pwService, ILogger<StaffService> logger)
         {
             _repo = repo;
             _pwService = pwService;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<StaffResponseDto>> GetListAsync()
@@ -38,8 +40,22 @@ namespace IdentityAPI.Service
 
         public async Task<bool> CreateStaffAsync(StaffCreateDto dto)
         {
-            if (await _repo.EmailExistsAsync(dto.Email)) return false;
+            // 1. Kiểm tra email trùng
+            if (await _repo.EmailExistsAsync(dto.Email))
+            {
+                _logger.LogWarning("CreateStaff: Email {Email} already exists.", dto.Email);
+                return false;
+            }
 
+            // 2. Lấy role "Staff" từ DB
+            var staffRole = await _repo.GetRoleByNameAsync("Staff");
+            if (staffRole == null)
+            {
+                _logger.LogError("CreateStaff: Role 'Staff' not found in database. Please seed the Roles table.");
+                return false;
+            }
+
+            // 3. Tạo staff mới
             var staff = new Staff
             {
                 FullName = dto.FullName,
@@ -48,9 +64,18 @@ namespace IdentityAPI.Service
                 BirthDay = dto.BirthDay,
                 Gender = dto.Gender,
                 HiredDate = DateTime.Now,
-                PasswordHash = _pwService.Hash(dto.Password)
+                PasswordHash = _pwService.Hash(dto.Password),
+                IsActive = true,
+                CreatedAt = DateTime.Now
             };
+
             await _repo.AddAsync(staff);
+
+            // 4. Gán role "Staff" vào bảng StaffRoles
+            await _repo.AssignRoleAsync(staff.StaffId, staffRole.RoleId);
+
+            _logger.LogInformation("CreateStaff: Staff {FullName} ({Email}) created and assigned role 'Staff'.", staff.FullName, staff.Email);
+
             return true;
         }
 
@@ -79,7 +104,7 @@ namespace IdentityAPI.Service
         {
             StaffID = s.StaffId,
             FullName = s.FullName,
-            Email = s.Email,
+            Email = s.Email ?? "",
             PhoneNumber = s.PhoneNumber,
             Gender = s.Gender,
             HiredDate = s.HiredDate,
