@@ -107,6 +107,7 @@ namespace IdentityAPI.Service
             Email = s.Email ?? "",
             PhoneNumber = s.PhoneNumber,
             Gender = s.Gender,
+            BirthDay = s.BirthDay,
             HiredDate = s.HiredDate,
             IsActive = s.IsActive ?? true
         };
