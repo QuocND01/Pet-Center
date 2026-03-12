@@ -127,5 +127,69 @@ namespace PetCenterClient.Controllers
 
             return Json(new { isAuthenticated = true, role });
         }
+
+        // ================= REGISTER =================
+
+        public IActionResult Register()
+        {
+            return View("~/Views/CustomerViews/Auth/Register.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterDto dto)
+        {
+            if (!ModelState.IsValid)
+                return View("~/Views/CustomerViews/Auth/Register.cshtml", dto);
+
+            var result = await _authService.RegisterAsync(dto);
+
+            if (!result.Success)
+            {
+                ViewBag.Error = result.Message;
+                return View("~/Views/CustomerViews/Auth/Register.cshtml", dto);
+            }
+
+            // Lưu email vào session để dùng ở trang Verify
+            HttpContext.Session.SetString("PendingEmail", dto.Email);
+
+            return RedirectToAction("Verify", new { email = dto.Email });
+        }
+
+        // ================= VERIFY EMAIL =================
+
+        public IActionResult Verify(string email)
+        {
+            return View("~/Views/CustomerViews/Auth/Verify.cshtml", new VerifyEmailDto { Email = email });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Verify(VerifyEmailDto dto)
+        {
+            var result = await _authService.VerifyOtpAsync(dto.Email, dto.Code);
+
+            if (!result.Success)
+            {
+                ViewBag.Error = result.Message;
+                return View("~/Views/CustomerViews/Auth/Verify.cshtml", dto);
+            }
+
+            HttpContext.Session.Remove("PendingEmail");
+
+            TempData["Success"] = "Email verified successfully. You can now login.";
+            return RedirectToAction("Login");
+        }
+
+        // ================= RESEND OTP =================
+
+        [HttpPost]
+        public async Task<IActionResult> Resend(string email)
+        {
+            var result = await _authService.ResendOtpAsync(email);
+
+            if (!result.Success)
+                TempData["ResendError"] = result.Message;
+
+            return RedirectToAction("Verify", new { email });
+        }
     }
 }

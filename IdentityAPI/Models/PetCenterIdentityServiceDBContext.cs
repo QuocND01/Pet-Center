@@ -71,6 +71,10 @@ public partial class PetCenterIdentityServiceDBContext : DbContext
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.VerificationCode).HasMaxLength(6);
+            entity.Property(e => e.VerificationExpire).HasColumnType("datetime");
+            entity.Property(e => e.LastOtpSentAt).HasColumnType("datetime");
+            entity.Property(e => e.OtpAttemptCount);
         });
 
         modelBuilder.Entity<Role>(entity =>

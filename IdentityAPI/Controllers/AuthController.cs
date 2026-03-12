@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using IdentityAPI.DTOs;
 using IdentityAPI.Service.Interface;
+using IdentityAPI.DTOs.Resquest;
 
 namespace IdentityAPI.Controllers
 {
@@ -70,6 +71,58 @@ namespace IdentityAPI.Controllers
                 token
             });
         }
+
+        // POST: api/auth/register
+        // STEP 1: Nhận form → Tạo Customer tạm + Gửi OTP
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerAuthService.RegisterAsync(dto);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // POST: api/auth/verify-otp
+        // STEP 2: Verify OTP → Kích hoạt tài khoản
+        [HttpPost("verify-otp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerAuthService.VerifyOtpAsync(dto);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // POST: api/auth/resend-otp
+        [HttpPost("resend-otp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerAuthService.ResendOtpAsync(dto.Email);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+
 
         [Authorize(Roles = "Customer")]
         [HttpGet("my-orders")]
