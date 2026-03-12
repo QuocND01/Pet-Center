@@ -92,6 +92,7 @@ namespace PetCenterClient.Services
 
         public async Task AddProductAsync(CreateProductDTO model)
         {
+            AddAuthorizationHeader();
             var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(model.ProductName), "ProductName");
@@ -146,6 +147,7 @@ namespace PetCenterClient.Services
 
         public async Task UpdateProductAsync(Guid? id, UpdateProductDTO model)
         {
+            AddAuthorizationHeader();
             var form = new MultipartFormDataContent();
 
             form.Add(new StringContent(model.ProductName), "ProductName");
@@ -206,6 +208,7 @@ namespace PetCenterClient.Services
 
         public async Task DeleteProductAsync(Guid? id)
         {
+            AddAuthorizationHeader();
             await _http.DeleteAsync($"product-service/Products/{id}");
         }
 

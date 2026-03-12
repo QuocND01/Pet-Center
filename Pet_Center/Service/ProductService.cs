@@ -148,12 +148,10 @@ namespace ProductAPI.Service
 
                 foreach (var attr in updateproduct.Attributes)
                 {
-                    product.ProductAttributes.Add(new ProductAttribute
-                    {
-                        ProductId = product.ProductId,
-                        CategoryAttributeId = attr.CategoryAttributeId,
-                        AttributeValue = attr.AttributeValue
-                    });
+                    var entity = _mapper.Map<ProductAttribute>(attr);
+                    entity.ProductId = product.ProductId;
+
+                    product.ProductAttributes.Add(entity);
                 }
             }
             await _productRepository.UpdateProductAsync(product);

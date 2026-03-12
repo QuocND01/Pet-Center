@@ -100,9 +100,9 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Create()
         {
             var brands = await _brandService.GetAllBrandAsync("", 1 ) ?? new OdataResponse<ReadBrandDTOs>();
-            var categories = await _categoryService.GetAllCategoryAsync() ?? new List<ReadCategoryDTOs>();
+            var categories = await _categoryService.GetAllCategoryAsync("", 1 ) ?? new OdataResponse<ReadCategoryDTOs>();
             ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
-            ViewBag.Categories = new SelectList(categories, "CategoryId", "CategoryName");
+            ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
 
             return PartialView("~/Views/AdminViews/Product/_Create.cshtml");
         }
@@ -209,13 +209,6 @@ namespace PetCenterClient.Controllers
             }
 
             return Json(new { success = true });
-        }
-
-        private bool ReadProdutDTOsExists(Guid id)
-        {
-            var product = _productService.GetProductByIdAsync(id);
-            return product != null;
-
         }
     }
 
