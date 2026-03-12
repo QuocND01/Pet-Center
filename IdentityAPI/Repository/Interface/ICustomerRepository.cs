@@ -11,6 +11,12 @@ namespace IdentityAPI.Repository.Interface
         Task<Customer?> GetByEmailAsyncWithoutActiveCheck(string email);
 
 
+        // ==================================== Register ====================================
+        Task<bool> AddAsync(Customer customer);
+
+        Task<bool> DeleteAsync(Customer customer);
+
+
         // ==================================== For Staff and Admin ====================================
         Task<List<Customer>> GetAllCustomersAsync();
 

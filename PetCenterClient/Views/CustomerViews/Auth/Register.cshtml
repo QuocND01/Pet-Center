@@ -1,0 +1,344 @@
+﻿@model PetCenterClient.DTOs.RegisterDto
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg,#2ecc71,#27ae60);
+            font-family: Segoe UI;
+        }
+
+        .register-card {
+            width: 450px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            color: #2ecc71;
+            margin-bottom: 30px;
+        }
+
+        .form-control {
+            height: 45px;
+            border-radius: 10px;
+        }
+
+        .btn-register {
+            height: 45px;
+            border-radius: 10px;
+            background: #2ecc71;
+            border: none;
+            font-weight: 600;
+        }
+
+            .btn-register:hover {
+                background: #27ae60;
+            }
+
+        .logo {
+            font-size: 40px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .password-match-error {
+            color: red;
+            font-size: 14px;
+            display: none;
+        }
+
+        .password-match-success {
+            color: green;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <div class="logo">🐶</div>
+        <div class="title">Create Account</div>
+        @if (ViewBag.Error != null)
+        {
+            <div class="error">@ViewBag.Error</div>
+        }
+        <form method="post" id="registerForm">
+            <input name="FullName" class="form-control mb-3" placeholder="Full Name" required />
+            <input type="email" name="Email" class="form-control mb-3" placeholder="Email" required />
+            <input name="PhoneNumber"
+                   pattern="[0-9]{10}"
+                   class="form-control mb-3"
+                   placeholder="Phone Number"
+                   required />
+            <input type="password" id="password" name="Password" class="form-control mb-2" placeholder="Password" required />
+            <div id="passwordStrength" style="font-size:14px;margin-bottom:10px;"></div>
+            <input type="password" id="confirmPassword" class="form-control mb-2" placeholder="Confirm Password" required />
+            <div id="passwordMatch" class="password-match-error">Passwords do not match</div>
+            <div id="passwordMatchSuccess" class="password-match-success">Passwords match</div>
+            <input type="date" name="BirthDay" class="form-control mb-3" />
+            <select name="Gender" class="form-control mb-3" required>
+                <option value="">-- Select Gender --</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            <button type="submit" class="btn btn-register w-100" id="registerBtn">Register</button>
+        </form>
+        <div class="text-center mt-3">
+            Already have an account?
+            <a href="/Auth/Login" style="color:#2ecc71;font-weight:600;">Login</a>
+        </div>
+    </div>
+    <script>
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const strength = document.getElementById("passwordStrength");
+    const passwordMatch = document.getElementById("passwordMatch");
+    const passwordMatchSuccess = document.getElementById("passwordMatchSuccess");
+    const registerBtn = document.getElementById("registerBtn");
+    const registerForm = document.getElementById("registerForm");
+
+    // ============================================================
+    // FULL NAME VALIDATE
+    // Chữ cái + khoảng trắng + dấu tiếng Việt, tối thiểu 2 từ
+    // ============================================================
+    const fullNameInput = document.querySelector('input[name="FullName"]');
+    const fullNameMsg = document.createElement("div");
+    fullNameMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
+    fullNameInput.insertAdjacentElement("afterend", fullNameMsg);
+
+    function validateFullName(val) {
+        const trimmed = val.trim();
+        if (trimmed.length < 2) return "Full name must be at least 2 characters";
+        if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(trimmed)) return "Full name must contain letters only";
+        if (trimmed.split(/\s+/).length < 2) return "Please enter your full name (first and last name)";
+        return "";
+    }
+
+    fullNameInput.addEventListener("input", function () {
+        const err = validateFullName(this.value);
+        if (err) {
+            fullNameMsg.innerHTML = "❌ " + err;
+            fullNameMsg.style.color = "red";
+        } else {
+            fullNameMsg.innerHTML = "✓ Looks good";
+            fullNameMsg.style.color = "green";
+        }
+        fullNameMsg.style.display = "block";
+    });
+    fullNameInput.addEventListener("blur", function () {
+        fullNameMsg.style.display = "none";
+    });
+
+    // ============================================================
+    // EMAIL VALIDATE
+    // ============================================================
+    const emailInput = document.querySelector('input[name="Email"]');
+    const emailMsg = document.createElement("div");
+    emailMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
+    emailInput.insertAdjacentElement("afterend", emailMsg);
+
+    function validateEmail(val) {
+        if (!val) return "Email is required";
+        if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(val)) return "Invalid email format";
+        return "";
+    }
+
+    emailInput.addEventListener("input", function () {
+        const err = validateEmail(this.value);
+        if (err) {
+            emailMsg.innerHTML = "❌ " + err;
+            emailMsg.style.color = "red";
+        } else {
+            emailMsg.innerHTML = "✓ Valid email";
+            emailMsg.style.color = "green";
+        }
+        emailMsg.style.display = "block";
+    });
+    emailInput.addEventListener("blur", function () {
+        emailMsg.style.display = "none";
+    });
+
+    // ============================================================
+    // PHONE VALIDATE
+    // Việt Nam: bắt đầu bằng 0, đúng 10 số
+    // ============================================================
+    const phoneInput = document.querySelector('input[name="PhoneNumber"]');
+    const phoneMsg = document.createElement("div");
+    phoneMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
+    phoneInput.insertAdjacentElement("afterend", phoneMsg);
+
+    function validatePhone(val) {
+        if (!val) return "Phone number is required";
+        if (!/^0[0-9]{9}$/.test(val)) return "Must start with 0 and be exactly 10 digits";
+        return "";
+    }
+
+    phoneInput.addEventListener("input", function () {
+        const err = validatePhone(this.value);
+        if (err) {
+            phoneMsg.innerHTML = "❌ " + err;
+            phoneMsg.style.color = "red";
+        } else {
+            phoneMsg.innerHTML = "✓ Valid phone number";
+            phoneMsg.style.color = "green";
+        }
+        phoneMsg.style.display = "block";
+    });
+    phoneInput.addEventListener("blur", function () {
+        phoneMsg.style.display = "none";
+    });
+
+    // ============================================================
+    // BIRTHDAY VALIDATE
+    // Tối thiểu 16 tuổi, không được chọn ngày tương lai
+    // ============================================================
+    const birthdayInput = document.querySelector('input[name="BirthDay"]');
+    const birthdayMsg = document.createElement("div");
+    birthdayMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
+    birthdayInput.insertAdjacentElement("afterend", birthdayMsg);
+
+    // Set max date = hôm nay
+    const today = new Date();
+    birthdayInput.max = today.toISOString().split("T")[0];
+
+    // Set max selectable = 16 năm trước
+    const minAgeDate = new Date();
+    minAgeDate.setFullYear(minAgeDate.getFullYear() - 16);
+
+    function validateBirthday(val) {
+        if (!val) return ""; // Không bắt buộc
+        const birth = new Date(val);
+        if (birth > today) return "Birthday cannot be in the future";
+        if (birth > minAgeDate) return "You must be at least 16 years old to register";
+        return "";
+    }
+
+    birthdayInput.addEventListener("change", function () {
+        const err = validateBirthday(this.value);
+        if (err) {
+            birthdayMsg.innerHTML = "❌ " + err;
+            birthdayMsg.style.color = "red";
+        } else if (this.value) {
+            birthdayMsg.innerHTML = "✓ Valid date of birth";
+            birthdayMsg.style.color = "green";
+        }
+        birthdayMsg.style.display = this.value ? "block" : "none";
+    });
+    birthdayInput.addEventListener("blur", function () {
+        birthdayMsg.style.display = "none";
+    });
+
+    // ============================================================
+    // PASSWORD VALIDATE
+    // ============================================================
+    function validatePassword(val) {
+        const errors = [];
+        if (val.length < 6) errors.push("At least 6 characters");
+        if (!/[A-Z]/.test(val[0])) errors.push("First character must be uppercase");
+        if (!/[@@]/.test(val)) errors.push("Must contain @@");
+        if (!/[0-9]/.test(val)) errors.push("Must contain at least 1 number");
+        if (/\s/.test(val)) errors.push("No spaces allowed");
+        return errors;
+    }
+
+    function showStrength() {
+        const val = password.value;
+        if (!val) { strength.innerHTML = ""; return; }
+        const errors = validatePassword(val);
+        if (errors.length === 0) {
+            strength.innerHTML = "✓ Strong password";
+            strength.style.color = "green";
+        } else {
+            strength.innerHTML = "❌ " + errors.join(" &nbsp;|&nbsp; ❌ ");
+            strength.style.color = "red";
+        }
+    }
+
+    password.addEventListener("input", showStrength);
+    password.addEventListener("focus", function () { if (password.value) showStrength(); });
+    password.addEventListener("blur", function () { strength.innerHTML = ""; });
+
+    // ============================================================
+    // CONFIRM PASSWORD
+    // ============================================================
+    function showMatch() {
+        if (!confirmPassword.value) {
+            passwordMatch.style.display = "none";
+            passwordMatchSuccess.style.display = "none";
+            return;
+        }
+        if (password.value === confirmPassword.value) {
+            passwordMatch.style.display = "none";
+            passwordMatchSuccess.style.display = "block";
+            registerBtn.disabled = false;
+        } else {
+            passwordMatch.style.display = "block";
+            passwordMatchSuccess.style.display = "none";
+            registerBtn.disabled = true;
+        }
+    }
+
+    confirmPassword.addEventListener("input", showMatch);
+    confirmPassword.addEventListener("focus", function () { if (confirmPassword.value) showMatch(); });
+    confirmPassword.addEventListener("blur", function () {
+        passwordMatch.style.display = "none";
+        passwordMatchSuccess.style.display = "none";
+    });
+
+    // ============================================================
+    // SUBMIT - Kiểm tra toàn bộ trước khi gửi
+    // ============================================================
+    registerForm.addEventListener("submit", function (e) {
+        const allErrors = [];
+
+        const nameErr = validateFullName(fullNameInput.value);
+        if (nameErr) allErrors.push("Full Name: " + nameErr);
+
+        const emailErr = validateEmail(emailInput.value);
+        if (emailErr) allErrors.push("Email: " + emailErr);
+
+        const phoneErr = validatePhone(phoneInput.value);
+        if (phoneErr) allErrors.push("Phone: " + phoneErr);
+
+        const bdErr = validateBirthday(birthdayInput.value);
+        if (bdErr) allErrors.push("Birthday: " + bdErr);
+
+        const passErrors = validatePassword(password.value);
+        if (passErrors.length > 0) allErrors.push("Password: " + passErrors.join(", "));
+
+        if (password.value !== confirmPassword.value)
+            allErrors.push("Passwords do not match");
+
+        if (!document.querySelector('select[name="Gender"]').value)
+            allErrors.push("Please select a gender");
+
+        if (allErrors.length > 0) {
+            e.preventDefault();
+            alert("Please fix the following:\n\n• " + allErrors.join("\n• "));
+        }
+    });
+</script>
+</body>
+</html>

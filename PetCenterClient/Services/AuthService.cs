@@ -53,6 +53,60 @@ namespace PetCenterClient.Services
             if (!response.IsSuccessStatusCode) return null;
             return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
         }
+
+        // STEP 1: Gửi toàn bộ form → api/auth/register
+        public async Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/auth/register", dto);
+                var content = await response.Content.ReadAsStringAsync();
+                var json = JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
+
+                return (response.IsSuccessStatusCode, message);
+            }
+            catch
+            {
+                return (false, "An error occurred. Please try again.");
+            }
+        }
+
+        // STEP 2: Verify OTP → api/auth/verify-otp
+        public async Task<(bool Success, string Message)> VerifyOtpAsync(string email, string code)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/auth/verify-otp", new { email, code });
+                var content = await response.Content.ReadAsStringAsync();
+                var json = JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
+
+                return (response.IsSuccessStatusCode, message);
+            }
+            catch
+            {
+                return (false, "An error occurred. Please try again.");
+            }
+        }
+
+        // Resend OTP → api/auth/resend-otp
+        public async Task<(bool Success, string Message)> ResendOtpAsync(string email)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/auth/resend-otp", new { email });
+                var content = await response.Content.ReadAsStringAsync();
+                var json = JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
+
+                return (response.IsSuccessStatusCode, message);
+            }
+            catch
+            {
+                return (false, "An error occurred. Please try again.");
+            }
+        }
     }
 }
 

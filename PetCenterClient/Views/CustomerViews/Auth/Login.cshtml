@@ -60,6 +60,16 @@
             text-align: center;
             margin-bottom: 10px;
         }
+
+        .success {
+            color: #27ae60;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -68,6 +78,12 @@
         <div class="login-title">
             PetCenter Login
         </div>
+        @if (TempData["Success"] != null)
+        {
+            <div class="success">
+                @TempData["Success"]
+            </div>
+        }
         @if (ViewBag.Error != null)
         {
             <div class="error">@ViewBag.Error</div>
@@ -81,14 +97,16 @@
             </div>
             <button type="submit" class="btn btn-login w-100">Login</button>
         </form>
+        <div class="text-center mt-3">
+            Don't have an account?
+            <a href="/Auth/Register" style="color:#2ecc71;font-weight:600;">Register</a>
+        </div>
     </div>
-
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             const btn = this.querySelector('button[type="submit"]');
             btn.disabled = true;
             btn.innerHTML = 'Logging in...';
-
             // Sau khi form được submit, chờ một chút rồi lấy token từ server
             setTimeout(() => {
                 fetch('/Auth/CheckAuth')

@@ -27,5 +27,10 @@ public partial class Customer
 
     public DateTime? UpdatedAt { get; set; }
 
+    public string? VerificationCode { get; set; }
+
+    public DateTime? VerificationExpire { get; set; }
+    public DateTime? LastOtpSentAt { get; set; }
+    public int? OtpAttemptCount { get; set; }
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
 }
