@@ -43,10 +43,10 @@ namespace ProductAPI.Repository
             }
         }
 
-        public async Task<IEnumerable<Brand>> GetAllBrandAsync()
-        {
-            return await _db.Brands.Where(b => b.IsActive == true).ToListAsync();
-        }
+        //public async Task<IEnumerable<Brand>> GetAllBrandAsync()
+        //{
+        //    return await _db.Brands.Where(b => b.IsActive == true).ToListAsync();
+        //}
 
         public Task<Brand?> GetBrandByIdAsync(Guid id)
         {

@@ -3,25 +3,30 @@ using Microsoft.Data.SqlClient;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using System.Globalization;
+using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
     public class BrandService : IBrandService
     {
         private readonly HttpClient _http;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BrandService(HttpClient http)
+        public BrandService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task AddBrandAsync(CreateBrandDTOs createBrand)
         {
+            AddAuthorizationHeader();
             var response = await _http.PostAsJsonAsync("product-service/Brands", createBrand);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteBrandAsync(Guid? id)
         {
+            AddAuthorizationHeader();
             await _http.DeleteAsync($"product-service/Brands/{id}");
         }
 
@@ -67,8 +72,23 @@ namespace PetCenterClient.Services
 
         public async Task UpdateBrandAsync(Guid? id, UpdateBrandDTOs updateBrand)
         {
+            AddAuthorizationHeader();
             var response = await _http.PutAsJsonAsync($"product-service/Brands/{id}", updateBrand);
             response.EnsureSuccessStatusCode();
+        }
+
+
+        private void AddAuthorizationHeader()
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                // Xóa các giá trị cũ để tránh cộng dồn header
+                _http.DefaultRequestHeaders.Authorization = null;
+                _http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
         }
     }
 }

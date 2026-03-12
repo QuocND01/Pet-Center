@@ -4,7 +4,7 @@ namespace ProductAPI.Repository.Interface
 {
     public interface IBrandRepository
     {
-        Task<IEnumerable<Brand>> GetAllBrandAsync();
+       // Task<IEnumerable<Brand>> GetAllBrandAsync();
 
         IQueryable<Brand> GetAllBrand();
 

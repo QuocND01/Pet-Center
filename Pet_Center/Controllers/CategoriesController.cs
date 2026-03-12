@@ -1,12 +1,15 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.EntityFrameworkCore;
+using ProductAPI.DTOs;
+using ProductAPI.Models;
+using ProductAPI.Service;
+using ProductAPI.Service.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProductAPI.Models;
-using ProductAPI.Service.Interface;
 
 namespace ProductAPI.Controllers
 {
@@ -23,10 +26,10 @@ namespace ProductAPI.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        [EnableQuery(PageSize = 10)]
+        public IQueryable<ReadCategoryDTOs> Get()
         {
-            var categories =  await _categoryService.GetAllCategoryAsync();
-            return Ok(categories);
+            return _categoryService.GetAllCategory();
         }
 
         [HttpGet("{id}/attributes")]
@@ -36,81 +39,66 @@ namespace ProductAPI.Controllers
             return Ok(attributes);
         }
 
-        //    // GET: api/Categories/5
-        //    [HttpGet("{id}")]
-        //    public async Task<ActionResult<Category>> GetCategory(Guid id)
-        //    {
-        //        var category = await _context.Categories.FindAsync(id);
 
-        //        if (category == null)
-        //        {
-        //            return NotFound();
-        //        }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ReadCategoryDTOs>> GetCategoryId(Guid id)
+        {
+            var category = await _categoryService.GetCategoryByIdAsync(id);
 
-        //        return category;
-        //    }
+            if (category == null)
+            {
+                return NotFound();
+            }
 
-        //    // PUT: api/Categories/5
-        //    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //    [HttpPut("{id}")]
-        //    public async Task<IActionResult> PutCategory(Guid id, Category category)
-        //    {
-        //        if (id != category.CategoryId)
-        //        {
-        //            return BadRequest();
-        //        }
+            return category;
+        }
 
-        //        _context.Entry(category).State = EntityState.Modified;
 
-        //        try
-        //        {
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!CategoryExists(id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
 
-        //        return NoContent();
-        //    }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutCategory(Guid id, UpdateCategoryDTOs updateCategoryDTOs)
+        {
+            await _categoryService.UpdateCategoryAsync(id, updateCategoryDTOs);
+            return Ok(updateCategoryDTOs);
+        }
 
-        //    // POST: api/Categories
-        //    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //    [HttpPost]
-        //    public async Task<ActionResult<Category>> PostCategory(Category category)
-        //    {
-        //        _context.Categories.Add(category);
-        //        await _context.SaveChangesAsync();
+   
 
-        //        return CreatedAtAction("GetCategory", new { id = category.CategoryId }, category);
-        //    }
+        [HttpPost]
+        public async Task<IActionResult> PostCategory( CreateCategoryDTOs categoryDTOs)
+        {
+            if (categoryDTOs == null)
+                return BadRequest("Category is null");
+            try
+            {
+                await _categoryService.AddCategoryAsync(categoryDTOs);
+                return Ok(categoryDTOs);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message); // 409
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-        //    // DELETE: api/Categories/5
-        //    [HttpDelete("{id}")]
-        //    public async Task<IActionResult> DeleteCategory(Guid id)
-        //    {
-        //        var category = await _context.Categories.FindAsync(id);
-        //        if (category == null)
-        //        {
-        //            return NotFound();
-        //        }
+      
 
-        //        _context.Categories.Remove(category);
-        //        await _context.SaveChangesAsync();
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(Guid id)
+        {
+            var category = await _categoryService.GetCategoryByIdAsync(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
 
-        //        return NoContent();
-        //    }
+            await _categoryService.DeleteCategoryAsync(id);
 
-        //    private bool CategoryExists(Guid id)
-        //    {
-        //        return _context.Categories.Any(e => e.CategoryId == id);
-        //    }
+            return NoContent();
+        }
+
     }
 }
