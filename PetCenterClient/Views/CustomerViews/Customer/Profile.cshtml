@@ -555,7 +555,8 @@
 
                 <div class="form-group">
                     <label for="birthDay">Date of Birth</label>
-                    <input type="date" id="birthDay" name="birthDay" value="@(Model.BirthDay.HasValue ? Model.BirthDay.Value.ToString("dd/MM/yyyy") : "Not provided")" required>
+                    <input type="date" id="birthDay" name="birthDay"
+                           value="@(Model.BirthDay.HasValue ? Model.BirthDay.Value.ToString("yyyy-MM-dd") : "")" required>
                 </div>
 
                 <div class="form-group">

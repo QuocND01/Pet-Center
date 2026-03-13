@@ -179,6 +179,8 @@ namespace PetCenterClient.Controllers
             }
 
             HttpContext.Session.SetString("PendingEmail", dto.Email);
+            TempData["PrefilledEmail"] = dto.Email;
+            TempData["PrefilledPassword"] = dto.Password;
 
             return Json(new { success = true, redirectUrl = Url.Action("Verify", "Auth", new { email = dto.Email }) });
         }
@@ -187,6 +189,8 @@ namespace PetCenterClient.Controllers
 
         public IActionResult Verify(string email)
         {
+            TempData.Keep("PrefilledEmail");
+            TempData.Keep("PrefilledPassword");
             return View("~/Views/CustomerViews/Auth/Verify.cshtml", new VerifyEmailDto { Email = email });
         }
 
