@@ -24,7 +24,6 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/api/customers/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -37,7 +36,6 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/api/Staff/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -50,14 +48,11 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/inventory/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-
       "DownstreamPathTemplate": "/api/{everything}",
       "DownstreamScheme": "https",
-
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -65,7 +60,18 @@
         }
       ]
     },
-
+    {
+      "UpstreamPathTemplate": "/orders/Cart/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/Cart/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ]
+    },
     {
       "UpstreamPathTemplate": "/orders/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -78,7 +84,6 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/product-service/odata/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -91,7 +96,6 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/product-service/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -104,7 +108,6 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/address-service/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -118,7 +121,7 @@
       ]
     }
   ],
-      "GlobalConfiguration": {
-        "BaseUrl": "https://localhost:5000"
-      }
-    }
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:5000"
+  }
+}
