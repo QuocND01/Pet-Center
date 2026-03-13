@@ -41,49 +41,44 @@ namespace IdentityAPI.Service
             return _mapper.Map<CustomerProfileResponseDto>(customer);
         }
 
-        public async Task<bool> UpdateProfileAsync(Guid customerId, UpdateCustomerProfileRequestDto request)
+        public async Task<(bool Success, string Message)> UpdateProfileAsync (Guid customerId, UpdateCustomerProfileRequestDto request)
         {
-            // ✅ Double-check validation ở service layer
             if (string.IsNullOrWhiteSpace(request.FullName) || request.FullName.Length > 100)
-                throw new ArgumentException("Invalid full name");
-
+                return (false, "Invalid full name");
             if (string.IsNullOrWhiteSpace(request.PhoneNumber) || request.PhoneNumber.Length > 15)
-                throw new ArgumentException("Invalid phone number");
-
+                return (false, "Invalid phone number");
             if (!new[] { "Male", "Female", "Other" }.Contains(request.Gender))
-                throw new ArgumentException("Invalid gender");
+                return (false, "Invalid gender");
 
-            // ✅ Validate tuổi - không dùng .Value vì DateOnly không nullable
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
             if (request.BirthDay > today)
-                throw new ArgumentException("Date of birth cannot be in the future");
+                return (false, "Date of birth cannot be in the future");
 
-            // ✅ Tính tuổi đúng cách
             var age = today.Year - request.BirthDay.Year;
-
-            // Kiểm tra nếu chưa qua sinh nhật năm nay
-            if (request.BirthDay > today.AddYears(-age))
-                age--;
-
-            if (age < 13)
-                throw new ArgumentException("You must be at least 13 years old");
-
-            if (age > 120)
-                throw new ArgumentException("Invalid date of birth");
+            if (request.BirthDay > today.AddYears(-age)) age--;
+            if (age < 16)
+                return (false, "You must be at least 16 years old");
+            if (age > 120) return (false, "Invalid date of birth");
 
             var customer = await _customerRepository.GetByIdAsync(customerId);
             if (customer == null)
-                return false;
+                return (false, "Customer not found");
 
-            // ✅ Kiểm tra account có bị deactivate không
             if (customer.IsActive != true)
-                throw new InvalidOperationException("Account is deactivated");
+                return (false, "Account is deactivated");
+
+            if (customer.PhoneNumber != request.PhoneNumber)
+            {
+                var existingPhone = await _customerRepository.GetByPhoneAsync(request.PhoneNumber);
+                if (existingPhone != null)
+                    return (false, "Phone number is already in use by another account.");
+            }
+
 
             _mapper.Map(request, customer);
             customer.UpdatedAt = DateTime.UtcNow;
-
-            return await _customerRepository.UpdateAsync(customer);
+            await _customerRepository.UpdateAsync(customer);
+            return (true, "Profile updated successfully");
         }
 
         public async Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive)

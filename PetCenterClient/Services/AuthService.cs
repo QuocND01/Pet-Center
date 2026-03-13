@@ -7,10 +7,12 @@ namespace PetCenterClient.Services
     public class AuthService : IAuthService
     {
         private readonly HttpClient _http;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(HttpClient http)
+        public AuthService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
@@ -96,6 +98,34 @@ namespace PetCenterClient.Services
             try
             {
                 var response = await _http.PostAsJsonAsync("api/auth/resend-otp", new { email });
+                var content = await response.Content.ReadAsStringAsync();
+                var json = JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
+
+                return (response.IsSuccessStatusCode, message);
+            }
+            catch
+            {
+                return (false, "An error occurred. Please try again.");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordRequestDto dto)
+        {
+            try
+            {
+                // Lấy token từ IHttpContextAccessor
+                // Cần inject IHttpContextAccessor vào AuthService
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/change-password")
+                {
+                    Content = JsonContent.Create(dto)
+                };
+                request.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _http.SendAsync(request);
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JsonDocument.Parse(content).RootElement;
                 var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";

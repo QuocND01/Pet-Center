@@ -66,5 +66,11 @@ namespace IdentityAPI.Repository
             await _context.Customers.AddAsync(customer);
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<Customer?> GetByPhoneAsync(string phone)
+        {
+            return await _context.Customers
+                .FirstOrDefaultAsync(x => x.PhoneNumber == phone && x.EmailVerified == true);
+        }
     }
 }

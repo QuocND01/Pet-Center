@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using IdentityAPI.DTOs;
 using IdentityAPI.Service.Interface;
 using IdentityAPI.DTOs.Resquest;
+using IdentityAPI.DTOs.Response;
+using System.Security.Claims;
 
 namespace IdentityAPI.Controllers
 {
@@ -122,7 +124,25 @@ namespace IdentityAPI.Controllers
             return Ok(new { success = true, message = result.Message });
         }
 
+        // POST: api/auth/change-password
+        [Authorize(Roles = "Customer")]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
+            var customerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(customerIdStr, out var customerId))
+                return Unauthorized();
+
+            var result = await _customerAuthService.ChangePasswordAsync(customerId, dto);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
 
         [Authorize(Roles = "Customer")]
         [HttpGet("my-orders")]

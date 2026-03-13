@@ -1,22 +1,14 @@
-﻿using ProductAPI.Models;
-
-namespace ProductAPI.DTOs
+﻿namespace ProductAPI.DTOs
 {
     public class ReadCategoryDTOs
     {
-
         public Guid CategoryId { get; set; }
+
         public string CategoryName { get; set; } = null!;
 
         public string? CategoryLogo { get; set; }
 
-    }
-
-    public class UpdateCategoryDTOs
-    {
-        public string CategoryName { get; set; } = null!;
-
-        public string? CategoryLogo { get; set; }
+        public List<ReadCategoryAttributeDTOs>? Attributes { get; set; }
     }
 
     public class CreateCategoryDTOs
@@ -24,5 +16,16 @@ namespace ProductAPI.DTOs
         public string CategoryName { get; set; } = null!;
 
         public string? CategoryLogo { get; set; }
+
+        public List<CreateCategoryAttributeDTOs>? Attributes { get; set; }
+    }
+
+    public class UpdateCategoryDTOs
+    {
+        public string CategoryName { get; set; } = null!;
+
+        public string? CategoryLogo { get; set; }
+
+        public List<UpdateCategoryAttributeDTOs>? Attributes { get; set; }
     }
 }

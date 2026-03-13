@@ -15,6 +15,7 @@ namespace IdentityAPI.Repository.Interface
         Task<bool> AddAsync(Customer customer);
 
         Task<bool> DeleteAsync(Customer customer);
+        Task<Customer?> GetByPhoneAsync(string phone);
 
 
         // ==================================== For Staff and Admin ====================================

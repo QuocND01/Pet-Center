@@ -52,7 +52,7 @@ namespace ProductAPI.Controllers
         public async Task<IActionResult> PutProduct(Guid id,[FromForm] UpdateProductDTO product)
         {
             await _productService.UpdateProductAsync(id, product);
-            return NoContent();
+            return Ok(product);
         }
 
         // POST: api/Products
@@ -65,7 +65,7 @@ namespace ProductAPI.Controllers
             try
             {
                 await _productService.AddProductAsync(product);
-                return Ok();
+                return Ok(product);
             }
             catch (InvalidOperationException ex)
             {

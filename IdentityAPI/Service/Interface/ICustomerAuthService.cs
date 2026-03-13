@@ -1,4 +1,5 @@
-﻿using IdentityAPI.DTOs.Resquest;
+﻿using IdentityAPI.DTOs.Response;
+using IdentityAPI.DTOs.Resquest;
 
 namespace IdentityAPI.Service.Interface
 {
@@ -9,6 +10,7 @@ namespace IdentityAPI.Service.Interface
         Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto);
         Task<(bool Success, string Message)> VerifyOtpAsync(VerifyOtpDto dto);
         Task<(bool Success, string Message)> ResendOtpAsync(string email);
+        Task<(bool Success, string Message)> ChangePasswordAsync(Guid customerId, ChangePasswordDto dto);
 
     }
 }

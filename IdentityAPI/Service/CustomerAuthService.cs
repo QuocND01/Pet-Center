@@ -4,6 +4,7 @@ using IdentityAPI.Service.Interface;
 using Microsoft.EntityFrameworkCore;
 using IdentityAPI.Models;
 using IdentityAPI.DTOs.Resquest;
+using IdentityAPI.DTOs.Response;
 
 namespace IdentityAPI.Service
 {
@@ -65,6 +66,10 @@ namespace IdentityAPI.Service
                 // Chưa verify → xóa record cũ, cho đăng ký lại
                 await _customerRepository.DeleteAsync(existing);
             }
+
+            var existingPhone = await _customerRepository.GetByPhoneAsync(dto.PhoneNumber);
+            if (existingPhone != null)
+                return (false, "Phone number is already in use by another account.");
 
             var code = GenerateOtp();
 
@@ -167,6 +172,25 @@ namespace IdentityAPI.Service
 
         private static string GenerateOtp() =>
             new Random().Next(100000, 999999).ToString();
+
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(Guid customerId, ChangePasswordDto dto)
+        {
+            var customer = await _customerRepository.GetByEmailAsyncWithoutActiveCheck(
+                (await _customerRepository.GetByIdAsync(customerId))?.Email ?? ""
+            );
+
+            if (customer == null)
+                return (false, "Customer not found.");
+
+            if (!_passwordService.Verify(dto.CurrentPassword, customer.PasswordHash))
+                return (false, "Current password is incorrect.");
+
+            customer.PasswordHash = _passwordService.Hash(dto.NewPassword);
+            customer.UpdatedAt = DateTime.UtcNow;
+
+            await _customerRepository.UpdateAsync(customer);
+            return (true, "Password changed successfully.");
+        }
     }
 
 }

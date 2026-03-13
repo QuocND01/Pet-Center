@@ -158,7 +158,13 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Register(RegisterDto dto)
         {
             if (!ModelState.IsValid)
-                return View("~/Views/CustomerViews/Auth/Register.cshtml", dto);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = string.Join("; ", errors) });
+            }
 
             var result = await _authService.RegisterAsync(dto);
 
@@ -170,7 +176,7 @@ namespace PetCenterClient.Controllers
 
             HttpContext.Session.SetString("PendingEmail", dto.Email);
 
-            return RedirectToAction("Verify", new { email = dto.Email });
+            return Json(new { success = true, redirectUrl = Url.Action("VerifyOtp", "Auth", new { email = dto.Email }) });
         }
 
         // ================= VERIFY EMAIL =================
@@ -187,10 +193,16 @@ namespace PetCenterClient.Controllers
 
             if (!result.Success)
             {
+                var attempts = HttpContext.Session.GetInt32("OtpAttempts_" + dto.Email) ?? 0;
+                attempts++;
+                HttpContext.Session.SetInt32("OtpAttempts_" + dto.Email, attempts);
+
+                ViewBag.AttemptCount = attempts;
                 ViewBag.Error = result.Message;
                 return View("~/Views/CustomerViews/Auth/Verify.cshtml", dto);
             }
 
+            HttpContext.Session.Remove("OtpAttempts_" + dto.Email);
             HttpContext.Session.Remove("PendingEmail");
 
             TempData["Success"] = "Email verified successfully. You can now login.";

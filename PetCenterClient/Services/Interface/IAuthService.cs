@@ -16,5 +16,7 @@ namespace PetCenterClient.Services.Interface
 
         
         Task<(bool Success, string Message)> ResendOtpAsync(string email);
+
+        Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordRequestDto dto);
     }
 }

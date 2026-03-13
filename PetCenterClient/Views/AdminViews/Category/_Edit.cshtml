@@ -1,0 +1,190 @@
+﻿@model PetCenterClient.DTOs.ReadCategoryDTOs
+
+<style>
+
+    .logo-preview {
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+</style>
+
+<form asp-action="Edit"
+      asp-controller="Category"
+      method="post">
+
+    <input type="hidden" name="CategoryId" value="@Model.CategoryId" />
+
+    <div class="row">
+
+        <!-- CATEGORY NAME -->
+
+        <div class="col-md-12 mb-3">
+
+            <label class="form-label">Category Name</label>
+
+            <input name="CategoryName"
+                   class="form-control"
+                   value="@Model.CategoryName" />
+
+        </div>
+
+
+        <!-- LOGO URL -->
+
+        <div class="col-md-12 mb-3">
+
+            <label class="form-label">Logo URL</label>
+
+            <input name="CategoryLogo"
+                   id="logoInput"
+                   class="form-control"
+                   value="@Model.CategoryLogo"
+                   placeholder="Enter category image url" />
+
+        </div>
+
+    </div>
+
+
+    <!-- PREVIEW -->
+
+    <div class="mt-3">
+
+        <label class="fw-bold">Preview</label>
+
+        <div class="mt-2">
+
+            <img id="logoPreview"
+                 src="@(string.IsNullOrEmpty(Model.CategoryLogo) ? "https://via.placeholder.com/140" : Model.CategoryLogo)"
+                 class="logo-preview" />
+
+        </div>
+
+    </div>
+
+
+    <!-- ATTRIBUTES -->
+
+    <div class="mt-4">
+
+        <label class="fw-bold">Attributes</label>
+
+        <div id="attributeContainer">
+
+            @if (Model.Attributes != null && Model.Attributes.Any())
+            {
+                var index = 0;
+
+                foreach (var attr in Model.Attributes)
+                {
+                    <div class="input-group mb-2 attribute-item">
+
+                        <input type="hidden"
+                               name="Attributes[@index].CategoryAttributeId"
+                               value="@attr.CategoryAttributeId" />
+
+                        <input name="Attributes[@index].AttributeName"
+                               class="form-control"
+                               value="@attr.AttributeName"
+                               placeholder="Attribute name" />
+
+                        <button type="button"
+                                class="btn btn-danger removeAttr">
+                            X
+                        </button>
+
+                    </div>
+
+                    index++;
+                }
+            }
+
+        </div>
+
+        <button type="button"
+                class="btn btn-sm btn-secondary mt-2"
+                id="addAttributeBtn">
+            Add Attribute
+        </button>
+
+    </div>
+
+
+    <!-- BUTTON -->
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+            Cancel
+        </button>
+
+        <button type="submit"
+                class="btn btn-warning">
+
+            <i class="bi bi-pencil-square"></i>
+            Update
+
+        </button>
+
+    </div>
+
+</form>
+
+
+<script>
+
+    // preview logo
+    $("#logoInput").on("input", function () {
+
+        const url = $(this).val()
+
+        if(url){
+            $("#logoPreview").attr("src", url)
+        }else{
+            $("#logoPreview").attr("src","https://via.placeholder.com/140")
+        }
+
+    })
+
+
+    // add attribute
+    let attrIndex = @((Model.Attributes?.Count ?? 0))
+
+    $("#addAttributeBtn").click(function(){
+
+        const html = `
+        <div class="input-group mb-2 attribute-item">
+
+            <input name="Attributes[${attrIndex}].AttributeName"
+                   class="form-control"
+                   placeholder="Attribute name"/>
+
+            <button type="button"
+                    class="btn btn-danger removeAttr">
+                X
+            </button>
+
+        </div>
+        `
+
+        $("#attributeContainer").append(html)
+
+        attrIndex++
+
+    })
+
+
+    // remove attribute
+    $(document).on("click",".removeAttr",function(){
+
+        $(this).closest(".attribute-item").remove()
+
+    })
+
+</script>

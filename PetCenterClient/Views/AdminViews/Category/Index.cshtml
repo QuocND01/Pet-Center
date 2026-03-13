@@ -1,0 +1,267 @@
+﻿@using PetCenterClient.DTOs
+@model OdataResponse<ReadCategoryDTOs>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Categories";
+}
+
+<h2 class="mb-3">Category List</h2>
+
+<form asp-action="Indexadmin" asp-controller="Category" method="get" class="row g-2 mb-3">
+
+    <!-- Search -->
+    <div class="col-md-4">
+        <input type="text"
+               name="search"
+               value="@Context.Request.Query["search"]"
+               class="form-control"
+               placeholder="Search category name..." />
+    </div>
+
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">
+            Apply
+        </button>
+    </div>
+
+</form>
+
+<p>
+    <button class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#categoryModal"
+            data-url="@Url.Action("Create", "Category")">
+
+        <i class="bi bi-plus-circle"></i> Add Category
+    </button>
+</p>
+
+<table class="table table-hover table-striped align-middle">
+
+    <thead class="table-dark">
+        <tr>
+            <th>Logo</th>
+            <th>Category Name</th>
+            <th>Attributes</th>
+            <th style="width:160px;">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @if (Model?.Values != null && Model.Values.Any())
+        {
+            foreach (var c in Model.Values)
+            {
+                <tr>
+
+                    <td>
+                        <img src="@c.CategoryLogo"
+                             style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />
+                    </td>
+
+                    <td>@c.CategoryName</td>
+
+                    <td>
+                        @if (c.Attributes != null && c.Attributes.Any())
+                        {
+                            foreach (var attr in c.Attributes)
+                            {
+                                <span class="badge bg-secondary me-1">
+                                    @attr.AttributeName
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">No attributes</span>
+                        }
+                    </td>
+
+                    <td>
+
+                        <!-- VIEW -->
+                        <button class="btn btn-sm btn-info text-white"
+                                data-bs-toggle="modal"
+                                data-bs-target="#categoryModal"
+                                data-url="@Url.Action("DetailsAsyncAdmin", "Category", new { id = c.CategoryId })">
+
+                            <i class="bi bi-eye"></i>
+                        </button>
+
+                        <!-- EDIT -->
+                        <button class="btn btn-sm btn-warning text-white"
+                                data-bs-toggle="modal"
+                                data-bs-target="#categoryModal"
+                                data-url="@Url.Action("Edit", "Category", new { id = c.CategoryId })">
+
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+
+                        <!-- DELETE -->
+                        <button class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#categoryModal"
+                                data-url="@Url.Action("Delete", "Category", new { id = c.CategoryId })">
+
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </td>
+
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center text-muted py-3">
+                    No categories available.
+                </td>
+            </tr>
+        }
+
+    </tbody>
+
+</table>
+
+
+<!-- CATEGORY MODAL -->
+
+<div class="modal fade" id="categoryModal" tabindex="-1">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="categoryModalBody"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- LOADING -->
+
+<div id="pageLoadingOverlay"
+     style="display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background: rgba(255,255,255,0.7);
+            z-index:2000;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;">
+
+    <div class="spinner-border text-primary"
+         style="width:3rem;height:3rem"></div>
+
+    <p class="mt-2">Processing, Please wait...</p>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+
+    <div id="liveToast"
+         class="toast bg-success text-white">
+
+        <div class="toast-body"></div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        $('#categoryModal').on('show.bs.modal', function (e) {
+
+            var button = $(e.relatedTarget);
+            var url = button.data('url');
+
+            var modalBody = $("#categoryModalBody");
+
+            modalBody.html("Loading...");
+
+            modalBody.load(url);
+
+        });
+
+
+        $('#categoryModal').on('submit','form',function(e){
+
+            e.preventDefault();
+
+            var form = $(this);
+
+            var formData = new FormData(form[0]);
+
+            $("#pageLoadingOverlay").css("display","flex");
+
+            $.ajax({
+
+                url: form.attr('action'),
+                type: form.attr('method'),
+                data: formData,
+                contentType:false,
+                processData:false,
+
+                success:function(res){
+
+                    $("#pageLoadingOverlay").hide();
+
+                    if(res.success){
+
+                        $('#categoryModal').modal('hide');
+
+                        showToast("Success");
+
+                        setTimeout(function(){
+
+                            location.reload();
+
+                        },800);
+                    }
+                },
+
+                error:function(){
+
+                    $("#pageLoadingOverlay").hide();
+                    showToast("Error");
+
+                }
+
+            });
+
+        });
+
+
+        function showToast(message){
+
+            $('#liveToast .toast-body').text(message);
+
+            var toast = new bootstrap.Toast(document.getElementById('liveToast'));
+
+            toast.show();
+
+        }
+
+    </script>
+
+}

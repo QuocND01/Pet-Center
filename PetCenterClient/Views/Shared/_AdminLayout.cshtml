@@ -22,7 +22,7 @@
                 </a>
                 @* @if (User.IsInRole("Admin"))
                 { *@
-                    <a asp-controller="Category" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                <a asp-controller="Category" asp-action="Indexadmin" class="list-group-item list-group-item-action bg-dark text-white">
                         <i class="bi bi-tags"></i> Manage Categorys
                     </a>
                     <a asp-controller="Brand" asp-action="IndexAdmin" class="list-group-item list-group-item-action bg-dark text-white">
@@ -44,8 +44,8 @@
                         <i class="bi bi-ticket-perforated"></i> Manage Voucher
                     </a>
                 @* } *@
-                <a asp-controller="Order" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-ticket-perforated"></i> Manage Order
+                <a asp-controller="Orders" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
+                    <i class="bi bi-ticket-perforated"></i> Manage Orders
                 </a>
                 <a asp-controller="AdminFeedback" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
                     <i class="bi bi-ticket-perforated"></i> Manage Feedback

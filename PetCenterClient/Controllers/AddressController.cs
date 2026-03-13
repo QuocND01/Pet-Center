@@ -10,7 +10,6 @@ namespace PetCenterClient.Controllers
         private readonly IAddressServiceClient _addressService;
         private readonly ICustomerService _customerService;
 
-        // FIX: Đã thêm ICustomerService vào Constructor và gán giá trị
         public AddressController(IAddressServiceClient addressService, ICustomerService customerService)
         {
             _addressService = addressService;
@@ -21,7 +20,8 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Index()
         {
             var list = await _addressService.GetAllAsync();
-            return View(list);
+            // Cập nhật đường dẫn tới CustomerViews
+            return View("~/Views/CustomerViews/Address/Index.cshtml", list);
         }
 
         // 2. CHI TIẾT (READ ONE)
@@ -29,14 +29,14 @@ namespace PetCenterClient.Controllers
         {
             var address = await _addressService.GetByIdAsync(id);
             if (address == null) return NotFound();
-            return View(address);
+
+            return View("~/Views/CustomerViews/Address/Details.cshtml", address);
         }
 
         // 3. THÊM MỚI (GET)
         public IActionResult Create()
         {
-            // Tránh lỗi Null ở View bằng cách khởi tạo model trống
-            return View(new AddressCreateDTO());
+            return View("~/Views/CustomerViews/Address/Create.cshtml", new AddressCreateDTO());
         }
 
         [HttpPost]
@@ -47,24 +47,20 @@ namespace PetCenterClient.Controllers
             if (profile == null) return RedirectToAction("Login", "Auth");
 
             dto.CustomerId = profile.CustomerId;
-            ModelState.Remove("CustomerId"); // Bỏ qua lỗi validation cho ID vì mình đã gán tay
+            ModelState.Remove("CustomerId");
 
             if (ModelState.IsValid)
             {
-                // GỌI API LƯU DỮ LIỆU
                 var success = await _addressService.CreateAsync(dto);
-
                 if (success)
                 {
                     TempData["Success"] = "Thêm địa chỉ thành công!";
                     return RedirectToAction(nameof(Index));
                 }
-
-                // NẾU THẤT BẠI: Hãy kiểm tra logs ở project AddressAPI 
-                // hoặc thêm dòng này để hiện lỗi lên giao diện
                 ModelState.AddModelError("", "API từ chối lưu. Có thể do trùng dữ liệu hoặc lỗi DB.");
             }
-            return View(dto);
+            // Trả về View Create nếu có lỗi
+            return View("~/Views/CustomerViews/Address/Create.cshtml", dto);
         }
 
         // 5. CHỈNH SỬA (GET)
@@ -82,18 +78,17 @@ namespace PetCenterClient.Controllers
                 Ward = address.Ward,
                 IsDefault = address.IsDefault
             };
-            return View(editDto);
+            return View("~/Views/CustomerViews/Address/Edit.cshtml", editDto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, AddressCreateDTO dto)
         {
-            // Dùng CustomerService để lấy ID từ Session JWT cho đồng bộ
             var profile = await _customerService.GetProfileAsync();
             if (profile == null) return RedirectToAction("Login", "Auth");
 
-            dto.CustomerId = profile.CustomerId; // Lấy ID chuẩn
+            dto.CustomerId = profile.CustomerId;
 
             if (ModelState.IsValid)
             {
@@ -104,7 +99,7 @@ namespace PetCenterClient.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-            return View(dto);
+            return View("~/Views/CustomerViews/Address/Edit.cshtml", dto);
         }
 
         // 7. XÓA (GET)
@@ -112,7 +107,8 @@ namespace PetCenterClient.Controllers
         {
             var address = await _addressService.GetByIdAsync(id);
             if (address == null) return NotFound();
-            return View(address);
+
+            return View("~/Views/CustomerViews/Address/Delete.cshtml", address);
         }
 
         // 8. XÓA (POST)
