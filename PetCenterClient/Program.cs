@@ -1,4 +1,5 @@
-﻿using PetCenterClient.Services;
+﻿using PetCenterClient.DTOs;
+using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 using System;
 
@@ -59,6 +60,10 @@ builder.Services.AddHttpClient<IOrderDetailServiceClient, OrderDetailServiceClie
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.Configure<GoogleClientDto>(
+    builder.Configuration.GetSection("Authentication:Google"));
+
+builder.Services.AddScoped<IGoogleClientService, GoogleClientService>();
 builder.Services.AddHttpClient<ICartService, CartService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);

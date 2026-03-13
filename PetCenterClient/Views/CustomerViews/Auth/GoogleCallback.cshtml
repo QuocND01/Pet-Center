@@ -1,0 +1,30 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<body>
+    <script>
+        // Lấy code từ URL query string
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const error = params.get('error');
+
+        if (error || !code) {
+            // User cancel hoặc lỗi
+            window.opener?.postMessage(
+                { type: 'google-auth', success: false, message: 'Login cancelled.' },
+                window.location.origin
+            );
+            window.close();
+        } else {
+            // Gửi code về trang cha xử lý
+            window.opener?.postMessage(
+                { type: 'google-auth', success: true, code: code },
+                window.location.origin
+            );
+            window.close();
+        }
+    </script>
+</body>
+</html>

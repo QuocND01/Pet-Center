@@ -521,7 +521,9 @@
                     </div>
                     <div class="info-group">
                         <span class="info-label">Date of Birth</span>
-                        <span class="info-value">@Model.BirthDay.ToString("dd/MM/yyyy")</span>
+                        <span class="info-value">
+                            @(Model.BirthDay.HasValue ? Model.BirthDay.Value.ToString("dd/MM/yyyy") : "Not provided")
+                        </span>
                     </div>
                     <div class="info-group">
                         <span class="info-label">Gender</span>
@@ -533,7 +535,9 @@
 
                 <div class="info-group">
                     <span class="info-label">Member Since</span>
-                    <span class="info-value">@Model.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                    <span class="info-value">
+                        @(Model.CreatedAt.HasValue ? Model.CreatedAt.Value.ToString("dd/MM/yyyy") : "Not provided")
+                    </span>
                 </div>
             </div>
 
@@ -551,7 +555,7 @@
 
                 <div class="form-group">
                     <label for="birthDay">Date of Birth</label>
-                    <input type="date" id="birthDay" name="birthDay" value="@Model.BirthDay.ToString("yyyy-MM-dd")" required>
+                    <input type="date" id="birthDay" name="birthDay" value="@(Model.BirthDay.HasValue ? Model.BirthDay.Value.ToString("dd/MM/yyyy") : "Not provided")" required>
                 </div>
 
                 <div class="form-group">
