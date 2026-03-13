@@ -84,20 +84,18 @@
             <div class="error">@ViewBag.Error</div>
         }
         <form method="post" id="registerForm">
-            <input name="FullName" class="form-control mb-3" placeholder="Full Name" required />
-            <input type="email" name="Email" class="form-control mb-3" placeholder="Email" required />
-            <input name="PhoneNumber"
-                   pattern="[0-9]{10}"
-                   class="form-control mb-3"
-                   placeholder="Phone Number"
-                   required />
+            <!-- Thêm id vào các input trong form -->
+            <input id="fullName" name="FullName" class="form-control mb-3" placeholder="Full Name" required />
+            <input type="email" id="email" name="Email" class="form-control mb-3" placeholder="Email" required />
+            <input id="phoneNumber" name="PhoneNumber" pattern="[0-9]{10}"
+                   class="form-control mb-3" placeholder="Phone Number" required />
             <input type="password" id="password" name="Password" class="form-control mb-2" placeholder="Password" required />
             <div id="passwordStrength" style="font-size:14px;margin-bottom:10px;"></div>
             <input type="password" id="confirmPassword" class="form-control mb-2" placeholder="Confirm Password" required />
             <div id="passwordMatch" class="password-match-error">Passwords do not match</div>
             <div id="passwordMatchSuccess" class="password-match-success">Passwords match</div>
-            <input type="date" name="BirthDay" class="form-control mb-3" />
-            <select name="Gender" class="form-control mb-3" required>
+            <input type="date" id="birthDay" name="BirthDay" class="form-control mb-3" />
+            <select id="gender" name="Gender" class="form-control mb-3" required>
                 <option value="">-- Select Gender --</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -111,232 +109,255 @@
         </div>
     </div>
     <script>
-    const password = document.getElementById("password");
+    const passwordInput   = document.getElementById("password");
     const confirmPassword = document.getElementById("confirmPassword");
-    const strength = document.getElementById("passwordStrength");
-    const passwordMatch = document.getElementById("passwordMatch");
+    const strength        = document.getElementById("passwordStrength");
+    const passwordMatch   = document.getElementById("passwordMatch");
     const passwordMatchSuccess = document.getElementById("passwordMatchSuccess");
-    const registerBtn = document.getElementById("registerBtn");
-    const registerForm = document.getElementById("registerForm");
+    const registerBtn     = document.getElementById("registerBtn");
+    const registerForm    = document.getElementById("registerForm");
 
     // ============================================================
-    // FULL NAME VALIDATE
-    // Chữ cái + khoảng trắng + dấu tiếng Việt, tối thiểu 2 từ
+    // FULL NAME
     // ============================================================
-    const fullNameInput = document.querySelector('input[name="FullName"]');
-    const fullNameMsg = document.createElement("div");
+    const fullNameInput = document.getElementById("fullName");
+    const fullNameMsg   = document.createElement("div");
     fullNameMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
     fullNameInput.insertAdjacentElement("afterend", fullNameMsg);
 
     function validateFullName(val) {
         const trimmed = val.trim();
-        if (trimmed.length < 2) return "Full name must be at least 2 characters";
-        if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(trimmed)) return "Full name must contain letters only";
-        if (trimmed.split(/\s+/).length < 2) return "Please enter your full name (first and last name)";
+        if (trimmed.length < 2)                         return "Full name must be at least 2 characters";
+        if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(trimmed))         return "Full name must contain letters only";
+        if (trimmed.split(/\s+/).length < 2)            return "Please enter your full name (first and last name)";
         return "";
     }
 
     fullNameInput.addEventListener("input", function () {
         const err = validateFullName(this.value);
-        if (err) {
-            fullNameMsg.innerHTML = "❌ " + err;
-            fullNameMsg.style.color = "red";
-        } else {
-            fullNameMsg.innerHTML = "✓ Looks good";
-            fullNameMsg.style.color = "green";
-        }
+        fullNameMsg.innerHTML    = err ? "❌ " + err : "✓ Looks good";
+        fullNameMsg.style.color  = err ? "red" : "green";
         fullNameMsg.style.display = "block";
     });
-    fullNameInput.addEventListener("blur", function () {
-        fullNameMsg.style.display = "none";
-    });
+    fullNameInput.addEventListener("blur", () => { fullNameMsg.style.display = "none"; });
 
     // ============================================================
-    // EMAIL VALIDATE
+    // EMAIL
     // ============================================================
-    const emailInput = document.querySelector('input[name="Email"]');
-    const emailMsg = document.createElement("div");
+    const emailInput = document.getElementById("email");
+    const emailMsg   = document.createElement("div");
     emailMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
     emailInput.insertAdjacentElement("afterend", emailMsg);
 
     function validateEmail(val) {
-        if (!val) return "Email is required";
-        if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(val)) return "Invalid email format";
+        if (!val)                                              return "Email is required";
+        if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(val))         return "Invalid email format";
         return "";
     }
 
     emailInput.addEventListener("input", function () {
         const err = validateEmail(this.value);
-        if (err) {
-            emailMsg.innerHTML = "❌ " + err;
-            emailMsg.style.color = "red";
-        } else {
-            emailMsg.innerHTML = "✓ Valid email";
-            emailMsg.style.color = "green";
-        }
+        emailMsg.innerHTML    = err ? "❌ " + err : "✓ Valid email";
+        emailMsg.style.color  = err ? "red" : "green";
         emailMsg.style.display = "block";
     });
-    emailInput.addEventListener("blur", function () {
-        emailMsg.style.display = "none";
-    });
+    emailInput.addEventListener("blur", () => { emailMsg.style.display = "none"; });
 
     // ============================================================
-    // PHONE VALIDATE
-    // Việt Nam: bắt đầu bằng 0, đúng 10 số
+    // PHONE
     // ============================================================
-    const phoneInput = document.querySelector('input[name="PhoneNumber"]');
-    const phoneMsg = document.createElement("div");
+    const phoneInput = document.getElementById("phoneNumber");
+    const phoneMsg   = document.createElement("div");
     phoneMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
     phoneInput.insertAdjacentElement("afterend", phoneMsg);
 
     function validatePhone(val) {
-        if (!val) return "Phone number is required";
-        if (!/^0[0-9]{9}$/.test(val)) return "Must start with 0 and be exactly 10 digits";
+        if (!val)                          return "Phone number is required";
+        if (!/^0[0-9]{9}$/.test(val))     return "Must start with 0 and be exactly 10 digits";
         return "";
     }
 
     phoneInput.addEventListener("input", function () {
         const err = validatePhone(this.value);
-        if (err) {
-            phoneMsg.innerHTML = "❌ " + err;
-            phoneMsg.style.color = "red";
-        } else {
-            phoneMsg.innerHTML = "✓ Valid phone number";
-            phoneMsg.style.color = "green";
-        }
+        phoneMsg.innerHTML    = err ? "❌ " + err : "✓ Valid phone number";
+        phoneMsg.style.color  = err ? "red" : "green";
         phoneMsg.style.display = "block";
     });
-    phoneInput.addEventListener("blur", function () {
-        phoneMsg.style.display = "none";
-    });
+    phoneInput.addEventListener("blur", () => { phoneMsg.style.display = "none"; });
 
     // ============================================================
-    // BIRTHDAY VALIDATE
-    // Tối thiểu 16 tuổi, không được chọn ngày tương lai
+    // BIRTHDAY
     // ============================================================
-    const birthdayInput = document.querySelector('input[name="BirthDay"]');
-    const birthdayMsg = document.createElement("div");
+    const birthdayInput = document.getElementById("birthDay");
+    const birthdayMsg   = document.createElement("div");
     birthdayMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
     birthdayInput.insertAdjacentElement("afterend", birthdayMsg);
 
-    // Set max date = hôm nay
-    const today = new Date();
-    birthdayInput.max = today.toISOString().split("T")[0];
-
-    // Set max selectable = 16 năm trước
+    const today      = new Date();
     const minAgeDate = new Date();
     minAgeDate.setFullYear(minAgeDate.getFullYear() - 16);
+    birthdayInput.max = today.toISOString().split("T")[0];
 
     function validateBirthday(val) {
-        if (!val) return ""; // Không bắt buộc
+        if (!val) return "";
         const birth = new Date(val);
-        if (birth > today) return "Birthday cannot be in the future";
+        if (birth > today)      return "Birthday cannot be in the future";
         if (birth > minAgeDate) return "You must be at least 16 years old to register";
         return "";
     }
 
     birthdayInput.addEventListener("change", function () {
         const err = validateBirthday(this.value);
-        if (err) {
-            birthdayMsg.innerHTML = "❌ " + err;
-            birthdayMsg.style.color = "red";
-        } else if (this.value) {
-            birthdayMsg.innerHTML = "✓ Valid date of birth";
-            birthdayMsg.style.color = "green";
+        if (this.value) {
+            birthdayMsg.innerHTML    = err ? "❌ " + err : "✓ Valid date of birth";
+            birthdayMsg.style.color  = err ? "red" : "green";
+            birthdayMsg.style.display = "block";
+        } else {
+            birthdayMsg.style.display = "none";
         }
-        birthdayMsg.style.display = this.value ? "block" : "none";
     });
-    birthdayInput.addEventListener("blur", function () {
-        birthdayMsg.style.display = "none";
-    });
+    birthdayInput.addEventListener("blur", () => { birthdayMsg.style.display = "none"; });
 
     // ============================================================
-    // PASSWORD VALIDATE
+    // PASSWORD
     // ============================================================
     function validatePassword(val) {
         const errors = [];
-        if (val.length < 6) errors.push("At least 6 characters");
-        if (!/[A-Z]/.test(val[0])) errors.push("First character must be uppercase");
-        if (!/[@@]/.test(val)) errors.push("Must contain @@");
-        if (!/[0-9]/.test(val)) errors.push("Must contain at least 1 number");
-        if (/\s/.test(val)) errors.push("No spaces allowed");
+        if (val.length < 6)             errors.push("At least 6 characters");
+        if (!/[A-Z]/.test(val[0]))      errors.push("First character must be uppercase");
+        if (!/@@/.test(val))             errors.push("Must contain @@");
+        if (!/[0-9]/.test(val))         errors.push("Must contain at least 1 number");
+        if (/\s/.test(val))             errors.push("No spaces allowed");
         return errors;
     }
 
     function showStrength() {
-        const val = password.value;
+        const val = passwordInput.value;
         if (!val) { strength.innerHTML = ""; return; }
         const errors = validatePassword(val);
-        if (errors.length === 0) {
-            strength.innerHTML = "✓ Strong password";
-            strength.style.color = "green";
-        } else {
-            strength.innerHTML = "❌ " + errors.join(" &nbsp;|&nbsp; ❌ ");
-            strength.style.color = "red";
-        }
+        strength.innerHTML = errors.length === 0
+            ? "✓ Strong password"
+            : "❌ " + errors.join(" &nbsp;|&nbsp; ❌ ");
+        strength.style.color = errors.length === 0 ? "green" : "red";
     }
 
-    password.addEventListener("input", showStrength);
-    password.addEventListener("focus", function () { if (password.value) showStrength(); });
-    password.addEventListener("blur", function () { strength.innerHTML = ""; });
+    passwordInput.addEventListener("input", showStrength);
+    passwordInput.addEventListener("focus", function () { if (passwordInput.value) showStrength(); });
+    passwordInput.addEventListener("blur",  () => { strength.innerHTML = ""; });
 
     // ============================================================
     // CONFIRM PASSWORD
     // ============================================================
     function showMatch() {
         if (!confirmPassword.value) {
-            passwordMatch.style.display = "none";
+            passwordMatch.style.display        = "none";
             passwordMatchSuccess.style.display = "none";
             return;
         }
-        if (password.value === confirmPassword.value) {
-            passwordMatch.style.display = "none";
-            passwordMatchSuccess.style.display = "block";
-            registerBtn.disabled = false;
-        } else {
-            passwordMatch.style.display = "block";
-            passwordMatchSuccess.style.display = "none";
-            registerBtn.disabled = true;
-        }
+        const match = passwordInput.value === confirmPassword.value;
+        passwordMatch.style.display        = match ? "none"  : "block";
+        passwordMatchSuccess.style.display = match ? "block" : "none";
+        registerBtn.disabled = !match;
     }
 
     confirmPassword.addEventListener("input", showMatch);
     confirmPassword.addEventListener("focus", function () { if (confirmPassword.value) showMatch(); });
-    confirmPassword.addEventListener("blur", function () {
-        passwordMatch.style.display = "none";
+    confirmPassword.addEventListener("blur",  () => {
+        passwordMatch.style.display        = "none";
         passwordMatchSuccess.style.display = "none";
     });
 
     // ============================================================
-    // SUBMIT - Kiểm tra toàn bộ trước khi gửi
+    // ERROR BANNER
     // ============================================================
-    registerForm.addEventListener("submit", function (e) {
+    const errorDiv = document.querySelector(".error") || (() => {
+        const d = document.createElement("div");
+        d.className = "error";
+        d.style.display = "none";
+        registerForm.insertAdjacentElement("beforebegin", d);
+        return d;
+    })();
+
+    function showError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.style.display = "block";
+        errorDiv.style.color = "red";
+        errorDiv.style.textAlign = "center";
+        errorDiv.style.marginBottom = "10px";
+        errorDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function hideError() {
+        errorDiv.style.display = "none";
+        errorDiv.textContent = "";
+    }
+
+    // ============================================================
+    // SUBMIT — AJAX, giữ nguyên data khi lỗi
+    // ============================================================
+    registerForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        hideError();
+
+        const fullName   = fullNameInput.value.trim();
+        const email      = emailInput.value.trim();
+        const phone      = phoneInput.value.trim();
+        const password   = passwordInput.value;
+        const confirm    = confirmPassword.value;
+        const birthday   = birthdayInput.value;
+        const gender     = document.getElementById("gender").value;
+
+        // Client-side validate
         const allErrors = [];
+        const nameErr = validateFullName(fullName);
+        if (nameErr)   allErrors.push("Full Name: " + nameErr);
 
-        const nameErr = validateFullName(fullNameInput.value);
-        if (nameErr) allErrors.push("Full Name: " + nameErr);
+        const emailErr = validateEmail(email);
+        if (emailErr)  allErrors.push("Email: " + emailErr);
 
-        const emailErr = validateEmail(emailInput.value);
-        if (emailErr) allErrors.push("Email: " + emailErr);
+        const phoneErr = validatePhone(phone);
+        if (phoneErr)  allErrors.push("Phone: " + phoneErr);
 
-        const phoneErr = validatePhone(phoneInput.value);
-        if (phoneErr) allErrors.push("Phone: " + phoneErr);
+        const bdErr = validateBirthday(birthday);
+        if (bdErr)     allErrors.push("Birthday: " + bdErr);
 
-        const bdErr = validateBirthday(birthdayInput.value);
-        if (bdErr) allErrors.push("Birthday: " + bdErr);
-
-        const passErrors = validatePassword(password.value);
+        const passErrors = validatePassword(password);
         if (passErrors.length > 0) allErrors.push("Password: " + passErrors.join(", "));
 
-        if (password.value !== confirmPassword.value)
-            allErrors.push("Passwords do not match");
-
-        if (!document.querySelector('select[name="Gender"]').value)
-            allErrors.push("Please select a gender");
+        if (password !== confirm) allErrors.push("Passwords do not match");
+        if (!gender)              allErrors.push("Please select a gender");
 
         if (allErrors.length > 0) {
-            e.preventDefault();
-            alert("Please fix the following:\n\n• " + allErrors.join("\n• "));
+            showError(allErrors.join(" | "));
+            return;
+        }
+
+        // Disable button
+        registerBtn.disabled     = true;
+        registerBtn.textContent  = "Registering...";
+
+        try {
+            const formData = new FormData(registerForm);
+            const response = await fetch(registerForm.action || window.location.href, {
+                method: "POST",
+                headers: { "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]')?.value || "" },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = result.redirectUrl;
+            } else {
+                // Hiện lỗi nhưng GIỮ NGUYÊN data người dùng đã nhập
+                showError(result.message || "Registration failed. Please try again.");
+                registerBtn.disabled    = false;
+                registerBtn.textContent = "Register";
+            }
+        } catch (err) {
+            showError("An error occurred. Please try again.");
+            registerBtn.disabled    = false;
+            registerBtn.textContent = "Register";
         }
     });
 </script>
