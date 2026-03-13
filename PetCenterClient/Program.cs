@@ -59,6 +59,11 @@ builder.Services.AddHttpClient<IOrderDetailServiceClient, OrderDetailServiceClie
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<ICartService, CartService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
 builder.Services.AddSession();
 
 builder.Services.AddAuthorization();
