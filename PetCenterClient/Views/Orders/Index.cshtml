@@ -1,16 +1,20 @@
 ﻿@model IEnumerable<PetCenterClient.DTOs.OrderResponseDTO>
-@using System.Security.Claims
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 
 @{
     ViewData["Title"] = "Danh sách đơn hàng";
-    // Kiểm tra Role Staff để ẩn/hiện nút Sửa
-    var isStaff = User.IsInRole("Staff");
+    var role = HttpContextAccessor.HttpContext?.Session.GetString("Role");
+    var isStaffOrAdmin = (role == "Staff" || role == "Admin");
+
+    // TỰ ĐỘNG SWITCH LAYOUT
+    Layout = isStaffOrAdmin ? "~/Views/Shared/_AdminLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>📦 Quản lý Đơn hàng</h2>
-        @if (!isStaff)
+        @if (role == "Customer")
         {
             <a asp-action="Create" class="btn btn-primary">➕ Đặt hàng mới</a>
         }
@@ -24,6 +28,45 @@
         </div>
     }
 
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body bg-light rounded">
+            <form asp-action="Index" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-muted small">Tìm mã đơn hàng</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Nhập mã đơn..." />
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-muted small">Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        @* Dùng thẻ selected để giữ nguyên lựa chọn sau khi bấm Lọc *@
+                        <option value="1" selected="@(ViewBag.Status == 1 ? "selected" : null)">Chờ xử lý</option>
+                        <option value="2" selected="@(ViewBag.Status == 2 ? "selected" : null)">Đã xử lý</option>
+                        @* Thêm các trạng thái khác nếu có (0: Đã hủy, v.v.) *@
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold text-muted small">Từ ngày</label>
+                    <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-bold text-muted small">Đến ngày</label>
+                    <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 mb-2">Lọc dữ liệu</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100">Xóa lọc</a>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="table-responsive shadow-sm">
         <table class="table table-hover border">
             <thead class="table-dark text-center">
@@ -35,28 +78,33 @@
                 </tr>
             </thead>
             <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">Không tìm thấy đơn hàng nào phù hợp.</td>
+                    </tr>
+                }
                 @foreach (var item in Model)
                 {
-                    <tr class="align-middle">
-                        <td>@string.Format("{0:dd/MM/yyyy HH:mm}", item.OrderDate)</td>
-                        <td class="text-success fw-bold text-center">@item.TotalAmount.ToString("N0") VNĐ</td>
-                        <td class="text-center">
-                            <span class="badge @(item.Status == 1 ? "bg-warning" : "bg-success")">
+                    <tr class="align-middle text-center">
+                        <td class="text-start">@string.Format("{0:dd/MM/yyyy HH:mm}", item.OrderDate)</td>
+                        <td class="text-success fw-bold">@item.TotalAmount.ToString("N0") VNĐ</td>
+                        <td>
+                            <span class="badge @(item.Status == 1 ? "bg-warning text-dark" : "bg-success")">
                                 @(item.Status == 1 ? "Chờ xử lý" : "Đã xử lý")
                             </span>
                         </td>
-                        <td class="text-center">
+                        <td>
                             <div class="btn-group">
                                 <a asp-action="Details" asp-route-id="@item.OrderId" class="btn btn-sm btn-info text-white">Chi tiết</a>
 
-                                @if (isStaff)
+                                @if (isStaffOrAdmin)
                                 {
                                     <a asp-action="Edit" asp-route-id="@item.OrderId" class="btn btn-sm btn-warning">Sửa</a>
                                 }
 
                                 @if (item.Status == 1)
                                 {
-                                    @* Dẫn sang trang xác nhận Delete.cshtml *@
                                     <a asp-action="Delete" asp-route-id="@item.OrderId" class="btn btn-sm btn-danger ms-1">Hủy</a>
                                 }
                             </div>

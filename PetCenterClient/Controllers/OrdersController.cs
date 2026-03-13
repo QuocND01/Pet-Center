@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PetCenterClient.DTOs;
@@ -27,19 +27,65 @@ namespace PetCenterClient.Controllers
             _productService = productService;
         }
 
-        // 1. DANH SÁCH ĐƠN HÀNG
-        public async Task<IActionResult> Index()
+        // 1. DANH SÁCH ĐƠN HÀNG (Có Search & Filter)
+        public async Task<IActionResult> Index(string? search, int? status, DateTime? fromDate, DateTime? toDate)
         {
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var token = HttpContext.Session.GetString("JWT");
+            if (string.IsNullOrEmpty(token)) return RedirectToAction("Login", "Auth");
 
+            var role = HttpContext.Session.GetString("Role");
             var orders = await _orderService.GetAllAsync();
 
-            // Nếu là Customer, chỉ hiển thị đơn hàng của chính họ
-            if (userRole == "Customer" && !string.IsNullOrEmpty(userId))
+            // Phân quyền: Customer chỉ thấy đơn của mình
+            if (role == "Customer")
             {
-                orders = orders.Where(o => o.CustomerId.ToString() == userId).ToList();
+                var profile = await _customerService.GetProfileAsync();
+                if (profile != null)
+                {
+                    orders = orders.Where(o => o.CustomerId == profile.CustomerId).ToList();
+                }
             }
+
+            // ==========================================
+            // BẮT ĐẦU TÌM KIẾM & LỌC (Giống StaffController)
+            // ==========================================
+
+            // 1. Tìm theo mã đơn hàng (OrderId)
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim().ToLower();
+                orders = orders.Where(o => o.OrderId.ToString().ToLower().Contains(search)).ToList();
+            }
+
+            // 2. Lọc theo trạng thái
+            if (status.HasValue)
+            {
+                orders = orders.Where(o => o.Status == status.Value).ToList();
+            }
+
+            // 3. Lọc từ ngày
+            if (fromDate.HasValue)
+            {
+                orders = orders.Where(o => o.OrderDate >= fromDate.Value).ToList();
+            }
+
+            // 4. Lọc đến ngày (Cộng thêm 1 ngày để lấy trọn vẹn ngày toDate)
+            if (toDate.HasValue)
+            {
+                orders = orders.Where(o => o.OrderDate < toDate.Value.AddDays(1)).ToList();
+            }
+
+            // Sắp xếp đơn hàng mới nhất lên đầu
+            orders = orders.OrderByDescending(o => o.OrderDate).ToList();
+
+            // ==========================================
+            // Lưu lại giá trị bộ lọc vào ViewBag để hiển thị lại trên Form UI
+            // ==========================================
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            // Input type="date" của HTML5 bắt buộc định dạng yyyy-MM-dd
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
             return View(orders);
         }
@@ -47,6 +93,9 @@ namespace PetCenterClient.Controllers
         // 2. CHI TIẾT ĐƠN HÀNG (Gom dữ liệu từ nhiều API)
         public async Task<IActionResult> Details(Guid id)
         {
+            var token = HttpContext.Session.GetString("JWT");
+            if (string.IsNullOrEmpty(token)) return RedirectToAction("Login", "Auth");
+
             var order = await _orderService.GetByIdAsync(id);
             if (order == null) return NotFound();
 
@@ -60,7 +109,6 @@ namespace PetCenterClient.Controllers
                 {
                     ProductId = item.ProductId,
                     ProductName = product?.ProductName ?? "Sản phẩm không xác định",
-                    // Fix lỗi .ImageUrl: FirstOrDefault() trả về chuỗi URL
                     ImageUrl = product?.Images?.FirstOrDefault() ?? "/no-image.png",
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice
@@ -112,11 +160,11 @@ namespace PetCenterClient.Controllers
             return View(dto);
         }
 
-        // 5. CHỈNH SỬA (GET) - Chỉ Staff mới được vào
+        // 5. CHỈNH SỬA (GET) - Chỉ Admin hoặc Staff mới được vào
         public async Task<IActionResult> Edit(Guid id)
         {
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            if (userRole != "Staff") return RedirectToAction(nameof(Index));
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Admin" && role != "Staff") return RedirectToAction(nameof(Index));
 
             var order = await _orderService.GetByIdAsync(id);
             if (order == null) return NotFound();
@@ -143,6 +191,9 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, OrderRequestDTO dto)
         {
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Admin" && role != "Staff") return RedirectToAction(nameof(Index));
+
             if (ModelState.IsValid)
             {
                 var success = await _orderService.UpdateAsync(id, dto);
@@ -168,10 +219,7 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            // Đảm bảo lấy đúng Key "JWT" giống trong Service của bạn
-            var token = HttpContext.Session.GetString("JWT");
-
-            // Gọi hàm xóa (Service của bạn đã tự xử lý gắn Token vào Header rồi)
+            // Token JWT đã được tự động xử lý bởi IHttpContextAccessor bên trong OrderServiceClient
             var success = await _orderService.DeleteAsync(id);
 
             if (success)
