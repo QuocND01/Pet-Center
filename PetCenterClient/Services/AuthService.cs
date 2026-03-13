@@ -137,6 +137,78 @@ namespace PetCenterClient.Services
                 return (false, "An error occurred. Please try again.");
             }
         }
+
+        public async Task<LoginResponseDto?> GoogleLoginAsync(string idToken)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync(
+                    "api/auth/google-login",
+                    new GoogleLoginRequestDto { IdToken = idToken });
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    var errorData = JsonDocument.Parse(errorContent).RootElement;
+
+                    return new LoginResponseDto
+                    {
+                        Success = false,
+                        message = errorData.TryGetProperty("message", out var msg) ? msg.GetString() : "Google login failed",
+                        ErrorType = errorData.TryGetProperty("errorType", out var eType) ? eType.GetString() : "GoogleLoginFailed",
+                        token = null
+                    };
+                }
+
+                return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+            }
+            catch
+            {
+                return new LoginResponseDto
+                {
+                    Success = false,
+                    message = "An error occurred. Please try again.",
+                    ErrorType = "Exception",
+                    token = null
+                };
+            }
+        }
+
+        // Thêm vào PetCenterClient/Services/AuthService.cs
+        public async Task<LoginResponseDto?> GoogleCallbackAsync(string code, string redirectUri)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync(
+                    "api/auth/google-callback",
+                    new GoogleCallbackRequestDto { Code = code, RedirectUri = redirectUri });
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    var errorData = JsonDocument.Parse(errorContent).RootElement;
+                    return new LoginResponseDto
+                    {
+                        Success = false,
+                        message = errorData.TryGetProperty("message", out var msg) ? msg.GetString() : "Google login failed",
+                        ErrorType = errorData.TryGetProperty("errorType", out var eType) ? eType.GetString() : "GoogleLoginFailed",
+                        token = null
+                    };
+                }
+
+                return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+            }
+            catch
+            {
+                return new LoginResponseDto
+                {
+                    Success = false,
+                    message = "An error occurred. Please try again.",
+                    ErrorType = "Exception",
+                    token = null
+                };
+            }
+        }
     }
 }
 

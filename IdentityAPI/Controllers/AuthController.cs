@@ -5,6 +5,8 @@ using IdentityAPI.Service.Interface;
 using IdentityAPI.DTOs.Resquest;
 using IdentityAPI.DTOs.Response;
 using System.Security.Claims;
+using Google.Apis.Auth;
+using IdentityAPI.Security;
 
 namespace IdentityAPI.Controllers
 {
@@ -14,11 +16,15 @@ namespace IdentityAPI.Controllers
     {
         private readonly ICustomerAuthService _customerAuthService;
         private readonly IStaffAuthService _staffAuthService;
+        private readonly IGoogleAuthService _googleAuthService;
+        private readonly IJwtService _jwtService;
 
-        public AuthController(ICustomerAuthService customerAuthService, IStaffAuthService staffAuthService)
+        public AuthController(ICustomerAuthService customerAuthService, IStaffAuthService staffAuthService, IGoogleAuthService googleAuthService, IJwtService jwtService)
         {
             _customerAuthService = customerAuthService;
             _staffAuthService = staffAuthService;
+            _googleAuthService = googleAuthService;
+            _jwtService = jwtService;
         }
 
         // POST: api/auth/customer-login
@@ -142,6 +148,122 @@ namespace IdentityAPI.Controllers
                 return BadRequest(new { success = false, message = result.Message });
 
             return Ok(new { success = true, message = result.Message });
+        }
+
+        // POST: api/auth/google-login
+        [HttpPost("google-login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
+        {
+            try
+            {
+                // Bước 1: Service verify với Google (controller không biết ClientId)
+                var payload = await _googleAuthService.VerifyGoogleTokenAsync(dto.IdToken);
+
+                // Bước 2: GetOrCreate user trong DB
+                var customer = await _googleAuthService
+                    .GetOrCreateUserFromGoogleAsync(payload.Email, payload.Name);
+
+                // Bước 3: Kiểm tra tài khoản có bị khoá không
+                if (customer.IsActive != true)
+                    return Unauthorized(new
+                    {
+                        success = false,
+                        errorType = "AccountInactive",
+                        message = "Your account has been deactivated. Please contact support."
+                    });
+
+                // Bước 4: Generate JWT — nhất quán với CustomerLogin
+                var roles = new List<string> { "Customer" };
+                var token = _jwtService.GenerateToken(
+                    customer.CustomerId, customer.Email, roles);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Google login successful",
+                    token = token,
+                    fullName = customer.FullName,
+                    email = customer.Email
+                });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    errorType = "InvalidGoogleToken",
+                    message = "Invalid Google token. Please try again."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Server error: " + ex.Message
+                });
+            }
+        }
+
+        // POST: api/auth/google-callback
+        [HttpPost("google-callback")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleCallback([FromBody] GoogleCallbackDto dto)
+        {
+            try
+            {
+                // Bước 1: Exchange code → id_token
+                var idToken = await _googleAuthService.ExchangeCodeForIdTokenAsync(
+                    dto.Code, dto.RedirectUri);
+
+                // Bước 2: Verify id_token
+                var payload = await _googleAuthService.VerifyGoogleTokenAsync(idToken);
+
+                // Bước 3: GetOrCreate user
+                var customer = await _googleAuthService
+                    .GetOrCreateUserFromGoogleAsync(payload.Email, payload.Name);
+
+                // Bước 4: Kiểm tra active
+                if (customer.IsActive != true)
+                    return Unauthorized(new
+                    {
+                        success = false,
+                        errorType = "AccountInactive",
+                        message = "Your account has been deactivated. Please contact support."
+                    });
+
+                // Bước 5: Generate JWT
+                var roles = new List<string> { "Customer" };
+                var token = _jwtService.GenerateToken(
+                    customer.CustomerId, customer.Email, roles);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Google login successful",
+                    token = token,
+                    fullName = customer.FullName,
+                    email = customer.Email
+                });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    errorType = "InvalidGoogleToken",
+                    message = "Invalid Google token. Please try again."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Token exchange failed: " + ex.Message
+                });
+            }
         }
 
         [Authorize(Roles = "Customer")]

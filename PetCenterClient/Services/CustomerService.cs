@@ -15,32 +15,50 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        private HttpRequestMessage CreateAuthorizedRequest(
+            HttpMethod method, string url, HttpContent? content = null)
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
+            var request = new HttpRequestMessage(method, url);
+            request.Headers.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+            if (content != null)
+                request.Content = content;
+            return request;
+        }
+
         public async Task<CustomerProfileResponseDto?> GetProfileAsync()
         {
             try
             {
-                // Lấy token từ session
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+                Console.WriteLine($"[DEBUG] Token: {(string.IsNullOrEmpty(token) ? "NULL/EMPTY" : token[..20] + "...")}");
+
                 if (string.IsNullOrEmpty(token))
                     return null;
 
-                // Clear previous headers
-                _http.DefaultRequestHeaders.Authorization = null;
+                var request = CreateAuthorizedRequest(HttpMethod.Get, "api/customer/profile");
+                var response = await _http.SendAsync(request);
 
-                // Add new Authorization header
-                _http.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token);
+                Console.WriteLine($"[DEBUG] Status: {response.StatusCode}");
 
-                var response = await _http.GetAsync("api/customer/profile");
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[DEBUG] Response body: {content}");
 
                 if (!response.IsSuccessStatusCode)
                     return null;
 
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<CustomerProfileResponseDto>>();
+                var result = await System.Text.Json.JsonSerializer.DeserializeAsync<ApiResponse<CustomerProfileResponseDto>>(
+                    new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(content)),
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                Console.WriteLine($"[DEBUG] Result null: {result == null}, Data null: {result?.Data == null}");
+
                 return result?.Data;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[DEBUG] Exception: {ex.Message}");
                 return null;
             }
         }

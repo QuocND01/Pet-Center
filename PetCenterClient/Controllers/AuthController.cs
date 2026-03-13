@@ -7,15 +7,18 @@ namespace PetCenterClient.Controllers
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
+        private readonly IGoogleClientService _googleClientService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IGoogleClientService googleClientService)
         {
             _authService = authService;
+            _googleClientService = googleClientService;
         }
 
         public IActionResult Login()
         {
-            return View("~/Views/CustomerViews/Auth/Login.cshtml");
+            var dto = _googleClientService.GetGoogleClientId();
+            return View("~/Views/CustomerViews/Auth/Login.cshtml", dto);
         }
 
         [HttpPost]
@@ -35,7 +38,8 @@ namespace PetCenterClient.Controllers
                     ViewBag.Error = result?.message ?? "Email or password incorrect";
                 }
 
-                return View("~/Views/CustomerViews/Auth/Login.cshtml");
+                var model = _googleClientService.GetGoogleClientId();
+                return View("~/Views/CustomerViews/Auth/Login.cshtml", model);
             }
 
             HttpContext.Session.SetString("JWT", result.token);
@@ -152,7 +156,7 @@ namespace PetCenterClient.Controllers
             if (!result.Success)
                 return Json(new { success = false, message = result.Message });
 
-            return Json(new { success = true, redirectUrl = Url.Action("VerifyOtp", "Auth", new { email = dto.Email }) });
+            return Json(new { success = true, redirectUrl = Url.Action("Verify", "Auth", new { email = dto.Email }) });
         }
 
         // ================= VERIFY EMAIL =================
@@ -197,5 +201,99 @@ namespace PetCenterClient.Controllers
 
             return RedirectToAction("Verify", new { email });
         }
+
+        // POST: /Auth/GoogleLogin
+        // Nhận idToken từ Google Identity Services JS SDK
+        [HttpPost]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto dto)
+        {
+            if (string.IsNullOrEmpty(dto?.IdToken))
+                return Json(new { success = false, message = "Invalid request." });
+
+            var result = await _authService.GoogleLoginAsync(dto.IdToken);
+
+            if (result == null || !result.Success)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = result?.message ?? "Google login failed.",
+                    errorType = result?.ErrorType ?? "GoogleLoginFailed"
+                });
+            }
+
+            // Lưu JWT vào Session — nhất quán với Login thường
+            HttpContext.Session.SetString("JWT", result.token!);
+
+            // Decode JWT lấy thêm thông tin nếu cần
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(result.token);
+            var role = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+                ?.Value ?? "Customer";
+            var name = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+                ?.Value ?? "";
+
+            HttpContext.Session.SetString("Role", role);
+            HttpContext.Session.SetString("Name", name);
+
+            return Json(new
+            {
+                success = true,
+                message = "Google login successful!",
+                redirectUrl = Url.Action("Index", "Products")
+            });
+        }
+
+        // GET: /Auth/GoogleCallback — nhận code từ Google redirect
+        [HttpGet]
+        public IActionResult GoogleCallback()
+        {
+            return View("~/Views/CustomerViews/Auth/GoogleCallback.cshtml");
+        }
+
+        // POST: /Auth/GoogleCallback — frontend gọi sau khi lấy được code
+        [HttpPost]
+        public async Task<IActionResult> GoogleCallback([FromBody] GoogleCallbackRequestDto dto)
+        {
+            var result = await _authService.GoogleCallbackAsync(dto.Code, dto.RedirectUri);
+
+            if (result == null || !result.Success)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = result?.message ?? "Google login failed.",
+                    errorType = result?.ErrorType ?? "GoogleLoginFailed"
+                });
+            }
+
+            HttpContext.Session.SetString("JWT", result.token!);
+
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(result.token);
+            var role = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+                ?.Value ?? "Customer";
+            var name = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+                ?.Value ?? "";
+
+            HttpContext.Session.SetString("Role", role);
+            HttpContext.Session.SetString("Name", name);
+
+            return Json(new
+            {
+                success = true,
+                redirectUrl = Url.Action("Index", "Products")
+            });
+        }
     }
+
+
 }

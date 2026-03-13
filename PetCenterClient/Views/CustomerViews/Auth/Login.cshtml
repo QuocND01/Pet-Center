@@ -1,10 +1,12 @@
-﻿@{
+﻿@model PetCenterClient.DTOs.GoogleClientDto
+@{
     Layout = null;
 }
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -12,7 +14,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg,#2ecc71,#27ae60);
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
             font-family: Segoe UI;
         }
 
@@ -43,6 +45,8 @@
             background: #2ecc71;
             border: none;
             font-weight: 600;
+            color: white;
+            width: 100%;
         }
 
             .btn-login:hover {
@@ -70,53 +74,173 @@
             text-align: center;
             margin-bottom: 15px;
         }
+        /* ── Divider ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #adb5bd;
+            font-size: 13px;
+        }
+
+            .divider::before, .divider::after {
+                content: '';
+                flex: 1;
+                border-top: 1px solid #e9ecef;
+            }
+
+            .divider::before {
+                margin-right: 10px;
+            }
+
+            .divider::after {
+                margin-left: 10px;
+            }
+
+            .btn-google:hover {
+                background: #f8f9fa;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+                border-color: #c6c6c6;
+            }
+
+            .btn-google:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
     </style>
 </head>
 <body>
     <div class="login-card">
         <div class="logo">🐶</div>
-        <div class="login-title">
-            PetCenter Login
-        </div>
+        <div class="login-title">PetCenter Login</div>
+
         @if (TempData["Success"] != null)
         {
-            <div class="success">
-                @TempData["Success"]
-            </div>
+            <div class="success">@TempData["Success"]</div>
         }
-        @if (ViewBag.Error != null)
-        {
-            <div class="error">@ViewBag.Error</div>
-        }
+
+        <div id="errorBox" class="error"
+             style="@(ViewBag.Error != null ? "display:block;" : "display:none;")">
+            @ViewBag.Error
+        </div>
+
+        <!-- ── Form login thường — ở trên ── -->
         <form method="post" id="loginForm">
             <div class="mb-3">
-                <input type="email" name="Email" class="form-control" placeholder="Email" required />
+                <input type="email" name="Email" class="form-control"
+                       placeholder="Email" required />
             </div>
             <div class="mb-3">
-                <input type="password" name="Password" class="form-control" placeholder="Password" required />
+                <input type="password" name="Password" class="form-control"
+                       placeholder="Password" required />
             </div>
-            <button type="submit" class="btn btn-login w-100">Login</button>
+            <button type="submit" class="btn btn-login">Login</button>
         </form>
-        <div class="text-center mt-3">
+
+        <!-- ── Forgot password ── -->
+        <div class="text-center mt-2" style="font-size:13px;">
+            <a href="#" style="color:#adb5bd; text-decoration:none;">Forgot password?</a>
+        </div>
+
+        <!-- ── Divider ── -->
+        <div class="divider">or continue with</div>
+
+        <!-- ── Nút Google — ở dưới ── -->
+        <div style="display:flex; justify-content:center;">
+            <button type="button" id="googleLoginBtn"
+                    style="display:flex; align-items:center; gap:12px;
+                   border:1px solid #dadce0; border-radius:8px;
+                   padding:10px 24px; background:white; cursor:pointer;
+                   font-size:15px; font-weight:500; color:#3c4043;
+                   width:340px; justify-content:center;"
+                    onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)'"
+                    onmouseout="this.style.boxShadow='none'">
+                <svg width="20" height="20" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                </svg>
+                Continue with Google
+            </button>
+        </div>
+
+        <!-- ── Register link ── -->
+        <div class="text-center mt-3" style="font-size:14px; color:#6c757d;">
             Don't have an account?
-            <a href="/Auth/Register" style="color:#2ecc71;font-weight:600;">Register</a>
+            <a href="/Auth/Register" style="color:#2ecc71; font-weight:600;">Register</a>
         </div>
     </div>
+
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        const GOOGLE_CLIENT_ID = '@Model.ClientId';
+        const REDIRECT_URI = 'https://localhost:7010/Auth/GoogleCallback';
+
+        document.getElementById('googleLoginBtn').addEventListener('click', function () {
+            const nonce = Math.random().toString(36).substring(2);
+            const state = Math.random().toString(36).substring(2);
+
+            const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
+                + '?client_id=' + GOOGLE_CLIENT_ID
+                + '&redirect_uri=' + encodeURIComponent(REDIRECT_URI)
+                + '&response_type=code'
+                + '&scope=' + encodeURIComponent('openid email profile')
+                + '&state=' + state
+                + '&prompt=select_account'
+                + '&access_type=offline';
+
+            const popup = window.open(authUrl, 'googleLogin',
+                'width=500,height=600,scrollbars=yes,resizable=yes');
+
+            window.addEventListener('message', async function handler(event) {
+                if (event.origin !== window.location.origin) return;
+                if (event.data?.type !== 'google-auth') return;
+
+                window.removeEventListener('message', handler);
+                popup?.close();
+
+                if (!event.data.success) {
+                    showError(event.data.message || 'Google login cancelled.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/Auth/GoogleCallback', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            code: event.data.code,
+                            redirectUri: REDIRECT_URI
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        window.location.href = data.redirectUrl || '/Products/Index';
+                    } else {
+                        showError(data.message || 'Google login failed.');
+                    }
+                } catch {
+                    showError('An error occurred. Please try again.');
+                }
+            });
+        });
+
+        function showError(msg) {
+            const box = document.getElementById('errorBox');
+            box.textContent = msg;
+            box.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorBox').style.display = 'none';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function () {
             const btn = this.querySelector('button[type="submit"]');
             btn.disabled = true;
-            btn.innerHTML = 'Logging in...';
-            // Sau khi form được submit, chờ một chút rồi lấy token từ server
-            setTimeout(() => {
-                fetch('/Auth/CheckAuth')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.isAuthenticated && data.token) {
-                            localStorage.setItem('JWT', data.token);
-                        }
-                    });
-            }, 500);
+            btn.textContent = 'Logging in...';
         });
     </script>
 </body>
