@@ -470,9 +470,20 @@
             <h1 class="profile-title">
                 <i class="fas fa-user-circle"></i> My Profile
             </h1>
-            <button class="edit-btn" id="editToggleBtn">
-                <i class="fas fa-edit"></i> Edit
-            </button>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="edit-btn" id="editToggleBtn">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <a href="@Url.Action("ChangePassword", "Customer")"
+                   style="background:#27ae60; color:white; border:none; padding:10px 20px;
+          border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+          text-decoration:none; display:flex; align-items:center; gap:6px;
+          transition:all 0.3s ease;"
+                   onmouseover="this.style.background='#219a52';this.style.transform='translateY(-2px)'"
+                   onmouseout="this.style.background='#27ae60';this.style.transform='translateY(0)'">
+                    <i class="fas fa-lock"></i> Change Password
+                </a>
+            </div>
         </div>
 
         <!-- Alert Messages -->
@@ -623,7 +634,7 @@
             const birthDay = document.getElementById('birthDay').value;
             const gender = document.getElementById('gender').value;
 
-            // ✅ Client-side validation
+            // Client-side validation
             const validation = validateProfileForm(fullName, phoneNumber, birthDay, gender);
             if (!validation.valid) {
                 showAlert(validation.message, 'error');
@@ -657,7 +668,7 @@
                         location.reload();
                     }, 1500);
                 } else {
-                    // ✅ Handle backend validation errors
+                    // Handle backend validation errors
                     const errorMessage = result.errors || result.message || 'Failed to update profile';
                     showAlert(errorMessage, 'error');
                     loadingState.classList.remove('active');
@@ -671,59 +682,45 @@
             }
         });
 
-        // ✅ CLIENT-SIDE VALIDATION FUNCTION
-        function validateProfileForm(fullName, phoneNumber, birthDay, gender) {
-            // Validate Full Name
-            if (!fullName) {
+                function validateProfileForm(fullName, phoneNumber, birthDay, gender) {
+            // Full Name — giống Register: chỉ chữ cái + dấu tiếng Việt, tối thiểu 2 từ
+            if (!fullName)
                 return { valid: false, message: 'Full name is required' };
-            }
-            if (fullName.length < 2 || fullName.length > 100) {
-                return { valid: false, message: 'Full name must be between 2 and 100 characters' };
-            }
-            if (!/^[a-zA-Z\s\u0100-\u017F\u1E00-\u1EFF]+$/.test(fullName)) {
-                return { valid: false, message: 'Full name can only contain letters and spaces' };
-            }
+            if (!/^[a-zA-ZÀ-ỹ\s]{2,}$/.test(fullName.trim()))
+                return { valid: false, message: 'Full name must contain letters only and at least 2 characters' };
+            if (fullName.trim().split(/\s+/).length < 2)
+                return { valid: false, message: 'Please enter your full name (first and last name)' };
 
-            // Validate Phone Number
-            if (!phoneNumber) {
+            // Phone — giống Register: bắt đầu 0, đúng 10 số
+            if (!phoneNumber)
                 return { valid: false, message: 'Phone number is required' };
-            }
-            if (!/^[0-9\+\-\(\)\s]{10,15}$/.test(phoneNumber)) {
-                return { valid: false, message: 'Phone number must be 10-15 digits' };
-            }
+            if (!/^0[0-9]{9}$/.test(phoneNumber))
+                return { valid: false, message: 'Phone number must start with 0 and be exactly 10 digits' };
 
-            // Validate Birthday
-            if (!birthDay) {
+            // Birthday — giống Register: tối thiểu 16 tuổi
+            if (!birthDay)
                 return { valid: false, message: 'Date of birth is required' };
-            }
 
             const birthDate = new Date(birthDay);
-            const today = new Date();
+            const today     = new Date();
 
-            if (birthDate > today) {
+            if (birthDate > today)
                 return { valid: false, message: 'Date of birth cannot be in the future' };
-            }
 
             let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
 
-            if (age < 13) {
-                return { valid: false, message: 'You must be at least 13 years old' };
-            }
-            if (age > 120) {
+            if (age < 16)
+                return { valid: false, message: 'You must be at least 16 years old' };
+            if (age > 120)
                 return { valid: false, message: 'Invalid date of birth' };
-            }
 
-            // Validate Gender
-            if (!gender) {
+            // Gender
+            if (!gender)
                 return { valid: false, message: 'Gender is required' };
-            }
-            if (!['Male', 'Female', 'Other'].includes(gender)) {
+            if (!['Male', 'Female', 'Other'].includes(gender))
                 return { valid: false, message: 'Invalid gender' };
-            }
 
             return { valid: true };
         }

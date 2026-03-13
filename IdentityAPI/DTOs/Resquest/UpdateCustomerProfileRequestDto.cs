@@ -5,12 +5,13 @@ namespace IdentityAPI.DTOs.Resquest
     public class UpdateCustomerProfileRequestDto
     {
         [Required(ErrorMessage = "Full name is required")]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Full name must be between 2 and 100 characters")]
-        [RegularExpression(@"^[a-zA-Z\s\u0100-\u017F\u1E00-\u1EFF]+$", ErrorMessage = "Full name can only contain letters and spaces")]
+        [RegularExpression(@"^[a-zA-ZÀ-ỹ\s]{2,}$",
+            ErrorMessage = "Full name must contain letters only and at least 2 characters")]
         public string FullName { get; set; }
 
         [Required(ErrorMessage = "Phone number is required")]
-        [RegularExpression(@"^[0-9\+\-\(\)\s]{10,15}$", ErrorMessage = "Phone number must be 10-15 digits")]
+        [RegularExpression(@"^0[0-9]{9}$",
+            ErrorMessage = "Phone number must start with 0 and be exactly 10 digits")]
         public string PhoneNumber { get; set; }
 
         [Required(ErrorMessage = "Date of birth is required")]
@@ -19,29 +20,23 @@ namespace IdentityAPI.DTOs.Resquest
         public DateOnly BirthDay { get; set; }
 
         [Required(ErrorMessage = "Gender is required")]
-        [RegularExpression(@"^(Male|Female|Other)$", ErrorMessage = "Gender must be Male, Female, or Other")]
+        [RegularExpression(@"^(Male|Female|Other)$",
+            ErrorMessage = "Gender must be Male, Female, or Other")]
         public string Gender { get; set; }
 
-        // ✅ Custom validation cho tuổi
         public static ValidationResult ValidateBirthday(DateOnly birthDay, ValidationContext context)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var age = today.Year - birthDay.Year;
-
-            // Kiểm tra nếu chưa qua sinh nhật năm nay
-            if (birthDay > today.AddYears(-age))
-                age--;
-
-            // Tuổi phải từ 13 đến 120
-            if (age < 13)
-                return new ValidationResult("You must be at least 13 years old");
-
-            if (age > 120)
-                return new ValidationResult("Invalid date of birth");
-
-            // Không được là ngày trong tương lai
             if (birthDay > today)
                 return new ValidationResult("Date of birth cannot be in the future");
+
+            var age = today.Year - birthDay.Year;
+            if (birthDay > today.AddYears(-age)) age--;
+
+            if (age < 16)
+                return new ValidationResult("You must be at least 16 years old");
+            if (age > 120)
+                return new ValidationResult("Invalid date of birth");
 
             return ValidationResult.Success;
         }

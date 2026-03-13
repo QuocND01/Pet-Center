@@ -45,21 +45,18 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<bool> UpdateProfileAsync(UpdateCustomerProfileRequestDto dto)
+        public async Task<(bool Success, string Message)> UpdateProfileAsync(UpdateCustomerProfileRequestDto dto)
         {
             try
             {
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
                 if (string.IsNullOrEmpty(token))
-                {
-                    return false;
-                }
+                    return (false, "Unauthorized");
 
                 _http.DefaultRequestHeaders.Authorization = null;
                 _http.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
 
-                // Create anonymous object with camelCase properties
                 var data = new
                 {
                     fullName = dto.FullName,
@@ -68,28 +65,22 @@ namespace PetCenterClient.Services
                     gender = dto.Gender
                 };
 
-                var jsonString = System.Text.Json.JsonSerializer.Serialize(data);
-
                 var jsonContent = new StringContent(
-                    jsonString,
+                    System.Text.Json.JsonSerializer.Serialize(data),
                     System.Text.Encoding.UTF8,
                     "application/json"
                 );
 
-                // Use PutAsync instead of PutAsJsonAsync
                 var response = await _http.PutAsync("api/customer/profile", jsonContent);
+                var content = await response.Content.ReadAsStringAsync();
+                var json = System.Text.Json.JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
 
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return false;
-                }
-
-                return true;
+                return (response.IsSuccessStatusCode, message);
             }
-            catch (Exception ex)
+            catch
             {
-                return false;
+                return (false, "An error occurred. Please try again.");
             }
         }
 
