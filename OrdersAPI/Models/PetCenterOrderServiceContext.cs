@@ -16,12 +16,9 @@ public partial class PetCenterOrderServiceContext : DbContext
     }
 
     public virtual DbSet<Order> Orders { get; set; }
-
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=.;Database=PetCenter_OrderService;Trusted_Connection=True;TrustServerCertificate=True");
+    public virtual DbSet<Cart> Carts { get; set; }
+    public virtual DbSet<CartDetail> CartDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +60,31 @@ public partial class PetCenterOrderServiceContext : DbContext
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("FK__OrderDeta__Order__2B3F6F97");
+        });
+
+        modelBuilder.Entity<Cart>(entity =>
+        {
+            entity.HasKey(e => e.CartId).HasName("PK__Cart__CartID");
+
+            entity.Property(e => e.CartId)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("CartID");
+            entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
+        });
+
+        modelBuilder.Entity<CartDetail>(entity =>
+        {
+            entity.HasKey(e => e.CartDetailId).HasName("PK__CartDetails__CartDetailID");
+
+            entity.Property(e => e.CartDetailId)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("CartDetailsID");
+            entity.Property(e => e.CartId).HasColumnName("CartID");
+            entity.Property(e => e.ProductId).HasColumnName("ProductID");
+
+            entity.HasOne(d => d.Cart).WithMany(p => p.CartDetails)
+                .HasForeignKey(d => d.CartId)
+                .HasConstraintName("FK__CartDetails__Cart");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -64,6 +64,10 @@ builder.Services.Configure<GoogleClientDto>(
     builder.Configuration.GetSection("Authentication:Google"));
 
 builder.Services.AddScoped<IGoogleClientService, GoogleClientService>();
+builder.Services.AddHttpClient<ICartService, CartService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 
 builder.Services.AddSession();
 

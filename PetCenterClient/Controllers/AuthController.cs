@@ -28,7 +28,6 @@ namespace PetCenterClient.Controllers
 
             if (result == null || !result.Success)
             {
-                // ✅ Kiểm tra error type để hiển thị thông báo phù hợp
                 if (result?.ErrorType == "AccountInactive")
                 {
                     ViewBag.Error = "Your account has been deactivated. Please contact support for assistance.";
@@ -43,6 +42,29 @@ namespace PetCenterClient.Controllers
             }
 
             HttpContext.Session.SetString("JWT", result.token);
+
+            // ✅ Decode JWT để lấy CustomerId lưu vào Session
+            try
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(result.token);
+
+                // Lấy CustomerId từ claim "sub" hoặc "nameid"
+                var customerId = jwt.Claims
+                    .FirstOrDefault(c =>
+                        c.Type == "sub" ||
+                        c.Type == "nameid" ||
+                        c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+                    ?.Value ?? "";
+
+                if (!string.IsNullOrEmpty(customerId))
+                    HttpContext.Session.SetString("CustomerId", customerId);
+            }
+            catch
+            {
+                // Nếu decode lỗi thì vẫn login bình thường, chỉ không có CustomerId
+            }
+
             return RedirectToAction("Index", "Products");
         }
 
@@ -77,7 +99,6 @@ namespace PetCenterClient.Controllers
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
-            // Decode JWT lấy role
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.token);
             var role = jwt.Claims
@@ -87,7 +108,6 @@ namespace PetCenterClient.Controllers
                 .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
                 ?.Value ?? "";
 
-            // Kiểm tra role có khớp với tab đang chọn không
             if (selectedRole == "Admin" && role != "Admin")
             {
                 ViewBag.Error = "This account does not have Admin privileges";
@@ -100,7 +120,6 @@ namespace PetCenterClient.Controllers
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
-            // Nếu không phải Admin cũng không phải Staff thì chặn
             if (role != "Admin" && role != "Staff")
             {
                 ViewBag.Error = "You do not have permission to access this area";
@@ -154,7 +173,12 @@ namespace PetCenterClient.Controllers
             var result = await _authService.RegisterAsync(dto);
 
             if (!result.Success)
-                return Json(new { success = false, message = result.Message });
+            {
+                ViewBag.Error = result.Message;
+                return View("~/Views/CustomerViews/Auth/Register.cshtml", dto);
+            }
+
+            HttpContext.Session.SetString("PendingEmail", dto.Email);
 
             return Json(new { success = true, redirectUrl = Url.Action("Verify", "Auth", new { email = dto.Email }) });
         }
