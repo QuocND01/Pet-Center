@@ -99,6 +99,8 @@ namespace IdentityAPI
             builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             builder.Services.AddHttpClient();
 
+            builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
+
             builder.Services.AddAuthorization();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

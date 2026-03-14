@@ -321,6 +321,58 @@ namespace PetCenterClient.Controllers
                 redirectUrl = Url.Action("Index", "Products")
             });
         }
+
+        // GET: /Auth/ForgotPassword
+        public IActionResult ForgotPassword()
+        {
+            return View("~/Views/CustomerViews/Auth/ForgotPassword.cshtml");
+        }
+
+        // POST: /Auth/ForgotPassword
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return Json(new { success = false, message = "Please enter your email address." });
+
+            var result = await _authService.ForgotPasswordAsync(email);
+
+            if (!result.Success)
+                return Json(new { success = false, message = result.Message });
+
+            return Json(new { success = true, message = result.Message });
+        }
+
+        // GET: /Auth/ResetPassword?email=...&token=...
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+                return RedirectToAction("ForgotPassword");
+
+            var validation = await _authService.ValidateResetTokenAsync(email, token);
+
+            ViewBag.Email = email;
+            ViewBag.Token = token;
+            ViewBag.TokenValid = validation.Success;
+            ViewBag.TokenError = validation.Success ? null : validation.Message;
+
+            return View("~/Views/CustomerViews/Auth/ResetPassword.cshtml");
+        }
+
+        // POST: /Auth/ResetPassword
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.NewPassword) || dto.NewPassword != dto.ConfirmPassword)
+                return Json(new { success = false, message = "Passwords do not match." });
+
+            if (dto.NewPassword.Length < 8)
+                return Json(new { success = false, message = "Password must be at least 8 characters." });
+
+            var result = await _authService.ResetPasswordAsync(dto);
+            return Json(new { success = result.Success, message = result.Message });
+        }
     }
 
 

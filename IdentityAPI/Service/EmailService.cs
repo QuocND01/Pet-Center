@@ -116,5 +116,83 @@ namespace IdentityAPI.Service
                 return false;
             }
         }
+
+        public async Task<bool> SendResetPasswordEmailAsync(string toEmail, string fullName, string resetLink)
+        {
+            try
+            {
+                var subject = "PetCenter - Reset Your Password 🔐";
+                var body = $@"
+<html>
+<body style='font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:0;'>
+  <div style='max-width:600px;margin:0 auto;padding:40px 20px;'>
+    <div style='background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);'>
+      <div style='background:linear-gradient(135deg,#2ecc71,#27ae60);padding:36px 40px;text-align:center;'>
+        <div style='font-size:48px;margin-bottom:8px;'>🐾</div>
+        <h1 style='color:white;margin:0;font-size:26px;font-weight:700;'>PetCenter</h1>
+        <p style='color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:14px;'>Password Reset Request</p>
+      </div>
+      <div style='padding:40px;'>
+        <h2 style='color:#2c3e50;font-size:20px;margin:0 0 12px;'>Hi {fullName},</h2>
+        <p style='color:#5a6a7a;font-size:15px;line-height:1.6;margin:0 0 24px;'>
+          We received a request to reset the password for your PetCenter account.
+          Click the button below to choose a new password.
+        </p>
+        <div style='text-align:center;margin:32px 0;'>
+          <a href='{resetLink}'
+             style='display:inline-block;background:linear-gradient(135deg,#2ecc71,#27ae60);
+                    color:white;text-decoration:none;padding:16px 40px;border-radius:50px;
+                    font-size:16px;font-weight:600;box-shadow:0 4px 16px rgba(46,204,113,0.4);'>
+            Reset My Password
+          </a>
+        </div>
+        <div style='background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:16px 20px;margin:24px 0;'>
+          <p style='margin:0;color:#b45309;font-size:13px;line-height:1.6;'>
+            ⏰ <strong>This link expires in 15 minutes.</strong><br>
+            If you did not request a password reset, you can safely ignore this email.
+          </p>
+        </div>
+        <p style='color:#95a5a6;font-size:12px;margin:24px 0 0;'>
+          If the button above doesn't work, copy and paste this URL into your browser:
+        </p>
+        <p style='color:#2ecc71;font-size:12px;word-break:break-all;background:#f0fdf4;
+                  padding:10px 14px;border-radius:6px;margin:6px 0 0;'>
+          {resetLink}
+        </p>
+      </div>
+      <div style='background:#f8fafc;border-top:1px solid #e9ecef;padding:24px 40px;text-align:center;'>
+        <p style='color:#adb5bd;font-size:12px;margin:0;'>
+          © 2025 PetCenter. All rights reserved.<br>
+          This is an automated message, please do not reply.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>";
+
+                using var client = new System.Net.Mail.SmtpClient("smtp.gmail.com", 587);
+                client.EnableSsl = true;
+                client.Credentials = new System.Net.NetworkCredential(
+                    _configuration["EmailSettings:Username"],
+                    _configuration["EmailSettings:Password"]);
+
+                var mail = new System.Net.Mail.MailMessage
+                {
+                    From = new System.Net.Mail.MailAddress(_configuration["EmailSettings:Username"]!, "PetCenter"),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+                mail.To.Add(toEmail);
+                await client.SendMailAsync(mail);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SendResetPasswordEmail error: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

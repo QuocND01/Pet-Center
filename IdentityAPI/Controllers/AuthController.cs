@@ -18,13 +18,15 @@ namespace IdentityAPI.Controllers
         private readonly IStaffAuthService _staffAuthService;
         private readonly IGoogleAuthService _googleAuthService;
         private readonly IJwtService _jwtService;
+        private readonly IForgotPasswordService _forgotPasswordService;
 
-        public AuthController(ICustomerAuthService customerAuthService, IStaffAuthService staffAuthService, IGoogleAuthService googleAuthService, IJwtService jwtService)
+        public AuthController(ICustomerAuthService customerAuthService, IStaffAuthService staffAuthService, IGoogleAuthService googleAuthService, IJwtService jwtService, IForgotPasswordService forgotPasswordService)
         {
             _customerAuthService = customerAuthService;
             _staffAuthService = staffAuthService;
             _googleAuthService = googleAuthService;
             _jwtService = jwtService;
+            _forgotPasswordService = forgotPasswordService;
         }
 
         // POST: api/auth/customer-login
@@ -264,6 +266,54 @@ namespace IdentityAPI.Controllers
                     message = "Token exchange failed: " + ex.Message
                 });
             }
+        }
+
+        // POST: api/auth/forgot-password
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _forgotPasswordService.SendResetPasswordEmailAsync(dto.Email);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // GET: api/auth/validate-reset-token?email=...&token=...
+        [HttpGet("validate-reset-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ValidateResetToken([FromQuery] string email, [FromQuery] string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+                return BadRequest(new { success = false, message = "Invalid request." });
+
+            var result = await _forgotPasswordService.ValidateResetTokenAsync(email, token);
+
+            if (!result.Valid)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // POST: api/auth/reset-password
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _forgotPasswordService.ResetPasswordAsync(dto.Email, dto.Token, dto.NewPassword);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
         }
 
         [Authorize(Roles = "Customer")]

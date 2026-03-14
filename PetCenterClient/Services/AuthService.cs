@@ -209,6 +209,60 @@ namespace PetCenterClient.Services
                 };
             }
         }
+
+        public async Task<(bool Success, string Message)> ForgotPasswordAsync(string email)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/auth/forgot-password", new { email });
+                var content = await response.Content.ReadAsStringAsync();
+                var json = JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
+                return (response.IsSuccessStatusCode, message);
+            }
+            catch
+            {
+                return (false, "An error occurred. Please try again.");
+            }
+        }
+
+        public async Task<ValidateTokenResponseDto> ValidateResetTokenAsync(string email, string token)
+        {
+            try
+            {
+                var encodedEmail = Uri.EscapeDataString(email);
+                var encodedToken = Uri.EscapeDataString(token);
+                var response = await _http.GetAsync(
+                    $"api/auth/validate-reset-token?email={encodedEmail}&token={encodedToken}");
+                var content = await response.Content.ReadAsStringAsync();
+                var json = JsonDocument.Parse(content).RootElement;
+                return new ValidateTokenResponseDto
+                {
+                    Success = response.IsSuccessStatusCode,
+                    Message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : ""
+                };
+            }
+            catch
+            {
+                return new ValidateTokenResponseDto { Success = false, Message = "An error occurred." };
+            }
+        }
+
+        public async Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequestDto dto)
+        {
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/auth/reset-password", dto);
+                var content = await response.Content.ReadAsStringAsync();
+                var json = JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
+                return (response.IsSuccessStatusCode, message);
+            }
+            catch
+            {
+                return (false, "An error occurred. Please try again.");
+            }
+        }
     }
 }
 
