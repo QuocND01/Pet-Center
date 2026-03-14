@@ -12,6 +12,8 @@ namespace PetCenterClient.Services.Interface
                 DateTime? fromDate,
                 DateTime? toDate,
                 string? sortBy,
+                Guid? categoryid,
+                Guid? brandid,
                 string sortOrder = "asc",
                 int page = 1);
 

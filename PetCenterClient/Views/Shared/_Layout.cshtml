@@ -1,5 +1,14 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
+@using PetCenterClient.DTOs
+@{
+    var categoryResponse = ViewBag.Categories as OdataResponse<ReadCategoryDTOs>;
+    var brandResponse = ViewBag.Brands as OdataResponse<ReadBrandDTOs>;
+
+    var categories = categoryResponse?.Values;
+    var brands = brandResponse?.Values;
+}
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -122,6 +131,64 @@
                     background: #ffe6e6;
                     color: #dc3545;
                 }
+
+        /* ===== Category & Brand Dropdown ===== */
+
+        .navbar .dropdown-menu {
+            border-radius: 10px;
+            border: none;
+            padding: 8px 0;
+            min-width: 220px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        }
+
+        /* Item */
+        .navbar .dropdown-item {
+            padding: 10px 18px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+            /* Hover */
+            .navbar .dropdown-item:hover {
+                background-color: #2ecc71;
+                color: white;
+                padding-left: 24px;
+            }
+
+        /* Title dropdown */
+        .navbar .nav-link.dropdown-toggle {
+            font-weight: 500;
+        }
+
+        /* Scrollbar đẹp */
+        .navbar .dropdown-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .navbar .dropdown-menu::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+            .navbar .dropdown-menu::-webkit-scrollbar-thumb:hover {
+                background: #999;
+            }
+
+        .navbar .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+
+        .navbar .dropdown-menu li {
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+            .navbar .dropdown-menu li:last-child {
+                border-bottom: none;
+            }
     </style>
 </head>
 <body>
@@ -147,6 +214,63 @@
 
                         <li class="nav-item">
                             <a class="nav-link text-dark" href="#" id="adminNavBtn">Admin</a>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown">
+                                Category
+                            </a>
+
+                            <ul class="dropdown-menu">
+
+                                @if (categories != null)
+                                {
+                                    foreach (var c in categories)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item"
+                                               asp-controller="Products"
+                                               asp-action="Index"
+                                               asp-route-categoryId="@c.CategoryId">
+                                                @c.CategoryName
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                            </ul>
+                        </li>
+
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown">
+                                Brand
+                            </a>
+
+                            <ul class="dropdown-menu">
+
+                                @if (brands != null)
+                                {
+                                    foreach (var b in brands)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item"
+                                               asp-controller="Products"
+                                               asp-action="Index"
+                                               asp-route-brandId="@b.BrandId">
+                                                @b.BrandName
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
+                            </ul>
                         </li>
                     </ul>
                     <ul class="navbar-nav">

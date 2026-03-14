@@ -26,6 +26,8 @@ namespace PetCenterClient.Services
      DateTime? fromDate,
      DateTime? toDate,
      string? sortBy,
+     Guid? categoryid,
+     Guid? brandid,
      string sortOrder = "asc",
      int page = 1)
         {
@@ -50,6 +52,12 @@ namespace PetCenterClient.Services
 
             if (maxPrice.HasValue)
                 filters.Add($"ProductPrice le {maxPrice.Value}");
+
+            if (categoryid.HasValue)
+                filters.Add($"CategoryId eq {categoryid.Value}");
+
+            if (brandid.HasValue)
+                filters.Add($"BrandId eq {brandid.Value}");
 
             var query = new List<string>();
 
