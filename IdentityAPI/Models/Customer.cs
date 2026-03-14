@@ -32,5 +32,8 @@ public partial class Customer
     public DateTime? VerificationExpire { get; set; }
     public DateTime? LastOtpSentAt { get; set; }
     public int? OtpAttemptCount { get; set; }
+
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetExpire { get; set; }
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
 }

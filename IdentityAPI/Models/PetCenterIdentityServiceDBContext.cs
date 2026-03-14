@@ -75,6 +75,8 @@ public partial class PetCenterIdentityServiceDBContext : DbContext
             entity.Property(e => e.VerificationExpire).HasColumnType("datetime");
             entity.Property(e => e.LastOtpSentAt).HasColumnType("datetime");
             entity.Property(e => e.OtpAttemptCount);
+            entity.Property(e => e.PasswordResetToken);
+            entity.Property(e => e.PasswordResetExpire).HasColumnType("datetime2");
         });
 
         modelBuilder.Entity<Role>(entity =>
