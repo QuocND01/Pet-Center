@@ -1,4 +1,5 @@
-﻿using static InventoryAPI.Models.ImportStock;
+﻿using InventoryAPI.Models;
+using static InventoryAPI.Models.ImportStock;
 
 namespace InventoryAPI.DTOs
 {   
@@ -7,6 +8,7 @@ namespace InventoryAPI.DTOs
     {
         public Guid ImportId { get; set; }
         public Guid SupplierId { get; set; }
+        public String SupplierName { get; set; } = null!;
         public Guid StaffId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
@@ -29,10 +31,14 @@ namespace InventoryAPI.DTOs
     public class ReadImportHeaderDto
     {
         public Guid ImportId { get; set; }
+
         public Guid SupplierId { get; set; }
+        public string SupplierName { get; set; } = null!;
+
         public Guid StaffId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
-        public ImportStatus Status { get; set; }
+
+        public ImportStock.ImportStatus Status { get; set; }
     }
 }

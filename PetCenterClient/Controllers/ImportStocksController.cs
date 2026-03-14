@@ -26,7 +26,13 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Index(string sortOrder)
         {
             var imports = await _service.GetAllAsync();
+            // 
             
+            var selectProducts = await _productService.GetProductSelectAsync();
+
+            
+            ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
+            //
             ViewBag.IdSort = String.IsNullOrEmpty(sortOrder) ? "id_desc" : "";
             ViewBag.DateSort = sortOrder == "date" ? "date_desc" : "date";
             ViewBag.TotalSort = sortOrder == "total" ? "total_desc" : "total";
@@ -58,18 +64,22 @@ namespace PetCenterClient.Controllers
 
             if (import == null)
                 return NotFound();
+            var selectSuppliers = await _suppService.GetSupplierSelectAsync();
+            var selectProducts = await _productService.GetProductSelectAsync();
 
+            ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
+            ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
             return View("~/Views/AdminViews/ImportStock/Details.cshtml",import);
         }
 
         public async Task<IActionResult> Create()
         {   
 
-            var selectDto = await _suppService.GetSupplierSelectAsync();
-            var products = await _productService.GetProductSelectAsync();
+            var selectSuppliers = await _suppService.GetSupplierSelectAsync();
+            var selectProducts = await _productService.GetProductSelectAsync();
 
-            ViewBag.SupplierList = new SelectList(selectDto, "SupplierId", "SupplierName");
-            ViewBag.ProductList = new SelectList(products, "ProductId", "ProductName");
+            ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
+            ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
             return View("~/Views/AdminViews/ImportStock/Create.cshtml", new CreateImportStockDto());
         }
 
@@ -78,11 +88,11 @@ namespace PetCenterClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var selectDto = await _suppService.GetSupplierSelectAsync();
-                var products = await _productService.GetProductSelectAsync();
+                var selectSuppliers = await _suppService.GetSupplierSelectAsync();
+                var selectProducts = await _productService.GetProductSelectAsync();
 
-                ViewBag.SupplierList = new SelectList(selectDto, "SupplierId", "SupplierName");
-                ViewBag.ProductList = new SelectList(products, "ProductId", "ProductName");
+                ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
+                ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
 
                 return View("~/Views/AdminViews/ImportStock/Create.cshtml", dto);
             }

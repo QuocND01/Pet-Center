@@ -23,12 +23,15 @@ namespace InventoryAPI.Repository
         public async Task<ImportStock?> GetByIdAsync(Guid id)
         {
             return await _context.ImportStocks
+                .Include(x => x.Supplier)
+                .Include(x => x.ImportStockDetails)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
         }
 
         public async Task<ImportStock?> GetWithDetailsAsync(Guid id)
         {
             return await _context.ImportStocks
+                .Include(x => x.Supplier)
                 .Include(x => x.ImportStockDetails)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
         }
@@ -36,7 +39,7 @@ namespace InventoryAPI.Repository
         public async Task<List<ImportStock>> GetAllAsync()
         {
             return await _context.ImportStocks
-                .OrderByDescending(x => x.ImportDate)
+                .OrderByDescending(x => x.ImportDate).Include(x=>x.Supplier)
                 .ToListAsync();
         }
 

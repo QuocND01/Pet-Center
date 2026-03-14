@@ -46,7 +46,7 @@ namespace PetCenterClient.Services
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
         }
 
-        public async Task<ReadImportStockDto?> GetByIdAsync(Guid id)
+        public async Task<ReadImportStockDetailDto?> GetByIdAsync(Guid id)
         {
             AddAuthorizationHeader();
             var res = await _httpClient.GetAsync($"inventory/importstock/{id}");
@@ -54,7 +54,7 @@ namespace PetCenterClient.Services
             if (!res.IsSuccessStatusCode) return null;
 
             var json = await res.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<ReadImportStockDto>(json,
+            return JsonSerializer.Deserialize<ReadImportStockDetailDto>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
