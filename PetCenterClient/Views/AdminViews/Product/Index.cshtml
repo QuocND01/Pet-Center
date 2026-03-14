@@ -6,174 +6,218 @@
     ViewData["Title"] = "Manage Products";
 }
 
-<h2 class="mb-3">Product List</h2>
+<style>
 
-<form asp-action="Indexadmin" asp-controller="Products" method="get" class="row g-2 mb-3">
+</style>
 
-    <!-- Search name -->
-    <div class="col-md-3">
-        <input type="text"
-               name="search"
-               value="@Context.Request.Query["search"]"
-               class="form-control"
-               placeholder="Search product name..." />
-    </div
+<link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
 
-    <!-- Sort by -->
-    <div class="col-md-2">
-        <select name="sortBy" class="form-control">
-            <option value="">-- Sort By --</option>
-            <option value="ProductName">Name</option>
-            <option value="ProductPrice">Price</option>
-            <option value="CreatedAt">Created Date</option>
-        </select>
+<div class="page-wrapper">
+
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div class="page-title-group">
+            <h1>Product Management</h1>
+            <p>Manage all products in system</p>
+        </div>
+
+        <div class="header-stat">
+            <span class="num">@Model?.Values?.Count()</span>
+            <span class="label">Products</span>
+        </div>
+
     </div>
 
-    <!-- Sort order -->
-    <div class="col-md-2">
-        <select name="sortOrder" class="form-control">
+
+    <!-- TOOLBAR -->
+    <form asp-action="Indexadmin" asp-controller="Products" method="get" class="toolbar">
+
+        <!-- Search -->
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   name="search"
+                   value="@Context.Request.Query["search"]"
+                   class="search-input"
+                   placeholder="Search product name..." />
+        </div>
+
+        <!-- Sort -->
+        <select name="sortBy" class="filter-btn">
+            <option value="">Sort By</option>
+            <option value="ProductName">Name</option>
+            <option value="ProductPrice">Price</option>
+            <option value="CreatedAt">Created</option>
+        </select>
+
+        <select name="sortOrder" class="filter-btn">
             <option value="asc">Asc</option>
             <option value="desc">Desc</option>
         </select>
-    </div>
 
-    <!-- Min price -->
-    <div class="col-md-2">
+        <!-- Price -->
         <input type="number"
                name="minPrice"
                value="@Context.Request.Query["minPrice"]"
-               class="form-control"
+               class="filter-input"
                placeholder="Min price" />
-    </div>
 
-    <!-- Max price -->
-    <div class="col-md-2">
         <input type="number"
                name="maxPrice"
                value="@Context.Request.Query["maxPrice"]"
-               class="form-control"
+               class="filter-input"
                placeholder="Max price" />
-    </div>
 
-    <!-- From date -->
-    <div class="col-md-2">
+        <!-- Date -->
         <input type="date"
                name="fromDate"
                value="@Context.Request.Query["fromDate"]"
-               class="form-control" />
-    </div>
+               class="filter-input" />
 
-    <!-- To date -->
-    <div class="col-md-2">
         <input type="date"
                name="toDate"
                value="@Context.Request.Query["toDate"]"
-               class="form-control" />
-    </div>
-
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">
+               class="filter-input" />
+        <!-- Buttons -->
+        <button type="submit" class="filter-btn active">
             Apply
         </button>
+
+        <button type="button"
+                class="filter-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#productModal"
+                data-url="@Url.Action("Create", "Products")">
+
+            <i class="bi bi-plus"></i> Add
+        </button>
+
+    </form>
+
+
+    <!-- TABLE -->
+    <div class="table-card">
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th style="width:180px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model?.Values != null && Model.Values.Any())
+                {
+                    int i = 1;
+
+                    foreach (var p in Model.Values)
+                    {
+                        <tr>
+
+                            <td class="row-num">@i</td>
+
+                            <td>
+                                <div class="customer-cell">
+
+                                    <img src="@p.Images?.FirstOrDefault()"
+                                         style="width:38px;height:38px;border-radius:8px;object-fit:cover" />
+
+                                    <div class="customer-name">
+                                        @p.ProductName
+                                    </div>
+
+                                </div>
+                            </td>
+
+                            <td>
+                                @p.ProductPrice.ToString("N0") ₫
+                            </td>
+
+                            <td>
+                                @p.StockQuantity
+                            </td>
+
+                            <td class="email-cell">
+                                @p.BrandName
+                            </td>
+
+                            <td class="email-cell">
+                                @p.CategoryName
+                            </td>
+
+                            <td>
+
+                                <!-- VIEW -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#productModal"
+                                        data-url="@Url.Action("Details", "Products", new { id = p.ProductId })">
+
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                                <!-- EDIT -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#productModal"
+                                        data-url="@Url.Action("Edit", "Products", new { id = p.ProductId })">
+
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <!-- DELETE -->
+                                <button class="btn-toggle-status active"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#productModal"
+                                        data-url="@Url.Action("Delete", "Products", new { id = p.ProductId })">
+
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    <i class="bi bi-box"></i>
+                                </div>
+
+                                <h3>No products found</h3>
+                                <p>Try adjusting filters</p>
+
+                            </div>
+
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
     </div>
 
-</form>
-
-<p>
-    <button class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#productModal"
-            data-url="@Url.Action("Create", "Products")">
-
-        <i class="bi bi-plus-circle"></i> Add Product
-    </button>
-</p>
-
-<table class="table table-hover table-striped align-middle">
-
-    <thead class="table-dark">
-        <tr>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Brand</th>
-            <th>Category</th>
-            <th style="width:160px;">Actions</th>
-        </tr>
-    </thead>
-
-    <tbody>
-
-        @if (Model?.Values != null && Model.Values.Any())
-        {
-            foreach (var p in Model.Values)
-            {
-                <tr>
-
-                    <td>
-                        <img src="@p.Images?.FirstOrDefault()"
-                             style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />
-                    </td>
-
-                    <td>@p.ProductName</td>
-
-                    <td>
-                        @p.ProductPrice.ToString("N0") ₫
-                    </td>
-
-                    <td>@p.StockQuantity</td>
-
-                    <td>@p.BrandName</td>
-
-                    <td>@p.CategoryName</td>
-
-                    <td>
-
-                        <!-- VIEW -->
-                        <button class="btn btn-sm btn-info text-white"
-                                data-bs-toggle="modal"
-                                data-bs-target="#productModal"
-                                data-url="@Url.Action("Details", "Products", new { id = p.ProductId })">
-
-                            <i class="bi bi-eye"></i>
-                        </button>
-
-                        <!-- EDIT -->
-                        <button class="btn btn-sm btn-warning text-white"
-                                data-bs-toggle="modal"
-                                data-bs-target="#productModal"
-                                data-url="@Url.Action("Edit", "Products", new { id = p.ProductId })">
-
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-
-                        <!-- DELETE -->
-                        <button class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#productModal"
-                                data-url="@Url.Action("Delete", "Products", new { id = p.ProductId })">
-
-                            <i class="bi bi-trash"></i>
-                        </button>
-
-                    </td>
-
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="9" class="text-center text-muted py-3">
-                    No products available.
-                </td>
-            </tr>
-        }
-
-    </tbody>
-
-</table>
+</div>
 
 
 <!-- PRODUCT MODAL -->
@@ -243,16 +287,13 @@
 
         // Load modal content
 
-                $('#productModal').on('show.bs.modal', function (e) {
+            $(document).on("click", "[data-bs-target='#productModal']", function () {
 
-            var button = $(e.relatedTarget);
-            var url = button.data('url');
+            var url = $(this).data("url");
 
-            var modalBody = $("#productModalBody");
+            $("#productModalBody").html("Loading...");
 
-            modalBody.html("Loading...");
-
-            modalBody.load(url);
+            $("#productModalBody").load(url);
 
         });
 
