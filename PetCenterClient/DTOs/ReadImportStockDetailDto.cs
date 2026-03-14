@@ -3,10 +3,12 @@
 namespace PetCenterClient.DTOs
 {   
     //For get by id
-    public class ReadImportStockDto
+    public class ReadImportStockDetailDto
     {
         public Guid ImportId { get; set; }
         public Guid SupplierId { get; set; }
+
+        public string SupplierName { get; set; } = null!;
         public Guid StaffId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
@@ -30,6 +32,7 @@ namespace PetCenterClient.DTOs
         public Guid ImportId { get; set; }
         public Guid SupplierId { get; set; }
         public Guid StaffId { get; set; }
+        public string SupplierName { get; set; } = null!;
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
         public int Status { get; set; }
