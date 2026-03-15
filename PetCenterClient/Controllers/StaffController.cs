@@ -9,20 +9,29 @@ namespace PetCenterClient.Controllers
         private readonly IStaffService _service;
         public StaffController(IStaffService service) => _service = service;
 
-        public async Task<IActionResult> Index(string searchTerm)
+        public async Task<IActionResult> Index(
+            string? searchTerm,
+            bool? isActive,
+            string? sortBy,
+            string sortOrder = "asc",
+            int page = 1)
         {
-            var staffs = await _service.GetAllAsync();
+            var result = await _service.GetAllODataAsync(
+                search: searchTerm,
+                isActive: isActive,
+                sortBy: sortBy,
+                sortOrder: sortOrder,
+                page: page,
+                pageSize: 10);
 
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                searchTerm = searchTerm.ToLower();
-                staffs = staffs.Where(s => s.FullName.ToLower().Contains(searchTerm) ||
-                                         s.Email.ToLower().Contains(searchTerm) ||
-                                         s.PhoneNumber.Contains(searchTerm)).ToList();
-            }
+            ViewBag.Search = searchTerm;
+            ViewBag.IsActive = isActive;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortOrder = sortOrder;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((result.Count ?? 0) / 10.0);
 
-            ViewData["CurrentFilter"] = searchTerm;
-            return View("~/Views/AdminViews/ManageStaff/Index.cshtml", staffs);
+            return View("~/Views/AdminViews/ManageStaff/Index.cshtml", result);
         }
 
         public IActionResult Create() => View("~/Views/AdminViews/ManageStaff/Create.cshtml");

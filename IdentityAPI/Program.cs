@@ -25,6 +25,7 @@ namespace IdentityAPI
             // ===== OData Configuration =====
             var modelBuilder = new ODataConventionModelBuilder();
             modelBuilder.EntitySet<Customer>("Customers");
+            modelBuilder.EntitySet<Staff>("Staffs");
 
             // ===== AddControllers with OData =====
             builder.Services
