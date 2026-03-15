@@ -96,7 +96,11 @@ namespace IdentityAPI.Service
 
         public async Task<bool> DeleteStaffAsync(Guid id)
         {
-            await _repo.DeleteAsync(id);
+            var staff = await _repo.GetByIdAsync(id);
+            if (staff == null) return false;
+
+            staff.IsActive = false;
+            await _repo.UpdateAsync(staff);
             return true;
         }
 

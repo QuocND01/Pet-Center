@@ -1,55 +1,160 @@
-﻿@model IEnumerable<PetCenterClient.DTOs.StaffDto>
+﻿@using PetCenterClient.DTOs
+@model OdataResponse<StaffDto>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string sortOrder = ViewBag.SortOrder ?? "asc";
+    string nextOrder = sortOrder == "asc" ? "desc" : "asc";
 }
-<div class="container mt-4">
+
+<div class="container-fluid mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Staff Management</h2>
-        <a asp-action="Create" class="btn btn-success"><i class="bi bi-plus-circle"></i> Create New Staff</a>
+        <h4 class="mb-0">
+            Staff Management
+            <span class="badge bg-secondary ms-2">@(Model?.Count ?? 0) people</span>
+        </h4>
+        <a asp-action="Create" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-circle"></i> Add Staff
+        </a>
     </div>
 
-    <form asp-action="Index" method="get" class="row g-3 mb-4">
-        <div class="col-md-10">
-            <input type="text" name="searchTerm" class="form-control" placeholder="Search by name, email or phone..." value="@ViewData["CurrentFilter"]" />
+    @* FILTER FORM *@
+    <form asp-action="Index" method="get" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">Search</label>
+            <input type="text" name="searchTerm" class="form-control form-control-sm"
+                   placeholder="Name, email, phone..." value="@ViewBag.Search" />
         </div>
         <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <label class="form-label small fw-semibold">Status</label>
+            <select name="isActive" class="form-select form-select-sm">
+                <option value="">All</option>
+                <option value="true" selected="@(ViewBag.IsActive == true ? "selected" : null)">Active</option>
+                <option value="false" selected="@(ViewBag.IsActive == false ? "selected" : null)">Inactive</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">Sort by</label>
+            <select name="sortBy" class="form-select form-select-sm">
+                <option value="">Default</option>
+                <option value="name" selected="@(ViewBag.SortBy == "name" ? "selected" : null)">Full Name</option>
+                <option value="email" selected="@(ViewBag.SortBy == "email" ? "selected" : null)">Email</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">Order</label>
+            <select name="sortOrder" class="form-select form-select-sm">
+                <option value="asc" selected="@(sortOrder == "asc" ? "selected" : null)">A → Z</option>
+                <option value="desc" selected="@(sortOrder == "desc" ? "selected" : null)">Z → A</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
         </div>
     </form>
 
-    <table class="table table-hover table-striped shadow-sm">
-        <thead class="table-dark">
-            <tr>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Status</th>
-                <th class="text-center">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
+    @* TABLE *@
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-sm align-middle">
+            <thead class="table-dark">
                 <tr>
-                    <td>@item.FullName</td>
-                    <td>@item.Email</td>
-                    <td>@item.PhoneNumber</td>
-                    <td>
-                        <span class="badge @(item.IsActive ? "bg-success" : "bg-danger")">
-                            @(item.IsActive ? "Active" : "Inactive")
-                        </span>
-                    </td>
-                    <td class="text-center">
-                        <div class="btn-group">
-                            <a asp-action="Details" asp-route-id="@item.StaffId" class="btn btn-sm btn-info text-white">Details</a>
-
-                            <a asp-action="Edit" asp-route-id="@item.StaffId" class="btn btn-sm btn-warning">Edit</a>
-
-                            <a asp-action="Delete" asp-route-id="@item.StaffId" class="btn btn-sm btn-danger">Delete</a>
-                        </div>
-                    </td>
+                    <th>#</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Date of Birth</th>
+                    <th>Status</th>
+                    <th style="width:200px">Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @if (Model?.Values == null || !Model.Values.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-3">
+                            No staff members found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    int i = (currentPage - 1) * 10 + 1;
+                    foreach (var s in Model.Values)
+                    {
+                        <tr>
+                            <td>@i</td>
+                            <td>@s.FullName</td>
+                            <td>@s.Email</td>
+                            <td>@s.PhoneNumber</td>
+                            <td>@s.Gender</td>
+                            <td>@(s.BirthDay?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td>
+                                @if (s.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@s.StaffId"
+                                   class="btn btn-info btn-sm text-white">Details</a>
+                                <a asp-action="Edit" asp-route-id="@s.StaffId"
+                                   class="btn btn-warning btn-sm">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@s.StaffId"
+                                   class="btn btn-danger btn-sm">Delete</a>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* PAGINATION *@
+    @if (totalPages > 1)
+    {
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-searchTerm="@ViewBag.Search"
+                       asp-route-isActive="@ViewBag.IsActive"
+                       asp-route-sortBy="@ViewBag.SortBy"
+                       asp-route-sortOrder="@sortOrder"
+                       asp-route-page="@(currentPage - 1)">«</a>
+                </li>
+
+                @for (int p = 1; p <= totalPages; p++)
+                {
+                    <li class="page-item @(p == currentPage ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-searchTerm="@ViewBag.Search"
+                           asp-route-isActive="@ViewBag.IsActive"
+                           asp-route-sortBy="@ViewBag.SortBy"
+                           asp-route-sortOrder="@sortOrder"
+                           asp-route-page="@p">@p</a>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-searchTerm="@ViewBag.Search"
+                       asp-route-isActive="@ViewBag.IsActive"
+                       asp-route-sortBy="@ViewBag.SortBy"
+                       asp-route-sortOrder="@sortOrder"
+                       asp-route-page="@(currentPage + 1)">»</a>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>
