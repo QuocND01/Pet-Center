@@ -1,0 +1,748 @@
+﻿@using PetCenterClient.DTOs
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var subTotalJs = Model.SubTotal.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --green: #2ecc71;
+        --green-dark: #27ae60;
+        --green-soft: #f0fdf4;
+        --text: #1e2d3d;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --radius: 14px;
+        --danger: #ef4444;
+        --gold: #f59e0b;
+    }
+
+    .co-page {
+        font-family: 'DM Sans',sans-serif;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 32px 16px 60px;
+    }
+
+    .co-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 32px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .co-layout {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 28px;
+        align-items: start;
+    }
+
+    @@media(max-width:900px) {
+        .co-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .co-section {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.07);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .co-section-header {
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .co-section-num {
+        width: 28px;
+        height: 28px;
+        background: var(--green);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .co-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .co-section-body {
+        padding: 20px 22px;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+    .item-img {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        flex-shrink: 0;
+        background: #f0f0f0;
+    }
+
+    .item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 14px;
+    }
+
+    .item-qty {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+
+    .item-price {
+        font-weight: 700;
+        color: var(--green-dark);
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .addr-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    @@media(max-width:600px) {
+        .addr-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .addr-card {
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: all .2s;
+        position: relative;
+        user-select: none;
+    }
+
+        .addr-card:hover, .addr-card.selected {
+            border-color: var(--green);
+            background: var(--green-soft);
+        }
+
+            .addr-card.selected::after {
+                content: '✓';
+                position: absolute;
+                top: 10px;
+                right: 12px;
+                width: 22px;
+                height: 22px;
+                background: var(--green);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+    .addr-detail {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+    }
+
+    .addr-meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    .no-address {
+        text-align: center;
+        padding: 24px;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .voucher-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .voucher-card {
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        position: relative;
+        user-select: none;
+    }
+
+        .voucher-card:hover, .voucher-card.selected {
+            border-color: var(--gold);
+            background: #fffbeb;
+        }
+
+            .voucher-card.selected::after {
+                content: '✓';
+                position: absolute;
+                top: 10px;
+                right: 12px;
+                width: 22px;
+                height: 22px;
+                background: var(--gold);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+    .voucher-icon {
+        width: 46px;
+        height: 46px;
+        background: linear-gradient(135deg,#f59e0b,#d97706);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .voucher-code {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--text);
+        font-family: monospace;
+    }
+
+    .voucher-desc {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    .voucher-discount {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--gold);
+        margin-top: 4px;
+    }
+
+    .no-voucher {
+        text-align: center;
+        padding: 24px;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .summary-panel {
+        position: sticky;
+        top: 20px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.07);
+        overflow: hidden;
+    }
+
+    .summary-header {
+        background: linear-gradient(135deg,var(--green),var(--green-dark));
+        padding: 20px 22px;
+        color: white;
+    }
+
+        .summary-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .summary-body {
+        padding: 22px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 14px;
+        color: var(--muted);
+        border-bottom: 1px dashed var(--border);
+    }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row.discount span:last-child {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+    .summary-final {
+        background: var(--green-soft);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .summary-final .label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .summary-final .amount {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--green-dark);
+        }
+
+    .btn-place-order {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg,var(--green),var(--green-dark));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        font-family: 'DM Sans',sans-serif;
+        cursor: pointer;
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 16px rgba(46,204,113,.35);
+        transition: all .2s;
+    }
+
+        .btn-place-order:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(46,204,113,.45);
+        }
+
+        .btn-place-order:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .btn-spinner {
+        width: 18px;
+        height: 18px;
+        border: 2.5px solid rgba(255,255,255,.4);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+        display: none;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 20px;
+        transition: color .2s;
+    }
+
+        .back-link:hover {
+            color: var(--green);
+            text-decoration: none;
+        }
+
+    .toast-box {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .toast-item {
+        padding: 14px 20px;
+        border-radius: 10px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        min-width: 260px;
+        box-shadow: 0 4px 16px rgba(0,0,0,.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: tIn .3s ease;
+    }
+
+        .toast-item.s {
+            background: #27ae60;
+        }
+
+        .toast-item.e {
+            background: #e74c3c;
+        }
+
+    @@keyframes tIn {
+        from {
+            opacity: 0;
+            transform: translateX(40px)
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0)
+        }
+    }
+</style>
+
+<div class="toast-box" id="toastBox"></div>
+
+<div class="co-page">
+    <a href="/Cart" class="back-link">← Back to Cart</a>
+    <div class="co-title">📦 Checkout</div>
+
+    <div class="co-layout">
+        <div>
+
+            <!-- 1. Items -->
+            <div class="co-section">
+                <div class="co-section-header">
+                    <div class="co-section-num">1</div>
+                    <div class="co-section-title">Selected Items (@Model.SelectedItems.Count)</div>
+                </div>
+                <div class="co-section-body">
+                    @foreach (var item in Model.SelectedItems)
+                    {
+                        <input type="hidden" class="item-data"
+                               data-product-id="@item.ProductId"
+                               data-qty="@item.Quantity"
+                               data-price="@item.UnitPrice.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)" />
+                        <div class="item-row">
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" class="item-img" onerror="imgFallback(this)" />
+                            }
+                            else
+                            {
+                                <div class="item-img" style="display:flex;align-items:center;justify-content:center;font-size:28px;">🐾</div>
+                            }
+                            <div class="item-info">
+                                <div class="item-name">@item.ProductName</div>
+                                <div class="item-qty">@item.Quantity × @item.UnitPrice.ToString("N0") ₫</div>
+                            </div>
+                            <div class="item-price">@item.SubTotal.ToString("N0") ₫</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- 2. Address -->
+            <div class="co-section">
+                <div class="co-section-header">
+                    <div class="co-section-num">2</div>
+                    <div class="co-section-title">Delivery Address</div>
+                </div>
+                <div class="co-section-body">
+                    @if (!Model.Addresses.Any())
+                    {
+                        <div class="no-address">
+                            <p>You have no saved addresses.</p>
+                            <a href="/Address/Create" style="color:var(--green);font-weight:600;">+ Add Address</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="addr-grid">
+                            @foreach (var addr in Model.Addresses)
+                            {
+                                var parts = new[] { addr.AddressDetails, addr.Ward, addr.District, addr.Province };
+                                var addrText = string.Join(", ", parts.Where(s => !string.IsNullOrEmpty(s)));
+                                <div class="addr-card @(addr.IsDefault ? "selected" : "")"
+                                     data-address-id="@addr.AddressId"
+                                     data-address-text="@addrText"
+                                     onclick="selectAddress(this)">
+                                    <div class="addr-detail">@addr.AddressDetails</div>
+                                    <div class="addr-meta">@addr.Ward, @addr.District, @addr.Province</div>
+                                    @if (addr.IsDefault)
+                                    {
+                                        <span style="font-size:11px;background:var(--green);color:white;padding:2px 8px;border-radius:20px;margin-top:6px;display:inline-block;">Default</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- 3. Voucher -->
+            <div class="co-section">
+                <div class="co-section-header">
+                    <div class="co-section-num">3</div>
+                    <div class="co-section-title">
+                        Apply Voucher
+                        @if (Model.AvailableVouchers.Any())
+                        {
+                            <span style="font-size:13px;color:var(--muted);font-weight:400;margin-left:6px;">(@Model.AvailableVouchers.Count available)</span>
+                        }
+                    </div>
+                </div>
+                <div class="co-section-body">
+                    @if (!Model.AvailableVouchers.Any())
+                    {
+                        <div class="no-voucher">🎫 No vouchers available for this order.</div>
+                    }
+                    else
+                    {
+                        <div class="voucher-list">
+                            @foreach (var v in Model.AvailableVouchers)
+                            {
+                                var pct = v.DiscountPercent ?? 0;
+                                var discText = pct + "% off";
+                                if (v.MaxDiscountAmount.HasValue && v.MaxDiscountAmount > 0)
+                                    discText += " (max " + v.MaxDiscountAmount.Value.ToString("N0") + " ₫)";
+                                if (v.MinOrderAmount.HasValue && v.MinOrderAmount > 0)
+                                    discText += " · min " + v.MinOrderAmount.Value.ToString("N0") + " ₫";
+
+                                <div class="voucher-card"
+                                     data-voucher-id="@v.VoucherId"
+                                     data-pct="@pct"
+                                     data-max="@(v.MaxDiscountAmount?.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "0")"
+                                     onclick="toggleVoucher(this)">
+                                    <div class="voucher-icon">🎫</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div class="voucher-code">@v.Code</div>
+                                        @if (!string.IsNullOrEmpty(v.Description))
+                                        {
+                                            <div class="voucher-desc">@v.Description</div>
+                                        }
+                                        <div class="voucher-discount">@discText</div>
+                                        @if (v.ExpiredDate.HasValue)
+                                        {
+                                            <div style="font-size:11px;color:var(--muted);margin-top:3px;">
+                                                Expires: @v.ExpiredDate.Value.ToString("dd/MM/yyyy")
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <p style="font-size:12px;color:var(--muted);margin-top:10px;">💡 Click to apply · click again to remove</p>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-panel">
+            <div class="summary-card">
+                <div class="summary-header"><h3>🧾 Order Summary</h3></div>
+                <div class="summary-body">
+                    <div class="summary-row">
+                        <span>Subtotal (@Model.SelectedItems.Count items)</span>
+                        <span>@Model.SubTotal.ToString("N0") ₫</span>
+                    </div>
+                    <div class="summary-row discount" id="discountRow" style="display:none;">
+                        <span>Voucher discount</span>
+                        <span id="discountDisplay">−0 ₫</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span style="color:#27ae60;font-weight:600;">Free</span>
+                    </div>
+                    <div class="summary-final">
+                        <span class="label">Total</span>
+                        <span class="amount" id="finalDisplay">@Model.SubTotal.ToString("N0") ₫</span>
+                    </div>
+                    <button class="btn-place-order" id="placeBtn" type="button" onclick="placeOrder()">
+                        <div class="btn-spinner" id="spinner"></div>
+                        <span id="placeText">🛍 Place Order</span>
+                    </button>
+                    <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--muted);">🔒 Secure checkout</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ─── FIX: inline SVG fallback, không bao giờ trigger onerror loop ───
+    var FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23f0f0f0'/%3E%3Ctext x='32' y='42' font-size='28' text-anchor='middle'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E";
+    function imgFallback(img) {
+        if (img.dataset.errored) return;  // guard: chỉ chạy 1 lần
+        img.dataset.errored = '1';
+        img.onerror = null;               // xoá listener hoàn toàn
+        img.src = FALLBACK;
+    }
+
+    // ─── Constants ───────────────────────────────────────────────
+    var SUB_TOTAL = @subTotalJs;
+
+    // ─── State ───────────────────────────────────────────────────
+    var selAddressId = '', selAddressText = '', selVoucherId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var def = document.querySelector('.addr-card.selected');
+        if (def) { selAddressId = def.dataset.addressId; selAddressText = def.dataset.addressText; }
+    });
+
+    // ─── Address ─────────────────────────────────────────────────
+    function selectAddress(card) {
+        document.querySelectorAll('.addr-card').forEach(function(c){ c.classList.remove('selected'); });
+        card.classList.add('selected');
+        selAddressId   = card.dataset.addressId;
+        selAddressText = card.dataset.addressText;
+    }
+
+    // ─── Voucher ─────────────────────────────────────────────────
+    function toggleVoucher(card) {
+        if (card.classList.contains('selected')) {
+            card.classList.remove('selected');
+            selVoucherId = null;
+            recalcSummary(0);
+            return;
+        }
+        document.querySelectorAll('.voucher-card').forEach(function(c){ c.classList.remove('selected'); });
+        card.classList.add('selected');
+        selVoucherId = card.dataset.voucherId;
+
+        var pct  = parseFloat(card.dataset.pct) || 0;
+        var max  = parseFloat(card.dataset.max) || 0;
+        var disc = SUB_TOTAL * pct / 100;
+        if (max > 0 && disc > max) disc = max;
+
+        recalcSummary(disc);
+        showToast('Voucher applied! Save ' + fmt(disc), 's');
+    }
+
+    function recalcSummary(disc) {
+        document.getElementById('finalDisplay').textContent = fmt(SUB_TOTAL - disc);
+        var row = document.getElementById('discountRow');
+        if (disc > 0) {
+            row.style.display = 'flex';
+            document.getElementById('discountDisplay').textContent = '−' + fmt(disc);
+        } else {
+            row.style.display = 'none';
+        }
+    }
+
+    function fmt(v) { return Math.round(v).toLocaleString('vi-VN') + ' ₫'; }
+
+    // ─── Place Order ─────────────────────────────────────────────
+    async function placeOrder() {
+        if (!selAddressId) {
+            showToast('Please select a delivery address.', 'e');
+            document.querySelector('.addr-grid, .no-address')?.scrollIntoView({behavior:'smooth',block:'center'});
+            return;
+        }
+
+        var items = [];
+        document.querySelectorAll('.item-data').forEach(function(inp) {
+            var pid   = inp.dataset.productId;
+            var qty   = parseInt(inp.dataset.qty)   || 1;
+            var price = parseFloat(inp.dataset.price) || 0;
+            if (pid && qty > 0) items.push({ productId:pid, quantity:qty, unitPrice:price });
+        });
+
+        if (!items.length) { showToast('No items. Go back to cart.', 'e'); return; }
+
+        setLoading(true);
+        try {
+            var res  = await fetch('/Checkout/PlaceOrder', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ addressId:selAddressId, addressSnapshot:selAddressText, voucherId:selVoucherId||null, items:items })
+            });
+            var data = await res.json();
+            if (data.success) {
+                showToast(data.message || 'Order placed!', 's');
+                setTimeout(function(){ window.location.href = data.redirectUrl || '/Checkout/Success'; }, 1200);
+            } else {
+                showToast(data.message || 'Order failed.', 'e');
+                setLoading(false);
+            }
+        } catch(e) { showToast('Network error.', 'e'); setLoading(false); }
+    }
+
+    function setLoading(on) {
+        document.getElementById('placeBtn').disabled        = on;
+        document.getElementById('spinner').style.display    = on ? 'block' : 'none';
+        document.getElementById('placeText').textContent    = on ? 'Placing Order...' : '🛍 Place Order';
+    }
+
+    // ─── Toast ───────────────────────────────────────────────────
+    function showToast(msg, type) {
+        var box = document.getElementById('toastBox');
+        var el  = document.createElement('div');
+        el.className = 'toast-item ' + (type||'s');
+        el.innerHTML = '<span>' + (type==='e'?'✕':'✓') + '</span><span>' + msg + '</span>';
+        box.appendChild(el);
+        setTimeout(function(){
+            el.style.opacity='0'; el.style.transition='opacity 0.4s';
+            setTimeout(function(){ el.remove(); }, 400);
+        }, 3500);
+    }
+</script>
