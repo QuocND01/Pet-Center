@@ -8,5 +8,7 @@ namespace OrdersAPI.Service.Interface
         Task<bool> CreateDetailAsync(OrderDetailRequestDTO dto);
         Task<bool> UpdateDetailAsync(Guid id, OrderDetailRequestDTO dto);
         Task<bool> DeleteDetailAsync(Guid id);
+
+        Task<List<Guid?>> GetHotProducts(int months = 3, int top = 10);
     }
 }

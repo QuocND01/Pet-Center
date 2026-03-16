@@ -1,43 +1,160 @@
 ﻿@using PetCenterClient.DTOs
 @model OdataResponse<ReadProductDTO>
 
-
 @{
     ViewData["Title"] = "Products";
+
+    var hotProducts = ViewBag.HotProducts as List<ReadProductDTO>;
+    var newProducts = ViewBag.NewProducts as List<ReadProductDTO>;
 }
 
 <link rel="stylesheet" href="~/css/UserViews/Home/HomePage.css" />
 
 <div class="container mt-4">
 
-    <!-- PAGE HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">
-            <i class="bi bi-box"></i> Product List
-        </h2>
+    <!-- HERO BANNER -->
+    <div class="hero-banner mb-5">
+
+        <img src="https://res.cloudinary.com/dbjdxy4p6/image/upload/v1773461154/Water2_lsvuv0.png"
+             class="hero-img" />
+        <div class="hero-content">
+            <h1>Pet Center Shop</h1>
+            <p>Best products for your lovely pets</p>
+
+            <a asp-controller="Products"
+               asp-action="Index"
+               class="btn btn-primary">
+                Shop Now
+            </a>
+        </div>
+
     </div>
 
-    <form asp-action="Index" asp-controller="Products" method="get" class="row g-2 mb-3">
-        <!-- Search name -->
+
+    <!-- HOT PRODUCTS -->
+    @if (hotProducts != null && hotProducts.Any())
+    {
+        <section class="mb-5">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="fw-bold">
+                    🔥 Hot Products
+                </h3>
+            </div>
+
+            <div class="product-grid">
+
+                @foreach (var item in hotProducts)
+                {
+                    <a asp-controller="Products"
+                       asp-action="DetailsForcustomer"
+                       asp-route-id="@item.ProductId"
+                       class="text-decoration-none text-dark">
+
+                        <div class="product-card">
+
+                            <div class="product-image">
+                                <img src="@item.Images?.FirstOrDefault()" />
+                            </div>
+
+                            <div class="product-info">
+
+                                <h5 class="product-title">
+                                    @item.ProductName
+                                </h5>
+
+                                <span class="product-price">
+                                    @item.ProductPrice.ToString("N0") ₫
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+                }
+
+            </div>
+
+        </section>
+    }
+
+
+    <!-- NEW PRODUCTS -->
+    @if (newProducts != null && newProducts.Any())
+    {
+        <section class="mb-5">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="fw-bold">
+                    🆕 New Products
+                </h3>
+            </div>
+
+            <div class="product-grid">
+
+                @foreach (var item in newProducts)
+                {
+                    <a asp-controller="Products"
+                       asp-action="DetailsForcustomer"
+                       asp-route-id="@item.ProductId"
+                       class="text-decoration-none text-dark">
+
+                        <div class="product-card">
+
+                            <div class="product-image">
+                                <img src="@item.Images?.FirstOrDefault()" />
+                            </div>
+
+                            <div class="product-info">
+
+                                <h5 class="product-title">
+                                    @item.ProductName
+                                </h5>
+
+                                <span class="product-price">
+                                    @item.ProductPrice.ToString("N0") ₫
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+                }
+
+            </div>
+
+        </section>
+    }
+
+
+    <!-- FILTER -->
+    <section class="mb-4">
+
+    <h3 class="fw-bold mb-3">All Products</h3>
+
+    <form asp-action="Index" method="get" class="row g-2 mb-3">
+
+        <!-- Search -->
         <div class="col-md-3">
             <input type="text"
                    name="search"
                    value="@Context.Request.Query["search"]"
                    class="form-control"
-                   placeholder="Search by name..." />
+                   placeholder="Search product..." />
         </div>
 
-        <!-- Sort By -->
+        <!-- Sort -->
         <div class="col-md-2">
             <select name="sortBy" class="form-control">
-                <option value="">-- Sort by --</option>
+                <option value="">Sort By</option>
                 <option value="Name">Name</option>
                 <option value="Price">Price</option>
-                <option value="CreatedAt">Created Date</option>
+                <option value="date">Created Date</option>
             </select>
         </div>
 
-        <!-- Sort Order -->
         <div class="col-md-2">
             <select name="sortOrder" class="form-control">
                 <option value="asc">Asc</option>
@@ -45,7 +162,7 @@
             </select>
         </div>
 
-        <!-- Price range -->
+        <!-- Price -->
         <div class="col-md-2">
             <input type="number"
                    name="minPrice"
@@ -62,28 +179,36 @@
                    placeholder="Max price" />
         </div>
 
-        <!-- Created date range -->
+        <!-- DATE FILTER -->
         <div class="col-md-2">
             <input type="date"
                    name="fromDate"
                    value="@Context.Request.Query["fromDate"]"
-                   class="form-control" />
+                   class="form-control"
+                   placeholder="From date" />
         </div>
 
         <div class="col-md-2">
             <input type="date"
                    name="toDate"
                    value="@Context.Request.Query["toDate"]"
-                   class="form-control" />
+                   class="form-control"
+                   placeholder="To date" />
         </div>
 
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Apply</button>
+        <!-- Button -->
+        <div class="col-md-1">
+            <button class="btn btn-primary w-100">
+                Filter
+            </button>
         </div>
 
     </form>
 
-    <!-- PRODUCT GRID -->
+</section>
+
+
+    <!-- ALL PRODUCTS GRID -->
     @if (Model?.Values != null && Model.Values.Any())
     {
         <div class="product-grid">
@@ -98,8 +223,7 @@
                     <div class="product-card">
 
                         <div class="product-image">
-                            <img src="@item.Images?.FirstOrDefault()"
-                                 alt="@item.ProductName" />
+                            <img src="@item.Images?.FirstOrDefault()" />
                         </div>
 
                         <div class="product-info">
@@ -124,7 +248,7 @@
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger">Out Of Stock</span>
+                                    <span class="badge bg-danger">Out</span>
                                 }
 
                             </div>
@@ -141,13 +265,6 @@
                 </a>
             }
 
-        </div>
-    }
-    else
-    {
-        <div class="text-center p-5">
-            <i class="bi bi-box display-4 text-muted"></i>
-            <p class="text-muted mt-2">No products found</p>
         </div>
     }
 

@@ -19,5 +19,18 @@ namespace OrdersAPI.Repository
         public void Update(OrderDetail detail) => _context.OrderDetails.Update(detail);
         public void Delete(OrderDetail detail) => _context.OrderDetails.Remove(detail);
         public async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
+
+        public async Task<List<Guid?>> GetTopSellingProductIds(int months = 3, int top = 10)
+        {
+            var fromDate = DateTime.UtcNow.AddMonths(-months);
+
+            return await _context.OrderDetails
+                .Where(od => od.Order.OrderDate >= fromDate)
+                .GroupBy(od => od.ProductId)
+                .OrderByDescending(g => g.Sum(x => x.Quantity))
+                .Take(top)
+                .Select(g => g.Key)
+                .ToListAsync();
+        }
     }
 }
