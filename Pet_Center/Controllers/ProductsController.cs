@@ -85,8 +85,6 @@ namespace ProductAPI.Controllers
                 return BadRequest(errors);
             }
 
-
-
                 try
             {
                 await _productService.AddProductAsync(product);

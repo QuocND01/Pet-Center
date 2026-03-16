@@ -16,33 +16,37 @@
       asp-controller="Brands"
       method="post">
 
-    <input type="hidden" name="BrandId" value="@Model.BrandId" />
+    <!-- ID -->
+    <input type="hidden" asp-for="BrandId" />
+
+    <!-- HIỂN THỊ LỖI MODEL -->
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="row">
 
         <!-- BRAND NAME -->
-
         <div class="col-md-12 mb-3">
 
-            <label class="form-label">Brand Name</label>
+            <label asp-for="BrandName" class="form-label"></label>
 
-            <input name="BrandName"
-                   class="form-control"
-                   value="@Model.BrandName" />
+            <input asp-for="BrandName"
+                   class="form-control" />
+
+            <span asp-validation-for="BrandName"
+                  class="text-danger"></span>
 
         </div>
 
 
         <!-- LOGO URL -->
-
         <div class="col-md-12 mb-3">
 
-            <label class="form-label">Logo URL</label>
+            <label asp-for="BrandLogo"
+                   class="form-label"></label>
 
-            <input name="BrandLogo"
+            <input asp-for="BrandLogo"
                    id="logoInput"
                    class="form-control"
-                   value="@Model.BrandLogo"
                    placeholder="Enter logo image url" />
 
         </div>
