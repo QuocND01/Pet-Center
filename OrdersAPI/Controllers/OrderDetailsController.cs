@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OrdersAPI.DTOs;
+using OrdersAPI.Service;
 using OrdersAPI.Service.Interface;
 
 namespace OrdersAPI.Controllers
@@ -60,6 +61,16 @@ namespace OrdersAPI.Controllers
                 return NotFound(new { message = "Không tìm thấy chi tiết đơn hàng để xóa." });
 
             return Ok(new { message = "Xóa thành công" });
+        }
+
+
+        // GET: api/orderdetails/hot-products
+        [HttpGet("hot-products")]
+        public async Task<IActionResult> GetHotProducts(int months = 3, int top = 10)
+        {
+            var productIds = await _service.GetHotProducts(months, top);
+
+            return Ok(productIds);
         }
     }
 }

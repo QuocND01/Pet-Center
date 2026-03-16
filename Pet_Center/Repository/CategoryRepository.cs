@@ -53,14 +53,18 @@ namespace ProductAPI.Repository
 
         public IQueryable<Category> GetAllCategory()
         {
-            try
-            {
-                return _db.Categories.Where(c => c.IsActive == true).AsQueryable().Include(c => c.CategoryAttributes).Where(a => a.IsActive == true);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            return _db.Categories
+                .Where(c => c.IsActive == true)
+                .Select(c => new Category
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName,
+                    CategoryLogo = c.CategoryLogo,
+
+                    CategoryAttributes = c.CategoryAttributes
+                        .Where(a => a.IsActive == true)
+                        .ToList()
+                });
         }
 
         //public async Task<IEnumerable<Category>> GetAllCategoryAsync()
@@ -70,13 +74,15 @@ namespace ProductAPI.Repository
 
         public async Task<IEnumerable<CategoryAttribute>> GetAllCategoryAttributeByCategoryIDAsync(Guid id)
         {
-            return await _db.CategoryAttributes.Where(c => c.CategoryId.Equals(id)).ToListAsync();
+            return await _db.CategoryAttributes.Where(c => c.CategoryId.Equals(id) && c.IsActive == true).ToListAsync();
         }
 
         public Task<Category?> GetCategoryByIdAsync(Guid id)
         {
-            return _db.Categories.Where(p => p.IsActive == true).Include(c => c.CategoryAttributes).Where(b => b.IsActive == true)
-               .FirstOrDefaultAsync(x => x.CategoryId == id);
+            return _db.Categories
+                .Where(c => c.IsActive == true)
+                .Include(c => c.CategoryAttributes.Where(a => a.IsActive == true))
+                .FirstOrDefaultAsync(x => x.CategoryId == id);
         }
 
         public async Task UpdateCategoryAsync(Category category)

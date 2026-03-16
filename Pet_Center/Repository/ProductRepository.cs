@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using ProductAPI.Models;
 using ProductAPI.Repository.Interface;
+using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -64,7 +65,34 @@ namespace ProductAPI.Repository
             }
         }
 
-    
+        public async Task<IEnumerable<Product>> GetNewProduct()
+        {
+            var threeMonthsAgo = DateTime.Now.AddMonths(-3);
+
+            return await _db.Products
+                .Where(p => p.IsActive && p.AddedAt >= threeMonthsAgo)
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                .ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<Product?>> GetProductsByIds(List<Guid> ids)
+        {
+            return await _db.Products
+                .Where(p => p.IsActive && ids.Contains(p.ProductId))
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                .ToListAsync();
+        }
+
+
 
         public Task<Product?> GetProductByIdAsync(Guid id)
         {

@@ -6,108 +6,153 @@
     ViewData["Title"] = "Manage Brands";
 }
 
-<h2 class="mb-3">Brand List</h2>
+<link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
 
-<form asp-action="IndexAdmin" asp-controller="Brands" method="get" class="row g-2 mb-3">
+<div class="page-wrapper">
 
-    <!-- Search -->
-    <div class="col-md-4">
-        <input type="text"
-               name="search"
-               value="@Context.Request.Query["search"]"
-               class="form-control"
-               placeholder="Search brand name..." />
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div class="page-title-group">
+            <h1>Brand Management</h1>
+            <p>Manage all brands in system</p>
+        </div>
+
+        <div class="header-stat">
+            <span class="num">@Model?.Values?.Count()</span>
+            <span class="label">Brands</span>
+        </div>
+
     </div>
 
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">
+
+    <!-- TOOLBAR -->
+    <form asp-action="IndexAdmin" asp-controller="Brands" method="get" class="toolbar">
+
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   name="search"
+                   value="@Context.Request.Query["search"]"
+                   class="search-input"
+                   placeholder="Search brand name..." />
+        </div>
+
+        <button type="submit" class="filter-btn active">
             Apply
         </button>
+
+        <button type="button"
+                class="filter-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#brandModal"
+                data-url="@Url.Action("Create", "Brand")">
+
+            <i class="bi bi-plus"></i> Add
+        </button>
+
+    </form>
+
+
+    <!-- TABLE -->
+    <div class="table-card">
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Logo</th>
+                    <th>Brand Name</th>
+                    <th style="width:180px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model?.Values != null && Model.Values.Any())
+                {
+                    int i = 1;
+
+                    foreach (var b in Model.Values)
+                    {
+                        <tr>
+
+                            <td class="row-num">@i</td>
+
+                            <td>
+                                <img src="@b.BrandLogo"
+                                     style="width:48px;height:48px;border-radius:8px;object-fit:cover" />
+                            </td>
+
+                            <td class="customer-name">
+                                @b.BrandName
+                            </td>
+
+                            <td>
+
+                                <!-- VIEW -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("DetailsAsyncAdmin", "Brand", new { id = b.BrandId })">
+
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                                <!-- EDIT -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("Edit", "Brand", new { id = b.BrandId })">
+
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <!-- DELETE -->
+                                <button class="btn-toggle-status active"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("Delete", "Brand", new { id = b.BrandId })">
+
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    <i class="bi bi-tags"></i>
+                                </div>
+
+                                <h3>No brands found</h3>
+                                <p>Try adding a new brand</p>
+
+                            </div>
+
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
     </div>
 
-</form>
-
-<p>
-    <button class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#brandModal"
-            data-url="@Url.Action("Create", "Brand")">
-
-        <i class="bi bi-plus-circle"></i> Add Brand
-    </button>
-</p>
-
-<table class="table table-hover table-striped align-middle">
-
-    <thead class="table-dark">
-        <tr>
-            <th>Logo</th>
-            <th>Brand Name</th>
-            <th style="width:160px;">Actions</th>
-        </tr>
-    </thead>
-
-    <tbody>
-
-        @if (Model?.Values != null && Model.Values.Any())
-        {
-            foreach (var b in Model.Values)
-            {
-                <tr>
-
-                    <td>
-                        <img src="@b.BrandLogo"
-                             style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />
-                    </td>
-
-                    <td>@b.BrandName</td>
-
-                    <td>
-
-                        <!-- VIEW -->
-                        <button class="btn btn-sm btn-info text-white"
-                                data-bs-toggle="modal"
-                                data-bs-target="#brandModal"
-                                data-url="@Url.Action("DetailsAsyncAdmin", "Brand", new { id = b.BrandId })">
-
-                            <i class="bi bi-eye"></i>
-                        </button>
-
-                        <!-- EDIT -->
-                        <button class="btn btn-sm btn-warning text-white"
-                                data-bs-toggle="modal"
-                                data-bs-target="#brandModal"
-                                data-url="@Url.Action("Edit", "Brand", new { id = b.BrandId })">
-
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-
-                        <!-- DELETE -->
-                        <button class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#brandModal"
-                                data-url="@Url.Action("Delete", "Brand", new { id = b.BrandId })">
-
-                            <i class="bi bi-trash"></i>
-                        </button>
-
-                    </td>
-
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="3" class="text-center text-muted py-3">
-                    No brands available.
-                </td>
-            </tr>
-        }
-
-    </tbody>
-
-</table>
+</div>
 
 
 <!-- BRAND MODAL -->
