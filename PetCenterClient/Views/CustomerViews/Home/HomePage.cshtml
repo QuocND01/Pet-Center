@@ -11,6 +11,8 @@
     var currentCat      = Context.Request.Query["categoryid"].ToString();
     var currentBrand    = Context.Request.Query["brandid"].ToString();
     var totalCount      = Model?.Count ?? 0;
+    var hotProducts     = ViewBag.HotProducts as List<ReadProductDTO>;
+    var newProducts     = ViewBag.NewProducts as List<ReadProductDTO>;
 }
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,162 +48,7 @@
     /* ── Reset context ── */
     .home-page { font-family: var(--font-body); color: var(--ink); }
 
-    /* ══════════════════════════════════════════
-       HERO
-    ══════════════════════════════════════════ */
-    .hero {
-        background: var(--g0);
-        border-radius: 28px;
-        padding: 56px 48px 52px;
-        margin-bottom: 40px;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 32px;
-    }
-    .hero::before {
-        content: '';
-        position: absolute;
-        top: -80px; right: -80px;
-        width: 360px; height: 360px;
-        background: radial-gradient(circle, #86efac55 0%, transparent 70%);
-        pointer-events: none;
-    }
-    .hero::after {
-        content: '';
-        position: absolute;
-        bottom: -60px; left: 30%;
-        width: 240px; height: 240px;
-        background: radial-gradient(circle, #bbf7d055 0%, transparent 70%);
-        pointer-events: none;
-    }
-    .hero-text { position: relative; z-index: 1; flex: 1; }
-    .hero-eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--g1);
-        color: var(--g5);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        padding: 5px 14px;
-        border-radius: 100px;
-        margin-bottom: 16px;
-    }
-    .hero-eyebrow::before { content: '✦'; font-size: 10px; }
-    .hero-title {
-        font-family: var(--font-head);
-        font-size: clamp(32px, 5vw, 52px);
-        font-weight: 900;
-        line-height: 1.1;
-        color: var(--ink);
-        margin-bottom: 14px;
-    }
-    .hero-title em {
-        font-style: italic;
-        color: var(--g4);
-    }
-    .hero-sub {
-        font-size: 16px;
-        color: var(--muted);
-        line-height: 1.65;
-        max-width: 440px;
-        margin-bottom: 28px;
-    }
-    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn-hero-primary {
-        background: var(--g3);
-        color: #fff;
-        font-family: var(--font-body);
-        font-weight: 800;
-        font-size: 14px;
-        padding: 12px 28px;
-        border: none;
-        border-radius: 100px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all .2s;
-        box-shadow: 0 4px 16px rgba(46,204,113,.35);
-    }
-    .btn-hero-primary:hover { background: var(--g4); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(46,204,113,.45); color: #fff; text-decoration: none; }
-    .btn-hero-ghost {
-        background: transparent;
-        color: var(--ink2);
-        font-family: var(--font-body);
-        font-weight: 700;
-        font-size: 14px;
-        padding: 12px 24px;
-        border: 2px solid var(--border);
-        border-radius: 100px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all .2s;
-    }
-    .btn-hero-ghost:hover { border-color: var(--g3); color: var(--g4); text-decoration: none; }
-    .hero-stats {
-        display: flex;
-        gap: 28px;
-        margin-top: 32px;
-    }
-    .stat { }
-    .stat-num {
-        font-family: var(--font-head);
-        font-size: 28px;
-        font-weight: 900;
-        color: var(--g4);
-        line-height: 1;
-    }
-    .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
-
-    /* Hero visual (emoji cloud) */
-    .hero-visual {
-        position: relative;
-        z-index: 1;
-        flex-shrink: 0;
-        width: 260px;
-        height: 220px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        align-items: center;
-    }
-    .pet-blob {
-        background: var(--surface);
-        border-radius: 20px;
-        box-shadow: var(--shadow);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 38px;
-        transition: transform .3s;
-        animation: blobFloat var(--d, 3s) ease-in-out infinite;
-        animation-delay: var(--delay, 0s);
-    }
-    .pet-blob:hover { transform: scale(1.1); }
-    .pet-blob:nth-child(1) { height: 100px; --d: 3.2s; --delay: 0s; }
-    .pet-blob:nth-child(2) { height: 80px;  --d: 2.8s; --delay: .4s; grid-row: span 1; align-self: start; }
-    .pet-blob:nth-child(3) { height: 80px;  --d: 3.5s; --delay: .8s; align-self: end; }
-    .pet-blob:nth-child(4) { height: 100px; --d: 2.6s; --delay: .2s; }
-    @@keyframes blobFloat {
-        0%,100% { transform: translateY(0); }
-        50%      { transform: translateY(-8px); }
-    }
-    @@media (max-width: 768px) {
-        .hero { padding: 36px 24px; flex-direction: column; }
-        .hero-visual { display: none; }
-    }
-
-    /* ══════════════════════════════════════════
+        /* ══════════════════════════════════════════
        FILTER BAR
     ══════════════════════════════════════════ */
     .filter-card {
@@ -551,53 +398,122 @@
         padding: 4px 12px;
         border-radius: 100px;
     }
+
+    /* HERO BANNER image */
+    .hero-banner { position:relative; border-radius:24px; overflow:hidden; height:340px; margin-bottom:40px; }
+    .hero-img { width:100%; height:100%; object-fit:cover; display:block; }
+    .hero-banner-content {
+        position:absolute; inset:0;
+        background:linear-gradient(90deg, rgba(0,0,0,.55) 0%, transparent 65%);
+        display:flex; flex-direction:column; justify-content:center;
+        padding:0 48px; gap:12px;
+    }
+    .hero-banner-content h1 { font-family:var(--font-head); font-size:clamp(28px,4vw,46px); font-weight:900; color:#fff; margin:0; line-height:1.1; }
+    .hero-banner-content p  { font-size:16px; color:rgba(255,255,255,.85); margin:0; }
+    .btn-banner {
+        align-self:flex-start; background:var(--g3); color:#fff;
+        font-family:var(--font-body); font-weight:800; font-size:14px;
+        padding:11px 26px; border-radius:100px; text-decoration:none;
+        transition:all .2s; box-shadow:0 4px 16px rgba(46,204,113,.4);
+    }
+    .btn-banner:hover { background:var(--g4); transform:translateY(-2px); color:#fff; text-decoration:none; }
+    @@media(max-width:600px) { .hero-banner { height:220px; } .hero-banner-content { padding:0 24px; } }
+
+    /* HOT / NEW sections */
+    .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .section-title  { font-family:var(--font-head); font-size:22px; font-weight:900; color:var(--ink); display:flex; align-items:center; gap:8px; }
+    .section-divider { border:none; border-top:1.5px solid var(--border); margin:36px 0; }
+    .mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; }
+    .mini-card {
+        background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+        overflow:hidden; text-decoration:none; color:inherit; transition:all .22s; display:flex; flex-direction:column;
+    }
+    .mini-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-hover); border-color:var(--g2); text-decoration:none; color:inherit; }
+    .mini-img { aspect-ratio:1; background:var(--g0); overflow:hidden; }
+    .mini-img img { width:100%; height:100%; object-fit:cover; transition:transform .35s; }
+    .mini-card:hover .mini-img img { transform:scale(1.07); }
+    .mini-img .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:40px; }
+    .mini-body { padding:10px 12px 12px; }
+    .mini-name { font-size:13px; font-weight:800; color:var(--ink); line-height:1.4; margin-bottom:6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .mini-price { font-family:var(--font-head); font-size:16px; font-weight:900; color:var(--g4); }
 </style>
 
 <div id="toast-container"></div>
 
 <div class="home-page">
 
-    <!-- ── HERO ── -->
-    <div class="hero">
-        <div class="hero-text">
-            <div class="hero-eyebrow">Cửa hàng thú cưng số 1</div>
-            <h1 class="hero-title">
-                Yêu thương <em>bắt đầu</em><br>từ đây 🐾
-            </h1>
-            <p class="hero-sub">
-                Thức ăn, phụ kiện và chăm sóc sức khỏe cho người bạn bốn chân của bạn — được chọn lọc kỹ lưỡng, giao tận nhà.
-            </p>
-            <div class="hero-actions">
-                <a href="#products" class="btn-hero-primary">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                    Khám phá ngay
-                </a>
-                <a asp-controller="Address" asp-action="Index" class="btn-hero-ghost">
-                    📍 Địa chỉ của tôi
-                </a>
-            </div>
-            <div class="hero-stats">
-                <div class="stat">
-                    <div class="stat-num">@(totalCount)+</div>
-                    <div class="stat-label">Sản phẩm</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-num">100%</div>
-                    <div class="stat-label">Chính hãng</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-num">24h</div>
-                    <div class="stat-label">Giao hàng</div>
-                </div>
-            </div>
-        </div>
-        <div class="hero-visual" aria-hidden="true">
-            <div class="pet-blob">🐶</div>
-            <div class="pet-blob">🐱</div>
-            <div class="pet-blob">🦜</div>
-            <div class="pet-blob">🐠</div>
+    <!-- ── HERO BANNER (image) ── -->
+    <div class="hero-banner">
+        <img src="https://res.cloudinary.com/dbjdxy4p6/image/upload/v1773461154/Water2_lsvuv0.png"
+             class="hero-img" alt="PetCenter Banner" />
+        <div class="hero-banner-content">
+            <h1>Pet Center Shop</h1>
+            <p>Best products for your lovely pets</p>
+            <a asp-controller="Products" asp-action="Index" class="btn-banner">
+                Shop Now →
+            </a>
         </div>
     </div>
+
+    <!-- ── HOT PRODUCTS ── -->
+    @if (hotProducts != null && hotProducts.Any())
+    {
+        <div class="section-header">
+            <div class="section-title">🔥 Hot Products</div>
+        </div>
+        <div class="mini-grid">
+            @foreach (var item in hotProducts)
+            {
+                var imgHot = item.Images?.FirstOrDefault();
+                <a asp-controller="Products" asp-action="DetailsForcustomer"
+                   asp-route-id="@item.ProductId" class="mini-card">
+                    <div class="mini-img">
+                        @if (!string.IsNullOrEmpty(imgHot))
+                        {
+                            <img src="@imgHot" alt="@item.ProductName" loading="lazy"
+                                 onerror="this.parentElement.innerHTML='<div class=&quot;no-img&quot;>🐾</div>'" />
+                        }
+                        else { <div class="no-img">🐾</div> }
+                    </div>
+                    <div class="mini-body">
+                        <div class="mini-name">@item.ProductName</div>
+                        <div class="mini-price">@item.ProductPrice.ToString("N0")₫</div>
+                    </div>
+                </a>
+            }
+        </div>
+        <hr class="section-divider" />
+    }
+
+    <!-- ── NEW PRODUCTS ── -->
+    @if (newProducts != null && newProducts.Any())
+    {
+        <div class="section-header">
+            <div class="section-title">🆕 New Products</div>
+        </div>
+        <div class="mini-grid">
+            @foreach (var item in newProducts)
+            {
+                var imgNew = item.Images?.FirstOrDefault();
+                <a asp-controller="Products" asp-action="DetailsForcustomer"
+                   asp-route-id="@item.ProductId" class="mini-card">
+                    <div class="mini-img">
+                        @if (!string.IsNullOrEmpty(imgNew))
+                        {
+                            <img src="@imgNew" alt="@item.ProductName" loading="lazy"
+                                 onerror="this.parentElement.innerHTML='<div class=&quot;no-img&quot;>🐾</div>'" />
+                        }
+                        else { <div class="no-img">🐾</div> }
+                    </div>
+                    <div class="mini-body">
+                        <div class="mini-name">@item.ProductName</div>
+                        <div class="mini-price">@item.ProductPrice.ToString("N0")₫</div>
+                    </div>
+                </a>
+            }
+        </div>
+        <hr class="section-divider" />
+    }
 
     <!-- ── FILTER ── -->
     <div class="filter-card" id="products">
