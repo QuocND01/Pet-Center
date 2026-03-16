@@ -57,16 +57,38 @@ namespace ProductAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrand(Guid id, UpdateBrandDTOs upadteBrand)
         {
-            await _brandService.UpdateBrandAsync(id, upadteBrand);
-            return Ok(upadteBrand);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                await _brandService.UpdateBrandAsync(id, upadteBrand);
+                return Ok(upadteBrand);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
        
         [HttpPost]
         public async Task<IActionResult> PostBrand( CreateBrandDTOs createBrand)
         {
-            if (createBrand == null)
-                return BadRequest("Brand is null");
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+           .SelectMany(v => v.Errors)
+           .Select(e => e.ErrorMessage)
+           .ToList();
+
+                return BadRequest(errors);
+            }
+
             try
             {
                 await _brandService.AddBrandAsync(createBrand);

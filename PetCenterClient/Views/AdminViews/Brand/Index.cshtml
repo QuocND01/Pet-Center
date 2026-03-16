@@ -27,7 +27,7 @@
 
 
     <!-- TOOLBAR -->
-    <form asp-action="IndexAdmin" asp-controller="Brands" method="get" class="toolbar">
+    <form asp-action="IndexAdmin" asp-controller="Brand" method="get" class="toolbar">
 
         <div class="search-wrap">
             <i class="bi bi-search"></i>
@@ -227,7 +227,11 @@
 
             modalBody.html("Loading...");
 
-            modalBody.load(url);
+                  modalBody.load(url, function () {
+
+            $.validator.unobtrusive.parse("#brandModalBody");
+
+        });
 
         });
 

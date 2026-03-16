@@ -158,17 +158,6 @@
 
 <script>
 
-        $(document).ready(function () {
-
-        const form = $("form")
-
-        form.removeData("validator")
-        form.removeData("unobtrusiveValidation")
-
-        $.validator.unobtrusive.parse(form)
-
-    })
-
 
 
     let imageIndex = 1
@@ -253,13 +242,7 @@
         index++
     })
 
-    const form = $("form")
-
-    form.removeData("validator")
-    form.removeData("unobtrusiveValidation")
-
-    $.validator.unobtrusive.parse(form)
-
+    $.validator.unobtrusive.parse("#attributeList")
             })
 
         })
@@ -297,6 +280,3 @@
     }
 
 </script>
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

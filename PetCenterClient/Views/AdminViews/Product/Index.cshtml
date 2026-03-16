@@ -285,100 +285,106 @@
 
     <script>
 
-        // Load modal content
+                // Load modal content
 
-            $(document).on("click", "[data-bs-target='#productModal']", function () {
+                    $(document).on("click", "[data-bs-target='#productModal']", function () {
 
-            var url = $(this).data("url");
+                    var url = $(this).data("url");
 
-            $("#productModalBody").html("Loading...");
+                    $("#productModalBody").html("Loading...");
 
-            $("#productModalBody").load(url);
+                    $("#productModalBody").load(url, function () {
 
-        });
+                    var form = $("#productModalBody").find("form");
+
+                    $.validator.unobtrusive.parse(form);
+
+                });
+
+                });
 
 
 
-        // Submit form bằng AJAX
+                // Submit form bằng AJAX
 
-        $('#productModal').on('submit', 'form', function (e) {
+                $('#productModal').on('submit', 'form', function (e) {
 
-            e.preventDefault();
+                    e.preventDefault();
 
-            var form = $(this);
+                    var form = $(this);
 
-            var formData = new FormData(form[0]);
+                    var formData = new FormData(form[0]);
 
-            $("#pageLoadingOverlay").css("display", "flex");
+                    $("#pageLoadingOverlay").css("display", "flex");
 
-            $.ajax({
+                    $.ajax({
 
-                url: form.attr('action'),
+                        url: form.attr('action'),
 
-                type: form.attr('method'),
+                        type: form.attr('method'),
 
-                data: formData,
+                        data: formData,
 
-                contentType: false,
+                        contentType: false,
 
-                processData: false,
+                        processData: false,
 
-         success: function (res) {
+                 success: function (res) {
 
-            $("#pageLoadingOverlay").hide();
+                    $("#pageLoadingOverlay").hide();
 
-            if (res.success) {
+                    if (res.success) {
 
-                $('#productModal').modal('hide');
+                        $('#productModal').modal('hide');
 
-                showToast("Success");
+                        showToast("Success");
 
-                setTimeout(function () {
-                    location.reload();
-                }, 800);
+                        setTimeout(function () {
+                            location.reload();
+                        }, 800);
 
-            }
-            else {
+                    }
+                    else {
 
-                $("#productModalBody").html(res);
+                        $("#productModalBody").html(res);
 
-            }
+                    }
 
-        },
-        error: function () {
+                },
+                error: function () {
 
-            $("#pageLoadingOverlay").hide();
+                    $("#pageLoadingOverlay").hide();
 
-            showToast("Error");
+                    showToast("Error");
 
-        }
+                }
 
+                    });
+
+                });
+
+
+
+                function showToast(message) {
+
+                    $('#liveToast .toast-body').text(message);
+
+                    var toast = new bootstrap.Toast(document.getElementById('liveToast'));
+
+                    toast.show();
+
+                }
+
+
+               document.querySelector(".toolbar").addEventListener("submit", function () {
+
+            this.querySelectorAll("input, select").forEach(el => {
+                if (!el.value) {
+                    el.removeAttribute("name");
+                }
             });
 
         });
-
-
-
-        function showToast(message) {
-
-            $('#liveToast .toast-body').text(message);
-
-            var toast = new bootstrap.Toast(document.getElementById('liveToast'));
-
-            toast.show();
-
-        }
-
-
-       document.querySelector(".toolbar").addEventListener("submit", function () {
-
-    this.querySelectorAll("input, select").forEach(el => {
-        if (!el.value) {
-            el.removeAttribute("name");
-        }
-    });
-
-});
     </script>
 
 }

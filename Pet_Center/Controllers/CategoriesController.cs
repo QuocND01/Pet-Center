@@ -58,8 +58,22 @@ namespace ProductAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(Guid id, UpdateCategoryDTOs updateCategoryDTOs)
         {
-            await _categoryService.UpdateCategoryAsync(id, updateCategoryDTOs);
-            return Ok(updateCategoryDTOs);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                await _categoryService.UpdateCategoryAsync(id, updateCategoryDTOs);
+                return Ok(updateCategoryDTOs);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
    
@@ -67,8 +81,16 @@ namespace ProductAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> PostCategory( CreateCategoryDTOs categoryDTOs)
         {
-            if (categoryDTOs == null)
-                return BadRequest("Category is null");
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+           .SelectMany(v => v.Errors)
+           .Select(e => e.ErrorMessage)
+           .ToList();
+
+                return BadRequest(errors);
+            }
+
             try
             {
                 await _categoryService.AddCategoryAsync(categoryDTOs);
