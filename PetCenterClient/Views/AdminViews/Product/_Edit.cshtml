@@ -32,8 +32,9 @@
       asp-controller="Products"
       method="post"
       enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <input type="hidden" name="ProductId" value="@Model.ProductId" />
+    <input asp-for="ProductId" type="hidden" />
 
     <div class="row">
 
@@ -41,37 +42,28 @@
 
         <div class="col-md-12 mb-3">
             <label class="form-label">Product Name</label>
-            <input name="ProductName"
-                   class="form-control"
-                   value="@Model.ProductName" />
+            <input asp-for="ProductName" class="form-control" />
+            <span asp-validation-for="ProductName" class="text-danger"></span>
         </div>
 
         <!-- DESCRIPTION -->
 
         <div class="col-md-12 mb-3">
             <label>Description</label>
-            <textarea name="ProductDescription"
-                      class="form-control">@Model.ProductDescription</textarea>
+            <textarea asp-for="ProductDescription"
+                      class="form-control"></textarea>
+            <span asp-validation-for="ProductDescription" class="text-danger"></span>
         </div>
 
         <!-- PRICE -->
 
         <div class="col-md-6 mb-3">
             <label>Price</label>
-            <input type="number"
-                   name="ProductPrice"
-                   class="form-control"
-                   value="@Model.ProductPrice" />
-        </div>
+            <input asp-for="ProductPrice"
+                   type="number"
+                   class="form-control" />
 
-        <!-- STOCK -->
-
-        <div class="col-md-6 mb-3">
-            <label>Stock</label>
-            <input type="number"
-                   name="StockQuantity"
-                   class="form-control"
-                   value="@Model.StockQuantity" />
+            <span asp-validation-for="ProductPrice" class="text-danger"></span>
         </div>
 
         <!-- BRAND -->
@@ -93,8 +85,8 @@
         </div>
 
     </div>
-    <input type="hidden" name="BrandId" value="@Model.BrandId" />
-    <input type="hidden" name="CategoryId" value="@Model.CategoryId" />
+    <input asp-for="BrandId" type="hidden" />
+    <input asp-for="CategoryId" type="hidden" />
 
     <!-- CURRENT IMAGES -->
 
@@ -173,13 +165,13 @@
 
                     <div class="col-md-7">
 
-                        <input name="Attributes[@i].AttributeValue"
-                               class="form-control"
-                               value="@Model.Attributes[i].AttributeValue" />
+                        <input asp-for="Attributes[i].AttributeValue"
+                               class="form-control" />
 
-                        <input type="hidden"
-                               name="Attributes[@i].CategoryAttributeId"
-                               value="@Model.Attributes[i].CategoryAttributeId" />
+                        <span asp-validation-for="Attributes[i].AttributeValue"
+                              class="text-danger"></span>
+
+                        <input asp-for="Attributes[i].CategoryAttributeId" type="hidden" />
 
                     </div>
 
@@ -217,6 +209,32 @@
 </form>
 
 <script>
+
+
+        $("form").submit(function(e){
+
+        let valid = true
+
+        $("input[name*='AttributeValue']").each(function(){
+
+            if(!$(this).val().trim()){
+
+                valid = false
+                $(this).addClass("is-invalid")
+
+            } else {
+
+                $(this).removeClass("is-invalid")
+
+            }
+
+        })
+
+        if(!valid)
+            e.preventDefault()
+
+    })
+
 
           $("#newImages").change(function(){
 
@@ -287,3 +305,6 @@
     }
 
 </script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using OrdersAPI.DTOs;
 using OrdersAPI.Models;
+using OrdersAPI.Repository;
 using OrdersAPI.Repository.Interface;
 using OrdersAPI.Service.Interface;
 
@@ -58,6 +59,11 @@ namespace OrdersAPI.Service
 
             _repo.Delete(detail);
             return await _repo.SaveChangesAsync();
+        }
+
+        public async Task<List<Guid?>> GetHotProducts(int months = 3, int top = 10)
+        {
+            return await _repo.GetTopSellingProductIds(months, top);
         }
     }
 }

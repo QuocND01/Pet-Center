@@ -6,125 +6,172 @@
     ViewData["Title"] = "Manage Categories";
 }
 
-<h2 class="mb-3">Category List</h2>
+<link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
 
-<form asp-action="Indexadmin" asp-controller="Category" method="get" class="row g-2 mb-3">
+<div class="page-wrapper">
 
-    <!-- Search -->
-    <div class="col-md-4">
-        <input type="text"
-               name="search"
-               value="@Context.Request.Query["search"]"
-               class="form-control"
-               placeholder="Search category name..." />
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div class="page-title-group">
+            <h1>Category Management</h1>
+            <p>Manage all categories in system</p>
+        </div>
+
+        <div class="header-stat">
+            <span class="num">@Model?.Values?.Count()</span>
+            <span class="label">Categories</span>
+        </div>
+
     </div>
 
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">
+
+    <!-- TOOLBAR -->
+    <form asp-action="Indexadmin" asp-controller="Category" method="get" class="toolbar">
+
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   name="search"
+                   value="@Context.Request.Query["search"]"
+                   class="search-input"
+                   placeholder="Search category name..." />
+        </div>
+
+        <button type="submit" class="filter-btn active">
             Apply
         </button>
+
+        <button type="button"
+                class="filter-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#categoryModal"
+                data-url="@Url.Action("Create", "Category")">
+
+            <i class="bi bi-plus"></i> Add
+        </button>
+
+    </form>
+
+
+    <!-- TABLE -->
+    <div class="table-card">
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Logo</th>
+                    <th>Category Name</th>
+                    <th>Attributes</th>
+                    <th style="width:180px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model?.Values != null && Model.Values.Any())
+                {
+                    int i = 1;
+
+                    foreach (var c in Model.Values)
+                    {
+                        <tr>
+
+                            <td class="row-num">@i</td>
+
+                            <td>
+                                <img src="@c.CategoryLogo"
+                                     style="width:48px;height:48px;border-radius:8px;object-fit:cover" />
+                            </td>
+
+                            <td class="customer-name">
+                                @c.CategoryName
+                            </td>
+
+                            <td>
+
+                                @if (c.Attributes != null && c.Attributes.Any())
+                                {
+                                    foreach (var attr in c.Attributes)
+                                    {
+                                        <span class="badge bg-secondary me-1">
+                                            @attr.AttributeName
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No attributes</span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <!-- VIEW -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#categoryModal"
+                                        data-url="@Url.Action("DetailsAsyncAdmin", "Category", new { id = c.CategoryId })">
+
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                                <!-- EDIT -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#categoryModal"
+                                        data-url="@Url.Action("Edit", "Category", new { id = c.CategoryId })">
+
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <!-- DELETE -->
+                                <button class="btn-toggle-status active"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#categoryModal"
+                                        data-url="@Url.Action("Delete", "Category", new { id = c.CategoryId })">
+
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    <i class="bi bi-grid"></i>
+                                </div>
+
+                                <h3>No categories found</h3>
+                                <p>Try adding a new category</p>
+
+                            </div>
+
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
     </div>
 
-</form>
-
-<p>
-    <button class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#categoryModal"
-            data-url="@Url.Action("Create", "Category")">
-
-        <i class="bi bi-plus-circle"></i> Add Category
-    </button>
-</p>
-
-<table class="table table-hover table-striped align-middle">
-
-    <thead class="table-dark">
-        <tr>
-            <th>Logo</th>
-            <th>Category Name</th>
-            <th>Attributes</th>
-            <th style="width:160px;">Actions</th>
-        </tr>
-    </thead>
-
-    <tbody>
-
-        @if (Model?.Values != null && Model.Values.Any())
-        {
-            foreach (var c in Model.Values)
-            {
-                <tr>
-
-                    <td>
-                        <img src="@c.CategoryLogo"
-                             style="width:60px;height:60px;object-fit:cover;border-radius:6px;" />
-                    </td>
-
-                    <td>@c.CategoryName</td>
-
-                    <td>
-                        @if (c.Attributes != null && c.Attributes.Any())
-                        {
-                            foreach (var attr in c.Attributes)
-                            {
-                                <span class="badge bg-secondary me-1">
-                                    @attr.AttributeName
-                                </span>
-                            }
-                        }
-                        else
-                        {
-                            <span class="text-muted">No attributes</span>
-                        }
-                    </td>
-
-                    <td>
-
-                        <!-- VIEW -->
-                        <button class="btn btn-sm btn-info text-white"
-                                data-bs-toggle="modal"
-                                data-bs-target="#categoryModal"
-                                data-url="@Url.Action("DetailsAsyncAdmin", "Category", new { id = c.CategoryId })">
-
-                            <i class="bi bi-eye"></i>
-                        </button>
-
-                        <!-- EDIT -->
-                        <button class="btn btn-sm btn-warning text-white"
-                                data-bs-toggle="modal"
-                                data-bs-target="#categoryModal"
-                                data-url="@Url.Action("Edit", "Category", new { id = c.CategoryId })">
-
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-
-                        <!-- DELETE -->
-                        <button class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#categoryModal"
-                                data-url="@Url.Action("Delete", "Category", new { id = c.CategoryId })">
-
-                            <i class="bi bi-trash"></i>
-                        </button>
-
-                    </td>
-
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="4" class="text-center text-muted py-3">
-                    No categories available.
-                </td>
-            </tr>
-        }
-
-    </tbody>
-
-</table>
+</div>
 
 
 <!-- CATEGORY MODAL -->

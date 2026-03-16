@@ -109,8 +109,6 @@ namespace PetCenterClient.Services
             if (model.ProductDescription != null)
                 content.Add(new StringContent(model.ProductDescription), "ProductDescription");
 
-            if (model.StockQuantity != null)
-                content.Add(new StringContent(model.StockQuantity.ToString()), "StockQuantity");
 
             content.Add(new StringContent(model.BrandId.ToString()), "BrandId");
             content.Add(new StringContent(model.CategoryId.ToString()), "CategoryId");
@@ -149,8 +147,10 @@ namespace PetCenterClient.Services
 
             var result = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine("Status: " + response.StatusCode);
-            Console.WriteLine("Response: " + result);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(result);
+            }
         }
 
         public async Task UpdateProductAsync(Guid? id, UpdateProductDTO model)
@@ -164,8 +164,6 @@ namespace PetCenterClient.Services
             if (!string.IsNullOrEmpty(model.ProductDescription))
                 form.Add(new StringContent(model.ProductDescription), "ProductDescription");
 
-            if (model.StockQuantity != null)
-                form.Add(new StringContent(model.StockQuantity.ToString()), "StockQuantity");
 
             if (model.BrandId != null)
                 form.Add(new StringContent(model.BrandId.ToString()), "BrandId");
@@ -234,6 +232,22 @@ namespace PetCenterClient.Services
             return JsonSerializer.Deserialize<List<ProductSelectDto>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                 ?? new List<ProductSelectDto>();
+        }
+
+        public async Task<List<ReadProductDTO>> GetHotProductsAsync()
+        {
+            var result = await _http.GetFromJsonAsync<List<ReadProductDTO>>(
+                "product-service/Products/hot-products");
+
+            return result ?? new List<ReadProductDTO>();
+        }
+
+        public async Task<List<ReadProductDTO>> GetNewProductsAsync()
+        {
+            var result = await _http.GetFromJsonAsync<List<ReadProductDTO>>(
+                "product-service/Products/new-products");
+
+            return result ?? new List<ReadProductDTO>();
         }
         private void AddAuthorizationHeader()
         {

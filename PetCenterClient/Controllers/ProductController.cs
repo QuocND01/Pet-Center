@@ -35,12 +35,16 @@ namespace PetCenterClient.Controllers
         {
             int pagesize = 3;
             var result = await _productService.GetAllProductAsync(
-               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy,categoryid, brandid, sortOrder, page);
+               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
             int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
-            ViewBag.Brands = await _brandService.GetAllBrandAsync("" , 1);
+            var hotProducts = await _productService.GetHotProductsAsync();
+            var newProducts = await _productService.GetNewProductsAsync();
+            ViewBag.HotProducts = hotProducts;
+            ViewBag.NewProducts = newProducts;
+            ViewBag.Brands = await _brandService.GetAllBrandAsync("", 1);
             ViewBag.Categories = await _categoryService.GetAllCategoryAsync("", 1);
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
@@ -62,7 +66,7 @@ namespace PetCenterClient.Controllers
         {
             int pagesize = 3;
             var result = await _productService.GetAllProductAsync(
-               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy,categoryid,brandid, sortOrder, page);
+               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
             int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
             ViewBag.CurrentPage = page;
@@ -105,8 +109,8 @@ namespace PetCenterClient.Controllers
         // GET: ReadProdutDTOs/Create
         public async Task<IActionResult> Create()
         {
-            var brands = await _brandService.GetAllBrandAsync("", 1 ) ?? new OdataResponse<ReadBrandDTOs>();
-            var categories = await _categoryService.GetAllCategoryAsync("", 1 ) ?? new OdataResponse<ReadCategoryDTOs>();
+            var brands = await _brandService.GetAllBrandAsync("", 1) ?? new OdataResponse<ReadBrandDTOs>();
+            var categories = await _categoryService.GetAllCategoryAsync("", 1) ?? new OdataResponse<ReadCategoryDTOs>();
             ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
             ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
 
@@ -121,37 +125,49 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Create(CreateProductDTO model)
         {
 
-            Console.WriteLine("ProductName: " + model.ProductName);
-            Console.WriteLine("CategoryId: " + model.CategoryId);
-            Console.WriteLine("BrandId: " + model.BrandId);
-
-            if (model.Attributes != null)
-            {
-                Console.WriteLine("Attribute count: " + model.Attributes.Count);
-            }
-            else
-            {
-                Console.WriteLine("Attributes NULL");
-            }
-
             if (!ModelState.IsValid)
             {
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
+                var errors = ModelState.Values
+       .SelectMany(v => v.Errors)
+       .Select(e => e.ErrorMessage)
+       .ToList();
+
+                Console.WriteLine(string.Join(",", errors));
+                var category = await _categoryService.GetCategoryByIdAsync(model.CategoryId);
+
+                model.Attributes = category.Attributes
+                    .Select(a => new CreateProductAttributeDTO
+                    {
+                        CategoryAttributeId = a.CategoryAttributeId,
+                        AttributeName = a.AttributeName,
+                        AttributeValue = model.Attributes?
+                            .FirstOrDefault(x => x.CategoryAttributeId == a.CategoryAttributeId)?
+                            .AttributeValue
+                    }).ToList();
+
+                var brands = await _brandService.GetAllBrandAsync("", 1);
+                var categories = await _categoryService.GetAllCategoryAsync("", 1);
+
+                ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
+                ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
                 return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
             }
+
             try
             {
                 await _productService.AddProductAsync(model);
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-            }
+                ModelState.AddModelError("", ex.Message);
+                var brands = await _brandService.GetAllBrandAsync("", 1);
+                var categories = await _categoryService.GetAllCategoryAsync("", 1);
 
-            return Json(new { success = true });
+                ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
+                ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+                return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
+            }
         }
 
         // GET: ReadProdutDTOs/Edit/5
@@ -178,11 +194,32 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Edit(Guid ProductId, UpdateProductDTO model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                var brands = await _brandService.GetAllBrandAsync("", 1);
+                var categories = await _categoryService.GetAllCategoryAsync("", 1);
 
-            await _productService.UpdateProductAsync(ProductId, model);
+                ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
+                ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+                return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
+            }
 
-            return Json(new { success = true });
+            try
+            {
+                await _productService.UpdateProductAsync(ProductId, model);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+
+                var brands = await _brandService.GetAllBrandAsync("", 1);
+                var categories = await _categoryService.GetAllCategoryAsync("", 1);
+
+                ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
+                ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+                return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
+            }
         }
 
         // GET: ReadProdutDTOs/Delete/5

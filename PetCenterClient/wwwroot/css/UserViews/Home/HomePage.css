@@ -1,55 +1,148 @@
-﻿.product-grid {
+﻿/* ===== PRODUCT GRID ===== */
+
+.product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+    gap: 16px;
 }
 
+
+/* ===== PRODUCT CARD ===== */
+
 .product-card {
-    background: white;
+    background: #fff;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-    transition: 0.3s;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
 }
 
     .product-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
     }
 
+
+/* ===== PRODUCT IMAGE ===== */
+
 .product-image {
-    height: 200px;
-    overflow: hidden;
+    width: 100%;
+    height: 150px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
     .product-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
     }
 
+/* ===== PRODUCT INFO ===== */
+
 .product-info {
-    padding: 15px;
+    padding: 10px;
 }
 
+
+/* ===== TITLE ===== */
+
 .product-title {
+    font-size: 14px;
     font-weight: 600;
+    height: 36px;
+    overflow: hidden;
 }
+
+
+/* ===== DESCRIPTION ===== */
+
+.product-info p {
+    font-size: 12px;
+    height: 30px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+
+/* ===== PRICE ===== */
+
+.product-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e63946;
+}
+
+
+/* ===== META ===== */
 
 .product-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
 }
 
-.product-price {
-    color: #e63946;
-    font-weight: bold;
-    font-size: 18px;
+
+/* ===== EXTRA ===== */
+
+.product-extra {
+    font-size: 12px;
 }
 
-.product-actions {
-    display: flex;
-    gap: 8px;
+
+/* ===== HERO BANNER ===== */
+.hero-banner {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ảnh banner */
+.hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+}
+
+/* nội dung */
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 2;
+    max-width: 500px;
+}
+
+    /* chữ */
+    .hero-content h1 {
+        font-size: 40px;
+        font-weight: 700;
+    }
+
+    .hero-content p {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+/* ===== RESPONSIVE ===== */
+
+@media (max-width:768px) {
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
+    }
+
+    .product-image {
+        height: 130px;
+    }
 }

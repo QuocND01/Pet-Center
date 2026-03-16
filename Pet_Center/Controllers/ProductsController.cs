@@ -51,8 +51,22 @@ namespace ProductAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(Guid id,[FromForm] UpdateProductDTO product)
         {
-            await _productService.UpdateProductAsync(id, product);
-            return Ok(product);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                await _productService.UpdateProductAsync(id, product);
+                return Ok(product);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         // POST: api/Products
@@ -60,9 +74,20 @@ namespace ProductAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> PostProduct([FromForm] CreateProductDTO product)
         {
-            if (product == null)
-                return BadRequest("Product is null");
-            try
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+           .SelectMany(v => v.Errors)
+           .Select(e => e.ErrorMessage)
+           .ToList();
+
+                return BadRequest(errors);
+            }
+
+
+
+                try
             {
                 await _productService.AddProductAsync(product);
                 return Ok(product);
@@ -81,12 +106,6 @@ namespace ProductAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
             await _productService.DeleteProductAsync(id);
 
             return NoContent();
@@ -97,6 +116,23 @@ namespace ProductAPI.Controllers
         {
             var result = await _productService.GetProductSelectListAsync();
             return Ok(result);
+        }
+
+
+        // Lấy sản phẩm mới
+        [HttpGet("new-products")]
+        public async Task<IActionResult> GetNewProducts()
+        {
+            var products = await _productService.GetNewProducts();
+            return Ok(products);
+        }
+
+        // Lấy sản phẩm hot (bán chạy)
+        [HttpGet("hot-products")]
+        public async Task<IActionResult> GetHotProducts()
+        {
+            var products = await _productService.GetHotProducts();
+            return Ok(products);
         }
     }
 }

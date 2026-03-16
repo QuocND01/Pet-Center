@@ -10,7 +10,7 @@ namespace PetCenterClient.DTOs
 
         public string? CategoryLogo { get; set; }
 
-        public List<ReadCategoryAttributeDTOs>? Attributes { get; set; }
+        public List<ReadCategoryAttributeDTO>? Attributes { get; set; }
     }
 
     public class CreateCategoryDTOs

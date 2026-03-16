@@ -13,7 +13,6 @@ using ProductAPI.Repository;
 using ProductAPI.Repository.Interface;
 using ProductAPI.Service;
 using ProductAPI.Service.Interface;
-using ProductAPI.Validation;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,7 +65,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 
-builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();
 
 
 builder.Services.AddAuthorization();
@@ -127,6 +125,7 @@ builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
