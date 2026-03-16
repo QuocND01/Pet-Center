@@ -3,159 +3,307 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Admin Dashboard</title>
+    <title>@ViewData["Title"] – PetCenter Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-</head>
-<body>
-    <div class="d-flex" id="wrapper">
-        <!-- Sidebar -->
-        <div class="bg-dark border-right text-white p-3" id="sidebar-wrapper" style="min-height:100vh">
-            <h4 class="text-center">Pet Center Admin</h4>
-            <div class="list-group list-group-flush">
-                <a asp-controller="Statistics" asp-action="Dashboard" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-speedometer2"></i> Dashboard & Statistics
-                </a>
-                <a asp-controller="Products" asp-action="Indexadmin" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-book"></i> Manage Products
-                </a>
-                @* @if (User.IsInRole("Admin"))
-                { *@
-                <a asp-controller="Category" asp-action="Indexadmin" class="list-group-item list-group-item-action bg-dark text-white">
-                        <i class="bi bi-tags"></i> Manage Categorys
-                    </a>
-                    <a asp-controller="Brand" asp-action="IndexAdmin" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-tag"></i> Manage Brands
-                    </a>
-                    <a asp-controller="ImportStocks" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                        <i class="bi bi-book-half"></i> Manage ImportStocks
-                    </a>
-                    <a asp-controller="Suppliers" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                        <i class="bi bi-building"></i> Manage Suppliers
-                    </a>
-                    <a asp-controller="Staff" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                        <i class="bi bi-person-badge"></i> Manage Staffs
-                    </a>
-                <a asp-controller="ManageCustomer" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-people-fill"></i> Manage Customers
-                </a>
-                    <a asp-controller="Voucher" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                        <i class="bi bi-ticket-perforated"></i> Manage Voucher
-                    </a>
-                @* } *@
-                <a asp-controller="Orders" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-ticket-perforated"></i> Manage Orders
-                </a>
-                <a asp-controller="AdminFeedback" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-ticket-perforated"></i> Manage Feedback
-                </a>
-
-                <a asp-controller="Reports" asp-action="Index" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="bi bi-graph-up"></i> Reports
-                </a>
-            </div>
-        </div>
-
-        <!-- Page Content -->
-        <div id="page-content-wrapper" class="w-100">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                <div class="container-fluid">
-                    <button class="btn btn-primary" id="menu-toggle">☰</button>
-                    <!-- Thông tin tài khoản -->
-                    <div class="ms-auto d-flex align-items-center gap-3">
-                        <div class="d-flex align-items-center px-3 py-2 bg-white border rounded shadow-sm">
-                            <i class="bi bi-person-circle fs-4 text-success me-2"></i>
-                            <div>
-                                <div class="fw-semibold text-dark">@Context.Session.GetString("Name")</div>
-                                <div class="small">
-                                    @{
-                                        var role = Context.Session.GetString("Role");
-                                    }
-                                    @if (role == "Admin")
-                                    {
-                                        <span class="badge" style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:600;">
-                                            <i class="bi bi-shield-fill me-1"></i>Admin
-                                        </span>
-                                    }
-                                    else if (role == "Staff")
-                                    {
-                                        <span class="badge" style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:600;">
-                                            <i class="bi bi-person-badge-fill me-1"></i>Staff
-                                        </span>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <a asp-controller="Auth" asp-action="AdminLogout" class="nav-link">Logout</a>
-                            </li>
-                        </ul>
-                    </div>
-            </nav>
-
-            <div class="container-fluid p-4">
-                @RenderBody()
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast container -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
-        <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <!-- Nội dung sẽ được set bằng JS -->
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
-
-    @if (User.IsInRole("Admin"))
-    {
-        <!-- Chat box cho ADMIN -->
-        <div id="admin-chat-container">
-            <!-- Nút tròn bật chat -->
-            <button id="admin-chat-toggle" class="shadow">
-                <i class="bi bi-chat-dots"></i>
-                <span id="admin-chat-badge" class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="display: none;">
-                    <span id="admin-chat-count">1</span>
-                </span>
-            </button>
-
-            <!-- Hộp chat -->
-            <div id="admin-chat-box" class="shadow">
-                <div id="admin-chat-header">
-                    <strong><i class="bi bi-person-lines-fill"></i> Admin Chat</strong>
-                    <button id="admin-chat-close" class="btn btn-sm btn-light"><i class="bi bi-x-lg"></i></button>
-                </div>
-
-                <div id="admin-chat-messages"></div>
-
-                <div id="admin-chat-input-area">
-                    <input type="text" id="admin-chat-input" placeholder="Nhập tin nhắn..." />
-                    <button id="admin-chat-send"><i class="bi bi-send"></i></button>
-                </div>
-            </div>
-        </div>
-    }
 
     <style>
-        /* Vị trí khung chat */
-        #admin-chat-container {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 3000; /* nằm trên sidebar nhưng không phá layout */
+        :root {
+            --g0: #f0fdf4;
+            --g1: #dcfce7;
+            --g3: #2ecc71;
+            --g4: #27ae60;
+            --g5: #166534;
+            --ink: #0f1f0f;
+            --ink2: #374151;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --font: 'Nunito', sans-serif;
+            --font-head: 'Fraunces', Georgia, serif;
+            --sidebar-w: 256px;
+            --topbar-h: 60px;
         }
 
-        /* Nút bật chat */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            margin: 0;
+            background: #f3f4f6;
+        }
+
+        /* ── SIDEBAR ──────────────────────────────── */
+        #sidebar-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: var(--ink);
+            display: flex;
+            flex-direction: column;
+            transition: transform .3s ease;
+            z-index: 1040;
+            overflow: hidden; /* no scroll — everything fits */
+        }
+
+        /* Sidebar brand */
+        .sb-brand {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 14px 16px 12px; /* compact top padding */
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            flex-shrink: 0;
+        }
+
+        .sb-brand-icon {
+            width: 32px;
+            height: 32px; /* smaller icon */
+            background: linear-gradient(135deg, var(--g3), var(--g4));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .sb-brand-text {
+            font-family: var(--font-head);
+            font-size: 16px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.1;
+        }
+
+            .sb-brand-text span {
+                color: var(--g3);
+            }
+
+        .sb-brand-sub {
+            font-size: 9px;
+            font-weight: 700;
+            color: rgba(255,255,255,.35);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
+
+        /* Sidebar nav — flex:1 + overflow hidden so it never scrolls */
+        .sb-nav {
+            padding: 6px 8px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sb-section-label {
+            font-size: 9px;
+            font-weight: 900;
+            color: rgba(255,255,255,.25);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            padding: 8px 8px 3px; /* reduced spacing */
+        }
+
+        .sb-link {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 7px 10px; /* compact row height */
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: rgba(255,255,255,.6);
+            text-decoration: none;
+            transition: all .18s;
+            margin-bottom: 1px;
+        }
+
+            .sb-link i {
+                font-size: 14px;
+                flex-shrink: 0;
+                width: 16px;
+                text-align: center;
+            }
+
+            .sb-link:hover {
+                background: rgba(255,255,255,.07);
+                color: #fff;
+                text-decoration: none;
+            }
+
+            .sb-link.active {
+                background: rgba(46,204,113,.15);
+                color: var(--g3);
+            }
+
+                .sb-link.active i {
+                    color: var(--g3);
+                }
+
+        /* Sidebar footer */
+        .sb-footer {
+            padding: 10px 8px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            flex-shrink: 0;
+        }
+
+        /* ── MAIN AREA ────────────────────────────── */
+        #wrapper {
+            margin-left: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left .3s ease;
+        }
+
+            #wrapper.toggled {
+                margin-left: 0;
+            }
+
+                #wrapper.toggled #sidebar-wrapper {
+                    transform: translateX(calc(-1 * var(--sidebar-w)));
+                }
+
+        /* ── TOPBAR ───────────────────────────────── */
+        #topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            height: var(--topbar-h);
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,.05);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 16px;
+        }
+
+        #menu-toggle {
+            width: 36px;
+            height: 36px;
+            background: var(--g0);
+            border: 1.5px solid var(--g1);
+            border-radius: 9px;
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--g5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+            flex-shrink: 0;
+        }
+
+            #menu-toggle:hover {
+                background: var(--g1);
+                border-color: var(--g3);
+            }
+
+        .topbar-title {
+            font-family: var(--font-head);
+            font-size: 17px;
+            font-weight: 900;
+            color: var(--ink);
+            flex: 1;
+        }
+
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-avatar {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--g3), var(--g4));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            color: #fff;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .topbar-info {
+            line-height: 1.2;
+        }
+
+        .topbar-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--ink);
+        }
+
+        .topbar-role {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 1px 8px;
+            border-radius: 100px;
+            display: inline-block;
+        }
+
+        .role-admin {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .role-staff {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .topbar-logout {
+            font-family: var(--font);
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 7px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+            .topbar-logout:hover {
+                border-color: #ef4444;
+                color: #ef4444;
+                text-decoration: none;
+            }
+
+        /* ── PAGE BODY ────────────────────────────── */
+        #page-content-wrapper {
+            flex: 1;
+            padding: 28px;
+        }
+
+        /* ── TOAST (bootstrap, untouched) ─────────── */
+
+        /* ── CHAT (untouched logic, restyled) ──────── */
+        #admin-chat-container {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 3000;
+        }
+
         #admin-chat-toggle {
-            width: 60px;
-            height: 60px;
-            background-color: #0d6efd;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--g3), var(--g4));
             color: white;
             border: none;
             border-radius: 50%;
@@ -163,162 +311,294 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 26px;
-            transition: transform 0.2s ease, background 0.2s;
+            font-size: 22px;
+            transition: transform .2s, box-shadow .2s;
             position: relative;
+            box-shadow: 0 4px 16px rgba(46,204,113,.4);
         }
 
             #admin-chat-toggle:hover {
-                transform: scale(1.1);
-                background-color: #0b5ed7;
+                transform: scale(1.08);
+                box-shadow: 0 8px 24px rgba(46,204,113,.5);
             }
 
         #admin-chat-badge {
-            min-width: 24px;
-            height: 24px;
-            padding: 0 6px;
-            border-radius: 12px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 5px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            animation: bounce 0.5s infinite;
+            font-size: 11px;
+            font-weight: 900;
         }
 
         @@keyframes bounce {
-            0%, 100%
+            0%, 100% {
+                transform: scale(1)
+            }
 
-        {
-            transform: scale(1);
+            50% {
+                transform: scale(1.2)
+            }
         }
 
-        50% {
-            transform: scale(1.2);
-        }
-
-        }
-
-        /* Khung chat box */
         #admin-chat-box {
             display: none;
             flex-direction: column;
             position: absolute;
-            bottom: 80px;
+            bottom: 64px;
             left: 0;
-            width: 340px;
-            height: 450px;
+            width: 320px;
+            height: 420px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.18);
             overflow: hidden;
-            animation: fadeInUp 0.25s ease;
         }
 
         @@keyframes fadeInUp {
-            from
+            from {
+                transform: translateY(16px);
+                opacity: 0
+            }
 
-        {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
         }
 
         #admin-chat-header {
-            background: #0d6efd;
+            background: linear-gradient(135deg, var(--g3), var(--g4));
             color: white;
-            padding: 10px;
+            padding: 12px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-family: var(--font);
+            font-weight: 800;
+            font-size: 14px;
         }
 
         #admin-chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-            font-size: 14px;
+            padding: 12px;
+            font-size: 13px;
         }
 
         #admin-chat-input-area {
             display: flex;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid var(--border);
             padding: 8px;
-            gap: 5px;
+            gap: 6px;
         }
 
         #admin-chat-input {
             flex: 1;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 6px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
+            padding: 7px 14px;
+            font-family: var(--font);
+            font-size: 13px;
+            outline: none;
+            transition: border .2s;
         }
 
+            #admin-chat-input:focus {
+                border-color: var(--g3);
+            }
+
         #admin-chat-send {
-            background: #0d6efd;
+            background: var(--g3);
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
-            transition: background 0.2s;
+            border-radius: 100px;
+            padding: 7px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background .2s;
         }
 
             #admin-chat-send:hover {
-                background: #0b5ed7;
+                background: var(--g4);
             }
 
-        #wrapper.toggled #sidebar-wrapper {
-            margin-left: -250px; /* Ẩn sidebar ra ngoài màn hình */
-            transition: all 0.3s ease;
-        }
-
-        /* Sidebar bình thường */
+        /* sidebar toggle (Bootstrap override) */
         #sidebar-wrapper {
-            width: 250px;
-            transition: all 0.3s ease;
+            width: var(--sidebar-w) !important;
         }
 
-        /* Khi sidebar bị ẩn thì phần content giãn ra */
-        #wrapper.toggled #page-content-wrapper {
-            margin-left: 0;
-            transition: all 0.3s ease;
-        }
-
-        #menu-toggle {
-            font-size: 20px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-            #menu-toggle:hover {
-                background-color: #0d6efd;
-                color: #fff;
-                transform: scale(1.05);
+        @@media(max-width: 768px) {
+            #sidebar-wrapper {
+                transform: translateX(calc(-1 * var(--sidebar-w)));
             }
 
-        .navbar .fw-semibold {
-            font-size: 1rem;
-        }
-
-        .navbar .small {
-            font-size: 0.85rem;
-        }
-
-        .navbar .btn-danger {
-            transition: all 0.2s ease;
-        }
-
-            .navbar .btn-danger:hover {
-                transform: scale(1.05);
-                background-color: #dc3545;
+            #wrapper {
+                margin-left: 0;
             }
+
+                #wrapper.toggled #sidebar-wrapper {
+                    transform: translateX(0);
+                }
+
+                #wrapper.toggled {
+                    margin-left: 0;
+                }
+        }
     </style>
+</head>
+<body>
+
+    <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+    <div id="sidebar-wrapper">
+
+        <div class="sb-brand">
+            <div class="sb-brand-icon">🐾</div>
+            <div>
+                <div class="sb-brand-text">Pet<span>Center</span></div>
+                <div class="sb-brand-sub">Admin Panel</div>
+            </div>
+        </div>
+
+        <nav class="sb-nav">
+
+            <div class="sb-section-label">Overview</div>
+            <a asp-controller="Statistics" asp-action="Dashboard" class="sb-link">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+
+            <div class="sb-section-label">Catalog</div>
+            <a asp-controller="Products" asp-action="Indexadmin" class="sb-link">
+                <i class="bi bi-box-seam"></i> Products
+            </a>
+            <a asp-controller="Category" asp-action="Indexadmin" class="sb-link">
+                <i class="bi bi-tags"></i> Categories
+            </a>
+            <a asp-controller="Brand" asp-action="IndexAdmin" class="sb-link">
+                <i class="bi bi-bookmark-star"></i> Brands
+            </a>
+
+            <div class="sb-section-label">Inventory</div>
+            <a asp-controller="ImportStocks" asp-action="Index" class="sb-link">
+                <i class="bi bi-arrow-down-circle"></i> Import Stocks
+            </a>
+            <a asp-controller="Suppliers" asp-action="Index" class="sb-link">
+                <i class="bi bi-building"></i> Suppliers
+            </a>
+
+            <div class="sb-section-label">Users</div>
+            <a asp-controller="Staff" asp-action="Index" class="sb-link">
+                <i class="bi bi-person-badge"></i> Staff
+            </a>
+            <a asp-controller="ManageCustomer" asp-action="Index" class="sb-link">
+                <i class="bi bi-people"></i> Customers
+            </a>
+
+            <div class="sb-section-label">Sales</div>
+            <a asp-controller="Orders" asp-action="Index" class="sb-link">
+                <i class="bi bi-bag-check"></i> Orders
+            </a>
+            <a asp-controller="Voucher" asp-action="Index" class="sb-link">
+                <i class="bi bi-ticket-perforated"></i> Vouchers
+            </a>
+            <a asp-controller="AdminFeedback" asp-action="Index" class="sb-link">
+                <i class="bi bi-chat-left-text"></i> Feedback
+            </a>
+
+            <div class="sb-section-label">Analytics</div>
+            <a asp-controller="Reports" asp-action="Index" class="sb-link">
+                <i class="bi bi-graph-up-arrow"></i> Reports
+            </a>
+
+        </nav>
+
+        <div class="sb-footer">
+            <a asp-controller="Auth" asp-action="AdminLogout" class="sb-link" style="color:rgba(255,255,255,.4)">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </div>
+
+    </div>
+
+    <!-- ══ MAIN WRAPPER ════════════════════════════════════════ -->
+    <div id="wrapper">
+
+        <!-- Topbar -->
+        <div id="topbar">
+            <button id="menu-toggle">☰</button>
+
+            <div class="topbar-title">@ViewData["Title"]</div>
+
+            <div class="topbar-user">
+                <div class="topbar-avatar">
+                    @{
+                        var nameInit = Context.Session.GetString("Name");
+                        @(string.IsNullOrEmpty(nameInit) ? "?" : nameInit[0].ToString().ToUpper())
+                    }
+                </div>
+                <div class="topbar-info">
+                    <div class="topbar-name">@Context.Session.GetString("Name")</div>
+                    @{
+                        var role = Context.Session.GetString("Role");
+                    }
+                    @if (role == "Admin")
+                    {
+                        <span class="topbar-role role-admin"><i class="bi bi-shield-fill me-1"></i>Admin</span>
+                    }
+                    else if (role == "Staff")
+                    {
+                        <span class="topbar-role role-staff"><i class="bi bi-person-badge-fill me-1"></i>Staff</span>
+                    }
+                </div>
+                <a asp-controller="Auth" asp-action="AdminLogout" class="topbar-logout">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            @RenderBody()
+        </div>
+
+    </div>
+
+    <!-- ══ TOAST (untouched) ══════════════════════════════════ -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ CHAT (untouched logic) ══════════════════════════════ -->
+    @if (User.IsInRole("Admin"))
+    {
+        <div id="admin-chat-container">
+            <button id="admin-chat-toggle" class="shadow">
+                <i class="bi bi-chat-dots"></i>
+                <span id="admin-chat-badge" class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="display: none;">
+                    <span id="admin-chat-count">1</span>
+                </span>
+            </button>
+            <div id="admin-chat-box" class="shadow">
+                <div id="admin-chat-header">
+                    <strong><i class="bi bi-person-lines-fill"></i> Admin Chat</strong>
+                    <button id="admin-chat-close" class="btn btn-sm btn-light"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div id="admin-chat-messages"></div>
+                <div id="admin-chat-input-area">
+                    <input type="text" id="admin-chat-input" placeholder="Type a message..." />
+                    <button id="admin-chat-send"><i class="bi bi-send"></i></button>
+                </div>
+            </div>
+        </div>
+    }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
