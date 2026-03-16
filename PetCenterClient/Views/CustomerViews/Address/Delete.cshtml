@@ -1,16 +1,121 @@
 ﻿@model AddressResponseDTO
 
-<div class="container mt-4">
-    <div class="alert alert-danger">
-        <h4>⚠️ Cảnh báo xóa!</h4>
-        <p>Bạn có chắc chắn muốn xóa địa chỉ: <strong>@Model.AddressDetails</strong> không?</p>
-    </div>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-    <div>
-        <form asp-action="Delete">
-            <input type="hidden" asp-for="AddressId" />
-            <button type="submit" class="btn btn-danger">Xác nhận xóa vĩnh viễn</button>
-            <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
-        </form>
+<style>
+    :root {
+        --g3: #2ecc71;
+        --g4: #27ae60;
+        --ink: #0f1f0f;
+        --ink2: #374151;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --surface: #fff;
+        --radius: 16px;
+        --font: 'Nunito',sans-serif;
+    }
+
+    .pg {
+        font-family: var(--font);
+        color: var(--ink);
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 32px 16px;
+    }
+
+    .del-card {
+        background: var(--surface);
+        border: 1.5px solid #fecaca;
+        border-radius: var(--radius);
+        padding: 32px 28px;
+        text-align: center;
+    }
+
+    .del-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    .del-title {
+        font-size: 20px;
+        font-weight: 900;
+        color: #991b1b;
+        margin-bottom: 8px;
+    }
+
+    .del-desc {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+
+    .del-addr {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: 24px;
+    }
+
+    .del-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn-confirm {
+        background: #ef4444;
+        color: #fff;
+        font-family: var(--font);
+        font-weight: 800;
+        font-size: 14px;
+        padding: 11px 24px;
+        border: none;
+        border-radius: 100px;
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+        .btn-confirm:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+    .btn-cancel {
+        background: transparent;
+        color: var(--muted);
+        font-family: var(--font);
+        font-weight: 700;
+        font-size: 14px;
+        padding: 11px 22px;
+        border: 1.5px solid var(--border);
+        border-radius: 100px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all .2s;
+    }
+
+        .btn-cancel:hover {
+            border-color: var(--ink2);
+            color: var(--ink);
+            text-decoration: none;
+        }
+</style>
+
+<div class="pg">
+    <div class="del-card">
+        <div class="del-icon">🗑️</div>
+        <div class="del-title">Delete Address</div>
+        <p class="del-desc">Are you sure you want to delete this address? This action cannot be undone.</p>
+        <div class="del-addr">@Model.AddressDetails</div>
+        <div class="del-actions">
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="AddressId" />
+                <button type="submit" class="btn-confirm">Yes, Delete</button>
+            </form>
+            <a asp-action="Index" class="btn-cancel">← Cancel</a>
+        </div>
     </div>
 </div>

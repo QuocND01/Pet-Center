@@ -1,33 +1,256 @@
 ﻿@model IEnumerable<AddressResponseDTO>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Quản lý Địa chỉ</h2>
-        <a asp-action="Create" class="btn btn-success">➕ Thêm mới</a>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --g0: #f0fdf4;
+        --g1: #dcfce7;
+        --g3: #2ecc71;
+        --g4: #27ae60;
+        --g5: #166534;
+        --ink: #0f1f0f;
+        --ink2: #374151;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --surface: #fff;
+        --radius: 16px;
+        --shadow: 0 4px 20px rgba(0,0,0,.07);
+        --font: 'Nunito',sans-serif;
+    }
+
+    .pg {
+        font-family: var(--font);
+        color: var(--ink);
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 16px;
+    }
+
+    /* Header */
+    .pg-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+    }
+
+    .pg-title {
+        font-size: 26px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .pg-title span {
+            font-size: 28px;
+        }
+
+    .btn-add {
+        background: var(--g3);
+        color: #fff;
+        font-family: var(--font);
+        font-weight: 800;
+        font-size: 13px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 100px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all .2s;
+        box-shadow: 0 4px 12px rgba(46,204,113,.3);
+    }
+
+        .btn-add:hover {
+            background: var(--g4);
+            transform: translateY(-1px);
+            color: #fff;
+            text-decoration: none;
+        }
+
+    /* Empty */
+    .empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted);
+    }
+
+    .empty-icon {
+        font-size: 52px;
+        margin-bottom: 12px;
+    }
+
+    .empty-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: 6px;
+    }
+
+    /* Grid */
+    .addr-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+        gap: 16px;
+    }
+
+    .addr-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        transition: all .2s;
+        position: relative;
+    }
+
+        .addr-card:hover {
+            border-color: var(--g3);
+            box-shadow: 0 8px 28px rgba(46,204,113,.12);
+            transform: translateY(-3px);
+        }
+
+        .addr-card.is-default {
+            border-color: var(--g3);
+            background: var(--g0);
+        }
+
+    .default-badge {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        background: var(--g1);
+        color: var(--g5);
+        font-size: 10px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 100px;
+        letter-spacing: .04em;
+    }
+
+    .addr-icon {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .addr-detail {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: 4px;
+    }
+
+    .addr-meta {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .addr-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-edit, .btn-del {
+        font-family: var(--font);
+        font-size: 12px;
+        font-weight: 800;
+        padding: 7px 16px;
+        border-radius: 100px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all .2s;
+    }
+
+    .btn-edit {
+        background: var(--g1);
+        color: var(--g5);
+    }
+
+        .btn-edit:hover {
+            background: var(--g3);
+            color: #fff;
+            text-decoration: none;
+        }
+
+    .btn-del {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+        .btn-del:hover {
+            background: #ef4444;
+            color: #fff;
+            text-decoration: none;
+        }
+
+    /* Alert */
+    .alert-ok {
+        background: var(--g1);
+        color: var(--g5);
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+<div class="pg">
+    <div class="pg-header">
+        <div class="pg-title"><span>📍</span> My Addresses</div>
+        <a asp-action="Create" class="btn-add">＋ Add Address</a>
     </div>
 
-    <table class="table table-hover border">
-        <thead class="table-dark">
-            <tr>
-                <th>Chi tiết</th>
-                <th>Tỉnh/Thành</th>
-                <th>Mặc định</th>
-                <th class="text-center">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-ok">✓ @TempData["Success"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="empty">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">No addresses yet</div>
+            <p>Add an address to checkout faster</p>
+        </div>
+    }
+    else
+    {
+        <div class="addr-grid">
             @foreach (var item in Model)
             {
-                <tr>
-                    <td>@item.AddressDetails</td>
-                    <td>@item.Province</td>
-                    <td>@(item.IsDefault == true ? "✅" : "❌")</td>
-                    <td class="text-center">
-                        <a asp-action="Edit" asp-route-id="@item.AddressId" class="btn btn-sm btn-warning">Sửa</a>
-                        <a asp-action="Delete" asp-route-id="@item.AddressId" class="btn btn-sm btn-danger">Xóa</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                <div class="addr-card @(item.IsDefault == true ? "is-default" : "")">
+                    @if (item.IsDefault == true)
+                    {
+                        <span class="default-badge">✦ Default</span>
+                    }
+                <div class="addr-icon">🏠</div>
+                <div class="addr-detail">@item.AddressDetails</div>
+                <div class="addr-meta">
+                    @(new[] { item.Ward, item.District, item.Province }
+                                    .Where(s => !string.IsNullOrEmpty(s))
+                                    .Aggregate("", (a, b) => a == "" ? b : a + ", " + b))
+            </div>
+            <div class="addr-actions">
+                <a asp-action="Edit" asp-route-id="@item.AddressId" class="btn-edit">✏ Edit</a>
+                <a asp-action="Delete" asp-route-id="@item.AddressId" class="btn-del">🗑 Delete</a>
+            </div>
+        </div>
+                }
+        </div>
+    }
 </div>
