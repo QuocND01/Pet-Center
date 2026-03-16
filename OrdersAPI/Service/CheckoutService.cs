@@ -33,35 +33,31 @@ namespace OrdersAPI.Service
             decimal totalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
             decimal discountAmount = 0;
 
-            // Apply voucher
+            // Apply voucher nếu customer chọn
             if (dto.VoucherId.HasValue)
             {
-                var cv = await _voucherContext.CustomerVouchers
-                    .Include(x => x.Voucher)
-                    .FirstOrDefaultAsync(x =>
-                        x.CustomerId == dto.CustomerId &&
-                        x.VoucherId == dto.VoucherId.Value &&
-                        x.IsUsed != true);   // FIX: != true matches both false AND null
+                var voucher = await _voucherContext.Vouchers
+                    .FirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId.Value
+                                           && v.IsActive == true);
 
-                if (cv?.Voucher != null)
+                if (voucher != null)
                 {
-                    var v = cv.Voucher;
-                    bool valid = v.IsActive == true
-                               && (v.ExpiredDate == null || v.ExpiredDate > DateTime.UtcNow)
-                               && (v.MinOrderAmount == null || totalAmount >= v.MinOrderAmount);
+                    var now = DateTime.UtcNow;
+                    bool valid = (voucher.ExpiredDate == null || voucher.ExpiredDate > now)
+                              && (voucher.MinOrderAmount == null || totalAmount >= voucher.MinOrderAmount);
 
-                    if (valid && v.DiscountPercent.HasValue)
+                    if (valid && voucher.DiscountPercent.HasValue)
                     {
-                        discountAmount = totalAmount * v.DiscountPercent.Value / 100m;
-                        if (v.MaxDiscountAmount.HasValue && discountAmount > v.MaxDiscountAmount.Value)
-                            discountAmount = v.MaxDiscountAmount.Value;
+                        discountAmount = totalAmount * voucher.DiscountPercent.Value / 100m;
+                        if (voucher.MaxDiscountAmount.HasValue && discountAmount > voucher.MaxDiscountAmount.Value)
+                            discountAmount = voucher.MaxDiscountAmount.Value;
                     }
                 }
             }
 
             decimal finalAmount = totalAmount - discountAmount;
 
-            // Create Order
+            // Tạo Order
             var order = new Order
             {
                 OrderId = Guid.NewGuid(),
@@ -77,7 +73,7 @@ namespace OrdersAPI.Service
             await _orderRepo.AddAsync(order);
             await _orderRepo.SaveChangesAsync();
 
-            // Create OrderDetails
+            // Tạo OrderDetails
             foreach (var item in dto.Items)
             {
                 await _detailRepo.AddAsync(new OrderDetail
@@ -91,21 +87,33 @@ namespace OrdersAPI.Service
             }
             await _detailRepo.SaveChangesAsync();
 
-            // Mark voucher used
+            // Ghi nhận customer đã dùng voucher vào CustomerVouchers
             if (dto.VoucherId.HasValue && discountAmount > 0)
             {
-                var cv = await _voucherContext.CustomerVouchers
-                    .FirstOrDefaultAsync(x =>
-                        x.CustomerId == dto.CustomerId &&
-                        x.VoucherId == dto.VoucherId.Value);
-                if (cv != null)
+                var existingCv = await _voucherContext.CustomerVouchers
+                    .FirstOrDefaultAsync(cv => cv.CustomerId == dto.CustomerId
+                                            && cv.VoucherId == dto.VoucherId.Value);
+
+                if (existingCv != null)
                 {
-                    cv.IsUsed = true;
-                    await _voucherContext.SaveChangesAsync();
+                    // Đã có record (do lần trước gán sẵn) → đánh dấu đã dùng
+                    existingCv.IsUsed = true;
                 }
+                else
+                {
+                    // Chưa có record → tạo mới với IsUsed = true để ghi nhận đã dùng
+                    _voucherContext.CustomerVouchers.Add(new CustomerVoucher
+                    {
+                        CustomerId = dto.CustomerId,
+                        VoucherId = dto.VoucherId.Value,
+                        IsUsed = true
+                    });
+                }
+
+                await _voucherContext.SaveChangesAsync();
             }
 
-            // Clear only checked-out products from cart
+            // Xóa sản phẩm đã checkout khỏi Cart
             var cart = await _cartRepo.GetCartByCustomerIdAsync(dto.CustomerId);
             if (cart != null)
             {
@@ -133,80 +141,83 @@ namespace OrdersAPI.Service
         {
             var now = DateTime.UtcNow;
 
-            // FIX: IsUsed != true  →  matches NULL và false (cả hai đều là "chưa dùng")
-            var list = await _voucherContext.CustomerVouchers
-                .Include(cv => cv.Voucher)
-                .Where(cv =>
-                    cv.CustomerId == customerId &&
-                    cv.IsUsed != true &&                                        // FIX: != true thay vì == false
-                    cv.Voucher.IsActive == true &&
-                    (cv.Voucher.ExpiredDate == null || cv.Voucher.ExpiredDate > now) &&
-                    (cv.Voucher.MinOrderAmount == null || cv.Voucher.MinOrderAmount <= orderAmount))
-                .Select(cv => new CustomerVoucherDTO
-                {
-                    VoucherId = cv.VoucherId,
-                    Code = cv.Voucher.Code,
-                    Description = cv.Voucher.Description,
-                    DiscountPercent = cv.Voucher.DiscountPercent,
-                    MinOrderAmount = cv.Voucher.MinOrderAmount,
-                    MaxDiscountAmount = cv.Voucher.MaxDiscountAmount,
-                    ExpiredDate = cv.Voucher.ExpiredDate,
-                    IsUsed = cv.IsUsed ?? false
-                })
+            // Lấy danh sách VoucherId mà customer này đã dùng rồi
+            var usedVoucherIds = await _voucherContext.CustomerVouchers
+                .Where(cv => cv.CustomerId == customerId && cv.IsUsed == true)
+                .Select(cv => cv.VoucherId)
                 .ToListAsync();
 
-            return list;
+            // Lấy TẤT CẢ voucher active, chưa hết hạn, đủ điều kiện đơn hàng
+            // và loại trừ những voucher customer đã dùng
+            var vouchers = await _voucherContext.Vouchers
+                .Where(v => v.IsActive == true
+                         && !usedVoucherIds.Contains(v.VoucherId)
+                         && (v.ExpiredDate == null || v.ExpiredDate > now)
+                         && (v.MinOrderAmount == null || v.MinOrderAmount <= orderAmount))
+                .ToListAsync();
+
+            return vouchers.Select(v => new CustomerVoucherDTO
+            {
+                VoucherId = v.VoucherId,
+                Code = v.Code,
+                Description = v.Description,
+                DiscountPercent = v.DiscountPercent,
+                MinOrderAmount = v.MinOrderAmount,
+                MaxDiscountAmount = v.MaxDiscountAmount,
+                ExpiredDate = v.ExpiredDate,
+                IsUsed = false
+            }).ToList();
         }
 
         public async Task<VoucherValidateResponseDTO> ValidateVoucherAsync(VoucherValidateRequestDTO dto)
         {
             var now = DateTime.UtcNow;
 
-            // FIX: IsUsed != true
-            var cv = await _voucherContext.CustomerVouchers
-                .Include(x => x.Voucher)
-                .FirstOrDefaultAsync(x =>
-                    x.CustomerId == dto.CustomerId &&
-                    x.Voucher.Code == dto.Code &&
-                    x.IsUsed != true);   // FIX
+            // Tìm voucher theo code
+            var voucher = await _voucherContext.Vouchers
+                .FirstOrDefaultAsync(v => v.Code == dto.Code && v.IsActive == true);
 
-            if (cv == null)
-                return new VoucherValidateResponseDTO { Valid = false, Message = "Voucher not found or already used." };
+            if (voucher == null)
+                return new VoucherValidateResponseDTO { Valid = false, Message = "Voucher not found or inactive." };
 
-            var v = cv.Voucher;
+            // Kiểm tra customer đã dùng voucher này chưa
+            bool alreadyUsed = await _voucherContext.CustomerVouchers
+                .AnyAsync(cv => cv.CustomerId == dto.CustomerId
+                             && cv.VoucherId == voucher.VoucherId
+                             && cv.IsUsed == true);
 
-            if (v.IsActive != true)
-                return new VoucherValidateResponseDTO { Valid = false, Message = "Voucher is inactive." };
+            if (alreadyUsed)
+                return new VoucherValidateResponseDTO { Valid = false, Message = "You have already used this voucher." };
 
-            if (v.ExpiredDate.HasValue && v.ExpiredDate < now)
+            if (voucher.ExpiredDate.HasValue && voucher.ExpiredDate < now)
                 return new VoucherValidateResponseDTO { Valid = false, Message = "Voucher has expired." };
 
-            if (v.MinOrderAmount.HasValue && dto.OrderAmount < v.MinOrderAmount.Value)
+            if (voucher.MinOrderAmount.HasValue && dto.OrderAmount < voucher.MinOrderAmount.Value)
                 return new VoucherValidateResponseDTO
                 {
                     Valid = false,
-                    Message = $"Minimum order amount is {v.MinOrderAmount.Value:N0} ₫."
+                    Message = $"Minimum order amount is {voucher.MinOrderAmount.Value:N0} ₫."
                 };
 
             decimal disc = 0;
-            if (v.DiscountPercent.HasValue)
+            if (voucher.DiscountPercent.HasValue)
             {
-                disc = dto.OrderAmount * v.DiscountPercent.Value / 100m;
-                if (v.MaxDiscountAmount.HasValue && disc > v.MaxDiscountAmount.Value)
-                    disc = v.MaxDiscountAmount.Value;
+                disc = dto.OrderAmount * voucher.DiscountPercent.Value / 100m;
+                if (voucher.MaxDiscountAmount.HasValue && disc > voucher.MaxDiscountAmount.Value)
+                    disc = voucher.MaxDiscountAmount.Value;
             }
 
             return new VoucherValidateResponseDTO
             {
                 Valid = true,
                 Message = "Voucher applied!",
-                VoucherId = v.VoucherId,
-                Code = v.Code,
-                DiscountPercent = v.DiscountPercent,
-                MaxDiscountAmount = v.MaxDiscountAmount,
+                VoucherId = voucher.VoucherId,
+                Code = voucher.Code,
+                DiscountPercent = voucher.DiscountPercent,
+                MaxDiscountAmount = voucher.MaxDiscountAmount,
                 DiscountAmount = disc,
                 FinalAmount = dto.OrderAmount - disc,
-                Description = v.Description
+                Description = voucher.Description
             };
         }
     }

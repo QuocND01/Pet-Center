@@ -169,6 +169,18 @@
       ]
     },
     {
+      "UpstreamPathTemplate": "/address-service/Addresses/customer/{customerId}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/Addresses/customer/{customerId}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7297
+        }
+      ]
+    },
+    {
       "UpstreamPathTemplate": "/address-service/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{everything}",
