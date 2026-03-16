@@ -31,7 +31,6 @@
         gap: 10px;
     }
 
-    /* Toast notification */
     .toast-container {
         position: fixed;
         top: 20px;
@@ -53,18 +52,29 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        animation: slideInRight 0.3s ease;
+        animation: slideIn 0.3s ease;
     }
 
-    .toast-msg.success { background: #27ae60; }
-    .toast-msg.error   { background: #e74c3c; }
+        .toast-msg.success {
+            background: #27ae60;
+        }
 
-    @@keyframes slideInRight {
-        from { opacity: 0; transform: translateX(40px); }
-        to   { opacity: 1; transform: translateX(0); }
+        .toast-msg.error {
+            background: #e74c3c;
+        }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
-    /* Cart table */
     .cart-card {
         background: #fff;
         border-radius: 14px;
@@ -78,37 +88,64 @@
         border-collapse: collapse;
     }
 
-    .cart-table thead {
-        background: #f8f9fa;
+        .cart-table thead {
+            background: #f8f9fa;
+        }
+
+            .cart-table thead th {
+                padding: 14px 16px;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                letter-spacing: 0.5px;
+                border-bottom: 1px solid var(--border);
+            }
+
+        .cart-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+            .cart-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .cart-table tbody tr:hover {
+                background: #f8fffe;
+            }
+
+            .cart-table tbody tr.row-selected {
+                background: #f0fdf4;
+            }
+
+        .cart-table td {
+            padding: 16px;
+            vertical-align: middle;
+        }
+
+    .item-checkbox {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary);
+        cursor: pointer;
     }
 
-    .cart-table thead th {
-        padding: 14px 16px;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        letter-spacing: 0.5px;
+    .select-all-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
         border-bottom: 1px solid var(--border);
+        background: #fafafa;
     }
 
-    .cart-table tbody tr {
-        border-bottom: 1px solid var(--border);
-        transition: background 0.15s;
-    }
-
-    .cart-table tbody tr:last-child {
-        border-bottom: none;
-    }
-
-    .cart-table tbody tr:hover {
-        background: #f8fffe;
-    }
-
-    .cart-table td {
-        padding: 16px;
-        vertical-align: middle;
-    }
+        .select-all-wrap label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
 
     .product-img {
         width: 72px;
@@ -116,6 +153,7 @@
         object-fit: cover;
         border-radius: 10px;
         border: 1px solid var(--border);
+        background: #f0f0f0;
     }
 
     .product-name {
@@ -125,7 +163,9 @@
         text-decoration: none;
     }
 
-    .product-name:hover { color: var(--primary); }
+        .product-name:hover {
+            color: var(--primary);
+        }
 
     .price-text {
         font-weight: 600;
@@ -134,15 +174,20 @@
 
     .subtotal-text {
         font-weight: 700;
-        color: var(--primary-dark);
         font-size: 15px;
     }
 
-    /* Quantity control */
+        .subtotal-text.highlighted {
+            color: var(--primary-dark);
+        }
+
+        .subtotal-text.dimmed {
+            color: #bdc3c7;
+        }
+
     .qty-control {
         display: flex;
         align-items: center;
-        gap: 0;
         border: 1.5px solid var(--border);
         border-radius: 8px;
         overflow: hidden;
@@ -157,14 +202,15 @@
         font-size: 18px;
         font-weight: 700;
         cursor: pointer;
-        transition: background 0.15s;
         color: var(--text-dark);
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .qty-btn:hover { background: #e0e0e0; }
+        .qty-btn:hover {
+            background: #e0e0e0;
+        }
 
     .qty-input {
         width: 52px;
@@ -180,10 +226,6 @@
         background: white;
     }
 
-    .qty-input::-webkit-inner-spin-button,
-    .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-    /* Remove button */
     .btn-remove {
         background: none;
         border: none;
@@ -194,20 +236,27 @@
         padding: 4px 8px;
     }
 
-    .btn-remove:hover { color: var(--danger); }
+        .btn-remove:hover {
+            color: var(--danger);
+        }
 
-    /* Empty cart */
     .empty-cart {
         text-align: center;
         padding: 60px 20px;
         color: var(--text-muted);
     }
 
-    .empty-cart-icon { font-size: 60px; margin-bottom: 16px; }
-    .empty-cart h4 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-    .empty-cart p { font-size: 14px; }
+    .empty-cart-icon {
+        font-size: 60px;
+        margin-bottom: 16px;
+    }
 
-    /* Cart footer / summary */
+    .empty-cart h4 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
     .cart-footer {
         background: #fff;
         border-radius: 14px;
@@ -232,16 +281,43 @@
         transition: all 0.2s;
     }
 
-    .btn-clear:hover { background: var(--danger); color: white; }
+        .btn-clear:hover {
+            background: var(--danger);
+            color: white;
+        }
 
-    .cart-total-section {
+    .cart-summary-section {
         display: flex;
         align-items: center;
         gap: 20px;
+        flex-wrap: wrap;
     }
 
-    .total-label { font-size: 16px; color: var(--text-muted); }
-    .total-amount { font-size: 26px; font-weight: 800; color: var(--primary-dark); }
+    .summary-info {
+        min-width: 200px;
+    }
+
+    .selected-count-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .selected-count-val {
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    .total-label {
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .total-amount {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--primary-dark);
+    }
 
     .btn-checkout {
         background: var(--primary);
@@ -253,35 +329,24 @@
         font-weight: 700;
         cursor: pointer;
         transition: all 0.2s;
-        text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .btn-checkout:hover {
-        background: var(--primary-dark);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(46,204,113,0.3);
-    }
-
-    @@media (max-width: 768px) {
-        .cart-table thead { display: none; }
-        .cart-table td { display: block; padding: 8px 16px; }
-        .cart-table td::before {
-            content: attr(data-label);
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 4px;
+        .btn-checkout:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46,204,113,0.3);
         }
-        .cart-footer { flex-direction: column; align-items: stretch; }
-        .cart-total-section { justify-content: space-between; }
-    }
+
+        .btn-checkout:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
 </style>
 
-<!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="cart-wrapper">
@@ -302,7 +367,8 @@
                 <div class="empty-cart-icon">🛒</div>
                 <h4>Your cart is empty</h4>
                 <p>Looks like you haven't added anything yet.</p>
-                <a asp-controller="Products" asp-action="Index" class="btn-checkout mt-3" style="display:inline-block;padding:12px 28px;">
+                <a asp-controller="Products" asp-action="Index"
+                   style="display:inline-block;margin-top:16px;padding:12px 28px;background:var(--primary);color:white;border-radius:10px;font-weight:700;text-decoration:none;">
                     Browse Products
                 </a>
             </div>
@@ -311,9 +377,15 @@
     else
     {
         <div class="cart-card">
+            <div class="select-all-wrap">
+                <input type="checkbox" id="selectAll" class="item-checkbox" />
+                <label for="selectAll">Select All</label>
+                <span id="selectedCountLabel" style="font-size:12px;color:var(--text-muted);margin-left:8px;">(0 selected)</span>
+            </div>
             <table class="cart-table">
                 <thead>
                     <tr>
+                        <th style="width:40px;"></th>
                         <th style="width:80px;">Image</th>
                         <th>Product</th>
                         <th>Price</th>
@@ -325,53 +397,68 @@
                 <tbody id="cartBody">
                     @foreach (var item in Model.CartDetails)
                     {
+                        var priceStr = (item.ProductPrice ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                        var stockQty = item.StockQuantity ?? 9999;
+                        var imgSrc = string.IsNullOrEmpty(item.ImageUrl) ? "" : item.ImageUrl;
                         <tr id="row-@item.CartDetailId" data-detail-id="@item.CartDetailId">
-                            <td data-label="Image">
-                                <img src="@item.ImageUrl" class="product-img"
-                                     onerror="this.src='/images/no-image.png'" />
+                            <td>
+                                <input type="checkbox"
+                                       class="item-checkbox row-check"
+                                       data-detail-id="@item.CartDetailId"
+                                       data-product-id="@item.ProductId"
+                                       data-price="@priceStr"
+                                       onchange="onRowCheck(this)" />
                             </td>
-                            <td data-label="Product">
-                                <a asp-controller="Products"
-                                   asp-action="DetailsForcustomer"
-                                   asp-route-id="@item.ProductId"
-                                   class="product-name">
+                            <td>
+                                @if (!string.IsNullOrEmpty(imgSrc))
+                                {
+                                    <!-- FIX: guard với data-errored để tránh onerror loop -->
+                                    <img src="@imgSrc"
+                                         class="product-img"
+                                         onerror="imgFallback(this)" />
+                                }
+                                else
+                                {
+                                    <div class="product-img" style="display:flex;align-items:center;justify-content:center;font-size:28px;">🐾</div>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Products" asp-action="DetailsForcustomer"
+                                   asp-route-id="@item.ProductId" class="product-name">
                                     @item.ProductName
                                 </a>
                             </td>
-                            <td data-label="Price">
+                            <td>
                                 <span class="price-text">@item.ProductPrice?.ToString("N0") ₫</span>
                             </td>
-                            <td data-label="Quantity">
+                            <td>
                                 <div class="qty-control">
-                                    <button class="qty-btn btn-minus"
-                                            onclick="changeQty('@item.CartDetailId', -1, @item.StockQuantity)"
-                                            type="button">
+                                    <button class="qty-btn" type="button"
+                                            onclick="stepQty('@item.CartDetailId', -1, @stockQty)">
                                         −
                                     </button>
-                                    <input type="number"
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*"
                                            class="qty-input"
                                            id="qty-@item.CartDetailId"
                                            value="@item.Quantity"
-                                           min="1"
-                                           max="@item.StockQuantity"
-                                           onchange="setQty('@item.CartDetailId', this.value, @item.StockQuantity)"
-                                           data-price="@item.ProductPrice" />
-                                    <button class="qty-btn btn-plus"
-                                            onclick="changeQty('@item.CartDetailId', 1, @item.StockQuantity)"
-                                            type="button">
+                                           data-max="@stockQty"
+                                           data-price="@priceStr"
+                                           data-detail-id="@item.CartDetailId"
+                                           onblur="commitQty(this)" />
+                                    <button class="qty-btn" type="button"
+                                            onclick="stepQty('@item.CartDetailId', 1, @stockQty)">
                                         +
                                     </button>
                                 </div>
                             </td>
-                            <td data-label="Subtotal">
-                                <span class="subtotal-text" id="sub-@item.CartDetailId">
+                            <td>
+                                <span class="subtotal-text dimmed" id="sub-@item.CartDetailId">
                                     @item.SubTotal.ToString("N0") ₫
                                 </span>
                             </td>
                             <td>
-                                <button class="btn-remove"
-                                        onclick="removeItem('@item.CartDetailId')"
-                                        title="Remove item">
+                                <button class="btn-remove" type="button"
+                                        onclick="removeItem('@item.CartDetailId')">
                                     ✕
                                 </button>
                             </td>
@@ -382,174 +469,214 @@
         </div>
 
         <div class="cart-footer">
-            <button class="btn-clear" onclick="clearCart()">🗑 Clear All</button>
-
-            <div class="cart-total-section">
-                <div>
-                    <div class="total-label">Total</div>
-                    <div class="total-amount" id="cartTotal">
-                        @Model.CartDetails.Sum(x => x.SubTotal).ToString("N0") ₫
+            <button class="btn-clear" type="button" onclick="clearCart()">🗑 Clear All</button>
+            <div class="cart-summary-section">
+                <div class="summary-info">
+                    <div class="selected-count-label">
+                        Selected: <span class="selected-count-val" id="selectedCountDisplay">0</span> item(s)
                     </div>
+                    <div class="total-label">Selected Total</div>
+                    <div class="total-amount" id="selectedTotal">0 ₫</div>
                 </div>
-                <a asp-controller="Orders" asp-action="Create" class="btn-checkout">
+                <button class="btn-checkout" id="checkoutBtn" type="button"
+                        onclick="goToCheckout()" disabled>
                     Checkout →
-                </a>
+                </button>
             </div>
         </div>
     }
 </div>
 
 <script>
-    // ========================
-    // TOAST NOTIFICATION
-    // ========================
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
-        const icon = type === 'success' ? '✓' : '✕';
-        const toast = document.createElement('div');
-        toast.className = `toast-msg ${type}`;
-        toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.4s';
-            setTimeout(() => toast.remove(), 400);
+    // ─────────────────────────────────────────────────────────────
+    // FIX INFINITE LOOP: onerror fallback dùng inline SVG data-uri
+    // Không dùng file path vì nếu file không tồn tại → onerror lại fire
+    // ─────────────────────────────────────────────────────────────
+    var FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%23f0f0f0' rx='10'/%3E%3Ctext x='36' y='44' font-size='28' text-anchor='middle'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E";
+
+    function imgFallback(img) {
+        // Nếu đã set fallback rồi thì không làm gì nữa — tránh loop
+        if (img.dataset.errored) return;
+        img.dataset.errored = '1';
+        img.onerror = null;          // bỏ listener hoàn toàn
+        img.src = FALLBACK_IMG;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // TOAST
+    // ─────────────────────────────────────────────────────────────
+    function showToast(message, type) {
+        var c = document.getElementById('toastContainer');
+        var t = document.createElement('div');
+        t.className = 'toast-msg ' + (type || 'success');
+        t.innerHTML = '<span>' + (type === 'error' ? '✕' : '✓') + '</span><span>' + message + '</span>';
+        c.appendChild(t);
+        setTimeout(function() {
+            t.style.opacity = '0'; t.style.transition = 'opacity 0.4s';
+            setTimeout(function() { t.remove(); }, 400);
         }, 3000);
     }
 
-    // ========================
-    // RECALCULATE TOTAL
-    // ========================
-    function recalcTotal() {
-        let total = 0;
-        document.querySelectorAll('.qty-input').forEach(input => {
-            const row = input.closest('tr');
-            const price = parseFloat(input.dataset.price) || 0;
-            const qty = parseInt(input.value) || 0;
-            const sub = price * qty;
-            const detailId = row.dataset.detailId;
-            const subEl = document.getElementById('sub-' + detailId);
-            if (subEl) subEl.textContent = sub.toLocaleString('vi-VN') + ' ₫';
-            total += sub;
+    // ─────────────────────────────────────────────────────────────
+    // SELECT ALL
+    // ─────────────────────────────────────────────────────────────
+    var selectAllCb = document.getElementById('selectAll');
+    if (selectAllCb) {
+        selectAllCb.addEventListener('change', function() {
+            document.querySelectorAll('.row-check').forEach(function(cb) {
+                cb.checked = selectAllCb.checked;
+                updateRowStyle(cb);
+            });
+            recalcTotal();
         });
-        const totalEl = document.getElementById('cartTotal');
-        if (totalEl) totalEl.textContent = total.toLocaleString('vi-VN') + ' ₫';
     }
 
-    // ========================
-    // CHANGE QTY (±1 buttons)
-    // ========================
-    function changeQty(detailId, delta, maxQty) {
-        const input = document.getElementById('qty-' + detailId);
+    function onRowCheck(cb) {
+        updateRowStyle(cb);
+        recalcTotal();
+        syncSelectAll();
+    }
+
+    function updateRowStyle(cb) {
+        var row   = cb.closest('tr');
+        var subEl = document.getElementById('sub-' + cb.dataset.detailId);
+        if (cb.checked) {
+            row.classList.add('row-selected');
+            if (subEl) { subEl.classList.remove('dimmed'); subEl.classList.add('highlighted'); }
+        } else {
+            row.classList.remove('row-selected');
+            if (subEl) { subEl.classList.add('dimmed'); subEl.classList.remove('highlighted'); }
+        }
+    }
+
+    function syncSelectAll() {
+        if (!selectAllCb) return;
+        var all     = document.querySelectorAll('.row-check').length;
+        var checked = document.querySelectorAll('.row-check:checked').length;
+        selectAllCb.checked       = all > 0 && checked === all;
+        selectAllCb.indeterminate = checked > 0 && checked < all;
+    }
+
+    function recalcTotal() {
+        var total = 0;
+        document.querySelectorAll('.row-check:checked').forEach(function(cb) {
+            var price = parseFloat(cb.dataset.price) || 0;
+            var qty   = parseInt(document.getElementById('qty-' + cb.dataset.detailId)?.value) || 1;
+            total += price * qty;
+        });
+        var checked = document.querySelectorAll('.row-check:checked').length;
+        document.getElementById('selectedTotal').textContent = Math.round(total).toLocaleString('vi-VN') + ' ₫';
+        document.getElementById('selectedCountDisplay').textContent = checked;
+        var label = document.getElementById('selectedCountLabel');
+        if (label) label.textContent = '(' + checked + ' selected)';
+        var btn = document.getElementById('checkoutBtn');
+        if (btn) btn.disabled = checked === 0;
+    }
+
+    function updateRowSub(detailId) {
+        var cb    = document.querySelector('.row-check[data-detail-id="' + detailId + '"]');
+        var price = parseFloat(cb ? cb.dataset.price : '0') || 0;
+        var qty   = parseInt(document.getElementById('qty-' + detailId)?.value) || 1;
+        var subEl = document.getElementById('sub-' + detailId);
+        if (subEl) subEl.textContent = Math.round(price * qty).toLocaleString('vi-VN') + ' ₫';
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // QTY — step buttons, debounced save, blur commit
+    // ─────────────────────────────────────────────────────────────
+    var saveTimers = {};
+
+    function stepQty(detailId, delta, maxQty) {
+        var input  = document.getElementById('qty-' + detailId);
         if (!input) return;
-        let newVal = parseInt(input.value) + delta;
-        if (newVal < 1) newVal = 1;
-        if (maxQty && newVal > maxQty) {
-            showToast('Cannot exceed available stock (' + maxQty + ').', 'error');
-            return;
-        }
+        var newVal = (parseInt(input.value) || 1) + delta;
+        if (newVal < 1)       newVal = 1;
+        if (newVal > maxQty)  { showToast('Exceeds stock (' + maxQty + ').', 'error'); return; }
         input.value = newVal;
-        saveQty(detailId, newVal);
+        updateRowSub(detailId);
+        recalcTotal();
+        saveDebounced(detailId, newVal);
     }
 
-    // ========================
-    // SET QTY (manual input)
-    // ========================
-    function setQty(detailId, value, maxQty) {
-        let newVal = parseInt(value);
-        const input = document.getElementById('qty-' + detailId);
-        if (isNaN(newVal) || newVal < 1) {
-            newVal = 1;
-            input.value = 1;
-        }
-        if (maxQty && newVal > maxQty) {
-            showToast('Cannot exceed available stock (' + maxQty + ').', 'error');
-            input.value = maxQty;
-            newVal = maxQty;
-        }
-        saveQty(detailId, newVal);
+    function commitQty(input) {
+        var detailId = input.dataset.detailId;
+        var maxQty   = parseInt(input.dataset.max) || 9999;
+        var val      = parseInt(input.value) || 1;
+        if (val < 1)      val = 1;
+        if (val > maxQty) { showToast('Exceeds stock (' + maxQty + ').', 'error'); val = maxQty; }
+        if (parseInt(input.value) !== val) input.value = val;
+        updateRowSub(detailId);
+        recalcTotal();
+        saveDebounced(detailId, val);
     }
 
-    // ========================
-    // SAVE QTY TO API
-    // ========================
+    function saveDebounced(detailId, quantity) {
+        if (saveTimers[detailId]) clearTimeout(saveTimers[detailId]);
+        saveTimers[detailId] = setTimeout(function() { saveQty(detailId, quantity); }, 600);
+    }
+
     async function saveQty(detailId, quantity) {
         try {
-            const res = await fetch('@Url.Action("UpdateDetail", "Cart")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            var res  = await fetch('@Url.Action("UpdateDetail", "Cart")', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cartDetailId: detailId, quantity: quantity })
             });
-            const data = await res.json();
-            if (data.success) {
-                recalcTotal();
-            } else {
-                showToast(data.message || 'Failed to update quantity.', 'error');
-            }
-        } catch {
-            showToast('An error occurred. Please try again.', 'error');
-        }
+            var data = await res.json();
+            if (!data.success) showToast(data.message || 'Update failed.', 'error');
+        } catch(e) { showToast('Network error.', 'error'); }
     }
 
-    // ========================
-    // REMOVE SINGLE ITEM
-    // ========================
+    // ─────────────────────────────────────────────────────────────
+    // CHECKOUT
+    // ─────────────────────────────────────────────────────────────
+    function goToCheckout() {
+        var checked = document.querySelectorAll('.row-check:checked');
+        if (!checked.length) { showToast('Select at least one item.', 'error'); return; }
+        var parts = [];
+        checked.forEach(function(cb) {
+            var detailId  = cb.dataset.detailId;
+            var productId = cb.dataset.productId;
+            var price     = cb.dataset.price;
+            var qty       = parseInt(document.getElementById('qty-' + detailId)?.value) || 1;
+            parts.push(productId + ':' + detailId + ':' + qty + ':' + price);
+        });
+        window.location.href = '/Checkout?items=' + encodeURIComponent(parts.join(','));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // REMOVE / CLEAR
+    // ─────────────────────────────────────────────────────────────
     async function removeItem(detailId) {
-        if (!confirm('Remove this item from your cart?')) return;
+        if (!confirm('Remove this item?')) return;
         try {
-            const res = await fetch('@Url.Action("DeleteDetail", "Cart")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            var res  = await fetch('@Url.Action("DeleteDetail", "Cart")', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cartDetailId: detailId })
             });
-            const data = await res.json();
+            var data = await res.json();
             if (data.success) {
-                const row = document.getElementById('row-' + detailId);
+                var row = document.getElementById('row-' + detailId);
                 if (row) {
-                    row.style.transition = 'opacity 0.3s';
-                    row.style.opacity = '0';
-                    setTimeout(() => {
-                        row.remove();
-                        recalcTotal();
-                        checkEmpty();
-                    }, 300);
+                    row.style.opacity = '0'; row.style.transition = 'opacity 0.3s';
+                    setTimeout(function() {
+                        row.remove(); recalcTotal(); syncSelectAll();
+                        if (!document.querySelectorAll('#cartBody tr').length) location.reload();
+                    }, 320);
                 }
-                showToast(data.message || 'Item removed.', 'success');
-            } else {
-                showToast(data.message || 'Failed to remove item.', 'error');
-            }
-        } catch {
-            showToast('An error occurred. Please try again.', 'error');
-        }
+                showToast('Item removed.', 'success');
+            } else { showToast(data.message || 'Failed.', 'error'); }
+        } catch(e) { showToast('Network error.', 'error'); }
     }
 
-    // ========================
-    // CLEAR ALL
-    // ========================
     async function clearCart() {
-        if (!confirm('Clear all items from your cart?')) return;
+        if (!confirm('Clear all items?')) return;
         try {
-            const res = await fetch('@Url.Action("ClearCart", "Cart")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+            var res  = await fetch('@Url.Action("ClearCart", "Cart")', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }
             });
-            const data = await res.json();
-            if (data.success) {
-                showToast(data.message || 'Cart cleared.', 'success');
-                setTimeout(() => location.reload(), 800);
-            } else {
-                showToast(data.message || 'Failed to clear cart.', 'error');
-            }
-        } catch {
-            showToast('An error occurred. Please try again.', 'error');
-        }
-    }
-
-    // ========================
-    // CHECK EMPTY STATE
-    // ========================
-    function checkEmpty() {
-        const rows = document.querySelectorAll('#cartBody tr');
-        if (rows.length === 0) location.reload();
+            var data = await res.json();
+            if (data.success) { showToast('Cart cleared.', 'success'); setTimeout(function() { location.reload(); }, 800); }
+            else { showToast(data.message || 'Failed.', 'error'); }
+        } catch(e) { showToast('Network error.', 'error'); }
     }
 </script>

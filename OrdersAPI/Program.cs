@@ -1,4 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OrdersAPI.Models;
 using OrdersAPI.Repository;
 using OrdersAPI.Repository.Interface;
@@ -11,24 +12,29 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// OrderService uses PetCenter_OrderService DB
+// ── Database Contexts ─────────────────────────────────────────────
 builder.Services.AddDbContext<PetCenterOrderServiceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// CartService uses PetCenter_CartService DB (separate DB)
 builder.Services.AddDbContext<PetCenterCartServiceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CartConnection")));
 
-// Order services
+builder.Services.AddDbContext<PetCenterVoucherServiceContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("VoucherConnection")));
+
+// ── Repositories ─────────────────────────────────────────────────
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
-builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
-
-// Cart services
 builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<ICartService, CartService>();
 
+// ── Services ─────────────────────────────────────────────────────
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+
+// ── AutoMapper ────────────────────────────────────────────────────
+// MappingProfile là class có sẵn trong OrdersAPI/Profile/MappingProfile.cs
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
 var app = builder.Build();
