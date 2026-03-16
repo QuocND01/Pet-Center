@@ -16,10 +16,12 @@
       asp-action="Create"
       asp-controller="Category">
 
+    <!-- HIỂN THỊ LỖI MODEL -->
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
     <div class="row">
 
         <!-- CATEGORY NAME -->
-
         <div class="col-md-12 mb-3">
 
             <label asp-for="CategoryName" class="form-label"></label>
@@ -27,14 +29,17 @@
             <input asp-for="CategoryName"
                    class="form-control" />
 
+            <span asp-validation-for="CategoryName"
+                  class="text-danger"></span>
+
         </div>
 
 
         <!-- LOGO URL -->
-
         <div class="col-md-12 mb-3">
 
-            <label class="form-label">Logo URL</label>
+            <label asp-for="CategoryLogo"
+                   class="form-label"></label>
 
             <input asp-for="CategoryLogo"
                    id="logoInput"
@@ -124,6 +129,7 @@
         `
 
         $("#attributeContainer").append(html)
+        $.validator.unobtrusive.parse("#attributeContainer")
 
         attrIndex++
 

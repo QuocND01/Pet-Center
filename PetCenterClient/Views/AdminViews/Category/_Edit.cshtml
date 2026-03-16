@@ -16,34 +16,38 @@
       asp-controller="Category"
       method="post">
 
-    <input type="hidden" name="CategoryId" value="@Model.CategoryId" />
+    <input type="hidden" asp-for="CategoryId" />
+
+    <!-- MODEL ERROR -->
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="row">
 
         <!-- CATEGORY NAME -->
-
         <div class="col-md-12 mb-3">
 
-            <label class="form-label">Category Name</label>
+            <label asp-for="CategoryName" class="form-label"></label>
 
-            <input name="CategoryName"
-                   class="form-control"
-                   value="@Model.CategoryName" />
+            <input asp-for="CategoryName"
+                   class="form-control" />
+
+            <span asp-validation-for="CategoryName"
+                  class="text-danger"></span>
 
         </div>
 
 
         <!-- LOGO URL -->
-
         <div class="col-md-12 mb-3">
 
-            <label class="form-label">Logo URL</label>
+            <label asp-for="CategoryLogo"
+                   class="form-label"></label>
 
-            <input name="CategoryLogo"
+            <input asp-for="CategoryLogo"
                    id="logoInput"
                    class="form-control"
-                   value="@Model.CategoryLogo"
                    placeholder="Enter category image url" />
+
 
         </div>
 
@@ -51,7 +55,6 @@
 
 
     <!-- PREVIEW -->
-
     <div class="mt-3">
 
         <label class="fw-bold">Preview</label>
@@ -88,9 +91,15 @@
                                value="@attr.CategoryAttributeId" />
 
                         <input name="Attributes[@index].AttributeName"
-                               class="form-control"
                                value="@attr.AttributeName"
+                               class="form-control"
+                               data-val="true"
+                               data-val-required="Attribute name is required"
                                placeholder="Attribute name" />
+
+                        <span class="text-danger field-validation-valid"
+                              data-valmsg-for="Attributes[@index].AttributeName"
+                              data-valmsg-replace="true"></span>
 
                         <button type="button"
                                 class="btn btn-danger removeAttr">
@@ -136,10 +145,8 @@
 
 </form>
 
-
 <script>
 
-    // preview logo
     $("#logoInput").on("input", function () {
 
         const url = $(this).val()
@@ -163,7 +170,13 @@
 
             <input name="Attributes[${attrIndex}].AttributeName"
                    class="form-control"
+                   data-val="true"
+                   data-val-required="Attribute name is required"
                    placeholder="Attribute name"/>
+
+            <span class="text-danger field-validation-valid"
+                  data-valmsg-for="Attributes[${attrIndex}].AttributeName"
+                  data-valmsg-replace="true"></span>
 
             <button type="button"
                     class="btn btn-danger removeAttr">
@@ -174,6 +187,8 @@
         `
 
         $("#attributeContainer").append(html)
+
+        $.validator.unobtrusive.parse("#attributeContainer")
 
         attrIndex++
 

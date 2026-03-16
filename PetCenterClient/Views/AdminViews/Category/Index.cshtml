@@ -246,7 +246,11 @@
 
             modalBody.html("Loading...");
 
-            modalBody.load(url);
+             modalBody.load(url, function () {
+
+            $.validator.unobtrusive.parse("#categoryModalBody");
+
+        });
 
         });
 
