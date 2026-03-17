@@ -19,9 +19,14 @@ namespace PetCenterClient.Controllers
         // 1. DANH SÁCH (READ ALL)
         public async Task<IActionResult> Index()
         {
-            var list = await _addressService.GetAllAsync();
-            // Cập nhật đường dẫn tới CustomerViews
-            return View("~/Views/CustomerViews/Address/Index.cshtml", list);
+            var profile = await _customerService.GetProfileAsync();
+            if (profile == null) return RedirectToAction("Login", "Auth");
+            var allAddresses = await _addressService.GetAllAsync();
+            var myAddresses = allAddresses
+                .Where(a => a.CustomerId == profile.CustomerId)
+                .ToList();
+
+            return View("~/Views/CustomerViews/Address/Index.cshtml", myAddresses);
         }
 
         // 2. CHI TIẾT (READ ONE)
@@ -66,8 +71,14 @@ namespace PetCenterClient.Controllers
         // 5. CHỈNH SỬA (GET)
         public async Task<IActionResult> Edit(Guid id)
         {
+            var profile = await _customerService.GetProfileAsync();
+            if (profile == null) return RedirectToAction("Login", "Auth");
+
             var address = await _addressService.GetByIdAsync(id);
-            if (address == null) return NotFound();
+
+            // Check xem địa chỉ này có phải của ông đang đăng nhập không
+            if (address == null || address.CustomerId != profile.CustomerId)
+                return Forbid();
 
             var editDto = new AddressCreateDTO
             {
