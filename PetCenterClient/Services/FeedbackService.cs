@@ -8,7 +8,7 @@ namespace PetCenterClient.Services
     public class FeedbackService : IFeedbackService
     {
         private readonly HttpClient _httpClient;
-
+        private const string PREFIX = "feedback-service/feedback/";
         public FeedbackService(HttpClient httpClient)
         {
             _httpClient = httpClient;
@@ -17,8 +17,7 @@ namespace PetCenterClient.Services
 
         public async Task<List<FeedbackDTO>> GetAllAsync()
         {
-            var res = await _httpClient.GetAsync("feedback/admin/all");
-
+            var res = await _httpClient.GetAsync(PREFIX + "admin/all");
             var json = await res.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
@@ -27,8 +26,7 @@ namespace PetCenterClient.Services
 
         public async Task<FeedbackDTO?> GetDetailAsync(Guid id)
         {
-            var res = await _httpClient.GetAsync($"feedback/detail/{id}");
-
+            var res = await _httpClient.GetAsync(PREFIX + $"detail/{id}");
             var json = await res.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<FeedbackDTO>(json);
@@ -36,8 +34,7 @@ namespace PetCenterClient.Services
 
         public async Task<List<FeedbackDTO>> GetByCustomerAsync(Guid customerId)
         {
-            var res = await _httpClient.GetAsync($"feedback/customer/{customerId}");
-
+            var res = await _httpClient.GetAsync(PREFIX + $"customer/{customerId}");
             var json = await res.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
@@ -46,8 +43,7 @@ namespace PetCenterClient.Services
 
         public async Task<List<FeedbackDTO>> GetByProductAsync(Guid productId)
         {
-            var res = await _httpClient.GetAsync($"feedback/product/{productId}");
-
+            var res = await _httpClient.GetAsync(PREFIX + $"product/{productId}");
             var json = await res.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
@@ -61,7 +57,7 @@ namespace PetCenterClient.Services
                 Encoding.UTF8,
                 "application/json");
 
-            await _httpClient.PostAsync("feedback", content);
+            await _httpClient.PostAsync(PREFIX, content);
         }
 
         public async Task ReplyAsync(Guid feedbackId, Guid staffId, string reply)
@@ -71,7 +67,7 @@ namespace PetCenterClient.Services
                 Encoding.UTF8,
                 "application/json");
 
-            await _httpClient.PutAsync($"feedback/reply/{feedbackId}?staffId={staffId}", content);
+            await _httpClient.PutAsync(PREFIX + $"reply/{feedbackId}?staffId={staffId}", content);
         }
 
         public async Task UpdateReplyAsync(Guid feedbackId, string reply)
@@ -81,22 +77,22 @@ namespace PetCenterClient.Services
                 Encoding.UTF8,
                 "application/json");
 
-            await _httpClient.PutAsync($"feedback/reply/update/{feedbackId}", content);
+            await _httpClient.PutAsync(PREFIX + $"reply/update/{feedbackId}", content);
         }
 
         public async Task DeleteReplyAsync(Guid feedbackId)
         {
-            await _httpClient.DeleteAsync($"feedback/reply/{feedbackId}");
+            await _httpClient.DeleteAsync(PREFIX + $"reply/{feedbackId}");
         }
 
         public async Task ToggleVisibilityAsync(Guid feedbackId)
         {
-            await _httpClient.PutAsync($"feedback/admin/toggle-visibility/{feedbackId}", null);
+            await _httpClient.PutAsync(PREFIX + $"admin/toggle-visibility/{feedbackId}", null);
         }
 
         public async Task DeleteAsync(Guid feedbackId)
         {
-            await _httpClient.DeleteAsync($"feedback/{feedbackId}");
+            await _httpClient.DeleteAsync(PREFIX + $"{feedbackId}");
         }
     }
 }
