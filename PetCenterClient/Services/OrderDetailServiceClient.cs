@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Json;
-using OrdersAPI.DTOs;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 

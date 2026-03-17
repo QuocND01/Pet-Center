@@ -31,6 +31,9 @@
                 <input type="date" id="filterToDate" class="form-control" onchange="filterTable()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
             </div>
             <button onclick="resetFilters()" style="padding: 9px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">Reset</button>
+            <button onclick="exportExcel()" class="btn-export" ; style="padding: 9px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                <i class="bi bi-file-earmark-excel"></i> Export
+            </button>
         </div>
         <div class="top-actions">
             <a asp-action="Create" class="btn-create">
@@ -169,5 +172,31 @@
         document.getElementById('filterFromDate').value = '';
         document.getElementById('filterToDate').value = '';
         filterTable();
+    }
+        function exportExcel() {
+        const fromDate = document.getElementById("filterFromDate").value;
+        const toDate = document.getElementById("filterToDate").value;
+
+        let url = `/ImportStocks/ExportExcel?`;
+
+        if (fromDate) url += `fromDate=${fromDate}&`;
+        if (toDate) url += `toDate=${toDate}`;
+
+        // 🔥 download file
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error("Export failed");
+                return res.blob();
+            })
+            .then(blob => {
+                const link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "ImportStocks.xlsx";
+                link.click();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Export failed!");
+            });
     }
 </script>

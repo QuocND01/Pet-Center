@@ -110,5 +110,15 @@ namespace InventoryAPI.Service
 
             return _mapper.Map<List<ReadImportHeaderDto>>(imports);
         }
+        public async Task<ImportExportResponseDto> Export(DateTime? fromDate, DateTime? toDate)
+        {
+            var (imports, details) = await _repo.GetExportData(fromDate, toDate);
+
+            return new ImportExportResponseDto
+            {
+                Imports = _mapper.Map<List<ReadImportHeaderDto>>(imports),
+                Details = _mapper.Map<List<ImportStockDetailDto>>(details)
+            };
+        }
     }
 }

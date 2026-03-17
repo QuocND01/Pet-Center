@@ -64,5 +64,11 @@ namespace InventoryAPI.Controllers
             await _service.CancelAsync(id);
             return NoContent();
         }
+        [HttpGet("export")]
+        public async Task<IActionResult> Export(DateTime? fromDate, DateTime? toDate)
+        {
+            var result = await _service.Export(fromDate, toDate);
+            return Ok(result);
+        }
     }
 }

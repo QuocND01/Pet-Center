@@ -5,7 +5,7 @@ using PetCenterClient.Services.Interface;
 var builder = WebApplication.CreateBuilder(args);
 
 var apiUrl = builder.Configuration["Api:url"];
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IStaffService, StaffService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
@@ -71,6 +71,10 @@ builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+//Excel service
+builder.Services.AddScoped<ExcelService>();
+
+
 
 builder.Services.Configure<GoogleClientDto>(
     builder.Configuration.GetSection("Authentication:Google"));
