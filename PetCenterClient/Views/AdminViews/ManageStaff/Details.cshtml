@@ -1,46 +1,109 @@
 ﻿@model PetCenterClient.DTOs.StaffDto
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Staff Details";
+    var initials = string.Join("", Model.FullName.Split(' ')
+                        .Take(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
+    var genderClass = Model.Gender?.ToLower() == "male" ? "male"
+                    : Model.Gender?.ToLower() == "female" ? "female" : "";
+    var genderIcon = Model.Gender?.ToLower() == "male" ? "bi-gender-male"
+                    : Model.Gender?.ToLower() == "female" ? "bi-gender-female" : "bi-gender-ambiguous";
+    var genderColor = Model.Gender?.ToLower() == "male" ? "#3b82f6"
+                    : Model.Gender?.ToLower() == "female" ? "#ec4899" : "#8b5cf6";
 }
 
-<div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-info text-white">
-            <h4>Staff Details</h4>
-        </div>
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">Staff ID</dt>
-                <dd class="col-sm-9 text-muted">@Model.StaffId</dd>
+<link rel="stylesheet" href="~/css/AdminViews/ManageStaff/manage-staff.css" asp-append-version="true" />
 
-                <dt class="col-sm-3">Full Name</dt>
-                <dd class="col-sm-9 font-weight-bold">@Model.FullName</dd>
+<div class="form-page-wrapper">
 
-                <dt class="col-sm-3">Email</dt>
-                <dd class="col-sm-9">@Model.Email</dd>
+    <a asp-action="Index" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Staff List
+    </a>
 
-                <dt class="col-sm-3">Phone</dt>
-                <dd class="col-sm-9">@Model.PhoneNumber</dd>
+    <div class="form-card">
 
-                <dt class="col-sm-3">Gender</dt>
-                <dd class="col-sm-9">@Model.Gender</dd>
-
-                <dt class="col-sm-3">Birthday</dt>
-                <dd class="col-sm-9">
-                    @(Model.BirthDay.HasValue? Model.BirthDay.Value.ToString("dd/MM/yyyy") : "N/A")
-                </dd>
-
-                <dt class="col-sm-3">Status</dt>
-                <dd class="col-sm-9">
-                    <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger")">
-                        @(Model.IsActive ? "Active" : "Inactive")
+        <div class="form-card-header">
+            <div class="staff-avatar @genderClass" style="width:48px;height:48px;font-size:18px">
+                @initials
+            </div>
+            <div>
+                <h2>@Model.FullName</h2>
+                <p>Staff ID: @Model.StaffId</p>
+            </div>
+            <div style="margin-left:auto">
+                @if (Model.IsActive)
+                {
+                    <span class="badge-status badge-active">
+                        <span class="badge-dot"></span> Active
                     </span>
-                </dd>
-            </dl>
-            <div class="mt-4">
-                <a asp-action="Edit" asp-route-id="@Model.StaffId" class="btn btn-warning">Edit</a>
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                }
+                else
+                {
+                    <span class="badge-status badge-inactive">
+                        <span class="badge-dot"></span> Inactive
+                    </span>
+                }
             </div>
         </div>
+
+        <div class="form-card-body">
+
+            <div class="detail-section-title">
+                <i class="bi bi-person-vcard" style="color:var(--accent)"></i>
+                Personal Information
+            </div>
+
+            <div class="detail-grid">
+                <div class="field-group">
+                    <span class="field-label"><i class="bi bi-person"></i> Full Name</span>
+                    <div class="field-value">@Model.FullName</div>
+                </div>
+                <div class="field-group">
+                    <span class="field-label"><i class="bi bi-envelope"></i> Email Address</span>
+                    <div class="field-value">@Model.Email</div>
+                </div>
+                <div class="field-group">
+                    <span class="field-label"><i class="bi bi-telephone"></i> Phone Number</span>
+                    <div class="field-value @(string.IsNullOrEmpty(Model.PhoneNumber) ? "empty" : "")">
+                        @(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)
+                    </div>
+                </div>
+                <div class="field-group">
+                    <span class="field-label">
+                        <i class="bi @genderIcon" style="color:@genderColor"></i> Gender
+                    </span>
+                    <div class="field-value @(string.IsNullOrEmpty(Model.Gender) ? "empty" : "")">
+                        @(string.IsNullOrEmpty(Model.Gender) ? "Not specified" : Model.Gender)
+                    </div>
+                </div>
+                <div class="field-group">
+                    <span class="field-label"><i class="bi bi-cake"></i> Date of Birth</span>
+                    <div class="field-value @(Model.BirthDay == null ? "empty" : "")">
+                        @(Model.BirthDay.HasValue? Model.BirthDay.Value.ToString("MMMM d, yyyy") : "Not provided")
+                    </div>
+                </div>
+                <div class="field-group">
+                    <span class="field-label"><i class="bi bi-toggle-on"></i> Account Status</span>
+                    <div class="field-value">
+                        <span class="badge-status @(Model.IsActive ? "badge-active" : "badge-inactive")">
+                            <span class="badge-dot"></span>
+                            @(Model.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-card-footer">
+            <a asp-action="Index" class="btn-cancel">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.StaffId" class="btn-submit warning">
+                <i class="bi bi-pencil-square"></i> Edit
+            </a>
+        </div>
+
     </div>
+
 </div>
