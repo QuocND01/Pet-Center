@@ -1,0 +1,106 @@
+﻿@model PetCenterClient.DTOs.StaffDto
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Edit Staff";
+}
+
+<link rel="stylesheet" href="~/css/AdminViews/ManageStaff/manage-staff.css" asp-append-version="true" />
+
+<div class="form-page-wrapper">
+
+    <a asp-action="Index" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Staff List
+    </a>
+
+    <div class="form-card">
+
+        <div class="form-card-header">
+            <div class="form-card-header-icon">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+            <div>
+                <h2>Edit Staff</h2>
+                <p>Update information for <strong>@Model?.FullName</strong></p>
+            </div>
+        </div>
+
+        <form asp-action="Edit" asp-route-id="@Model?.StaffId" method="post">
+            <input type="hidden" asp-for="StaffId" />
+
+            <div class="form-card-body">
+
+                <!-- Row 1: Name + Email -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <input asp-for="FullName" class="field-input" />
+                        <span asp-validation-for="FullName" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-envelope"></i> Email Address
+                        </label>
+                        <input asp-for="Email" type="email" class="field-input" />
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+                </div>
+
+                <!-- Row 2: Phone + Gender -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-telephone"></i> Phone Number
+                        </label>
+                        <input asp-for="PhoneNumber" class="field-input" />
+                        <span asp-validation-for="PhoneNumber" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-gender-ambiguous"></i> Gender
+                        </label>
+                        <select asp-for="Gender" class="field-select">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 3: Birthday + IsActive -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-cake"></i> Date of Birth
+                        </label>
+                        <input asp-for="BirthDay" type="date" class="field-input" asp-format="{0:yyyy-MM-dd}" />
+                        <span asp-validation-for="BirthDay" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-toggle-on"></i> Account Status
+                        </label>
+                        <label class="toggle-group">
+                            <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                            <span class="toggle-label">Active account</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-card-footer">
+                <a asp-action="Index" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="btn-submit warning">
+                    <i class="bi bi-pencil-square"></i> Save Changes
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

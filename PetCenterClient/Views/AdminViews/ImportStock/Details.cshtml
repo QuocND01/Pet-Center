@@ -1,40 +1,128 @@
 ﻿@using PetCenterClient.DTOs
-@model ReadImportStockDto
+@model ReadImportStockDetailDto
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var productList = ViewBag.ProductList as SelectList;
+    var staffDict = ViewBag.StaffDict as Dictionary<Guid, string>;
+    string statusText = Model.Status switch
+    {
+        0 => "Pending",
+        1 => "Confirmed",
+        2 => "Canceled",
+        _ => "Unknown"
+    };
+
+    string badgeClass = Model.Status switch
+    {
+        1 => "badge-active",
+        2 => "badge-inactive",
+        _ => "badge-pending"
+    };
 }
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="~/css/AdminViews/ManageImport/import_detail.css" asp-append-version="true" />
+<div class="page-wrapper">
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>Import Detail</h1>
+            <p>View detailed information of this stock import</p>
+        </div>
 
-<h2>Import Detail</h2>
+        <div class="header-stat">
+            <span class="label">Import Code</span>
+            <span class="num">#@Model.ImportId</span>
+        </div>
+    </div>
 
-<div>
-    <p><b>Supplier:</b> @Model.SupplierId</p>
-    <p><b>Staff:</b> @Model.StaffId</p>
-    <p><b>Total:</b> @Model.TotalAmount</p>
-    <p><b>Status:</b> @Model.Status</p>
+    <div class="nav-actions">
+        <a asp-action="Index" class="btn-back">
+            <i class="bi bi-arrow-left"></i>
+            Back to Import List
+        </a>
+    </div>
+
+    <div class="info-card">
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">Supplier</span>
+                <span class="value">@Model.SupplierName</span>
+            </div>
+
+            <div class="info-item">
+                <span class="label">Staff in charge</span>
+                <span class="value">
+                    @if (staffDict != null && staffDict.ContainsKey(Model.StaffId))
+                    {
+                        @staffDict[Model.StaffId]
+                    }
+                    else
+                    {
+                        @Model.StaffId
+                    }
+                </span>
+            </div>
+
+            <div class="info-item">
+                <span class="label">Import Date</span>
+                <span class="value">
+                    <i class="bi bi-calendar3 me-1"></i> @Model.ImportDate?.ToString("dd MMM yyyy")
+                </span>
+            </div>
+
+            <div class="info-item">
+                <span class="label">Status</span>
+                <span class="badge-status @badgeClass">
+                    <span class="badge-dot"></span>
+                    @statusText
+                </span>
+            </div>
+
+            <div class="info-item total-box">
+                <span class="label">Total Amount</span>
+                <span class="value">@Model.TotalAmount.ToString("N0") ₫</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <h3><i class="bi bi-box-seam"></i> Imported Products</h3>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Import Price</th>
+                    <th>Subtotal</th>
+                    <th>Stock Left</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Details)
+                {
+                    var productName = productList?.FirstOrDefault(p => p.Value == d.ProductId.ToString())?.Text;
+                    var subtotal = d.Quantity * d.ImportPrice;
+
+                    <tr>
+                        <td>
+                            <div class="product-cell">
+                                <i class="bi bi-box"></i>
+                                <span>@productName</span>
+                            </div>
+                        </td>
+                        <td>@d.Quantity</td>
+                        <td class="price-text">@d.ImportPrice.ToString("N0") ₫</td>
+                        <td class="subtotal price-text">@subtotal.ToString("N0") ₫</td>
+                        <td>
+                            <span class="row-num">@d.StockLeft</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<h3>Products</h3>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Product</th>
-            <th>Qty</th>
-            <th>Import Price</th>
-            <th>Stock Left</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        @foreach (var d in Model.Details)
-        {
-            <tr>
-                <td>@d.ProductId</td>
-                <td>@d.Quantity</td>
-                <td>@d.ImportPrice</td>
-                <td>@d.StockLeft</td>
-            </tr>
-        }
-    </tbody>
-</table>

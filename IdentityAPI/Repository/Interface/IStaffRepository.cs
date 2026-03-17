@@ -12,5 +12,10 @@ namespace IdentityAPI.Repository.Interface
         Task UpdateAsync(Staff staff);
         Task DeleteAsync(Guid id);
         Task<bool> EmailExistsAsync(string email);
+
+        // Role management
+        Task<Role?> GetRoleByNameAsync(string roleName);
+        Task AssignRoleAsync(Guid staffId, Guid roleId);
+        Task<IEnumerable<Role>> GetRolesByStaffIdAsync(Guid staffId);
     }
 }

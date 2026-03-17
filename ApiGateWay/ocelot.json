@@ -1,4 +1,4 @@
-﻿{
+{
   "Routes": [
     {
       "UpstreamPathTemplate": "/api/auth/{everything}",
@@ -24,7 +24,6 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/api/customers/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -37,7 +36,30 @@
         }
       ]
     },
-
+    {
+      "UpstreamPathTemplate": "/api/Staff/odata",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/odata/Staffs",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7001
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Staff/odata/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/odata/Staffs/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7001
+        }
+      ]
+    },
     {
       "UpstreamPathTemplate": "/api/Staff/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -50,14 +72,11 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/inventory/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-
       "DownstreamPathTemplate": "/api/{everything}",
       "DownstreamScheme": "https",
-
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -65,22 +84,66 @@
         }
       ]
     },
-
     {
-      "UpstreamPathTemplate": "/orders/{everything}",
+      "UpstreamPathTemplate": "/orders/Cart/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-
-      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamPathTemplate": "/api/Cart/{everything}",
       "DownstreamScheme": "https",
-
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost"
-          //"Port": 7003
+          "Host": "localhost",
+          "Port": 7007
         }
       ]
     },
-
+    {
+      "UpstreamPathTemplate": "/orders/Checkout/validate-voucher",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamPathTemplate": "/api/Checkout/validate-voucher",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/orders/Checkout/vouchers/{customerId}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/Checkout/vouchers/{customerId}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/orders/Checkout",
+      "UpstreamHttpMethod": [ "POST" ],
+      "DownstreamPathTemplate": "/api/Checkout",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/orders/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7007
+        }
+      ]
+    },
     {
       "UpstreamPathTemplate": "/product-service/odata/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
@@ -93,7 +156,6 @@
         }
       ]
     },
-
     {
       "UpstreamPathTemplate": "/product-service/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
@@ -106,24 +168,44 @@
         }
       ]
     },
-
     {
-      "UpstreamPathTemplate": "/feedback/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-
-      "DownstreamPathTemplate": "/api/feedback/{everything}",
+  "UpstreamPathTemplate": "/feedback-service/{everything}",
+  "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+  "DownstreamPathTemplate": "/api/{everything}",
+  "DownstreamScheme": "https",
+  "DownstreamHostAndPorts": [
+    {
+      "Host": "localhost",
+      "Port": 7116
+    }
+  ]
+},
+    {
+      "UpstreamPathTemplate": "/address-service/Addresses/customer/{customerId}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/Addresses/customer/{customerId}",
       "DownstreamScheme": "https",
-
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 7116
+          "Port": 7297
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/address-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7297
         }
       ]
     }
   ],
-
-      "GlobalConfiguration": {
-        "BaseUrl": "https://localhost:5000"
-      }
-    }
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:5000"
+  }
+}

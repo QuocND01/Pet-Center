@@ -3,189 +3,701 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PetCenterClient</title>
+    <title>@ViewData["Title"] – PetCenter</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/PetCenterClient.styles.css" asp-append-version="true" />
 
     <style>
-        /* Avatar Styles */
-        .user-menu {
+        :root {
+            --g0: #f0fdf4;
+            --g1: #dcfce7;
+            --g3: #2ecc71;
+            --g4: #27ae60;
+            --g5: #166534;
+            --ink: #0f1f0f;
+            --ink2: #374151;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --surface: #fff;
+            --font: 'Nunito', sans-serif;
+            --font-head: 'Fraunces', Georgia, serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            margin: 0;
+            padding: 0;
+            background: #f7fdf9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        /* ── HEADER ─────────────────────────────── */
+        .pc-header {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        }
+
+        .pc-header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        /* Logo */
+        .pc-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .pc-logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--g3), var(--g4));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .pc-logo-text {
+            font-family: var(--font-head);
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1;
+        }
+
+            .pc-logo-text span {
+                color: var(--g4);
+            }
+
+        .pc-logo:hover {
+            text-decoration: none;
+        }
+
+        /* Nav links */
+        .pc-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+            .pc-nav a {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--muted);
+                text-decoration: none;
+                padding: 6px 14px;
+                border-radius: 100px;
+                transition: all .2s;
+                white-space: nowrap;
+            }
+
+                .pc-nav a:hover, .pc-nav a.active {
+                    color: var(--g4);
+                    background: var(--g0);
+                }
+
+        /* Right actions */
+        .pc-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Cart icon */
+        .pc-cart-btn {
             position: relative;
-            display: none !important; /* Ẩn mặc định */
-        }
-
-            .user-menu:not(.hidden) {
-                display: block !important; /* Chỉ hiển thị khi không có class hidden */
-            }
-
-            .user-menu.hidden {
-                display: none !important;
-            }
-
-        /* Login button - hiển thị mặc định */
-        .login-nav-item {
-            display: block;
-        }
-
-            .login-nav-item.hidden {
-                display: none !important;
-            }
-
-        .avatar-btn {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
+            background: var(--g0);
+            border: 1.5px solid var(--g1);
             border-radius: 50%;
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            border: 2px solid #27ae60;
-            color: white;
-            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
             font-size: 18px;
+            transition: all .2s;
+            cursor: pointer;
+        }
+
+            .pc-cart-btn:hover {
+                background: var(--g1);
+                border-color: var(--g3);
+                text-decoration: none;
+            }
+
+        .pc-cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--g3);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 900;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+        }
+
+        /* Login btn */
+        .pc-login-btn {
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--g4);
+            background: var(--g0);
+            border: 1.5px solid var(--g2);
+            border-radius: 100px;
+            padding: 8px 18px;
+            text-decoration: none;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+            .pc-login-btn:hover {
+                background: var(--g1);
+                color: var(--g5);
+                text-decoration: none;
+            }
+
+        /* Avatar dropdown */
+        .pc-avatar-wrap {
+            position: relative;
+        }
+
+        .pc-avatar-btn {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--g3), var(--g4));
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-weight: 900;
+            font-size: 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
-            padding: 0;
-            margin: 0;
-            box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+            transition: transform .2s, box-shadow .2s;
         }
 
-            .avatar-btn:hover {
-                background: linear-gradient(135deg, #27ae60, #229954);
-                box-shadow: 0 4px 12px rgba(46, 204, 113, 0.5);
-                transform: scale(1.05);
+            .pc-avatar-btn:hover {
+                transform: scale(1.08);
+                box-shadow: 0 4px 14px rgba(46,204,113,.4);
             }
 
-            .avatar-btn:focus {
-                outline: none;
-                box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3);
-            }
-
-        .dropdown-menu-user {
+        .pc-dropdown {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 10px);
             right: 0;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            min-width: 160px;
-            z-index: 1000;
-            margin-top: 8px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.12);
+            min-width: 200px;
+            padding: 8px;
+            display: none;
+            z-index: 2000;
+            animation: ddIn .2s ease;
         }
 
-            .dropdown-menu-user.show {
+            .pc-dropdown.open {
+                display: block;
+            }
+
+        @@keyframes ddIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
                 opacity: 1;
-                visibility: visible;
                 transform: translateY(0);
             }
+        }
 
-            .dropdown-menu-user a,
-            .dropdown-menu-user button {
-                display: block;
-                width: 100%;
-                padding: 12px 16px;
-                color: #333;
+        .pc-dropdown-name {
+            padding: 10px 12px 6px;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--ink);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pc-dropdown a, .pc-dropdown button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 12px;
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink2);
+            text-decoration: none;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+            text-align: left;
+        }
+
+            .pc-dropdown a:hover, .pc-dropdown button:hover {
+                background: var(--g0);
+                color: var(--g4);
                 text-decoration: none;
-                border: none;
-                background: none;
-                text-align: left;
-                font-size: 14px;
-                transition: all 0.2s ease;
-                cursor: pointer;
             }
 
-                .dropdown-menu-user a:first-child,
-                .dropdown-menu-user button:first-child {
-                    border-radius: 8px 8px 0 0;
+        .pc-dropdown .dd-logout:hover {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pc-dropdown hr {
+            margin: 6px 0;
+            border-color: var(--border);
+        }
+
+        /* Admin link in header */
+        .pc-admin-link {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 100px;
+            border: 1.5px solid var(--border);
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+            .pc-admin-link:hover {
+                border-color: var(--ink2);
+                color: var(--ink);
+                text-decoration: none;
+            }
+
+        /* Mobile hamburger */
+        .pc-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--ink2);
+            padding: 4px;
+        }
+
+        .pc-mobile-nav {
+            display: none;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            padding: 12px 24px 16px;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+            .pc-mobile-nav.open {
+                display: flex;
+            }
+
+            .pc-mobile-nav a {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--ink2);
+                text-decoration: none;
+                padding: 10px 14px;
+                border-radius: 10px;
+                transition: background .15s;
+            }
+
+                .pc-mobile-nav a:hover {
+                    background: var(--g0);
+                    color: var(--g4);
                 }
 
-                .dropdown-menu-user a:last-child,
-                .dropdown-menu-user button:last-child {
-                    border-radius: 0 0 8px 8px;
+        @@media(max-width: 768px) {
+            .pc-nav, .pc-admin-link {
+                display: none;
+            }
+
+            .pc-hamburger {
+                display: block;
+            }
+        }
+
+        /* ── FOOTER ─────────────────────────────── */
+        .pc-footer {
+            background: var(--ink);
+            color: rgba(255,255,255,.7);
+            font-family: var(--font);
+            margin-top: 60px;
+        }
+
+        .pc-footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px 32px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+        }
+
+        @@media(max-width: 768px) {
+            .pc-footer-inner {
+                grid-template-columns: 1fr 1fr;
+                gap: 28px;
+            }
+        }
+
+        @@media(max-width: 480px) {
+            .pc-footer-inner {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer-brand .pc-logo-text {
+            color: #fff;
+        }
+
+            .footer-brand .pc-logo-text span {
+                color: var(--g3);
+            }
+
+        .footer-tagline {
+            font-size: 13px;
+            color: rgba(255,255,255,.5);
+            margin-top: 10px;
+            line-height: 1.6;
+            max-width: 240px;
+        }
+
+        .footer-socials {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .footer-social-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+            .footer-social-btn:hover {
+                background: var(--g4);
+            }
+
+        .footer-col h4 {
+            font-size: 13px;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            margin-bottom: 16px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .footer-col ul li a {
+                font-size: 13px;
+                color: rgba(255,255,255,.55);
+                text-decoration: none;
+                transition: color .2s;
+            }
+
+                .footer-col ul li a:hover {
+                    color: var(--g3);
                 }
 
-                .dropdown-menu-user a:hover,
-                .dropdown-menu-user button:hover {
-                    background: #f5f5f5;
-                    color: #2ecc71;
-                    padding-left: 20px;
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,.08);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 12px;
+            color: rgba(255,255,255,.35);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+            .footer-bottom a {
+                color: rgba(255,255,255,.35);
+                text-decoration: none;
+            }
+
+                .footer-bottom a:hover {
+                    color: var(--g3);
                 }
 
-                .dropdown-menu-user a.logout:hover,
-                .dropdown-menu-user button.logout:hover {
-                    background: #ffe6e6;
-                    color: #dc3545;
-                }
+        /* Page content wrapper */
+        .pc-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PetCenterClient</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">Product</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Staff" asp-action="Index">Staff</a>
-                        </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" href="#" id="adminNavBtn">Admin</a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav">
-                        <li class="nav-item login-nav-item">
-                            <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Login</a>
-                        </li>
+    <!-- ══ HEADER ══════════════════════════════════════════════ -->
+    <header class="pc-header">
+        <div class="pc-header-inner">
 
-                        <li class="nav-item user-menu hidden">
-                            <div class="position-relative">
-                                <button class="avatar-btn" id="avatarBtn" type="button" aria-label="User menu">👤</button>
-                                <div class="dropdown-menu-user" id="userDropdown">
-                                    <a href="@Url.Action("Profile", "Customer")">👤 Profile</a>
-                                    <button type="button" class="logout" id="logoutBtn">🚪 Logout</button>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
+            <!-- Logo -->
+            <a asp-controller="Products" asp-action="Index" class="pc-logo">
+                <div class="pc-logo-icon">🐾</div>
+                <div class="pc-logo-text">Pet<span>Center</span></div>
+            </a>
+
+            <!-- Nav -->
+            <nav class="pc-nav">
+                <a asp-controller="Products" asp-action="Index">Products</a>
+                <a asp-controller="Orders" asp-action="Index">My Orders</a>
+            </nav>
+
+            <!-- Right actions -->
+            <div class="pc-actions">
+
+                <!-- Cart -->
+                <a asp-controller="Cart" asp-action="Index" class="pc-cart-btn" title="Cart">
+                    🛒
+                    <span class="pc-cart-badge" id="cartBadge"></span>
+                </a>
+
+                <!-- Not logged in -->
+                <a asp-controller="Auth" asp-action="Login" class="pc-login-btn" id="loginBtn">
+                    Login
+                </a>
+
+                <!-- Logged in avatar -->
+                <div class="pc-avatar-wrap" id="avatarWrap" style="display:none">
+                    <button class="pc-avatar-btn" id="avatarBtn" onclick="toggleDropdown()">
+                        👤
+                    </button>
+                    <div class="pc-dropdown" id="pcDropdown">
+                        <div class="pc-dropdown-name" id="ddName">My Account</div>
+                        <a asp-controller="Customer" asp-action="Profile">
+                            <span>👤</span> Profile
+                        </a>
+                        <a asp-controller="Address" asp-action="Index">
+                            <span>📍</span> Addresses
+                        </a>
+                        <a asp-controller="Orders" asp-action="Index">
+                            <span>📦</span> My Orders
+                        </a>
+                        <a asp-controller="Cart" asp-action="Index">
+                            <span>🛒</span> Cart
+                        </a>
+                        <hr />
+                        <button class="dd-logout" onclick="doLogout()">
+                            <span>🚪</span> Logout
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Admin link — hidden when customer is logged in -->
+                <a asp-controller="Auth" asp-action="AdminLogin" class="pc-admin-link" id="adminBtn" title="Admin Panel">
+                    ⚙ Admin
+                </a>
+
+                <!-- Mobile hamburger -->
+                <button class="pc-hamburger" onclick="toggleMobileNav()" aria-label="Menu">☰</button>
             </div>
+        </div>
+
+        <!-- Mobile nav -->
+        <nav class="pc-mobile-nav" id="mobileNav">
+            <a asp-controller="Products" asp-action="Index">🏠 Products</a>
+            <a asp-controller="Cart" asp-action="Index">🛒 Cart</a>
+            <a asp-controller="Orders" asp-action="Index">📦 My Orders</a>
+            <a asp-controller="Address" asp-action="Index">📍 Addresses</a>
+            <a asp-controller="Customer" asp-action="Profile">👤 Profile</a>
+            <a asp-controller="Auth" asp-action="AdminLogin">⚙ Admin Panel</a>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - PetCenterClient - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <!-- ══ PAGE CONTENT ════════════════════════════════════════ -->
+    <main>
+        <div class="pc-content">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- ══ FOOTER ══════════════════════════════════════════════ -->
+    <footer class="pc-footer">
+        <div class="pc-footer-inner">
+
+            <!-- Brand col -->
+            <div class="footer-brand">
+                <a asp-controller="Products" asp-action="Index" class="pc-logo" style="text-decoration:none">
+                    <div class="pc-logo-icon">🐾</div>
+                    <div class="pc-logo-text">Pet<span>Center</span></div>
+                </a>
+                <p class="footer-tagline">
+                    Premium food, accessories and healthcare for your beloved pets — curated with love.
+                </p>
+                <div class="footer-socials">
+                    <a href="#" class="footer-social-btn" title="Facebook">📘</a>
+                    <a href="#" class="footer-social-btn" title="Instagram">📸</a>
+                    <a href="#" class="footer-social-btn" title="TikTok">🎵</a>
+                </div>
+            </div>
+
+            <!-- Shop -->
+            <div class="footer-col">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a asp-controller="Products" asp-action="Index">All Products</a></li>
+                    <li><a asp-controller="Products" asp-action="Index" asp-route-sortBy="date" asp-route-sortOrder="desc">New Arrivals</a></li>
+                    <li><a asp-controller="Cart" asp-action="Index">My Cart</a></li>
+                    <li><a asp-controller="Orders" asp-action="Index">My Orders</a></li>
+                </ul>
+            </div>
+
+            <!-- Account -->
+            <div class="footer-col">
+                <h4>Account</h4>
+                <ul>
+                    <li><a asp-controller="Customer" asp-action="Profile">My Profile</a></li>
+                    <li><a asp-controller="Address" asp-action="Index">Addresses</a></li>
+                    <li><a asp-controller="Auth" asp-action="Login">Login</a></li>
+                    <li><a asp-controller="Auth" asp-action="Register">Register</a></li>
+                </ul>
+            </div>
+
+            <!-- Support -->
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Return Policy</a></li>
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a asp-controller="Auth" asp-action="AdminLogin">Admin Panel</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2025 PetCenter. All rights reserved.</span>
+            <span>
+                <a href="#">Privacy Policy</a> &nbsp;·&nbsp;
+                <a href="#">Terms of Service</a>
+            </span>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/auth.js" asp-append-version="true"></script>
+
+    <script>
+        // ── Auth state ───────────────────────────────────────────
+        (function () {
+            fetch('/Auth/CheckAuth')
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.isAuthenticated) {
+                        document.getElementById('loginBtn').style.display   = 'none';
+                        document.getElementById('avatarWrap').style.display = 'block';
+                        document.getElementById('adminBtn').style.display   = 'none';
+
+                        // Decode JWT to get email for display
+                        try {
+                            var token   = data.token;
+                            var payload = JSON.parse(atob(token.split('.')[1]));
+                            var email   = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']
+                                       || payload['unique_name']
+                                       || payload['email']
+                                       || 'My Account';
+                            document.getElementById('ddName').textContent = email;
+                        } catch (e) {}
+                    }
+                })
+                .catch(function () {});
+        })();
+
+        // ── Dropdown ─────────────────────────────────────────────
+        function toggleDropdown() {
+            document.getElementById('pcDropdown').classList.toggle('open');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            var wrap = document.getElementById('avatarWrap');
+            if (wrap && !wrap.contains(e.target)) {
+                document.getElementById('pcDropdown').classList.remove('open');
+            }
+        });
+
+        // ── Logout ───────────────────────────────────────────────
+        function doLogout() {
+            window.location.href = '/Auth/Logout';
+        }
+
+        // ── Mobile nav ───────────────────────────────────────────
+        function toggleMobileNav() {
+            document.getElementById('mobileNav').classList.toggle('open');
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

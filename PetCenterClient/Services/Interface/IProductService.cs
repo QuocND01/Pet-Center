@@ -12,6 +12,8 @@ namespace PetCenterClient.Services.Interface
                 DateTime? fromDate,
                 DateTime? toDate,
                 string? sortBy,
+                Guid? categoryid,
+                Guid? brandid,
                 string sortOrder = "asc",
                 int page = 1);
 
@@ -19,5 +21,9 @@ namespace PetCenterClient.Services.Interface
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct);
         Task DeleteProductAsync(Guid? id);
+
+        Task<List<ReadProductDTO>> GetHotProductsAsync();
+        Task<List<ReadProductDTO>> GetNewProductsAsync();
+        Task<List<ProductSelectDto>> GetProductSelectAsync();
     }
 }

@@ -1,0 +1,682 @@
+﻿@using PetCenterClient.DTOs
+@model CartResponseDTO
+@{
+    ViewData["Title"] = "My Cart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --primary: #2ecc71;
+        --primary-dark: #27ae60;
+        --danger: #e74c3c;
+        --text-dark: #2c3e50;
+        --text-muted: #7f8c8d;
+        --border: #ecf0f1;
+    }
+
+    .cart-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 30px 16px;
+    }
+
+    .cart-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .toast-msg {
+        padding: 14px 20px;
+        border-radius: 10px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        min-width: 260px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideIn 0.3s ease;
+    }
+
+        .toast-msg.success {
+            background: #27ae60;
+        }
+
+        .toast-msg.error {
+            background: #e74c3c;
+        }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .cart-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .cart-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .cart-table thead {
+            background: #f8f9fa;
+        }
+
+            .cart-table thead th {
+                padding: 14px 16px;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                letter-spacing: 0.5px;
+                border-bottom: 1px solid var(--border);
+            }
+
+        .cart-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+            .cart-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            .cart-table tbody tr:hover {
+                background: #f8fffe;
+            }
+
+            .cart-table tbody tr.row-selected {
+                background: #f0fdf4;
+            }
+
+        .cart-table td {
+            padding: 16px;
+            vertical-align: middle;
+        }
+
+    .item-checkbox {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary);
+        cursor: pointer;
+    }
+
+    .select-all-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        background: #fafafa;
+    }
+
+        .select-all-wrap label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+    .product-img {
+        width: 72px;
+        height: 72px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #f0f0f0;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 15px;
+        text-decoration: none;
+    }
+
+        .product-name:hover {
+            color: var(--primary);
+        }
+
+    .price-text {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .subtotal-text {
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+        .subtotal-text.highlighted {
+            color: var(--primary-dark);
+        }
+
+        .subtotal-text.dimmed {
+            color: #bdc3c7;
+        }
+
+    .qty-control {
+        display: flex;
+        align-items: center;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        width: fit-content;
+    }
+
+    .qty-btn {
+        width: 34px;
+        height: 34px;
+        border: none;
+        background: #f0f0f0;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .qty-btn:hover {
+            background: #e0e0e0;
+        }
+
+    .qty-input {
+        width: 52px;
+        height: 34px;
+        border: none;
+        border-left: 1.5px solid var(--border);
+        border-right: 1.5px solid var(--border);
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        outline: none;
+        background: white;
+    }
+
+    .btn-remove {
+        background: none;
+        border: none;
+        color: #ccc;
+        font-size: 20px;
+        cursor: pointer;
+        transition: color 0.2s;
+        padding: 4px 8px;
+    }
+
+        .btn-remove:hover {
+            color: var(--danger);
+        }
+
+    .empty-cart {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+
+    .empty-cart-icon {
+        font-size: 60px;
+        margin-bottom: 16px;
+    }
+
+    .empty-cart h4 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .cart-footer {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        padding: 24px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .btn-clear {
+        background: none;
+        border: 2px solid var(--danger);
+        color: var(--danger);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-clear:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+    .cart-summary-section {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .summary-info {
+        min-width: 200px;
+    }
+
+    .selected-count-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .selected-count-val {
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    .total-label {
+        font-size: 16px;
+        color: var(--text-muted);
+    }
+
+    .total-amount {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--primary-dark);
+    }
+
+    .btn-checkout {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 32px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-checkout:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46,204,113,0.3);
+        }
+
+        .btn-checkout:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+</style>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="cart-wrapper">
+    <div class="cart-title">
+        🛒 My Cart
+        @if (Model.CartDetails.Any())
+        {
+            <span class="badge rounded-pill" style="background:var(--primary);font-size:13px;">
+                @Model.CartDetails.Count item@(Model.CartDetails.Count != 1 ? "s" : "")
+            </span>
+        }
+    </div>
+
+    @if (!Model.CartDetails.Any())
+    {
+        <div class="cart-card">
+            <div class="empty-cart">
+                <div class="empty-cart-icon">🛒</div>
+                <h4>Your cart is empty</h4>
+                <p>Looks like you haven't added anything yet.</p>
+                <a asp-controller="Products" asp-action="Index"
+                   style="display:inline-block;margin-top:16px;padding:12px 28px;background:var(--primary);color:white;border-radius:10px;font-weight:700;text-decoration:none;">
+                    Browse Products
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="cart-card">
+            <div class="select-all-wrap">
+                <input type="checkbox" id="selectAll" class="item-checkbox" />
+                <label for="selectAll">Select All</label>
+                <span id="selectedCountLabel" style="font-size:12px;color:var(--text-muted);margin-left:8px;">(0 selected)</span>
+            </div>
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;"></th>
+                        <th style="width:80px;">Image</th>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th style="width:50px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    @foreach (var item in Model.CartDetails)
+                    {
+                        var priceStr = (item.ProductPrice ?? 0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                        var stockQty = item.StockQuantity ?? 9999;
+                        var imgSrc = string.IsNullOrEmpty(item.ImageUrl) ? "" : item.ImageUrl;
+                        <tr id="row-@item.CartDetailId" data-detail-id="@item.CartDetailId">
+                            <td>
+                                <input type="checkbox"
+                                       class="item-checkbox row-check"
+                                       data-detail-id="@item.CartDetailId"
+                                       data-product-id="@item.ProductId"
+                                       data-price="@priceStr"
+                                       onchange="onRowCheck(this)" />
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(imgSrc))
+                                {
+                                    <!-- FIX: guard với data-errored để tránh onerror loop -->
+                                    <img src="@imgSrc"
+                                         class="product-img"
+                                         onerror="imgFallback(this)" />
+                                }
+                                else
+                                {
+                                    <div class="product-img" style="display:flex;align-items:center;justify-content:center;font-size:28px;">🐾</div>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Products" asp-action="DetailsForcustomer"
+                                   asp-route-id="@item.ProductId" class="product-name">
+                                    @item.ProductName
+                                </a>
+                            </td>
+                            <td>
+                                <span class="price-text">@item.ProductPrice?.ToString("N0") ₫</span>
+                            </td>
+                            <td>
+                                <div class="qty-control">
+                                    <button class="qty-btn" type="button"
+                                            onclick="stepQty('@item.CartDetailId', -1, @stockQty)">
+                                        −
+                                    </button>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*"
+                                           class="qty-input"
+                                           id="qty-@item.CartDetailId"
+                                           value="@item.Quantity"
+                                           data-max="@stockQty"
+                                           data-price="@priceStr"
+                                           data-detail-id="@item.CartDetailId"
+                                           onblur="commitQty(this)" />
+                                    <button class="qty-btn" type="button"
+                                            onclick="stepQty('@item.CartDetailId', 1, @stockQty)">
+                                        +
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="subtotal-text dimmed" id="sub-@item.CartDetailId">
+                                    @item.SubTotal.ToString("N0") ₫
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-remove" type="button"
+                                        onclick="removeItem('@item.CartDetailId')">
+                                    ✕
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="cart-footer">
+            <button class="btn-clear" type="button" onclick="clearCart()">🗑 Clear All</button>
+            <div class="cart-summary-section">
+                <div class="summary-info">
+                    <div class="selected-count-label">
+                        Selected: <span class="selected-count-val" id="selectedCountDisplay">0</span> item(s)
+                    </div>
+                    <div class="total-label">Selected Total</div>
+                    <div class="total-amount" id="selectedTotal">0 ₫</div>
+                </div>
+                <button class="btn-checkout" id="checkoutBtn" type="button"
+                        onclick="goToCheckout()" disabled>
+                    Checkout →
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    // ─────────────────────────────────────────────────────────────
+    // FIX INFINITE LOOP: onerror fallback dùng inline SVG data-uri
+    // Không dùng file path vì nếu file không tồn tại → onerror lại fire
+    // ─────────────────────────────────────────────────────────────
+    var FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%23f0f0f0' rx='10'/%3E%3Ctext x='36' y='44' font-size='28' text-anchor='middle'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E";
+
+    function imgFallback(img) {
+        // Nếu đã set fallback rồi thì không làm gì nữa — tránh loop
+        if (img.dataset.errored) return;
+        img.dataset.errored = '1';
+        img.onerror = null;          // bỏ listener hoàn toàn
+        img.src = FALLBACK_IMG;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // TOAST
+    // ─────────────────────────────────────────────────────────────
+    function showToast(message, type) {
+        var c = document.getElementById('toastContainer');
+        var t = document.createElement('div');
+        t.className = 'toast-msg ' + (type || 'success');
+        t.innerHTML = '<span>' + (type === 'error' ? '✕' : '✓') + '</span><span>' + message + '</span>';
+        c.appendChild(t);
+        setTimeout(function() {
+            t.style.opacity = '0'; t.style.transition = 'opacity 0.4s';
+            setTimeout(function() { t.remove(); }, 400);
+        }, 3000);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // SELECT ALL
+    // ─────────────────────────────────────────────────────────────
+    var selectAllCb = document.getElementById('selectAll');
+    if (selectAllCb) {
+        selectAllCb.addEventListener('change', function() {
+            document.querySelectorAll('.row-check').forEach(function(cb) {
+                cb.checked = selectAllCb.checked;
+                updateRowStyle(cb);
+            });
+            recalcTotal();
+        });
+    }
+
+    function onRowCheck(cb) {
+        updateRowStyle(cb);
+        recalcTotal();
+        syncSelectAll();
+    }
+
+    function updateRowStyle(cb) {
+        var row   = cb.closest('tr');
+        var subEl = document.getElementById('sub-' + cb.dataset.detailId);
+        if (cb.checked) {
+            row.classList.add('row-selected');
+            if (subEl) { subEl.classList.remove('dimmed'); subEl.classList.add('highlighted'); }
+        } else {
+            row.classList.remove('row-selected');
+            if (subEl) { subEl.classList.add('dimmed'); subEl.classList.remove('highlighted'); }
+        }
+    }
+
+    function syncSelectAll() {
+        if (!selectAllCb) return;
+        var all     = document.querySelectorAll('.row-check').length;
+        var checked = document.querySelectorAll('.row-check:checked').length;
+        selectAllCb.checked       = all > 0 && checked === all;
+        selectAllCb.indeterminate = checked > 0 && checked < all;
+    }
+
+    function recalcTotal() {
+        var total = 0;
+        document.querySelectorAll('.row-check:checked').forEach(function(cb) {
+            var price = parseFloat(cb.dataset.price) || 0;
+            var qty   = parseInt(document.getElementById('qty-' + cb.dataset.detailId)?.value) || 1;
+            total += price * qty;
+        });
+        var checked = document.querySelectorAll('.row-check:checked').length;
+        document.getElementById('selectedTotal').textContent = Math.round(total).toLocaleString('vi-VN') + ' ₫';
+        document.getElementById('selectedCountDisplay').textContent = checked;
+        var label = document.getElementById('selectedCountLabel');
+        if (label) label.textContent = '(' + checked + ' selected)';
+        var btn = document.getElementById('checkoutBtn');
+        if (btn) btn.disabled = checked === 0;
+    }
+
+    function updateRowSub(detailId) {
+        var cb    = document.querySelector('.row-check[data-detail-id="' + detailId + '"]');
+        var price = parseFloat(cb ? cb.dataset.price : '0') || 0;
+        var qty   = parseInt(document.getElementById('qty-' + detailId)?.value) || 1;
+        var subEl = document.getElementById('sub-' + detailId);
+        if (subEl) subEl.textContent = Math.round(price * qty).toLocaleString('vi-VN') + ' ₫';
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // QTY — step buttons, debounced save, blur commit
+    // ─────────────────────────────────────────────────────────────
+    var saveTimers = {};
+
+    function stepQty(detailId, delta, maxQty) {
+        var input  = document.getElementById('qty-' + detailId);
+        if (!input) return;
+        var newVal = (parseInt(input.value) || 1) + delta;
+        if (newVal < 1)       newVal = 1;
+        if (newVal > maxQty)  { showToast('Exceeds stock (' + maxQty + ').', 'error'); return; }
+        input.value = newVal;
+        updateRowSub(detailId);
+        recalcTotal();
+        saveDebounced(detailId, newVal);
+    }
+
+    function commitQty(input) {
+        var detailId = input.dataset.detailId;
+        var maxQty   = parseInt(input.dataset.max) || 9999;
+        var val      = parseInt(input.value) || 1;
+        if (val < 1)      val = 1;
+        if (val > maxQty) { showToast('Exceeds stock (' + maxQty + ').', 'error'); val = maxQty; }
+        if (parseInt(input.value) !== val) input.value = val;
+        updateRowSub(detailId);
+        recalcTotal();
+        saveDebounced(detailId, val);
+    }
+
+    function saveDebounced(detailId, quantity) {
+        if (saveTimers[detailId]) clearTimeout(saveTimers[detailId]);
+        saveTimers[detailId] = setTimeout(function() { saveQty(detailId, quantity); }, 600);
+    }
+
+    async function saveQty(detailId, quantity) {
+        try {
+            var res  = await fetch('@Url.Action("UpdateDetail", "Cart")', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cartDetailId: detailId, quantity: quantity })
+            });
+            var data = await res.json();
+            if (!data.success) showToast(data.message || 'Update failed.', 'error');
+        } catch(e) { showToast('Network error.', 'error'); }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // CHECKOUT
+    // ─────────────────────────────────────────────────────────────
+    function goToCheckout() {
+        var checked = document.querySelectorAll('.row-check:checked');
+        if (!checked.length) { showToast('Select at least one item.', 'error'); return; }
+        var parts = [];
+        checked.forEach(function(cb) {
+            var detailId  = cb.dataset.detailId;
+            var productId = cb.dataset.productId;
+            var price     = cb.dataset.price;
+            var qty       = parseInt(document.getElementById('qty-' + detailId)?.value) || 1;
+            parts.push(productId + ':' + detailId + ':' + qty + ':' + price);
+        });
+        window.location.href = '/Checkout?items=' + encodeURIComponent(parts.join(','));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // REMOVE / CLEAR
+    // ─────────────────────────────────────────────────────────────
+    async function removeItem(detailId) {
+        if (!confirm('Remove this item?')) return;
+        try {
+            var res  = await fetch('@Url.Action("DeleteDetail", "Cart")', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cartDetailId: detailId })
+            });
+            var data = await res.json();
+            if (data.success) {
+                var row = document.getElementById('row-' + detailId);
+                if (row) {
+                    row.style.opacity = '0'; row.style.transition = 'opacity 0.3s';
+                    setTimeout(function() {
+                        row.remove(); recalcTotal(); syncSelectAll();
+                        if (!document.querySelectorAll('#cartBody tr').length) location.reload();
+                    }, 320);
+                }
+                showToast('Item removed.', 'success');
+            } else { showToast(data.message || 'Failed.', 'error'); }
+        } catch(e) { showToast('Network error.', 'error'); }
+    }
+
+    async function clearCart() {
+        if (!confirm('Clear all items?')) return;
+        try {
+            var res  = await fetch('@Url.Action("ClearCart", "Cart")', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }
+            });
+            var data = await res.json();
+            if (data.success) { showToast('Cart cleared.', 'success'); setTimeout(function() { location.reload(); }, 800); }
+            else { showToast(data.message || 'Failed.', 'error'); }
+        } catch(e) { showToast('Network error.', 'error'); }
+    }
+</script>

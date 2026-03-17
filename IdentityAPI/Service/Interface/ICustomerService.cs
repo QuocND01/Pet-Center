@@ -11,6 +11,8 @@ namespace IdentityAPI.Service.Interface
 
         Task<CustomerProfileResponseDto?> GetProfileAsync(Guid customerId);
 
-        Task<bool> UpdateProfileAsync(Guid customerId, UpdateCustomerProfileRequestDto request);
+        Task<(bool Success, string Message)> UpdateProfileAsync(Guid customerId, UpdateCustomerProfileRequestDto request);
+
+        Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive);
     }
 }

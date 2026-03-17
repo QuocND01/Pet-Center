@@ -1,35 +1,66 @@
-﻿@model ReadSupplierDto
-@using PetCenterClient.DTOs;
+﻿@using PetCenterClient.DTOs
+@model UpdateSupplierDto
 @{
-    Layout = null; // Bắt buộc là null
+    Layout = null;
 }
-
-<form id="editForm">
-    @* ASP.NET Core Hidden Field *@
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/AdminViews/ManageSupplier/edit_supplier.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<form id="editForm" class="custom-form-modal">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="SupplierId" />
 
-    <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input class="form-control" asp-for="SupplierName" required />
+    <div asp-validation-summary="All" class="alert alert-danger-custom" style="display:none;"></div>
+
+    <div class="form-grid">
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="TaxId">Tax ID</label>
+            <input class="form-input-custom" asp-for="TaxId" placeholder="e.g. TAX123456" />
+            <span asp-validation-for="TaxId" class="validation-message"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="SupplierName">Supplier Name</label>
+            <input class="form-input-custom" asp-for="SupplierName" placeholder="Enter name..." />
+            <span asp-validation-for="SupplierName" class="validation-message"></span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group mb-3 flex-1">
+                <label class="form-label-custom" asp-for="SupplierEmail">Email Address</label>
+                <input class="form-input-custom" asp-for="SupplierEmail" type="email" placeholder="example@gmail.com" />
+                <span asp-validation-for="SupplierEmail" class="validation-message"></span>
+            </div>
+            <div class="form-group mb-3 flex-1">
+                <label class="form-label-custom" asp-for="SupplierPhoneNumber">Phone Number</label>
+                <input class="form-input-custom" asp-for="SupplierPhoneNumber" placeholder="090..." />
+                <span asp-validation-for="SupplierPhoneNumber" class="validation-message"></span>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="SupplierAddress">Office Address</label>
+            <input class="form-input-custom" asp-for="SupplierAddress" placeholder="Street, City..." />
+            <span asp-validation-for="SupplierAddress" class="validation-message"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="ContactPerson">Contact Person</label>
+            <input class="form-input-custom" asp-for="ContactPerson" placeholder="Full name of representative" />
+            <span asp-validation-for="ContactPerson" class="validation-message"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="SupplierDescription">Description</label>
+            <textarea class="form-input-custom" asp-for="SupplierDescription" rows="3" placeholder="Additional notes..."></textarea>
+            <span asp-validation-for="SupplierDescription" class="validation-message"></span>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-control" asp-for="SupplierEmail" required />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Phone</label>
-        <input class="form-control" asp-for="SupplierPhoneNumber" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Address</label>
-        <input class="form-control" asp-for="SupplierAddress" />
-    </div>
-
-    <div class="modal-footer px-0 pb-0">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-success">Save Changes</button>
+    <div class="modal-actions-footer">
+        <button type="button" class="btn-cancel-modal" data-bs-dismiss="modal">Discard</button>
+        <button type="submit" class="btn-submit-modal">
+            <i class="bi bi-check2-circle"></i> Save Changes
+        </button>
     </div>
 </form>

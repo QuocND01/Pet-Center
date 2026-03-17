@@ -1,0 +1,132 @@
+﻿@model PetCenterClient.DTOs.StaffDto
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Add New Staff";
+}
+
+<link rel="stylesheet" href="~/css/AdminViews/ManageStaff/manage-staff.css" asp-append-version="true" />
+
+<div class="form-page-wrapper">
+
+    <a asp-action="Index" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Staff List
+    </a>
+
+    <div class="form-card">
+
+        <div class="form-card-header">
+            <div class="form-card-header-icon">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <div>
+                <h2>Add New Staff</h2>
+                <p>Fill in the details to create a new staff account</p>
+            </div>
+        </div>
+
+        <form asp-action="Create" method="post">
+
+            <div class="form-card-body">
+
+                <div asp-validation-summary="ModelOnly" class="field-error mb-3" style="font-size:13px"></div>
+
+                <!-- Row 1: Name + Email -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <input asp-for="FullName" class="field-input" placeholder="Enter full name" />
+                        <span asp-validation-for="FullName" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-envelope"></i> Email Address
+                        </label>
+                        <input asp-for="Email" type="email" class="field-input" placeholder="staff@petcenter.com" />
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+                </div>
+
+                <!-- Row 2: Phone + Gender -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-telephone"></i> Phone Number
+                        </label>
+                        <input asp-for="PhoneNumber" class="field-input" placeholder="0xxxxxxxxx" />
+                        <span asp-validation-for="PhoneNumber" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-gender-ambiguous"></i> Gender
+                        </label>
+                        <select asp-for="Gender" class="field-select">
+                            <option value="">— Select gender —</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 3: Birthday + IsActive -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-cake"></i> Date of Birth
+                        </label>
+                        <input asp-for="BirthDay" type="date" class="field-input" />
+                        <span asp-validation-for="BirthDay" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-toggle-on"></i> Account Status
+                        </label>
+                        <label class="toggle-group">
+                            <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                            <span class="toggle-label">Active account</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Row 4: Password + Confirm -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-lock"></i> Password
+                        </label>
+                        <input asp-for="Password" type="password" class="field-input" placeholder="Min. 6 characters" />
+                        <span asp-validation-for="Password" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-lock-fill"></i> Confirm Password
+                        </label>
+                        <input asp-for="ConfirmPassword" type="password" class="field-input" placeholder="Re-enter password" />
+                        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-card-footer">
+                <a asp-action="Index" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="btn-submit primary">
+                    <i class="bi bi-person-plus"></i> Create Staff
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

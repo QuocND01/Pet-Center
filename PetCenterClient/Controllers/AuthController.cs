@@ -7,28 +7,63 @@ namespace PetCenterClient.Controllers
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
+        private readonly IGoogleClientService _googleClientService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IGoogleClientService googleClientService)
         {
             _authService = authService;
+            _googleClientService = googleClientService;
         }
 
         public IActionResult Login()
         {
-            return View("~/Views/CustomerViews/Auth/Login.cshtml");
+            var dto = _googleClientService.GetGoogleClientId();
+            return View("~/Views/CustomerViews/Auth/Login.cshtml", dto);
         }
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginDto dto)
         {
             var result = await _authService.LoginAsync(dto);
-            if (result == null)
+
+            if (result == null || !result.Success)
             {
-                ViewBag.Error = "Email or password incorrect";
-                return View("~/Views/CustomerViews/Auth/Login.cshtml");
+                if (result?.ErrorType == "AccountInactive")
+                {
+                    ViewBag.Error = "Your account has been deactivated. Please contact support for assistance.";
+                }
+                else
+                {
+                    ViewBag.Error = result?.message ?? "Email or password incorrect";
+                }
+
+                var model = _googleClientService.GetGoogleClientId();
+                return View("~/Views/CustomerViews/Auth/Login.cshtml", model);
             }
 
             HttpContext.Session.SetString("JWT", result.token);
+
+            // ✅ Decode JWT để lấy CustomerId lưu vào Session
+            try
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(result.token);
+
+                // Lấy CustomerId từ claim "sub" hoặc "nameid"
+                var customerId = jwt.Claims
+                    .FirstOrDefault(c =>
+                        c.Type == "sub" ||
+                        c.Type == "nameid" ||
+                        c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+                    ?.Value ?? "";
+
+                if (!string.IsNullOrEmpty(customerId))
+                    HttpContext.Session.SetString("CustomerId", customerId);
+            }
+            catch
+            {
+                // Nếu decode lỗi thì vẫn login bình thường, chỉ không có CustomerId
+            }
 
             return RedirectToAction("Index", "Products");
         }
@@ -64,7 +99,6 @@ namespace PetCenterClient.Controllers
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
-            // Decode JWT lấy role
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.token);
             var role = jwt.Claims
@@ -74,7 +108,6 @@ namespace PetCenterClient.Controllers
                 .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
                 ?.Value ?? "";
 
-            // Kiểm tra role có khớp với tab đang chọn không
             if (selectedRole == "Admin" && role != "Admin")
             {
                 ViewBag.Error = "This account does not have Admin privileges";
@@ -87,7 +120,6 @@ namespace PetCenterClient.Controllers
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
-            // Nếu không phải Admin cũng không phải Staff thì chặn
             if (role != "Admin" && role != "Staff")
             {
                 ViewBag.Error = "You do not have permission to access this area";
@@ -118,5 +150,230 @@ namespace PetCenterClient.Controllers
 
             return Json(new { isAuthenticated = true, role });
         }
+
+        // ================= REGISTER =================
+
+        public IActionResult Register()
+        {
+            return View("~/Views/CustomerViews/Auth/Register.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, message = string.Join("; ", errors) });
+            }
+
+            var result = await _authService.RegisterAsync(dto);
+
+            if (!result.Success)
+            {
+                ViewBag.Error = result.Message;
+                return View("~/Views/CustomerViews/Auth/Register.cshtml", dto);
+            }
+
+            HttpContext.Session.SetString("PendingEmail", dto.Email);
+            TempData["PrefilledEmail"] = dto.Email;
+            TempData["PrefilledPassword"] = dto.Password;
+
+            return Json(new { success = true, redirectUrl = Url.Action("Verify", "Auth", new { email = dto.Email }) });
+        }
+
+        // ================= VERIFY EMAIL =================
+
+        public IActionResult Verify(string email)
+        {
+            TempData.Keep("PrefilledEmail");
+            TempData.Keep("PrefilledPassword");
+            return View("~/Views/CustomerViews/Auth/Verify.cshtml", new VerifyEmailDto { Email = email });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Verify(VerifyEmailDto dto)
+        {
+            var result = await _authService.VerifyOtpAsync(dto.Email, dto.Code);
+
+            if (!result.Success)
+            {
+                var attempts = HttpContext.Session.GetInt32("OtpAttempts_" + dto.Email) ?? 0;
+                attempts++;
+                HttpContext.Session.SetInt32("OtpAttempts_" + dto.Email, attempts);
+
+                ViewBag.AttemptCount = attempts;
+                ViewBag.Error = result.Message;
+                return View("~/Views/CustomerViews/Auth/Verify.cshtml", dto);
+            }
+
+            HttpContext.Session.Remove("OtpAttempts_" + dto.Email);
+            HttpContext.Session.Remove("PendingEmail");
+
+            TempData["Success"] = "Email verified successfully. You can now login.";
+            return RedirectToAction("Login");
+        }
+
+        // ================= RESEND OTP =================
+
+        [HttpPost]
+        public async Task<IActionResult> Resend(string email)
+        {
+            var result = await _authService.ResendOtpAsync(email);
+
+            if (!result.Success)
+                TempData["ResendError"] = result.Message;
+
+            return RedirectToAction("Verify", new { email });
+        }
+
+        // POST: /Auth/GoogleLogin
+        // Nhận idToken từ Google Identity Services JS SDK
+        [HttpPost]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto dto)
+        {
+            if (string.IsNullOrEmpty(dto?.IdToken))
+                return Json(new { success = false, message = "Invalid request." });
+
+            var result = await _authService.GoogleLoginAsync(dto.IdToken);
+
+            if (result == null || !result.Success)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = result?.message ?? "Google login failed.",
+                    errorType = result?.ErrorType ?? "GoogleLoginFailed"
+                });
+            }
+
+            // Lưu JWT vào Session — nhất quán với Login thường
+            HttpContext.Session.SetString("JWT", result.token!);
+
+            // Decode JWT lấy thêm thông tin nếu cần
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(result.token);
+            var role = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+                ?.Value ?? "Customer";
+            var name = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+                ?.Value ?? "";
+
+            HttpContext.Session.SetString("Role", role);
+            HttpContext.Session.SetString("Name", name);
+
+            return Json(new
+            {
+                success = true,
+                message = "Google login successful!",
+                redirectUrl = Url.Action("Index", "Products")
+            });
+        }
+
+        // GET: /Auth/GoogleCallback — nhận code từ Google redirect
+        [HttpGet]
+        public IActionResult GoogleCallback()
+        {
+            return View("~/Views/CustomerViews/Auth/GoogleCallback.cshtml");
+        }
+
+        // POST: /Auth/GoogleCallback — frontend gọi sau khi lấy được code
+        [HttpPost]
+        public async Task<IActionResult> GoogleCallback([FromBody] GoogleCallbackRequestDto dto)
+        {
+            var result = await _authService.GoogleCallbackAsync(dto.Code, dto.RedirectUri);
+
+            if (result == null || !result.Success)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = result?.message ?? "Google login failed.",
+                    errorType = result?.ErrorType ?? "GoogleLoginFailed"
+                });
+            }
+
+            HttpContext.Session.SetString("JWT", result.token!);
+
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(result.token);
+            var role = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+                ?.Value ?? "Customer";
+            var name = jwt.Claims
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+                ?.Value ?? "";
+
+            HttpContext.Session.SetString("Role", role);
+            HttpContext.Session.SetString("Name", name);
+
+            return Json(new
+            {
+                success = true,
+                redirectUrl = Url.Action("Index", "Products")
+            });
+        }
+
+        // GET: /Auth/ForgotPassword
+        public IActionResult ForgotPassword()
+        {
+            return View("~/Views/CustomerViews/Auth/ForgotPassword.cshtml");
+        }
+
+        // POST: /Auth/ForgotPassword
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return Json(new { success = false, message = "Please enter your email address." });
+
+            var result = await _authService.ForgotPasswordAsync(email);
+
+            if (!result.Success)
+                return Json(new { success = false, message = result.Message });
+
+            return Json(new { success = true, message = result.Message });
+        }
+
+        // GET: /Auth/ResetPassword?email=...&token=...
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+                return RedirectToAction("ForgotPassword");
+
+            var validation = await _authService.ValidateResetTokenAsync(email, token);
+
+            ViewBag.Email = email;
+            ViewBag.Token = token;
+            ViewBag.TokenValid = validation.Success;
+            ViewBag.TokenError = validation.Success ? null : validation.Message;
+
+            return View("~/Views/CustomerViews/Auth/ResetPassword.cshtml");
+        }
+
+        // POST: /Auth/ResetPassword
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.NewPassword) || dto.NewPassword != dto.ConfirmPassword)
+                return Json(new { success = false, message = "Passwords do not match." });
+
+            if (dto.NewPassword.Length < 8)
+                return Json(new { success = false, message = "Password must be at least 8 characters." });
+
+            var result = await _authService.ResetPasswordAsync(dto);
+            return Json(new { success = result.Success, message = result.Message });
+        }
     }
+
+
 }

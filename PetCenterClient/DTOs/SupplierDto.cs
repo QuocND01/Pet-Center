@@ -10,7 +10,7 @@ namespace PetCenterClient.DTOs
         public string SupplierEmail { get; set; } = null!;
         public string SupplierPhoneNumber { get; set; } = null!;
         public string SupplierAddress { get; set; } = null!;
-        public string? ContactPersion { get; set; }
+        public string? ContactPerson { get; set; }
         public string? SupplierDescription { get; set; }
         public bool IsActive { get; set; }
     }
@@ -36,7 +36,7 @@ namespace PetCenterClient.DTOs
         [StringLength(100)]
         public string SupplierAddress { get; set; } = null!;
         [StringLength(50)]
-        public string? ContactPersion { get; set; }
+        public string? ContactPerson { get; set; }
         [StringLength(500)]
         public string? SupplierDescription { get; set; }
     }
@@ -66,9 +66,16 @@ namespace PetCenterClient.DTOs
         public string SupplierAddress { get; set; } = null!;
 
         [StringLength(50)]
-        public string? ContactPersion { get; set; }
+        public string? ContactPerson { get; set; }
 
         [StringLength(500)]
         public string? SupplierDescription { get; set; }
     }
+    public class SupplierSelectDto { 
+        public Guid  SupplierId { get; set; }
+        public string SupplierName { get; set; } = null!;
+    }
+    
+        
+    
 }

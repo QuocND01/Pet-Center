@@ -2,128 +2,150 @@
 @model List<ReadSupplierDto>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Suppliers";
 }
 
-@* Chèn thư viện (nếu Layout chưa có) *@
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+@* Chỉ giữ lại các link CSS đặc thù cho trang này *@
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/AdminViews/ManageSupplier/manage_supplier.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-<h2>Suppliers Management</h2>
+<div class="page-wrapper">
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>Suppliers Management</h1>
+            <p>Maintain your network of trusted product providers</p>
+        </div>
+        <div class="top-actions">
+            <button class="btn-create" id="btnCreate">
+                <i class="bi bi-plus-lg"></i> Create Supplier
+            </button>
+        </div>
+    </div>
 
-<button class="btn btn-primary" id="btnCreate">Create Supplier</button>
-
-<table class="table mt-3">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Address</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var s in Model)
-        {
-            <tr>
-                <td>@s.SupplierName</td>
-                <td>@s.SupplierEmail</td>
-                <td>@s.SupplierPhoneNumber</td>
-                <td>@s.SupplierAddress</td>
-                <td>
-                    <button class="btn btn-warning btn-edit" data-id="@s.SupplierId">Edit</button>
-                    <button class="btn btn-danger btn-delete" data-id="@s.SupplierId" data-name="@s.SupplierName">Delete</button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-dark">@s.SupplierName</td>
+                        <td class="email-cell">@s.SupplierEmail</td>
+                        <td class="phone-cell">@s.SupplierPhoneNumber</td>
+                        <td class="address-cell">@s.SupplierAddress</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-detail btn-edit" data-id="@s.SupplierId" title="Edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn-action-danger btn-delete" data-id="@s.SupplierId" data-name="@s.SupplierName" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalTitle">Supplier Information</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
             </div>
             <div class="modal-body" id="modalBody">
+                @* Ajax content loads here *@
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    $(document).ready(function () {
-        var myModal = new bootstrap.Modal(document.getElementById('supplierModal'));
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Khởi tạo modal từ thư viện bootstrap đã có trong Layout
+            var myModal = new bootstrap.Modal(document.getElementById('supplierModal'));
 
-        // 1. Mở Modal CREATE
-        $("#btnCreate").click(function () {
-            $("#modalTitle").text("Create New Supplier");
-            $("#modalBody").load('/Suppliers/Create', function () {
+            // 1. Mở Modal CREATE
+            $("#btnCreate").click(function () {
+                $("#modalTitle").text("Create New Supplier");
+                $("#modalBody").load('/Suppliers/Create', function () {
+                    myModal.show();
+                });
+            });
+
+            // 2. Mở Modal EDIT
+            $(document).on("click", ".btn-edit", function () {
+                var id = $(this).data("id");
+                $("#modalTitle").text("Edit Supplier");
+                $("#modalBody").load('/Suppliers/Edit/' + id, function () {
+                    myModal.show();
+                });
+            });
+
+            // 3. Mở Modal DELETE (Đã làm đẹp giao diện xác nhận)
+            $(document).on("click", ".btn-delete", function () {
+                var id = $(this).data("id");
+                var name = $(this).data("name");
+                $("#modalTitle").text("Confirm Delete");
+                $("#modalBody").html(`
+                    <div class="text-center py-4">
+                        <i class="bi bi-exclamation-circle text-danger" style="font-size: 3rem;"></i>
+                        <p class="mt-3 fs-5">Are you sure you want to delete supplier:<br> <b class="text-dark">${name}</b>?</p>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" data-id="${id}" style="border-radius: 8px;">Delete Now</button>
+                    </div>
+                `);
                 myModal.show();
             });
-        });
 
-        // 2. Mở Modal EDIT
-            $(document).on("click", ".btn-edit", function () {
-        var id = $(this).data("id");
-        // Sử dụng URL tuyệt đối an toàn
-        $("#modalBody").load('/Suppliers/Edit/' + id, function () {
-            myModal.show();
-        });
-    });
+            // 4. Xử lý SUBMIT Form (Ajax)
+            $(document).on("submit", "#createForm, #editForm", function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('id') === "createForm" ? '/Suppliers/Create' : '/Suppliers/Edit';
 
-        // 3. Mở Modal DELETE (Xác nhận xóa)
-        $(document).on("click", ".btn-delete", function () {
-            var id = $(this).data("id");
-            var name = $(this).data("name");
-            $("#modalTitle").text("Confirm Delete");
-            $("#modalBody").html(`
-                <p>Are you sure you want to delete supplier: <b>${name}</b>?</p>
-                <div class="modal-footer px-0 pb-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" data-id="${id}">Delete</button>
-                </div>
-            `);
-            myModal.show();
-        });
-
-        // 4. Xử lý SUBMIT (Dùng cho cả CreateForm và EditForm)
-        $(document).on("submit", "#createForm, #editForm", function (e) {
-            e.preventDefault();
-            var form = $(this);
-            var url = form.attr('id') === "createForm" ? '/Suppliers/Create' : '/Suppliers/Edit';
-
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: form.serialize(),
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: form.serialize(),
                     success: function (res) {
+                        if (res.success) {
+                            location.reload();
+                        } else {
+                            $("#modalBody").html(res);
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("Error saving data. Please check connection.");
+                    }
+                });
+            });
 
-                if (res.success) {
-                        location.reload();
-                } else {
-                        $("#modalBody").html(res);
-                }
-
-                },
-                error: function () {
-                    alert("Error saving data!");
-                }
+            // 5. Xử lý xóa thực sự
+            $(document).on("click", "#confirmDeleteBtn", function () {
+                var id = $(this).data("id");
+                $.post('/Suppliers/Delete/' + id, function () {
+                    location.reload();
+                }).fail(function() {
+                    alert("Error deleting supplier!");
+                });
             });
         });
-
-        // 5. Xử lý CLICK DELETE thực sự
-        $(document).on("click", "#confirmDeleteBtn", function () {
-            var id = $(this).data("id");
-            $.post('/Suppliers/Delete/' + id, function () {
-                location.reload();
-            }).fail(function() {
-                alert("Error deleting supplier!");
-            });
-        });
-    });
-</script>
+    </script>
+}

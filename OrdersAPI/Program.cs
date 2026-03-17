@@ -1,4 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OrdersAPI.Models;
 using OrdersAPI.Repository;
 using OrdersAPI.Repository.Interface;
@@ -7,20 +8,37 @@ using OrdersAPI.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<PetCenterContext>(options =>
+
+// ── Database Contexts ─────────────────────────────────────────────
+builder.Services.AddDbContext<PetCenterOrderServiceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDbContext<PetCenterCartServiceContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CartConnection")));
+
+builder.Services.AddDbContext<PetCenterVoucherServiceContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("VoucherConnection")));
+
+// ── Repositories ─────────────────────────────────────────────────
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+
+// ── Services ─────────────────────────────────────────────────────
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+
+// ── AutoMapper ────────────────────────────────────────────────────
+// MappingProfile là class có sẵn trong OrdersAPI/Profile/MappingProfile.cs
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -28,9 +46,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

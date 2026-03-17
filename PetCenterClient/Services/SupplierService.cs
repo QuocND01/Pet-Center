@@ -2,20 +2,41 @@
 using System.Text;
 using System.Text.Json;
 using PetCenterClient.DTOs;
+using System.Net.Http.Headers;
+
 namespace PetCenterClient.Services
 {
     public class SupplierService : ISupplierService
     {
         private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public SupplierService(HttpClient httpClient)
+        public SupplierService(HttpClient httpClient,
+            IHttpContextAccessor httpContextAccessor)
         {
             _httpClient = httpClient;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        // Hàm helper để gán token cho BE
+        private void AddAuthorizationHeader()
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                // Xóa các giá trị cũ để tránh cộng dồn header
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
         }
 
         public async Task<List<ReadSupplierDto>> GetAllAsync()
         {
-            var res = await _httpClient.GetAsync("https://localhost:5000/inventory/Suppliers");
+            AddAuthorizationHeader();
+
+            var res = await _httpClient.GetAsync("/inventory/Suppliers");
             res.EnsureSuccessStatusCode();
 
             var json = await res.Content.ReadAsStringAsync();
@@ -26,7 +47,9 @@ namespace PetCenterClient.Services
 
         public async Task<ReadSupplierDto?> GetByIdAsync(Guid id)
         {
-            var res = await _httpClient.GetAsync($"https://localhost:5000/inventory/Suppliers/{id}");
+            AddAuthorizationHeader();
+
+            var res = await _httpClient.GetAsync($"/inventory/Suppliers/{id}");
 
             if (!res.IsSuccessStatusCode) return null;
 
@@ -36,27 +59,39 @@ namespace PetCenterClient.Services
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
-        public async Task CreateAsync(CreateSupplierDto dto)
+        public async Task<ReadSupplierDto> CreateAsync(CreateSupplierDto dto)
         {
-            var json = JsonSerializer.Serialize(dto);
+            AddAuthorizationHeader();
+            var res = await _httpClient.PostAsJsonAsync("/inventory/Suppliers", dto);
+            res.EnsureSuccessStatusCode();
 
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            await _httpClient.PostAsync("https://localhost:5000/inventory/Suppliers", content);
+            // Trả về object vừa tạo từ server
+            return await res.Content.ReadFromJsonAsync<ReadSupplierDto>();
         }
 
-        public async Task UpdateAsync(Guid id, UpdateSupplierDto dto)
+        public async Task<bool> UpdateAsync(Guid id, UpdateSupplierDto dto)
         {
-            var json = JsonSerializer.Serialize(dto);
-
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            await _httpClient.PutAsync($"https://localhost:5000/inventory/Suppliers/{id}", content);
+            AddAuthorizationHeader();
+            var res = await _httpClient.PutAsJsonAsync($"/inventory/Suppliers/{id}", dto);
+            return res.IsSuccessStatusCode;
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
-            await _httpClient.DeleteAsync($"https://localhost:5000/inventory/Suppliers/{id}");
+            AddAuthorizationHeader();
+            var res = await _httpClient.DeleteAsync($"/inventory/Suppliers/{id}");
+            return res.IsSuccessStatusCode;
+        }
+        public async Task<List<SupplierSelectDto>> GetSupplierSelectAsync()
+        {
+            
+            var suppliers = await GetAllAsync();
+
+            return suppliers.Select(s => new SupplierSelectDto
+            {
+                SupplierId = s.SupplierId,
+                SupplierName = s.SupplierName
+            }).ToList();
         }
     }
 }

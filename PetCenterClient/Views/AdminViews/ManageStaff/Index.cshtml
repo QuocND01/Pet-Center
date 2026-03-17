@@ -1,0 +1,224 @@
+﻿@using PetCenterClient.DTOs
+@model OdataResponse<StaffDto>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Staff Management";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string sortOrder = ViewBag.SortOrder ?? "asc";
+    string sortBy = ViewBag.SortBy ?? "";
+
+    // isActive filter
+    bool? isActiveFilter = ViewBag.IsActive as bool?;
+    bool isActiveTrue = isActiveFilter == true;
+    bool isActiveFalse = isActiveFilter == false;
+}
+
+<link rel="stylesheet" href="~/css/AdminViews/ManageStaff/manage-staff.css" asp-append-version="true" />
+
+<div class="page-wrapper">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>Staff Management</h1>
+            <p>View and manage all staff members</p>
+        </div>
+        <div class="header-stat">
+            <span class="num">@(Model?.Count ?? 0)</span>
+            <span class="label">Total Staff</span>
+        </div>
+    </div>
+
+    <!-- TOOLBAR / FILTER -->
+    <form asp-action="Index" method="get" class="toolbar">
+
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text"
+                   name="searchTerm"
+                   value="@ViewBag.Search"
+                   class="search-input"
+                   placeholder="Search name, email, phone…" />
+        </div>
+
+        <select name="isActive" class="filter-select">
+            <option value="">All Status</option>
+            <option value="true" selected="@isActiveTrue">Active</option>
+            <option value="false" selected="@isActiveFalse">Inactive</option>
+        </select>
+
+        <select name="sortBy" class="filter-select">
+            <option value="">Sort by</option>
+            <option value="name" selected="@(sortBy == "name")">Full Name</option>
+            <option value="email" selected="@(sortBy == "email")">Email</option>
+        </select>
+
+        <select name="sortOrder" class="filter-select" style="min-width:100px">
+            <option value="asc" selected="@(sortOrder == "asc")">A → Z</option>
+            <option value="desc" selected="@(sortOrder == "desc")">Z → A</option>
+        </select>
+
+        <button type="submit" class="filter-btn btn-apply">
+            <i class="bi bi-funnel"></i> Apply
+        </button>
+
+        <a asp-action="Index" class="filter-btn btn-clear">
+            <i class="bi bi-x-circle"></i> Clear
+        </a>
+
+        <a asp-action="Create" class="filter-btn btn-add">
+            <i class="bi bi-plus-lg"></i> Add Staff
+        </a>
+
+    </form>
+
+    <!-- TABLE -->
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Staff</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Date of Birth</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model?.Values == null || !Model.Values.Any())
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+                                <h3>No staff members found</h3>
+                                <p>Try adjusting your filters or add a new staff member.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    int i = (currentPage - 1) * 10 + 1;
+                    foreach (var s in Model.Values)
+                    {
+                        var initials = string.Join("", s.FullName.Split(' ')
+                        .Take(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
+                        var genderClass = s.Gender?.ToLower() == "male" ? "male"
+                        : s.Gender?.ToLower() == "female" ? "female" : "";
+                        <tr>
+                            <td><span class="row-num">@i</span></td>
+
+                            <td>
+                                <div class="staff-cell">
+                                    <div class="staff-avatar @genderClass">@initials</div>
+                                    <div>
+                                        <div class="staff-name">@s.FullName</div>
+                                        <div class="staff-id-sub">@s.StaffId.ToString()[..8]…</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td><span class="email-cell">@s.Email</span></td>
+                            <td><span class="phone-cell">@s.PhoneNumber</span></td>
+
+                            <td>
+                                <span class="gender-cell">
+                                    @if (s.Gender?.ToLower() == "male")
+                                    {
+                                        <i class="bi bi-gender-male" style="color:#3b82f6"></i>
+                                    }
+                                    else if (s.Gender?.ToLower() == "female")
+                                    {
+                                        <i class="bi bi-gender-female" style="color:#ec4899"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-gender-ambiguous" style="color:#8b5cf6"></i>
+                                    }
+                                    @(s.Gender ?? "—")
+                                </span>
+                            </td>
+
+                            <td><span class="dob-cell">@(s.BirthDay?.ToString("dd/MM/yyyy") ?? "—")</span></td>
+
+                            <td>
+                                @if (s.IsActive)
+                                {
+                                    <span class="badge-status badge-active">
+                                        <span class="badge-dot"></span> Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-inactive">
+                                        <span class="badge-dot"></span> Inactive
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="action-group">
+                                    <a asp-action="Details" asp-route-id="@s.StaffId" class="btn-action btn-view">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@s.StaffId" class="btn-action btn-edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@s.StaffId" class="btn-action btn-delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    @if (totalPages > 1)
+    {
+        <div class="pagination-wrap">
+            <a class="page-btn @(currentPage <= 1 ? "disabled" : "")"
+               asp-action="Index"
+               asp-route-searchTerm="@ViewBag.Search"
+               asp-route-isActive="@ViewBag.IsActive"
+               asp-route-sortBy="@ViewBag.SortBy"
+               asp-route-sortOrder="@sortOrder"
+               asp-route-page="@(currentPage - 1)">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+
+            @for (int p = 1; p <= totalPages; p++)
+            {
+                <a class="page-btn @(p == currentPage ? "active" : "")"
+                   asp-action="Index"
+                   asp-route-searchTerm="@ViewBag.Search"
+                   asp-route-isActive="@ViewBag.IsActive"
+                   asp-route-sortBy="@ViewBag.SortBy"
+                   asp-route-sortOrder="@sortOrder"
+                   asp-route-page="@p">@p</a>
+            }
+
+            <a class="page-btn @(currentPage >= totalPages ? "disabled" : "")"
+               asp-action="Index"
+               asp-route-searchTerm="@ViewBag.Search"
+               asp-route-isActive="@ViewBag.IsActive"
+               asp-route-sortBy="@ViewBag.SortBy"
+               asp-route-sortOrder="@sortOrder"
+               asp-route-page="@(currentPage + 1)">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    }
+
+</div>

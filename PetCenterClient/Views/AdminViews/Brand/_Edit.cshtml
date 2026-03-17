@@ -1,0 +1,110 @@
+﻿@model PetCenterClient.DTOs.ReadBrandDTOs
+
+<style>
+
+    .logo-preview {
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+</style>
+
+<form asp-action="Edit"
+      asp-controller="Brands"
+      method="post">
+
+    <!-- ID -->
+    <input type="hidden" asp-for="BrandId" />
+
+    <!-- HIỂN THỊ LỖI MODEL -->
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="row">
+
+        <!-- BRAND NAME -->
+        <div class="col-md-12 mb-3">
+
+            <label asp-for="BrandName" class="form-label"></label>
+
+            <input asp-for="BrandName"
+                   class="form-control" />
+
+            <span asp-validation-for="BrandName"
+                  class="text-danger"></span>
+
+        </div>
+
+
+        <!-- LOGO URL -->
+        <div class="col-md-12 mb-3">
+
+            <label asp-for="BrandLogo"
+                   class="form-label"></label>
+
+            <input asp-for="BrandLogo"
+                   id="logoInput"
+                   class="form-control"
+                   placeholder="Enter logo image url" />
+
+        </div>
+
+    </div>
+
+
+    <!-- PREVIEW -->
+
+    <div class="mt-3">
+
+        <label class="fw-bold">Preview</label>
+
+        <div class="mt-2">
+
+            <img id="logoPreview"
+                 src="@(string.IsNullOrEmpty(Model.BrandLogo) ? "https://via.placeholder.com/140" : Model.BrandLogo)"
+                 class="logo-preview" />
+
+        </div>
+
+    </div>
+
+
+    <!-- BUTTON -->
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+            Cancel
+        </button>
+
+        <button type="submit"
+                class="btn btn-warning">
+
+            <i class="bi bi-pencil-square"></i>
+            Update
+
+        </button>
+
+    </div>
+
+</form>
+
+
+<script>
+
+    // preview khi thay đổi url
+    $("#logoInput").on("input", function () {
+
+        const url = $(this).val()
+
+        if(url){
+            $("#logoPreview").attr("src", url)
+        }
+
+    })
+
+</script>

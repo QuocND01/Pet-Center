@@ -1,0 +1,106 @@
+﻿/* Form Layout in Modal */
+.custom-form-modal {
+    padding: 10px 5px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+/* Label Styling */
+.form-label-custom {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-family: 'DM Sans', sans-serif;
+}
+
+/* Input Styling */
+.form-input-custom {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-primary);
+    background-color: var(--surface-2);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+    .form-input-custom:focus {
+        border-color: var(--accent);
+        background-color: #fff;
+        box-shadow: 0 0 0 4px var(--accent-light);
+    }
+
+/* Validation Message */
+.validation-message {
+    font-size: 11px;
+    color: var(--danger);
+    margin-top: 4px;
+    display: block;
+}
+
+/* Footer Actions */
+.modal-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-cancel-modal {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+    .btn-cancel-modal:hover {
+        background: var(--surface-2);
+        color: var(--text-primary);
+    }
+
+.btn-submit-modal {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .btn-submit-modal:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+/* Alert box */
+.alert-danger-custom {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    border: 1px solid #fecaca;
+}

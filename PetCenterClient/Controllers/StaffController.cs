@@ -9,23 +9,32 @@ namespace PetCenterClient.Controllers
         private readonly IStaffService _service;
         public StaffController(IStaffService service) => _service = service;
 
-        public async Task<IActionResult> Index(string searchTerm)
+        public async Task<IActionResult> Index(
+            string? searchTerm,
+            bool? isActive,
+            string? sortBy,
+            string sortOrder = "asc",
+            int page = 1)
         {
-            var staffs = await _service.GetAllAsync();
+            var result = await _service.GetAllODataAsync(
+                search: searchTerm,
+                isActive: isActive,
+                sortBy: sortBy,
+                sortOrder: sortOrder,
+                page: page,
+                pageSize: 10);
 
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                searchTerm = searchTerm.ToLower();
-                staffs = staffs.Where(s => s.FullName.ToLower().Contains(searchTerm) ||
-                                         s.Email.ToLower().Contains(searchTerm) ||
-                                         s.PhoneNumber.Contains(searchTerm)).ToList();
-            }
+            ViewBag.Search = searchTerm;
+            ViewBag.IsActive = isActive;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortOrder = sortOrder;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((result.Count ?? 0) / 10.0);
 
-            ViewData["CurrentFilter"] = searchTerm;
-            return View(staffs);
+            return View("~/Views/AdminViews/ManageStaff/Index.cshtml", result);
         }
 
-        public IActionResult Create() => View();
+        public IActionResult Create() => View("~/Views/AdminViews/ManageStaff/Create.cshtml");
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -44,7 +53,7 @@ namespace PetCenterClient.Controllers
             }
 
             ModelState.AddModelError("", "An error occurred while calling the API. Please try again.");
-            return View(dto);
+            return View("~/Views/AdminViews/ManageStaff/Create.cshtml", dto);
         }
 
         [HttpGet]
@@ -56,14 +65,14 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
             // Đảm bảo staff.BirthDay đã có giá trị từ API trả về
-            return View(staff);
+            return View("~/Views/AdminViews/ManageStaff/Edit.cshtml", staff);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(Guid id, StaffDto dto)
         {
             if (await _service.UpdateAsync(id, dto)) return RedirectToAction(nameof(Index));
-            return View(dto);
+            return View("~/Views/AdminViews/ManageStaff/Edit.cshtml", dto);
         }
 
         // 1. Xem chi tiết nhân viên
@@ -71,7 +80,7 @@ namespace PetCenterClient.Controllers
         {
             var staff = await _service.GetByIdAsync(id);
             if (staff == null) return NotFound();
-            return View(staff);
+            return View("~/Views/AdminViews/ManageStaff/Details.cshtml", staff);
         }
 
         // 2. Hiện trang xác nhận xóa (GET)
@@ -81,7 +90,7 @@ namespace PetCenterClient.Controllers
         {
             var staff = await _service.GetByIdAsync(id);
             if (staff == null) return NotFound();
-            return View(staff);
+            return View("~/Views/AdminViews/ManageStaff/Delete.cshtml", staff);
         }
 
         // 3. Thực hiện xóa thực tế (POST)

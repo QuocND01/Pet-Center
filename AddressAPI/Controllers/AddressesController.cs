@@ -14,11 +14,20 @@ namespace AddressAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _service.GetAddressesAsync());
 
+        // GET: api/Addresses/customer/{customerId}
+        // Trả về tất cả address active của 1 customer
+        [HttpGet("customer/{customerId:guid}")]
+        public async Task<IActionResult> GetByCustomerId(Guid customerId)
+        {
+            var result = await _service.GetAddressesByCustomerIdAsync(customerId);
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _service.GetAddressByIdAsync(id);
-            return result == null ? NotFound("Không tìm thấy địa chỉ") : Ok(result);
+            return result == null ? NotFound("Address not found") : Ok(result);
         }
 
         [HttpPost]
@@ -32,14 +41,14 @@ namespace AddressAPI.Controllers
         public async Task<IActionResult> Update(Guid id, AddressCreateDTO dto)
         {
             var success = await _service.UpdateAddressAsync(id, dto);
-            return success ? NoContent() : NotFound("Cập nhật thất bại hoặc không tìm thấy ID");
+            return success ? NoContent() : NotFound("Update failed or ID not found");
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var success = await _service.DeleteAddressAsync(id);
-            return success ? Ok("Xóa thành công") : NotFound("Không tìm thấy địa chỉ để xóa");
+            return success ? Ok("Deleted successfully") : NotFound("Address not found");
         }
     }
 }

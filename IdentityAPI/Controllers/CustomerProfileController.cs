@@ -46,23 +46,23 @@ namespace IdentityAPI.Controllers
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateCustomerProfileRequestDto request)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                var errorMessage = string.Join("; ", errors.Select(e => e.ErrorMessage));
+                return BadRequest(new { success = false, message = errorMessage });
+            }
+
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (userIdClaim == null)
-                return Unauthorized("Invalid token");
-
-            var userId = Guid.Parse(userIdClaim);
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized(new { success = false, message = "Invalid token" });
 
             var result = await _customerService.UpdateProfileAsync(userId, request);
 
-            if (!result)
-                return NotFound("Customer not found");
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
 
-            return Ok(new
-            {
-                status = 200,
-                message = "Profile updated successfully"
-            });
+            return Ok(new { success = true, message = result.Message });
         }
     }
 }

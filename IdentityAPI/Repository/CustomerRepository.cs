@@ -20,6 +20,18 @@ namespace IdentityAPI.Repository
                 .FirstOrDefaultAsync(x => x.Email == email && x.IsActive == true);
         }
 
+        public async Task<Customer?> GetByEmailAsyncWithoutActiveCheck(string email)
+        {
+            return await _context.Customers
+                .FirstOrDefaultAsync(x => x.Email == email);
+        }
+
+        public async Task<bool> DeleteAsync(Customer customer)
+        {
+            _context.Customers.Remove(customer);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         // ==================================== For Staff and Admin ====================================
         public async Task<List<Customer>> GetAllCustomersAsync()
         {
@@ -47,6 +59,18 @@ namespace IdentityAPI.Repository
         {
             _context.Customers.Update(customer);
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> AddAsync(Customer customer)
+        {
+            await _context.Customers.AddAsync(customer);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<Customer?> GetByPhoneAsync(string phone)
+        {
+            return await _context.Customers
+                .FirstOrDefaultAsync(x => x.PhoneNumber == phone && x.EmailVerified == true);
         }
     }
 }

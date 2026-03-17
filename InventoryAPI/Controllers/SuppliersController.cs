@@ -1,12 +1,14 @@
 ﻿using InventoryAPI.DTOs;
 using InventoryAPI.Service.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    
+    [Authorize]
+
     public class SuppliersController : ControllerBase
     {
         private readonly ISupplierService _service;

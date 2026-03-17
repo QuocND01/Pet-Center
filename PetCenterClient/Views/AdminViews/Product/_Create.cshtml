@@ -25,18 +25,21 @@
 <form method="post"
       enctype="multipart/form-data"
       asp-action="Create" asp-controller="Products">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="row">
 
         <div class="col-md-12 mb-3">
             <label asp-for="ProductName" class="form-label"></label>
             <input asp-for="ProductName" class="form-control" />
+            <span asp-validation-for="ProductName" class="text-danger"></span>
         </div>
 
         <div class="col-md-12 mb-3">
             <label asp-for="ProductDescription"></label>
 <textarea asp-for="ProductDescription"
           class="form-control"></textarea>
+            <span asp-validation-for="ProductDescription" class="text-danger"></span>
         </div>
 
         <div class="col-md-6 mb-3">
@@ -44,31 +47,65 @@
             <input asp-for="ProductPrice"
                    type="number"
                    class="form-control" />
+            <span asp-validation-for="ProductPrice" class="text-danger"></span>
+        </div>
+
+
+        <div class="col-md-6 mb-3">
+            <label asp-for="BrandId"></label>
+            <select asp-for="BrandId"
+                    asp-items="@(ViewBag.Brands as SelectList)"
+                    class="form-control">
+                <option value="">-- Select Brand --</option>
+            </select>
+            <span asp-validation-for="BrandId" class="text-danger"></span>
         </div>
 
         <div class="col-md-6 mb-3">
-            <label asp-for="StockQuantity"></label>
-            <input asp-for="StockQuantity"
-                   type="number"
-                   class="form-control" />
+            <label asp-for="CategoryId"></label>
+            <select asp-for="CategoryId"
+                    asp-items="@(ViewBag.Categories as SelectList)"
+                    class="form-control">
+                <option value="">-- Select Category --</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
         </div>
-
-        <select asp-for="BrandId"
-                asp-items="@(ViewBag.Brands as SelectList)"
-                class="form-control">
-            <option value="">-- Select Brand --</option>
-        </select>
-
-        <select asp-for="CategoryId"
-                asp-items="@(ViewBag.Categories as SelectList)"
-                class="form-control">
-            <option value="">-- Select Category --</option>
-        </select>
         <div class="col-md-12 mt-3">
 
             <label class="form-label">Attributes</label>
 
-            <div id="attributeList"></div>
+            <div id="attributeList">
+
+                @if (Model?.Attributes != null)
+                {
+                    for (int i = 0; i < Model.Attributes.Count; i++)
+                    {
+                        <div class="row mb-2">
+
+                            <div class="col-md-5">
+                                <input class="form-control"
+                                       value="@Model.Attributes[i].AttributeName"
+                                       readonly />
+                            </div>
+
+                            <div class="col-md-7">
+
+                                <input name="Attributes[@i].AttributeValue"
+                                       value="@Model.Attributes[i].AttributeValue"
+                                       class="form-control"
+                                       placeholder="Enter value" />
+
+                                <input type="hidden"
+                                       name="Attributes[@i].CategoryAttributeId"
+                                       value="@Model.Attributes[i].CategoryAttributeId" />
+
+                            </div>
+
+                        </div>
+                    }
+                }
+
+            </div>
 
         </div>
 
@@ -118,14 +155,14 @@
 
 </form>
 
+
 <script>
+
+
 
     let imageIndex = 1
 
-    $(document).ready(function () {
-
-        // ADD IMAGE
-        $("#addImage").click(function () {
+    $(document).on("click", "#addImage", function () {
 
             const html = `
             <div class="image-item position-relative">
@@ -158,7 +195,7 @@
 
 
         // LOAD CATEGORY ATTRIBUTES
-        $("#CategoryId").change(function () {
+    $(document).on("change","#CategoryId",function(){
 
             const categoryId = $(this).val()
 
@@ -170,42 +207,45 @@
 
                 let index = 0
 
-                data.forEach(attr => {
+                  data.forEach(attr => {
 
-                    const html = `
-                    <div class="row mb-2">
+        const html = `
+        <div class="row mb-2">
 
-                        <div class="col-md-5">
-                            <input class="form-control"
-                                   value="${attr.attributeName}"
-                                   readonly />
-                        </div>
+            <div class="col-md-5">
+                <input class="form-control"
+                       value="${attr.attributeName}"
+                       readonly />
+            </div>
 
-                        <div class="col-md-7">
-                            <input name="Attributes[${index}].AttributeValue"
-                                   class="form-control"
-                                   placeholder="Enter value"/>
+            <div class="col-md-7">
+                <input name="Attributes[${index}].AttributeValue"
+                       class="form-control"
+                       data-val="true"
+                       data-val-required="Attribute value is required"
+                       placeholder="Enter value"/>
 
-                            <input type="hidden"
-                                   name="Attributes[${index}].CategoryAttributeId"
-                                   value="${attr.categoryAttributeId}" />
-                        </div>
+                <span class="text-danger field-validation-valid"
+                      data-valmsg-for="Attributes[${index}].AttributeValue"
+                      data-valmsg-replace="true"></span>
 
-                    </div>
-                    `
+                <input type="hidden"
+                       name="Attributes[${index}].CategoryAttributeId"
+                       value="${attr.categoryAttributeId}" />
+            </div>
 
-                    $("#attributeList").append(html)
+        </div>
+        `
 
-                    index++
+        $("#attributeList").append(html)
 
-                })
+        index++
+    })
 
+    $.validator.unobtrusive.parse("#attributeList")
             })
 
         })
-
-    })
-
 
     // REMOVE IMAGE
     function removeImage(button){

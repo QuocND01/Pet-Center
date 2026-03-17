@@ -1,35 +1,38 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using System.Text.Json;
 using PetCenterClient.DTOs;
+using PetCenterClient.Services.Interface;
+
 namespace PetCenterClient.Controllers
 {
     public class SuppliersController : Controller
     {
-        private readonly HttpClient _httpClient;
+        private readonly ISupplierService _supplierService;
 
-        public SuppliersController(IHttpClientFactory factory)
+        public SuppliersController(ISupplierService supplierService)
         {
-            _httpClient = factory.CreateClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:5000"); // port gateway
+            _supplierService = supplierService;
         }
 
+        // GET: Suppliers
         public async Task<IActionResult> Index()
         {
-            var res = await _httpClient.GetAsync("/inventory/suppliers");
-            var data = await res.Content.ReadAsStringAsync();
+            var suppliers = await _supplierService.GetAllAsync();
 
-            var suppliers = JsonSerializer.Deserialize<List<ReadSupplierDto>>(data,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (suppliers == null)
+                suppliers = new List<ReadSupplierDto>();
 
             return View("~/Views/AdminViews/Supplier/Index.cshtml", suppliers);
         }
 
+        // GET: Create
         public IActionResult Create()
-        {
+        {   
+            
             return View("~/Views/AdminViews/Supplier/Create.cshtml");
+
         }
 
+        // POST: Create
         [HttpPost]
         public async Task<IActionResult> Create(CreateSupplierDto dto)
         {
@@ -38,33 +41,38 @@ namespace PetCenterClient.Controllers
                 return PartialView("~/Views/AdminViews/Supplier/Create.cshtml", dto);
             }
 
-            var json = JsonSerializer.Serialize(dto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            await _supplierService.CreateAsync(dto);
 
-            var res = await _httpClient.PostAsync("/inventory/suppliers", content);
+            return Json(new { success = true });
 
-            if (res.IsSuccessStatusCode)
-                return Json(new { success = true });
-
-            ModelState.AddModelError("", "Error creating supplier");
-
-            return PartialView("~/Views/AdminViews/Supplier/Create.cshtml", dto);
         }
 
+        // GET: Edit
+        [HttpGet]
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
-            var res = await _httpClient.GetAsync($"/inventory/suppliers/{id}");
-            if (!res.IsSuccessStatusCode) return NotFound();
+            var supplier = await _supplierService.GetByIdAsync(id);
 
-            var data = await res.Content.ReadAsStringAsync();
-            Console.WriteLine(data);
-            var supplier = JsonSerializer.Deserialize<ReadSupplierDto>(data,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (supplier == null)
+                return NotFound();
 
-            return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", supplier);
+            var dto = new UpdateSupplierDto
+            {
+                SupplierId = supplier.SupplierId,
+                TaxId = supplier.TaxId,
+                SupplierName = supplier.SupplierName,
+                SupplierEmail = supplier.SupplierEmail,
+                SupplierPhoneNumber = supplier.SupplierPhoneNumber,
+                SupplierAddress = supplier.SupplierAddress,
+                ContactPerson = supplier.ContactPerson,
+                SupplierDescription = supplier.SupplierDescription
+            };
+
+            return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", dto);
         }
 
+        // POST: Edit
         [HttpPost]
         public async Task<IActionResult> Edit(UpdateSupplierDto dto)
         {
@@ -73,23 +81,25 @@ namespace PetCenterClient.Controllers
                 return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", dto);
             }
 
-            var json = JsonSerializer.Serialize(dto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var result = await _supplierService.UpdateAsync(dto.SupplierId, dto);
 
-            var res = await _httpClient.PutAsync($"/inventory/suppliers/{dto.SupplierId}", content);
-
-            if (res.IsSuccessStatusCode)
+            if (result)
                 return Json(new { success = true });
 
             ModelState.AddModelError("", "Error updating supplier");
+
             return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", dto);
         }
 
-        [HttpPost] // Chuyển Delete sang HttpPost để gọi từ Ajax an toàn
+        // DELETE
+        [HttpPost]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var res = await _httpClient.DeleteAsync($"/inventory/suppliers/{id}");
-            if (res.IsSuccessStatusCode) return Json(new { success = true });
+            var result = await _supplierService.DeleteAsync(id);
+
+            if (result)
+                return Json(new { success = true });
+
             return BadRequest();
         }
     }

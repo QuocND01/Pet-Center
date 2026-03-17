@@ -8,16 +8,21 @@ namespace InventoryAPI.Profiles
     {
         public ImportStockProfile()
         {
-            // Read full import
+            // Read full import (Header + Details)
             CreateMap<ImportStock, ReadImportStockDto>()
+                .ForMember(dest => dest.SupplierName,
+                    opt => opt.MapFrom(src => src.Supplier.SupplierName))
                 .ForMember(dest => dest.Details,
-                           opt => opt.MapFrom(src => src.ImportStockDetails));
+                    opt => opt.MapFrom(src => src.ImportStockDetails));
 
             // Header list
-            CreateMap<ImportStock, ReadImportHeaderDto>();
+            CreateMap<ImportStock, ReadImportHeaderDto>()
+                .ForMember(dest => dest.SupplierName,
+                    opt => opt.MapFrom(src => src.Supplier.SupplierName));
 
             // Detail read
             CreateMap<ImportStockDetail, ImportStockDetailDto>();
+                
 
             // Create import
             CreateMap<CreateImportStockDto, ImportStock>()
@@ -26,14 +31,14 @@ namespace InventoryAPI.Profiles
                 .ForMember(dest => dest.Status, opt => opt.Ignore())
                 .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
                 .ForMember(dest => dest.ImportStockDetails,
-                           opt => opt.MapFrom(src => src.Details));
+                    opt => opt.MapFrom(src => src.Details));
 
             // Create detail
             CreateMap<CreateImportStockDetailDto, ImportStockDetail>()
                 .ForMember(dest => dest.ImportStockDetailId,
-                           opt => opt.MapFrom(_ => Guid.NewGuid()))
+                    opt => opt.MapFrom(_ => Guid.NewGuid()))
                 .ForMember(dest => dest.StockLeft,
-                           opt => opt.MapFrom(src => src.Quantity));
+                    opt => opt.MapFrom(src => src.Quantity));
         }
     }
 }

@@ -1,12 +1,15 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.EntityFrameworkCore;
+using ProductAPI.DTOs;
+using ProductAPI.Models;
+using ProductAPI.Service;
+using ProductAPI.Service.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProductAPI.Models;
-using ProductAPI.Service.Interface;
 
 namespace ProductAPI.Controllers
 {
@@ -22,88 +25,98 @@ namespace ProductAPI.Controllers
         }
 
         // GET: api/Brands
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<Brand>>> GetBrands()
+        //{
+        //    var brands = await _brandService.GetAllBrandAsync();
+        //    return Ok(brands);
+        //}
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Brand>>> GetBrands()
+        [EnableQuery(PageSize = 10)]
+        public IQueryable<ReadBrandDTOs> Get()
         {
-            var brands = await _brandService.GetAllBrandAsync();
-            return Ok(brands);
+            return _brandService.GetAllBrand();
         }
 
-        //// GET: api/Brands/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<Brand>> GetBrand(Guid id)
-        //{
-        //    var brand = await _context.Brands.FindAsync(id);
+      
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ReadBrandDTOs>> GetBrandByID(Guid id)
+        {
+            var brand = await _brandService.GetBrandByIdAsync(id);
 
-        //    if (brand == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (brand == null)
+            {
+                return NotFound();
+            }
 
-        //    return brand;
-        //}
+            return brand;
+        }
 
-        //// PUT: api/Brands/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutBrand(Guid id, Brand brand)
-        //{
-        //    if (id != brand.BrandId)
-        //    {
-        //        return BadRequest();
-        //    }
 
-        //    _context.Entry(brand).State = EntityState.Modified;
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutBrand(Guid id, UpdateBrandDTOs upadteBrand)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!BrandExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
+            try
+            {
+                await _brandService.UpdateBrandAsync(id, upadteBrand);
+                return Ok(upadteBrand);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
 
-        //    return NoContent();
-        //}
+       
+        [HttpPost]
+        public async Task<IActionResult> PostBrand( CreateBrandDTOs createBrand)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+           .SelectMany(v => v.Errors)
+           .Select(e => e.ErrorMessage)
+           .ToList();
 
-        //// POST: api/Brands
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<Brand>> PostBrand(Brand brand)
-        //{
-        //    _context.Brands.Add(brand);
-        //    await _context.SaveChangesAsync();
+                return BadRequest(errors);
+            }
 
-        //    return CreatedAtAction("GetBrand", new { id = brand.BrandId }, brand);
-        //}
+            try
+            {
+                await _brandService.AddBrandAsync(createBrand);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message); // 409
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-        //// DELETE: api/Brands/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteBrand(Guid id)
-        //{
-        //    var brand = await _context.Brands.FindAsync(id);
-        //    if (brand == null)
-        //    {
-        //        return NotFound();
-        //    }
+       
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBrand(Guid id)
+        {
+            var brand = await _brandService.GetBrandByIdAsync(id);
+            if (brand == null)
+            {
+                return NotFound();
+            }
 
-        //    _context.Brands.Remove(brand);
-        //    await _context.SaveChangesAsync();
+            await _brandService.DeleteBrandAsync(id);
 
-        //    return NoContent();
-        //}
-
-        //private bool BrandExists(Guid id)
-        //{
-        //    return _context.Brands.Any(e => e.BrandId == id);
-        //}
+            return Ok();
+        }
     }
 }

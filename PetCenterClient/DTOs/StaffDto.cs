@@ -36,4 +36,10 @@ namespace PetCenterClient.DTOs
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string? ConfirmPassword { get; set; }
     }
+
+    public class StaffNameListDto
+    {
+        public Guid StaffId { get; set; }
+        public string StaffName { get; set; } = null!;
+    }
 }

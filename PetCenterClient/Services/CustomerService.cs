@@ -15,51 +15,66 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        private HttpRequestMessage CreateAuthorizedRequest(
+            HttpMethod method, string url, HttpContent? content = null)
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
+            var request = new HttpRequestMessage(method, url);
+            request.Headers.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+            if (content != null)
+                request.Content = content;
+            return request;
+        }
+
         public async Task<CustomerProfileResponseDto?> GetProfileAsync()
         {
             try
             {
-                // Lấy token từ session
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+                Console.WriteLine($"[DEBUG] Token: {(string.IsNullOrEmpty(token) ? "NULL/EMPTY" : token[..20] + "...")}");
+
                 if (string.IsNullOrEmpty(token))
                     return null;
 
-                // Clear previous headers
-                _http.DefaultRequestHeaders.Authorization = null;
+                var request = CreateAuthorizedRequest(HttpMethod.Get, "api/customer/profile");
+                var response = await _http.SendAsync(request);
 
-                // Add new Authorization header
-                _http.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token);
+                Console.WriteLine($"[DEBUG] Status: {response.StatusCode}");
 
-                var response = await _http.GetAsync("api/customer/profile");
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[DEBUG] Response body: {content}");
 
                 if (!response.IsSuccessStatusCode)
                     return null;
 
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<CustomerProfileResponseDto>>();
+                var result = await System.Text.Json.JsonSerializer.DeserializeAsync<ApiResponse<CustomerProfileResponseDto>>(
+                    new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(content)),
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                Console.WriteLine($"[DEBUG] Result null: {result == null}, Data null: {result?.Data == null}");
+
                 return result?.Data;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[DEBUG] Exception: {ex.Message}");
                 return null;
             }
         }
 
-        public async Task<bool> UpdateProfileAsync(UpdateCustomerProfileRequestDto dto)
+        public async Task<(bool Success, string Message)> UpdateProfileAsync(UpdateCustomerProfileRequestDto dto)
         {
             try
             {
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
                 if (string.IsNullOrEmpty(token))
-                {
-                    return false;
-                }
+                    return (false, "Unauthorized");
 
                 _http.DefaultRequestHeaders.Authorization = null;
                 _http.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
 
-                // Create anonymous object with camelCase properties
                 var data = new
                 {
                     fullName = dto.FullName,
@@ -68,28 +83,22 @@ namespace PetCenterClient.Services
                     gender = dto.Gender
                 };
 
-                var jsonString = System.Text.Json.JsonSerializer.Serialize(data);
-
                 var jsonContent = new StringContent(
-                    jsonString,
+                    System.Text.Json.JsonSerializer.Serialize(data),
                     System.Text.Encoding.UTF8,
                     "application/json"
                 );
 
-                // Use PutAsync instead of PutAsJsonAsync
                 var response = await _http.PutAsync("api/customer/profile", jsonContent);
+                var content = await response.Content.ReadAsStringAsync();
+                var json = System.Text.Json.JsonDocument.Parse(content).RootElement;
+                var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
 
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return false;
-                }
-
-                return true;
+                return (response.IsSuccessStatusCode, message);
             }
-            catch (Exception ex)
+            catch
             {
-                return false;
+                return (false, "An error occurred. Please try again.");
             }
         }
 
@@ -129,6 +138,35 @@ namespace PetCenterClient.Services
                 return result?.Data;
             }
             catch { return null; }
+        }
+
+        public async Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive)
+        {
+            try
+            {
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+                if (string.IsNullOrEmpty(token))
+                    return false;
+
+                _http.DefaultRequestHeaders.Authorization = null;
+                _http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+
+                var data = new { isActive };
+                var jsonString = System.Text.Json.JsonSerializer.Serialize(data);
+                var jsonContent = new StringContent(jsonString, System.Text.Encoding.UTF8, "application/json");
+
+                var response = await _http.PutAsync($"api/customers/{customerId}/status", jsonContent);
+
+                if (!response.IsSuccessStatusCode)
+                    return false;
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
     }

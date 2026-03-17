@@ -1,0 +1,146 @@
+﻿@model PetCenterClient.DTOs.CreateCategoryDTOs
+
+<style>
+
+    .logo-preview {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+    }
+
+</style>
+
+<form method="post"
+      asp-action="Create"
+      asp-controller="Category">
+
+    <!-- HIỂN THỊ LỖI MODEL -->
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="row">
+
+        <!-- CATEGORY NAME -->
+        <div class="col-md-12 mb-3">
+
+            <label asp-for="CategoryName" class="form-label"></label>
+
+            <input asp-for="CategoryName"
+                   class="form-control" />
+
+            <span asp-validation-for="CategoryName"
+                  class="text-danger"></span>
+
+        </div>
+
+
+        <!-- LOGO URL -->
+        <div class="col-md-12 mb-3">
+
+            <label asp-for="CategoryLogo"
+                   class="form-label"></label>
+
+            <input asp-for="CategoryLogo"
+                   id="logoInput"
+                   class="form-control"
+                   placeholder="Enter category logo url" />
+
+        </div>
+
+    </div>
+
+
+    <!-- PREVIEW -->
+
+    <div class="mt-3">
+
+        <label class="fw-bold">Preview</label>
+
+        <div class="mt-2">
+
+            <img id="logoPreview"
+                 src="https://via.placeholder.com/120"
+                 class="logo-preview" />
+
+        </div>
+
+    </div>
+
+
+    <!-- ATTRIBUTES -->
+
+    <div class="mt-4">
+
+        <label class="fw-bold">Attributes</label>
+
+        <div id="attributeContainer"></div>
+
+        <button type="button"
+                class="btn btn-sm btn-secondary mt-2"
+                id="addAttributeBtn">
+            Add Attribute
+        </button>
+
+    </div>
+
+
+    <button class="btn btn-primary mt-4">
+        Create Category
+    </button>
+
+</form>
+
+
+<script>
+
+    // LOGO PREVIEW
+    $("#logoInput").on("input", function () {
+
+        const url = $(this).val()
+
+        if (url) {
+            $("#logoPreview").attr("src", url)
+        } else {
+            $("#logoPreview").attr("src", "https://via.placeholder.com/120")
+        }
+
+    })
+
+
+    // ADD ATTRIBUTE
+    let attrIndex = 0
+
+    $("#addAttributeBtn").click(function () {
+
+        const html = `
+        <div class="input-group mb-2 attribute-item">
+
+            <input name="Attributes[${attrIndex}].AttributeName"
+                   class="form-control"
+                   placeholder="Attribute name" />
+
+            <button type="button"
+                    class="btn btn-danger removeAttr">
+                X
+            </button>
+
+        </div>
+        `
+
+        $("#attributeContainer").append(html)
+        $.validator.unobtrusive.parse("#attributeContainer")
+
+        attrIndex++
+
+    })
+
+
+    // REMOVE ATTRIBUTE
+    $(document).on("click", ".removeAttr", function () {
+
+        $(this).closest(".attribute-item").remove()
+
+    })
+
+</script>

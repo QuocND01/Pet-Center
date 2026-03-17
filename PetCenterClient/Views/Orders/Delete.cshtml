@@ -1,0 +1,18 @@
+﻿@model PetCenterClient.DTOs.OrderResponseDTO
+
+<div class="container mt-4">
+    <div class="alert alert-danger shadow-sm">
+        <h4>⚠️ Xác nhận hủy đơn hàng</h4>
+        @* Dùng string.Format để an toàn cho cả DateTime và DateTime? *@
+        <p>Bạn có chắc chắn muốn hủy đơn hàng đặt ngày <strong>@string.Format("{0:dd/MM/yyyy}", Model.OrderDate)</strong> với tổng tiền <strong>@Model.TotalAmount.ToString("N0") VNĐ</strong>?</p>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        @* CỰC KỲ QUAN TRỌNG: Đổi name thành "id" để khớp với tham số trong Controller *@
+        <input type="hidden" name="id" value="@Model.OrderId" />
+
+        <button type="submit" class="btn btn-danger px-4">Xác nhận hủy</button>
+        <a asp-action="Index" class="btn btn-secondary px-4">Quay lại</a>
+    </form>
+</div>

@@ -1,12 +1,11 @@
+﻿using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var apiUrl = builder.Configuration["Api:url"];
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IStaffService, StaffService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
@@ -36,7 +35,33 @@ builder.Services.AddHttpClient<ICustomerService, CustomerService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+
 builder.Services.AddHttpClient<IImportStockService, ImportStockService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<ISupplierService, SupplierService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<IAddressServiceClient, AddressServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<IOrderServiceClient, OrderServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<IOrderDetailServiceClient, OrderDetailServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<ICartService, CartService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
@@ -46,30 +71,37 @@ builder.Services.AddHttpClient<IFeedbackService, FeedbackService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddSession();
+// ✅ Register CheckoutService
+builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+//Excel service
+builder.Services.AddScoped<ExcelService>();
 
+
+builder.Services.Configure<GoogleClientDto>(
+    builder.Configuration.GetSection("Authentication:Google"));
+
+builder.Services.AddScoped<IGoogleClientService, GoogleClientService>();
+
+builder.Services.AddSession();
 builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-app.UseSession();
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(

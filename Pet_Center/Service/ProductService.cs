@@ -12,12 +12,14 @@ namespace ProductAPI.Service
     {
         private readonly IProductRepository _productRepository;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly HttpClient _httpClient;
         private readonly IMapper _mapper;
-        public ProductService(IProductRepository productRepository, IMapper mapper, ICloudinaryService service)
+        public ProductService(IProductRepository productRepository, IMapper mapper, ICloudinaryService service, HttpClient httpClient)
         {
             _productRepository = productRepository;
             _mapper = mapper;
             _cloudinaryService = service;
+            _httpClient = httpClient;
         }
 
 
@@ -95,6 +97,16 @@ namespace ProductAPI.Service
             if (product == null)
                 throw new Exception("Product not found");
 
+            bool productHasExist = await _productRepository.CheckProductExist(updateproduct.ProductName,updateproduct.BrandId.Value,updateproduct.CategoryId.Value);
+
+            if (productHasExist &&
+               (product.ProductName != updateproduct.ProductName ||
+                product.BrandId != updateproduct.BrandId ||
+                product.CategoryId != updateproduct.CategoryId))
+            {
+                throw new InvalidOperationException("Product already exists");
+            }
+
             _mapper.Map(updateproduct, product);
 
             product.UpdateAt = DateTime.Now;
@@ -148,17 +160,39 @@ namespace ProductAPI.Service
 
                 foreach (var attr in updateproduct.Attributes)
                 {
-                    product.ProductAttributes.Add(new ProductAttribute
-                    {
-                        ProductId = product.ProductId,
-                        CategoryAttributeId = attr.CategoryAttributeId,
-                        AttributeValue = attr.AttributeValue
-                    });
+                    var entity = _mapper.Map<ProductAttribute>(attr);
+                    entity.ProductId = product.ProductId;
+
+                    product.ProductAttributes.Add(entity);
                 }
             }
             await _productRepository.UpdateProductAsync(product);
         }
 
+        public async Task<IEnumerable<ReadProductDTO>> GetNewProducts()
+        {
+            var products = await _productRepository.GetNewProduct();
+            return _mapper.Map<List<ReadProductDTO>>(products);
+        }
+
+        public async Task<IEnumerable<ReadProductDTO>> GetHotProducts()
+        {
+            var productIds = await _httpClient.GetFromJsonAsync<List<Guid>>(
+                "https://localhost:7007/api/OrderDetails/hot-products");
+
+            if (productIds == null || !productIds.Any())
+                return new List<ReadProductDTO>();
+
+            var products = await _productRepository.GetProductsByIds(productIds);
+
+            return _mapper.Map<List<ReadProductDTO>>(products);
+        }
+
+        public async Task<List<SelectProductDto>> GetProductSelectListAsync()
+        {
+            // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
+            return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.IsActive);
+        }
     }
 
     }

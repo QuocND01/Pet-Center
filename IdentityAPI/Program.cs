@@ -1,13 +1,16 @@
 ﻿
 using IdentityAPI.Models;
+using IdentityAPI.Profiles;
 using IdentityAPI.Repository;
 using IdentityAPI.Repository.Interface;
 using IdentityAPI.Security;
 using IdentityAPI.Service;
 using IdentityAPI.Service.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OData.ModelBuilder;
 using System.Text;
 
 namespace IdentityAPI
@@ -19,7 +22,25 @@ namespace IdentityAPI
             var builder = WebApplication.CreateBuilder(args);
 
 
-            builder.Services.AddControllers();
+            // ===== OData Configuration =====
+            var modelBuilder = new ODataConventionModelBuilder();
+            modelBuilder.EntitySet<Customer>("Customers");
+            modelBuilder.EntitySet<Staff>("Staffs");
+
+            // ===== AddControllers with OData =====
+            builder.Services
+                .AddControllers()
+                .AddOData(opt =>
+                    opt.AddRouteComponents("odata", modelBuilder.GetEdmModel())
+                       .Select()
+                       .Expand()
+                       .Filter()
+                       .OrderBy()
+                       .SetMaxTop(100)
+                       .Count());
+
+            // ===== AutoMapper Configuration =====
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CustomerMappingProfile>());
             builder.Services.AddScoped<IJwtService, JwtService>();
 
             builder.Services.AddAuthentication(options =>
@@ -72,6 +93,15 @@ namespace IdentityAPI
 
             builder.Services.AddScoped<ICustomerService, CustomerService>();
 
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
+            builder.Services.Configure<GoogleAuthSettings>(
+    builder.Configuration.GetSection("Authentication:Google"));
+            builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+            builder.Services.AddHttpClient();
+
+            builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
+
             builder.Services.AddAuthorization();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -91,9 +121,13 @@ namespace IdentityAPI
             }
 
             app.UseHttpsRedirection();
-
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
 
             app.MapControllers();

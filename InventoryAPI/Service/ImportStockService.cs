@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using InventoryAPI.Data;
 using InventoryAPI.DTOs;
 using InventoryAPI.Models;
 using InventoryAPI.Repository.Interface;
 using InventoryAPI.Service.Interface;
-using Microsoft.EntityFrameworkCore;
-using System;
 using static InventoryAPI.Models.ImportStock;
 
 namespace InventoryAPI.Service
@@ -27,7 +24,7 @@ namespace InventoryAPI.Service
             _mapper = mapper;
         }
 
-        public async Task<Guid> CreateAsync(CreateImportStockDto dto)
+        public async Task<Guid> CreateAsync(CreateImportStockDto dto, Guid staffGuid)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -36,8 +33,8 @@ namespace InventoryAPI.Service
             importStock.ImportId = Guid.NewGuid();
             importStock.ImportDate = DateTime.UtcNow;
             importStock.Status = ImportStatus.Pending;
+            importStock.StaffId = staffGuid;
 
-            // Tính total
             importStock.TotalAmount = importStock.ImportStockDetails
                 .Sum(x => x.Quantity * x.ImportPrice);
 
@@ -51,70 +48,77 @@ namespace InventoryAPI.Service
 
         public async Task<ReadImportStockDto?> GetByIdAsync(Guid id)
         {
-            var entity = await _repo.GetByIdAsync(id);
-            return entity == null ? null : _mapper.Map<ReadImportStockDto>(entity);
+            var entity = await _repo.GetWithDetailsAsync(id);
+
+            if (entity == null)
+                return null;
+
+            return _mapper.Map<ReadImportStockDto>(entity);
         }
 
         public async Task ConfirmAsync(Guid id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var importStock = await _context.ImportStocks
-                .Include(x => x.ImportStockDetails)
-                .FirstOrDefaultAsync(x => x.ImportId == id);
+            var importStock = await _repo.GetWithDetailsAsync(id);
 
             if (importStock == null)
                 throw new Exception("Import not found");
 
-            // Increae stock quantity of each product in details
-            // ❗ Chỉ cho confirm khi đang Draft
-
-
             if (importStock.Status != ImportStatus.Pending)
-                throw new Exception("Only draft import can be confirmed");
+                throw new Exception("Only pending import can be confirmed");
 
-            //foreach (var detail in importStock.ImportStockDetails)
-            //{
-            //    var product = await _context.Products
-            //        .FirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
+            // Nếu muốn update stock product
+            // foreach (var detail in importStock.ImportStockDetails)
+            // {
+            //     var product = await _context.Products
+            //         .FirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
+            //
+            //     if (product == null)
+            //         throw new Exception("Product not found");
+            //
+            //     product.StockQuantity += detail.Quantity;
+            // }
 
-            //    if (product == null)
-            //        throw new Exception("Product not found");
-
-            //    product.StockQuantity += detail.Quantity;
-            //}
-
-            // ✅ Set status = Confirmed (1)
             importStock.Status = ImportStatus.Confirmed;
 
-            await _context.SaveChangesAsync();
+            await _repo.SaveChangesAsync();
             await transaction.CommitAsync();
         }
+
         public async Task CancelAsync(Guid id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var importStock = await _context.ImportStocks
-                .FirstOrDefaultAsync(x => x.ImportId == id);
+            var importStock = await _repo.GetByIdAsync(id);
 
             if (importStock == null)
                 throw new Exception("Import not found");
 
-            // ❗ Chỉ cho cancel khi đang Draft
             if (importStock.Status != ImportStatus.Pending)
-                throw new Exception("Only draft import can be cancelled");
+                throw new Exception("Only pending import can be cancelled");
 
             importStock.Status = ImportStatus.Cancelled;
 
-            await _context.SaveChangesAsync();
+            await _repo.SaveChangesAsync();
             await transaction.CommitAsync();
         }
+
         public async Task<List<ReadImportHeaderDto>> GetAllImportsAsync()
         {
-            return await _context.ImportStocks
-                .OrderByDescending(i => i.ImportDate)
-                .ProjectTo<ReadImportHeaderDto>(_mapper.ConfigurationProvider)
-                .ToListAsync();
+            var imports = await _repo.GetAllAsync();
+
+            return _mapper.Map<List<ReadImportHeaderDto>>(imports);
+        }
+        public async Task<ImportExportResponseDto> Export(DateTime? fromDate, DateTime? toDate)
+        {
+            var (imports, details) = await _repo.GetExportData(fromDate, toDate);
+
+            return new ImportExportResponseDto
+            {
+                Imports = _mapper.Map<List<ReadImportHeaderDto>>(imports),
+                Details = _mapper.Map<List<ImportStockDetailDto>>(details)
+            };
         }
     }
 }

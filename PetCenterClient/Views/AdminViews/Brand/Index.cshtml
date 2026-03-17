@@ -1,0 +1,299 @@
+﻿@using PetCenterClient.DTOs
+@model OdataResponse<ReadBrandDTOs>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Brands";
+}
+
+<link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
+
+<div class="page-wrapper">
+
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div class="page-title-group">
+            <h1>Brand Management</h1>
+            <p>Manage all brands in system</p>
+        </div>
+
+        <div class="header-stat">
+            <span class="num">@Model?.Values?.Count()</span>
+            <span class="label">Brands</span>
+        </div>
+
+    </div>
+
+
+    <!-- TOOLBAR -->
+    <form asp-action="IndexAdmin" asp-controller="Brand" method="get" class="toolbar">
+
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   name="search"
+                   value="@Context.Request.Query["search"]"
+                   class="search-input"
+                   placeholder="Search brand name..." />
+        </div>
+
+        <button type="submit" class="filter-btn active">
+            Apply
+        </button>
+
+        <button type="button"
+                class="filter-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#brandModal"
+                data-url="@Url.Action("Create", "Brand")">
+
+            <i class="bi bi-plus"></i> Add
+        </button>
+
+    </form>
+
+
+    <!-- TABLE -->
+    <div class="table-card">
+
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Logo</th>
+                    <th>Brand Name</th>
+                    <th style="width:180px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model?.Values != null && Model.Values.Any())
+                {
+                    int i = 1;
+
+                    foreach (var b in Model.Values)
+                    {
+                        <tr>
+
+                            <td class="row-num">@i</td>
+
+                            <td>
+                                <img src="@b.BrandLogo"
+                                     style="width:48px;height:48px;border-radius:8px;object-fit:cover" />
+                            </td>
+
+                            <td class="customer-name">
+                                @b.BrandName
+                            </td>
+
+                            <td>
+
+                                <!-- VIEW -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("DetailsAsyncAdmin", "Brand", new { id = b.BrandId })">
+
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                                <!-- EDIT -->
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("Edit", "Brand", new { id = b.BrandId })">
+
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <!-- DELETE -->
+                                <button class="btn-toggle-status active"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("Delete", "Brand", new { id = b.BrandId })">
+
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4">
+
+                            <div class="empty-state">
+
+                                <div class="empty-icon">
+                                    <i class="bi bi-tags"></i>
+                                </div>
+
+                                <h3>No brands found</h3>
+                                <p>Try adding a new brand</p>
+
+                            </div>
+
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- BRAND MODAL -->
+
+<div class="modal fade" id="brandModal" tabindex="-1">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Brand</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="brandModalBody"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- LOADING -->
+
+<div id="pageLoadingOverlay"
+     style="display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background: rgba(255,255,255,0.7);
+            z-index:2000;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;">
+
+    <div class="spinner-border text-primary"
+         style="width:3rem;height:3rem"></div>
+
+    <p class="mt-2">Processing, Please wait...</p>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+
+    <div id="liveToast"
+         class="toast bg-success text-white">
+
+        <div class="toast-body"></div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        $('#brandModal').on('show.bs.modal', function (e) {
+
+            var button = $(e.relatedTarget);
+            var url = button.data('url');
+
+            var modalBody = $("#brandModalBody");
+
+            modalBody.html("Loading...");
+
+                  modalBody.load(url, function () {
+
+            $.validator.unobtrusive.parse("#brandModalBody");
+
+        });
+
+        });
+
+
+        $('#brandModal').on('submit','form',function(e){
+
+            e.preventDefault();
+
+            var form = $(this);
+
+            var formData = new FormData(form[0]);
+
+            $("#pageLoadingOverlay").css("display","flex");
+
+            $.ajax({
+
+                url: form.attr('action'),
+                type: form.attr('method'),
+                data: formData,
+                contentType:false,
+                processData:false,
+
+                success:function(res){
+
+                    $("#pageLoadingOverlay").hide();
+
+                    if(res.success){
+
+                        $('#brandModal').modal('hide');
+
+                        showToast("Success");
+
+                        setTimeout(function(){
+
+                            location.reload();
+
+                        },800);
+                    }
+                },
+
+                error:function(){
+
+                    $("#pageLoadingOverlay").hide();
+                    showToast("Error");
+
+                }
+
+            });
+
+        });
+
+
+        function showToast(message){
+
+            $('#liveToast .toast-body').text(message);
+
+            var toast = new bootstrap.Toast(document.getElementById('liveToast'));
+
+            toast.show();
+
+        }
+
+    </script>
+
+}

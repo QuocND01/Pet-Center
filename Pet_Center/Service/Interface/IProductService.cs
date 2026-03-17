@@ -11,5 +11,9 @@ namespace ProductAPI.Service.Interface
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid id, UpdateProductDTO updateproduct);
         Task DeleteProductAsync(Guid id);
+        Task<List<SelectProductDto>> GetProductSelectListAsync();
+
+        Task<IEnumerable<ReadProductDTO>> GetNewProducts();
+        Task<IEnumerable<ReadProductDTO>> GetHotProducts();
     }
 }

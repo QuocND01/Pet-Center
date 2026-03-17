@@ -1,0 +1,203 @@
+﻿@model AddressResponseDTO
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --g0: #f0fdf4;
+        --g1: #dcfce7;
+        --g3: #2ecc71;
+        --g4: #27ae60;
+        --g5: #166534;
+        --ink: #0f1f0f;
+        --ink2: #374151;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --surface: #fff;
+        --radius: 16px;
+        --font: 'Nunito',sans-serif;
+    }
+
+    .pg {
+        font-family: var(--font);
+        color: var(--ink);
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 32px 16px;
+    }
+
+    .pg-title {
+        font-size: 24px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .detail-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+    }
+
+    .detail-row {
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        align-items: flex-start;
+    }
+
+        .detail-row:last-of-type {
+            border-bottom: none;
+        }
+
+    .detail-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        margin-bottom: 3px;
+    }
+
+    .detail-val {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink);
+    }
+
+    .badge-def {
+        background: var(--g1);
+        color: var(--g5);
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 100px;
+    }
+
+    .badge-no {
+        background: #f1f5f9;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 100px;
+    }
+
+    .detail-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .btn-edit {
+        background: var(--g3);
+        color: #fff;
+        font-family: var(--font);
+        font-weight: 800;
+        font-size: 13px;
+        padding: 10px 22px;
+        border-radius: 100px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all .2s;
+        box-shadow: 0 4px 12px rgba(46,204,113,.3);
+    }
+
+        .btn-edit:hover {
+            background: var(--g4);
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+    .btn-back {
+        background: transparent;
+        color: var(--muted);
+        font-family: var(--font);
+        font-weight: 700;
+        font-size: 13px;
+        padding: 10px 20px;
+        border: 1.5px solid var(--border);
+        border-radius: 100px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all .2s;
+    }
+
+        .btn-back:hover {
+            border-color: var(--ink2);
+            color: var(--ink);
+            text-decoration: none;
+        }
+</style>
+
+<div class="pg">
+    <div class="pg-title"><span>📍</span> Address Details</div>
+
+    <div class="detail-card">
+        <div class="detail-row">
+            <span class="detail-icon">🏠</span>
+            <div>
+                <div class="detail-label">Address Details</div>
+                <div class="detail-val">@Model.AddressDetails</div>
+            </div>
+        </div>
+        <div class="detail-row">
+            <span class="detail-icon">🏙</span>
+            <div>
+                <div class="detail-label">Province / City</div>
+                <div class="detail-val">@(Model.Province ?? "—")</div>
+            </div>
+        </div>
+        <div class="detail-row">
+            <span class="detail-icon">📌</span>
+            <div>
+                <div class="detail-label">District</div>
+                <div class="detail-val">@(Model.District ?? "—")</div>
+            </div>
+        </div>
+        <div class="detail-row">
+            <span class="detail-icon">📮</span>
+            <div>
+                <div class="detail-label">Ward</div>
+                <div class="detail-val">@(Model.Ward ?? "—")</div>
+            </div>
+        </div>
+        <div class="detail-row">
+            <span class="detail-icon">⭐</span>
+            <div>
+                <div class="detail-label">Status</div>
+                <div>
+                    @if (Model.IsDefault == true)
+                    {
+                        <span class="badge-def">✦ Default</span>
+                    }
+                    else
+                    {
+                        <span class="badge-no">Standard</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-actions">
+            <a asp-action="Edit" asp-route-id="@Model.AddressId" class="btn-edit">✏ Edit</a>
+            <a asp-action="Index" class="btn-back">← All Addresses</a>
+        </div>
+    </div>
+</div>

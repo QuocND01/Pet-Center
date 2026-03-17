@@ -1,0 +1,35 @@
+﻿@model PetCenterClient.DTOs.OrderRequestDTO
+
+<div class="container mt-4">
+    <h4>📝 Tạo đơn hàng mới</h4>
+    <hr />
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label class="form-label">Chọn địa chỉ nhận hàng</label>
+                    <select asp-for="AddressId" class="form-select" asp-items="ViewBag.AddressList">
+                        <option value="">-- Chọn địa chỉ --</option>
+                    </select>
+                    <span asp-validation-for="AddressId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Tổng số tiền</label>
+                    <input asp-for="TotalAmount" class="form-control" type="number" />
+                    <span asp-validation-for="TotalAmount" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Ghi chú địa chỉ (Snapshot)</label>
+                    <textarea asp-for="AddressSnapshot" class="form-control" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">Xác nhận đặt hàng</button>
+                <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+            </form>
+        </div>
+    </div>
+</div>

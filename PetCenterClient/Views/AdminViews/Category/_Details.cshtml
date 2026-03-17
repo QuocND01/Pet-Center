@@ -1,0 +1,73 @@
+﻿@model PetCenterClient.DTOs.ReadCategoryDTOs
+
+<style>
+
+    .category-logo {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+</style>
+
+<div class="row">
+
+    <!-- CATEGORY NAME -->
+
+    <div class="col-md-12 mb-3">
+        <label class="fw-bold">Category Name</label>
+        <div>@Model.CategoryName</div>
+    </div>
+
+
+    <!-- LOGO -->
+
+    <div class="col-md-12 mb-3">
+
+        <label class="fw-bold">Category Logo</label>
+
+        <div class="mt-2">
+
+            @if (!string.IsNullOrEmpty(Model.CategoryLogo))
+            {
+                <img src="@Model.CategoryLogo" class="category-logo" />
+            }
+            else
+            {
+                <span>No logo</span>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ATTRIBUTES -->
+
+    <div class="col-md-12 mb-3">
+
+        <label class="fw-bold">Attributes</label>
+
+        <div class="mt-2">
+
+            @if (Model.Attributes != null && Model.Attributes.Any())
+            {
+                foreach (var attr in Model.Attributes)
+                {
+                    <span class="badge bg-secondary me-1">
+                        @attr.AttributeName
+                    </span>
+                }
+            }
+            else
+            {
+                <span>No attributes</span>
+            }
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,15 +1,21 @@
 ﻿using PetCenterClient.DTOs;
+
 using PetCenterClient.Services.Interface;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
     public class ProductService : IProductService
     {
         private readonly HttpClient _http;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProductService(HttpClient http)
+        public ProductService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
@@ -20,6 +26,8 @@ namespace PetCenterClient.Services
      DateTime? fromDate,
      DateTime? toDate,
      string? sortBy,
+     Guid? categoryid,
+     Guid? brandid,
      string sortOrder = "asc",
      int page = 1)
         {
@@ -44,6 +52,12 @@ namespace PetCenterClient.Services
 
             if (maxPrice.HasValue)
                 filters.Add($"ProductPrice le {maxPrice.Value}");
+
+            if (categoryid.HasValue)
+                filters.Add($"CategoryId eq {categoryid.Value}");
+
+            if (brandid.HasValue)
+                filters.Add($"BrandId eq {brandid.Value}");
 
             var query = new List<string>();
 
@@ -86,6 +100,7 @@ namespace PetCenterClient.Services
 
         public async Task AddProductAsync(CreateProductDTO model)
         {
+            AddAuthorizationHeader();
             var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(model.ProductName), "ProductName");
@@ -94,8 +109,6 @@ namespace PetCenterClient.Services
             if (model.ProductDescription != null)
                 content.Add(new StringContent(model.ProductDescription), "ProductDescription");
 
-            if (model.StockQuantity != null)
-                content.Add(new StringContent(model.StockQuantity.ToString()), "StockQuantity");
 
             content.Add(new StringContent(model.BrandId.ToString()), "BrandId");
             content.Add(new StringContent(model.CategoryId.ToString()), "CategoryId");
@@ -134,12 +147,15 @@ namespace PetCenterClient.Services
 
             var result = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine("Status: " + response.StatusCode);
-            Console.WriteLine("Response: " + result);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(result);
+            }
         }
 
         public async Task UpdateProductAsync(Guid? id, UpdateProductDTO model)
         {
+            AddAuthorizationHeader();
             var form = new MultipartFormDataContent();
 
             form.Add(new StringContent(model.ProductName), "ProductName");
@@ -148,8 +164,6 @@ namespace PetCenterClient.Services
             if (!string.IsNullOrEmpty(model.ProductDescription))
                 form.Add(new StringContent(model.ProductDescription), "ProductDescription");
 
-            if (model.StockQuantity != null)
-                form.Add(new StringContent(model.StockQuantity.ToString()), "StockQuantity");
 
             if (model.BrandId != null)
                 form.Add(new StringContent(model.BrandId.ToString()), "BrandId");
@@ -200,7 +214,52 @@ namespace PetCenterClient.Services
 
         public async Task DeleteProductAsync(Guid? id)
         {
+            AddAuthorizationHeader();
             await _http.DeleteAsync($"product-service/Products/{id}");
+        }
+
+        public async Task<List<ProductSelectDto>> GetProductSelectAsync()
+        {
+            AddAuthorizationHeader();
+
+            var res = await _http.GetAsync("product-service/products/select");
+
+            if (!res.IsSuccessStatusCode) 
+                return new List<ProductSelectDto>();
+
+            var json = await res.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<List<ProductSelectDto>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? new List<ProductSelectDto>();
+        }
+
+        public async Task<List<ReadProductDTO>> GetHotProductsAsync()
+        {
+            var result = await _http.GetFromJsonAsync<List<ReadProductDTO>>(
+                "product-service/Products/hot-products");
+
+            return result ?? new List<ReadProductDTO>();
+        }
+
+        public async Task<List<ReadProductDTO>> GetNewProductsAsync()
+        {
+            var result = await _http.GetFromJsonAsync<List<ReadProductDTO>>(
+                "product-service/Products/new-products");
+
+            return result ?? new List<ReadProductDTO>();
+        }
+        private void AddAuthorizationHeader()
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                // Xóa các giá trị cũ để tránh cộng dồn header
+                _http.DefaultRequestHeaders.Authorization = null;
+                _http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
         }
     }
 
