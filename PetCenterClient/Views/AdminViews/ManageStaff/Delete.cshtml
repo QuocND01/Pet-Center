@@ -1,22 +1,84 @@
 ﻿@model PetCenterClient.DTOs.StaffDto
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Delete Staff";
+    var initials = string.Join("", Model.FullName.Split(' ')
+                        .Take(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
+    var genderClass = Model.Gender?.ToLower() == "male" ? "male"
+                    : Model.Gender?.ToLower() == "female" ? "female" : "";
 }
 
-<div class="container mt-4">
-    <div class="alert alert-danger shadow">
-        <h3><i class="bi bi-exclamation-triangle"></i> Are you sure?</h3>
-        <p>You are about to delete staff: <strong>@Model.FullName</strong></p>
-        <hr>
-        <div class="row">
-            <div class="col-sm-3">Email:</div>
-            <div class="col-sm-9">@Model.Email</div>
+<link rel="stylesheet" href="~/css/AdminViews/ManageStaff/manage-staff.css" asp-append-version="true" />
+
+<div class="form-page-wrapper">
+
+    <a asp-action="Index" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Staff List
+    </a>
+
+    <div class="form-card">
+
+        <div class="form-card-header">
+            <div class="form-card-header-icon" style="background:#fee2e2;color:#ef4444">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+                <h2 style="color:#991b1b">Delete Staff Member</h2>
+                <p>This action is permanent and cannot be undone</p>
+            </div>
         </div>
 
-        <form asp-action="Delete" method="post" class="mt-4">
+        <div class="form-card-body">
+
+            <!-- Warning box -->
+            <div class="delete-confirm-box">
+                <div class="delete-confirm-icon">
+                    <i class="bi bi-trash3-fill"></i>
+                </div>
+                <div class="delete-confirm-text">
+                    <h3>Are you sure?</h3>
+                    <p>
+                        You are about to permanently delete this staff account.
+                        All associated data will be removed and cannot be recovered.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Staff summary -->
+            <div class="staff-summary-card">
+                <div class="staff-avatar @genderClass" style="width:52px;height:52px;font-size:18px">
+                    @initials
+                </div>
+                <div class="staff-summary-info">
+                    <h4>@Model.FullName</h4>
+                    <p>@Model.Email &nbsp;·&nbsp; @(Model.PhoneNumber ?? "No phone")</p>
+                </div>
+                <div style="margin-left:auto">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge-status badge-active"><span class="badge-dot"></span> Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge-status badge-inactive"><span class="badge-dot"></span> Inactive</span>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+        <form asp-action="Delete" method="post">
             <input type="hidden" asp-for="StaffId" />
-            <button type="submit" class="btn btn-danger btn-lg">Confirm Delete</button>
-            <a asp-action="Index" class="btn btn-secondary btn-lg">Cancel</a>
+            <div class="form-card-footer">
+                <a asp-action="Index" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="btn-submit danger">
+                    <i class="bi bi-trash3"></i> Confirm Delete
+                </button>
+            </div>
         </form>
+
     </div>
+
 </div>

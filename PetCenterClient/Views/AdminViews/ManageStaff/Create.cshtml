@@ -1,70 +1,128 @@
 ﻿@model PetCenterClient.DTOs.StaffDto
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Add New Staff";
 }
 
-<div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4>Create New Staff</h4>
+<link rel="stylesheet" href="~/css/AdminViews/ManageStaff/manage-staff.css" asp-append-version="true" />
+
+<div class="form-page-wrapper">
+
+    <a asp-action="Index" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to Staff List
+    </a>
+
+    <div class="form-card">
+
+        <div class="form-card-header">
+            <div class="form-card-header-icon">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <div>
+                <h2>Add New Staff</h2>
+                <p>Fill in the details to create a new staff account</p>
+            </div>
         </div>
-        <div class="card-body">
-            <form asp-action="Create" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="FullName" class="form-label font-weight-bold"></label>
-                        <input asp-for="FullName" class="form-control" />
-                        <span asp-validation-for="FullName" class="text-danger"></span>
+        <form asp-action="Create" method="post">
+
+            <div class="form-card-body">
+
+                <div asp-validation-summary="ModelOnly" class="field-error mb-3" style="font-size:13px"></div>
+
+                <!-- Row 1: Name + Email -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <input asp-for="FullName" class="field-input" placeholder="Enter full name" />
+                        <span asp-validation-for="FullName" class="field-error"></span>
                     </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Email" class="form-label font-weight-bold"></label>
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-envelope"></i> Email Address
+                        </label>
+                        <input asp-for="Email" type="email" class="field-input" placeholder="staff@petcenter.com" />
+                        <span asp-validation-for="Email" class="field-error"></span>
                     </div>
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="PhoneNumber" class="form-label font-weight-bold">Phone Number</label>
-                        <input asp-for="PhoneNumber" class="form-control" />
-                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                <!-- Row 2: Phone + Gender -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-telephone"></i> Phone Number
+                        </label>
+                        <input asp-for="PhoneNumber" class="field-input" placeholder="0xxxxxxxxx" />
+                        <span asp-validation-for="PhoneNumber" class="field-error"></span>
                     </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Gender" class="form-label font-weight-bold"></label>
-                        <select asp-for="Gender" class="form-control">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-gender-ambiguous"></i> Gender
+                        </label>
+                        <select asp-for="Gender" class="field-select">
+                            <option value="">— Select gender —</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="BirthDay" class="form-label font-weight-bold">Birthday</label>
-                        <input asp-for="BirthDay" type="date" class="form-control" />
-                        <span asp-validation-for="BirthDay" class="text-danger"></span>
+                <!-- Row 3: Birthday + IsActive -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-cake"></i> Date of Birth
+                        </label>
+                        <input asp-for="BirthDay" type="date" class="field-input" />
+                        <span asp-validation-for="BirthDay" class="field-error"></span>
                     </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Password" class="form-label font-weight-bold"></label>
-                        <input asp-for="Password" type="password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label font-weight-bold">Confirm Password</label>
-                        <input asp-for="ConfirmPassword" type="password" class="form-control" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-toggle-on"></i> Account Status
+                        </label>
+                        <label class="toggle-group">
+                            <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                            <span class="toggle-label">Active account</span>
+                        </label>
                     </div>
                 </div>
 
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-primary">Create Staff</button>
-                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                <!-- Row 4: Password + Confirm -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-lock"></i> Password
+                        </label>
+                        <input asp-for="Password" type="password" class="field-input" placeholder="Min. 6 characters" />
+                        <span asp-validation-for="Password" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">
+                            <i class="bi bi-lock-fill"></i> Confirm Password
+                        </label>
+                        <input asp-for="ConfirmPassword" type="password" class="field-input" placeholder="Re-enter password" />
+                        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                    </div>
                 </div>
-            </form>
-        </div>
+
+            </div>
+
+            <div class="form-card-footer">
+                <a asp-action="Index" class="btn-cancel">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="btn-submit primary">
+                    <i class="bi bi-person-plus"></i> Create Staff
+                </button>
+            </div>
+
+        </form>
+
     </div>
+
 </div>
 
 @section Scripts {
