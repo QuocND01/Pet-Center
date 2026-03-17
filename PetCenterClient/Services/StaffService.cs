@@ -31,5 +31,16 @@ namespace PetCenterClient.Services
             var res = await _httpClient.DeleteAsync($"api/staff/{id}");
             return res.IsSuccessStatusCode;
         }
+        public async Task<List<StaffNameListDto>> GetStaffNameListAsync()
+        {
+
+            var staffs = await GetAllAsync();
+
+            return staffs.Select(s => new StaffNameListDto
+            {
+                StaffId = s.StaffId,
+                StaffName = s.FullName,
+            }).ToList();
+        }
     }
 }

@@ -1,0 +1,260 @@
+﻿/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+
+:root {
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --border: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --accent: #6366f1;
+    --accent-light: #eef2ff;
+    --success: #10b981;
+    --success-bg: #d1fae5;
+    --danger: #ef4444;
+    --danger-bg: #fee2e2;
+    --warning: #f59e0b;
+    --warning-bg: #fffbeb;
+    --radius: 12px;
+    --radius-sm: 8px;
+}
+
+.page-wrapper {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    background: var(--surface-2);
+    min-height: 100vh;
+    padding-bottom: 40px;
+}
+
+/* Header Section */
+.page-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.page-title-group h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+}
+
+.page-title-group p {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Navigation */
+.nav-actions {
+    padding: 0 32px;
+    margin-bottom: 20px;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+    .btn-back:hover {
+        color: var(--accent);
+    }
+
+/* Info Card - Thông tin chung */
+.info-card {
+    background: var(--surface);
+    margin: 0 32px 24px;
+    padding: 24px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+    .info-item .label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .info-item .value {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .info-item.total-box .value {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 20px;
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+/* Status Badges */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.badge-active {
+    background: var(--success-bg);
+    color: #065f46;
+}
+
+.badge-inactive {
+    background: var(--danger-bg);
+    color: #991b1b;
+}
+
+.badge-pending {
+    background: var(--warning-bg);
+    color: #92400e;
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.badge-active .badge-dot {
+    background: var(--success);
+}
+
+.badge-inactive .badge-dot {
+    background: var(--danger);
+}
+
+.badge-pending .badge-dot {
+    background: var(--warning);
+}
+
+/* Table Section */
+.table-card {
+    margin: 0 32px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    background: #fafafa;
+}
+
+    .table-header h3 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .data-table thead th {
+        background: #f8fafc;
+        padding: 14px 24px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tbody td {
+        padding: 18px 24px;
+        font-size: 14px;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f1f5f9;
+    }
+
+.product-cell {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .product-cell i {
+        color: var(--accent);
+    }
+
+.price-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+}
+
+.subtotal {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+/* Animation */
+@keyframes rowIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.data-table tbody tr {
+    animation: rowIn 0.3s ease both;
+}
