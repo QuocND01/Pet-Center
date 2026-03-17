@@ -1,60 +1,51 @@
 ﻿@model List<PetCenterClient.DTOs.FeedbackDTO>
+<link rel="stylesheet" href="~/css/feedback.css" />
 
-<h2>Feedback Management</h2>
+<div class="container">
 
-<table class="table table-bordered">
+	<h2>Feedback Management</h2>
 
-	<thead>
+	<table>
+
 		<tr>
 			<th>Product</th>
 			<th>Customer</th>
 			<th>Rating</th>
 			<th>Comment</th>
-			<th>Reply</th>
-			<th>Status</th>
-			<th>Action</th>
+			<th>Visible</th>
+			<th>Created</th>
+			<th>Actions</th>
 		</tr>
-	</thead>
-
-	<tbody>
 
 		@foreach (var f in Model)
 		{
 			<tr>
 
 				<td>@f.ProductId</td>
-
 				<td>@f.CustomerId</td>
-
 				<td>@f.Rating ⭐</td>
-
 				<td>@f.Comment</td>
-
-				<td>@f.Reply</td>
-
-				<td>
-					@(f.IsVisible == true ? "Visible" : "Hidden")
-				</td>
+				<td>@f.IsVisible</td>
+				<td>@f.CreatedDate.ToString("dd/MM/yyyy")</td>
 
 				<td>
 
-					<a asp-action="Detail"
-					   asp-route-id="@f.FeedbackId"
-					   class="btn btn-info">
-						Detail
-					</a>
+					<a class="btn btn-view" href="/Feedback/Detail/@f.FeedbackId">Detail</a>
 
-					<a asp-action="Toggle"
-					   asp-route-id="@f.FeedbackId"
-					   class="btn btn-warning">
-						Hide/Show
-					</a>
+					<a class="btn btn-toggle" href="/Feedback/Toggle/@f.FeedbackId">Toggle</a>
+
+					<form method="post" action="/Feedback/Delete" style="display:inline;">
+						<input type="hidden" name="id" value="@f.FeedbackId" />
+						<button class="btn btn-delete">Delete</button>
+					</form>
+
+					<a class="btn btn-reply" href="/Feedback/Reply/@f.FeedbackId">Reply</a>
 
 				</td>
 
 			</tr>
 		}
 
-	</tbody>
+	</table>
 
-</table>
+</div>

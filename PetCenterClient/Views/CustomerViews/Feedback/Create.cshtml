@@ -1,0 +1,38 @@
+﻿@model PetCenterClient.DTOs.CreateFeedbackDTO
+<link rel="stylesheet" href="~/css/feedback.css" />
+
+<div class="container">
+
+	<h2>Create Feedback</h2>
+
+	<form method="post">
+
+		<label>Product ID</label>
+		<input type="text" name="ProductId" required />
+
+		<label>Customer ID</label>
+		<input type="text" name="CustomerId" required />
+
+		<label>Rating</label>
+
+		<select name="Rating">
+
+			<option value="1">1 ⭐</option>
+			<option value="2">2 ⭐</option>
+			<option value="3">3 ⭐</option>
+			<option value="4">4 ⭐</option>
+			<option value="5">5 ⭐</option>
+
+		</select>
+
+		<label>Comment</label>
+
+<textarea name="Comment" rows="5"></textarea>
+
+		<button type="submit">
+			Submit Feedback
+		</button>
+
+	</form>
+
+</div>

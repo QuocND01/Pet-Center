@@ -1,15 +1,18 @@
-﻿namespace PetCenterClient.Services.Interface
+﻿using PetCenterClient.DTOs;
+
+namespace PetCenterClient.Services.Interface
 {
     public interface IFeedbackService
     {
-        //Task<List<FeedbackResponseDTO>> GetFeedbackByProductAsync(Guid productId);
-
-        //Task<FeedbackResponseDTO> GetFeedbackByIdAsync(Guid id);
-
-        //Task CreateFeedbackAsync(CreateFeedbackDTO model);
-
-        //Task ReplyFeedbackAsync(Guid id, string reply);
-
-        //Task ToggleVisibilityAsync(Guid id);
+        Task<List<FeedbackDTO>> GetAllAsync();
+        Task<FeedbackDTO?> GetDetailAsync(Guid id);
+        Task<List<FeedbackDTO>> GetByCustomerAsync(Guid customerId);
+        Task<List<FeedbackDTO>> GetByProductAsync(Guid productId);
+        Task CreateAsync(CreateFeedbackDTO dto);
+        Task ReplyAsync(Guid feedbackId, Guid staffId, string reply);
+        Task UpdateReplyAsync(Guid feedbackId, string reply);
+        Task DeleteReplyAsync(Guid feedbackId);
+        Task ToggleVisibilityAsync(Guid feedbackId);
+        Task DeleteAsync(Guid feedbackId);
     }
 }

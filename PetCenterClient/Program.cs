@@ -66,6 +66,11 @@ builder.Services.AddHttpClient<ICartService, CartService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<IFeedbackService, FeedbackService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
 // ✅ Register CheckoutService
 builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
 {
@@ -73,7 +78,6 @@ builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
 });
 //Excel service
 builder.Services.AddScoped<ExcelService>();
-
 
 
 builder.Services.Configure<GoogleClientDto>(

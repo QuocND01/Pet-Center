@@ -1,0 +1,32 @@
+﻿@model PetCenterClient.DTOs.FeedbackDTO
+<link rel="stylesheet" href="~/css/feedback.css" />
+
+<div class="container">
+
+	<h2>Reply Feedback</h2>
+
+	<p><b>Customer:</b> @Model.CustomerId</p>
+	<p><b>Rating:</b> @Model.Rating ⭐</p>
+	<p><b>Comment:</b> @Model.Comment</p>
+
+	<form method="post" action="/Feedback/Reply">
+
+		<input type="hidden" name="feedbackId" value="@Model.FeedbackId" />
+
+		<label>Staff ID</label>
+		<input type="text" name="staffId" required />
+
+		<label>Reply</label>
+<textarea name="reply" rows="5"></textarea>
+
+		<button type="submit">Send Reply</button>
+
+	</form>
+
+	<br />
+
+	<a class="btn btn-back" href="/Feedback/AdminList">
+		Back
+	</a>
+
+</div>
