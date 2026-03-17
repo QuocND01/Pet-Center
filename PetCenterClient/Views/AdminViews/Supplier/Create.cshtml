@@ -3,63 +3,64 @@
 @{
     Layout = null;
 }
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/AdminViews/ManageSupplier/edit_supplier.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<form id="createForm" class="custom-form-modal">
+    @Html.AntiForgeryToken()
 
-<form id="createForm">
+    @* Vùng hiển thị lỗi tổng quát *@
+    <div asp-validation-summary="All" class="alert alert-danger-custom" style="display:none;"></div>
 
-    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-grid">
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="TaxId">Tax ID</label>
+            <input class="form-input-custom" asp-for="TaxId" placeholder="e.g. TAX-999-888" />
+            <span asp-validation-for="TaxId" class="validation-message"></span>
+        </div>
 
-<div class="mb-3">
-    <label class="form-label">Tax ID</label>
-    <input class="form-control" asp-for="TaxId" />
-    <small class="text-muted">Optional. Maximum 50 characters.</small>
-    <span asp-validation-for="TaxId" class="text-danger"></span>
-</div>
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="SupplierName">Supplier Name</label>
+            <input class="form-input-custom" asp-for="SupplierName" placeholder="Enter business name..." />
+            <span asp-validation-for="SupplierName" class="validation-message"></span>
+        </div>
 
-<div class="mb-3">
-    <label class="form-label">Supplier Name</label>
-    <input class="form-control" asp-for="SupplierName" />
-    <small class="text-muted">Required. Maximum 150 characters.</small>
-    <span asp-validation-for="SupplierName" class="text-danger"></span>
-</div>
+        <div class="form-row">
+            <div class="form-group mb-3 flex-1">
+                <label class="form-label-custom" asp-for="SupplierEmail">Email Address</label>
+                <input class="form-input-custom" asp-for="SupplierEmail" type="email" placeholder="contact@supplier.com" />
+                <span asp-validation-for="SupplierEmail" class="validation-message"></span>
+            </div>
+            <div class="form-group mb-3 flex-1">
+                <label class="form-label-custom" asp-for="SupplierPhoneNumber">Phone Number</label>
+                <input class="form-input-custom" asp-for="SupplierPhoneNumber" placeholder="09xxxxxxxx" />
+                <span asp-validation-for="SupplierPhoneNumber" class="validation-message"></span>
+            </div>
+        </div>
 
-<div class="mb-3">
-    <label class="form-label">Email</label>
-    <input class="form-control" asp-for="SupplierEmail" />
-    <small class="text-muted">Enter a valid email address.</small>
-    <span asp-validation-for="SupplierEmail" class="text-danger"></span>
-</div>
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="SupplierAddress">Headquarters Address</label>
+            <input class="form-input-custom" asp-for="SupplierAddress" placeholder="Full address..." />
+            <span asp-validation-for="SupplierAddress" class="validation-message"></span>
+        </div>
 
-<div class="mb-3">
-    <label class="form-label">Phone Number</label>
-    <input class="form-control" asp-for="SupplierPhoneNumber" />
-    <small class="text-muted">Must be 9–15 digits.</small>
-    <span asp-validation-for="SupplierPhoneNumber" class="text-danger"></span>
-</div>
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="ContactPerson">Contact Person</label>
+            <input class="form-input-custom" asp-for="ContactPerson" placeholder="Name of person in charge" />
+            <span asp-validation-for="ContactPerson" class="validation-message"></span>
+        </div>
 
-<div class="mb-3">
-    <label class="form-label">Address</label>
-    <input class="form-control" asp-for="SupplierAddress" />
-    <small class="text-muted">Required. Maximum 100 characters.</small>
-    <span asp-validation-for="SupplierAddress" class="text-danger"></span>
-</div>
+        <div class="form-group mb-3">
+            <label class="form-label-custom" asp-for="SupplierDescription">Description</label>
+            <textarea class="form-input-custom" asp-for="SupplierDescription" rows="3" placeholder="Notes about this supplier..."></textarea>
+            <span asp-validation-for="SupplierDescription" class="validation-message"></span>
+        </div>
+    </div>
 
-<div class="mb-3">
-    <label class="form-label">Contact Person</label>
-    <input class="form-control" asp-for="ContactPerson" />
-    <small class="text-muted">Optional. Maximum 50 characters.</small>
-    <span asp-validation-for="ContactPerson" class="text-danger"></span>
-</div>
-
-<div class="mb-3">
-    <label class="form-label">Description</label>
-    <textarea class="form-control" asp-for="SupplierDescription"></textarea>
-    <small class="text-muted">Optional. Maximum 500 characters.</small>
-    <span asp-validation-for="SupplierDescription" class="text-danger"></span>
-</div>
-
-<div class="modal-footer px-0 pb-0">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-    <button type="submit" class="btn btn-success">Create Supplier</button>
-</div>
-
+    <div class="modal-actions-footer">
+        <button type="button" class="btn-cancel-modal" data-bs-dismiss="modal">Discard</button>
+        <button type="submit" class="btn-submit-modal">
+            <i class="bi bi-plus-circle"></i> Create Supplier
+        </button>
+    </div>
 </form>

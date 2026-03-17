@@ -11,14 +11,16 @@ namespace PetCenterClient.Controllers
         private readonly IImportStockService _service;
         private readonly ISupplierService _suppService;
         private readonly IProductService _productService;
+        private readonly IStaffService _staffService;
         private readonly ILogger<ImportStocksController> _logger;
         
-        public ImportStocksController(IImportStockService service, ILogger<ImportStocksController> logger, ISupplierService suppService, IProductService productService)
+        public ImportStocksController(IImportStockService service, ILogger<ImportStocksController> logger, ISupplierService suppService, IProductService productService, IStaffService staffService)
         {
             _service = service;
             _logger = logger;
             _suppService = suppService;
             _productService = productService;
+            _staffService = staffService;
         }
 
 
@@ -30,7 +32,13 @@ namespace PetCenterClient.Controllers
             
             var selectProducts = await _productService.GetProductSelectAsync();
 
+            var staffName = await _staffService.GetStaffNameListAsync();
+
             
+
+            var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
+            ViewBag.StaffDict = staffDict;
+
             ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
             //
             ViewBag.IdSort = String.IsNullOrEmpty(sortOrder) ? "id_desc" : "";
@@ -66,6 +74,12 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             var selectSuppliers = await _suppService.GetSupplierSelectAsync();
             var selectProducts = await _productService.GetProductSelectAsync();
+            var staffName = await _staffService.GetStaffNameListAsync();
+
+
+
+            var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
+            ViewBag.StaffDict = staffDict;
 
             ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
             ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");

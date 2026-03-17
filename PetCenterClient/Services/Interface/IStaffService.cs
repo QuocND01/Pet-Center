@@ -17,5 +17,6 @@ namespace PetCenterClient.Services.Interface
         Task<bool> CreateAsync(StaffDto dto);
         Task<bool> UpdateAsync(Guid id, StaffDto dto);
         Task<bool> DeleteAsync(Guid id);
+        Task<List<StaffNameListDto>> GetStaffNameListAsync();
     }
 }
