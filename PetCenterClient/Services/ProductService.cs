@@ -224,7 +224,7 @@ namespace PetCenterClient.Services
 
             var res = await _http.GetAsync("product-service/products/select");
 
-            if (!res.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode) 
                 return new List<ProductSelectDto>();
 
             var json = await res.Content.ReadAsStringAsync();

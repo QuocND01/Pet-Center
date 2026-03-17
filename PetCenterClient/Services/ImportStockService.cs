@@ -1,5 +1,5 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Http;
+﻿
+using DocumentFormat.OpenXml.Office2010.Excel;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using System.Net.Http.Headers;
@@ -82,6 +82,35 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
             var res = await _httpClient.PutAsync($"inventory/importstock/{id}/cancel", null);
             res.EnsureSuccessStatusCode();
+        }
+        public async Task<List<ImportDto>> GetAllByTimeAsync()
+        {
+            AddAuthorizationHeader();
+
+            var res = await _httpClient.GetAsync("inventory/importstock/export");
+
+            if (!res.IsSuccessStatusCode)
+                return new List<ImportDto>();
+
+            var json = await res.Content.ReadAsStringAsync();
+            Console.WriteLine(json);
+
+            var data = JsonSerializer.Deserialize<ImportStockResponseDto>(
+                json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+
+            if (data == null) return new List<ImportDto>();
+
+            // 🔥 GÁN DETAILS VÀO IMPORT
+            foreach (var import in data.Imports)
+            {
+                import.Details = data.Details
+                    .Where(d => d.ImportId == import.ImportId)
+                    .ToList();
+            }
+
+            return data.Imports;
         }
     }
 }

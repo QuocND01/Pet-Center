@@ -9,5 +9,6 @@ namespace InventoryAPI.Repository.Interface
         Task<ImportStock?> GetWithDetailsAsync(Guid id);
         Task<List<ImportStock>> GetAllAsync();
         Task SaveChangesAsync();
+        Task<(List<ImportStock>, List<ImportStockDetail>)> GetExportData(DateTime? fromDate, DateTime? toDate);
     }
 }

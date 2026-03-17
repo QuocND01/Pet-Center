@@ -10,5 +10,6 @@ namespace InventoryAPI.Service.Interface
         Task CancelAsync(Guid id);
 
         Task<List<ReadImportHeaderDto>> GetAllImportsAsync();
+        Task<ImportExportResponseDto> Export(DateTime? fromDate, DateTime? toDate);
     }
 }

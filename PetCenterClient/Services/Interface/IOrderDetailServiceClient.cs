@@ -1,5 +1,4 @@
-﻿using OrdersAPI.DTOs;
-using PetCenterClient.DTOs;
+﻿using PetCenterClient.DTOs;
 
 namespace PetCenterClient.Services.Interface
 {

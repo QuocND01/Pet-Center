@@ -9,5 +9,7 @@ namespace PetCenterClient.Services.Interface
         Task<Guid> CreateAsync(CreateImportStockDto dto);
         Task ConfirmAsync(Guid id);
         Task CancelAsync(Guid id);
+
+        Task<List<ImportDto>> GetAllByTimeAsync();
     }
 }
