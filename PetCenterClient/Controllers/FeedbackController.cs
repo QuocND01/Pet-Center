@@ -74,7 +74,7 @@ namespace PetCenterClient.Controllers
         {
             var feedback = await _service.GetDetailAsync(id);
 
-            return View("~/Views/Staff/Feedback/Reply.cshtml", feedback);
+            return View("~/Views/AdminViews/Feedback/Reply.cshtml", feedback);
         }
 
         [HttpPost]
