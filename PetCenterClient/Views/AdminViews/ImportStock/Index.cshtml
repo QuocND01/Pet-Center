@@ -3,6 +3,7 @@
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Import Stocks";
     var staffDict = ViewBag.StaffDict as Dictionary<Guid, string>;
 }
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -13,10 +14,24 @@
 <div class="page-wrapper">
     <div class="page-header">
         <div class="page-title-group">
-            <h1>Import Stocks</h1>
+            <h1>Import Stock Management</h1>
             <p>Manage and track your warehouse inbound shipments</p>
         </div>
-
+        <div class="filter-controls mb-4" style="background: white; padding: 20px; border-radius: 12px; display: flex; gap: 15px; align-items: flex-end; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <div style="flex: 2;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">Search Name</label>
+                <input type="text" id="filterName" class="form-control" placeholder="Search supplier or staff..." onkeyup="filterTable()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">From Date</label>
+                <input type="date" id="filterFromDate" class="form-control" onchange="filterTable()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">To Date</label>
+                <input type="date" id="filterToDate" class="form-control" onchange="filterTable()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+            <button onclick="resetFilters()" style="padding: 9px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">Reset</button>
+        </div>
         <div class="top-actions">
             <a asp-action="Create" class="btn-create">
                 <i class="bi bi-plus-lg"></i> Create Import
@@ -73,7 +88,9 @@
                                                     : "Unknown Staff")
                     </td>
                     <td class="price-text">@item.TotalAmount.ToString("N0") ₫</td>
-                    <td class="email-cell">@item.ImportDate?.ToString("dd MMM yyyy")</td>
+                    <td class="email-cell" data-date="@item.ImportDate?.ToString("yyyy-MM-dd")">
+                        @item.ImportDate?.ToString("dd MMM yyyy")
+                    </td>
                     <td>
                         <span class="badge-status @badgeClass">
                             <span class="badge-dot"></span>
@@ -104,3 +121,53 @@
         </table>
     </div>
 </div>
+<script>
+    function filterTable() {
+        // 1. Lấy giá trị từ các ô input
+        const nameInput = document.getElementById('filterName').value.trim().toLowerCase();
+        const fromDateStr = document.getElementById('filterFromDate').value; // Định dạng yyyy-mm-dd
+        const toDateStr = document.getElementById('filterToDate').value;
+
+        // Chuyển string sang mốc thời gian để so sánh số (nhanh hơn tạo object Date liên tục)
+        const minDate = fromDateStr ? new Date(fromDateStr).setHours(0,0,0,0) : null;
+        const maxDate = toDateStr ? new Date(toDateStr).setHours(23,59,59,999) : null;
+
+        const table = document.querySelector(".data-table");
+        const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+
+            // Lấy dữ liệu từ các cột
+            const supplier = row.querySelector(".customer-name").innerText.toLowerCase();
+            const staff = row.querySelectorAll(".email-cell")[0].innerText.toLowerCase();
+
+            // Lấy ngày từ thuộc tính data-date đã thêm ở Bước 1
+            const dateAttr = row.querySelectorAll(".email-cell")[1].getAttribute("data-date");
+            const rowDate = dateAttr ? new Date(dateAttr).getTime() : null;
+
+            // Kiểm tra điều kiện Tên/Staff
+            const matchesName = supplier.includes(nameInput) || staff.includes(nameInput);
+
+            // Kiểm tra điều kiện Ngày
+            let matchesDate = true;
+            if (rowDate) {
+                if (minDate && rowDate < minDate) matchesDate = false;
+                if (maxDate && rowDate > maxDate) matchesDate = false;
+            } else if (fromDateStr || toDateStr) {
+                // Nếu dòng không có ngày mà người dùng đang lọc ngày thì ẩn đi
+                matchesDate = false;
+            }
+
+            // Thực hiện ẩn/hiện
+            row.style.display = (matchesName && matchesDate) ? "" : "none";
+        }
+    }
+
+    function resetFilters() {
+        document.getElementById('filterName').value = '';
+        document.getElementById('filterFromDate').value = '';
+        document.getElementById('filterToDate').value = '';
+        filterTable();
+    }
+</script>
