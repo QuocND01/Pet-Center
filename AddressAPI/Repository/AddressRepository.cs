@@ -76,14 +76,16 @@ namespace AddressAPI.Repository
 
         public void Delete(Address address)
         {
-            // QUY TẮC 2: Chặn xóa từ trong "trứng nước" nếu nó là địa chỉ mặc định
+            // QUY TẮC 2: Vẫn chặn xóa (kể cả xóa mềm) nếu nó là địa chỉ mặc định
             if (address.IsDefault == true)
             {
-                // Quăng Exception để Service/Controller bắt lỗi và báo về Client
                 throw new InvalidOperationException("Không thể xóa địa chỉ mặc định. Vui lòng thiết lập địa chỉ khác làm mặc định trước.");
             }
 
-            _context.Addresses.Remove(address);
+            // XÓA MỀM (Soft Delete): Chỉ tắt cờ IsActive thay vì Remove hẳn khỏi Database
+            address.IsActive = false;
+
+            _context.Addresses.Update(address);
         }
 
         public async Task<bool> SaveChangesAsync()
