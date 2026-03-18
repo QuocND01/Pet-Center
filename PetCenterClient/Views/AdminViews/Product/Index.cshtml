@@ -4,6 +4,8 @@
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Products";
+    var role = Context.Session.GetString("Role");
+    bool isAdmin = role == "Admin";
 }
 
 <style>
@@ -101,17 +103,18 @@
         <button type="submit" class="filter-btn active">
             Apply
         </button>
-
-        <button type="button"
+        @if (isAdmin)
+            {
+                <button type="button"
                 class="filter-btn"
                 data-bs-toggle="modal"
                 data-bs-target="#productModal"
                 data-url="@Url.Action("Create", "Products")">
 
-            <i class="bi bi-plus"></i> Add
-        </button>
-
-    </form>
+                    <i class="bi bi-plus"></i> Add
+                </button>
+            }
+        </form>
 
 
     <!-- TABLE -->
@@ -173,7 +176,7 @@
                             </td>
 
                             <td>
-
+                                @if (isAdmin){
                                 <!-- VIEW -->
                                 <button class="btn-detail"
                                         data-bs-toggle="modal"
@@ -199,7 +202,7 @@
                                         data-url="@Url.Action("Delete", "Products", new { id = p.ProductId })">
 
                                     <i class="bi bi-trash"></i>
-                                </button>
+                                </button>}
 
                             </td>
 
