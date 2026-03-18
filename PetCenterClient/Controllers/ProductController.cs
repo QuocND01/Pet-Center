@@ -11,12 +11,14 @@ namespace PetCenterClient.Controllers
         private readonly IProductService _productService;
         private readonly IBrandService _brandService;
         private readonly ICategoryService _categoryService;
+        private readonly IFeedbackService _feedbackService;
 
-        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService)
+        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService, IFeedbackService feedbackService)
         {
             _productService = productService;
             _brandService = brandService;
             _categoryService = categoryService;
+            _feedbackService = feedbackService;
         }
 
         // GET: ReadProdutDTOs
@@ -33,17 +35,18 @@ namespace PetCenterClient.Controllers
              string sortOrder = "asc",
              int page = 1)
         {
-            int pagesize = 3;
+            int pagesize = 24;
             var result = await _productService.GetAllProductAsync(
                search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
             int totalItems = result?.Count ?? 0;
-            var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
+            var totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             var hotProducts = await _productService.GetHotProductsAsync();
             var newProducts = await _productService.GetNewProductsAsync();
             ViewBag.HotProducts = hotProducts;
             ViewBag.NewProducts = newProducts;
+            ViewBag.PageSize = pagesize;
             ViewBag.Brands = await _brandService.GetAllBrandAsync("", 1);
             ViewBag.Categories = await _categoryService.GetAllCategoryAsync("", 1);
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
@@ -64,13 +67,14 @@ namespace PetCenterClient.Controllers
              string sortOrder = "asc",
              int page = 1)
         {
-            int pagesize = 3;
+            int pagesize = 24;
             var result = await _productService.GetAllProductAsync(
                search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
             int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pagesize;
             return View("~/Views/AdminViews/Product/Index.cshtml", result);
         }
 
@@ -103,6 +107,10 @@ namespace PetCenterClient.Controllers
             {
                 return NotFound();
             }
+
+            var feedbacks = await _feedbackService.GetByProductAsync(id.Value);
+            ViewBag.Feedbacks = feedbacks;
+
             return View("~/Views/CustomerViews/Product/Details.cshtml", readProdutDTOs);
         }
 

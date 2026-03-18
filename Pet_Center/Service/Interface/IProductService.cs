@@ -15,5 +15,7 @@ namespace ProductAPI.Service.Interface
 
         Task<IEnumerable<ReadProductDTO>> GetNewProducts();
         Task<IEnumerable<ReadProductDTO>> GetHotProducts();
+
+        Task IncreaseStockBulk(List<IncreaseStockItemDto> items);
     }
 }

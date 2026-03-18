@@ -31,7 +31,8 @@ namespace PetCenterClient.Services
      string sortOrder = "asc",
      int page = 1)
         {
-            int pageSize = 10;
+
+            int pageSize = 24;
 
             if (page < 1)
                 page = 1;
@@ -224,7 +225,7 @@ namespace PetCenterClient.Services
 
             var res = await _http.GetAsync("product-service/products/select");
 
-            if (!res.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode) 
                 return new List<ProductSelectDto>();
 
             var json = await res.Content.ReadAsStringAsync();
@@ -260,6 +261,16 @@ namespace PetCenterClient.Services
                 _http.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
             }
+        }
+        public async Task IncreaseStockBulk(List<IncreaseStockItemDto> items)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.PostAsJsonAsync("product-service/Products/increase-stock-bulk", items);
+
+            var content = await res.Content.ReadAsStringAsync();
+
+            if (!res.IsSuccessStatusCode)
+                throw new Exception($"IncreaseStockBulk failed: {res.StatusCode} - {content}");
         }
     }
 

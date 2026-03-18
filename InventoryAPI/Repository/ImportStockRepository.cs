@@ -47,5 +47,42 @@ namespace InventoryAPI.Repository
         {
             await _context.SaveChangesAsync();
         }
+        public async Task<(List<ImportStock>, List<ImportStockDetail>)> GetExportData(DateTime? fromDate, DateTime? toDate)
+        {
+            var query = _context.ImportStocks
+                .Include(x => x.Supplier) 
+                .AsQueryable();
+
+            if (fromDate.HasValue)
+                query = query.Where(x => x.ImportDate >= fromDate.Value);
+
+            if (toDate.HasValue)
+                query = query.Where(x => x.ImportDate <= toDate.Value);
+
+            var imports = await query.ToListAsync();
+
+            var importIds = imports.Select(x => x.ImportId).ToList();
+
+            var details = await _context.ImportStockDetails
+                .Where(x => x.ImportId.HasValue && importIds.Contains(x.ImportId.Value))
+                .ToListAsync();
+
+            return (imports, details);
+        }
+        public async Task<List<ImportStockDetail>> GetAvailableStock(Guid productId)
+        {
+            return await _context.ImportStockDetails
+                .Include(x => x.Import)
+                .Where(x => x.ProductId == productId
+                            && x.StockLeft > 0
+                            && x.Import!.Status == ImportStock.ImportStatus.Confirmed)
+                .OrderBy(x => x.Import!.ImportDate)
+                .ToListAsync();
+        }
+
+        public async Task<ImportStockDetail?> GetById(Guid id)
+        {
+            return await _context.ImportStockDetails.FindAsync(id);
+        }
     }
 }

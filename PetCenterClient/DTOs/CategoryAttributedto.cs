@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProductAPI.DTOs
+namespace PetCenterClient.DTOs
 {
     public class CreateCategoryAttributeDTOs
     {

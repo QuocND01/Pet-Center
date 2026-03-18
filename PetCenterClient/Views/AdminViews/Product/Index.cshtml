@@ -7,6 +7,23 @@
 }
 
 <style>
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .page-btn {
+        padding: 6px 12px;
+        background: #eee;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+        .page-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
 
 </style>
 
@@ -23,7 +40,7 @@
         </div>
 
         <div class="header-stat">
-            <span class="num">@Model?.Values?.Count()</span>
+           <span class="num">@Model?.Count</span>
             <span class="label">Products</span>
         </div>
 
@@ -214,6 +231,56 @@
             </tbody>
 
         </table>
+        @{
+            int currentPage = ViewBag.CurrentPage ?? 1;
+            int totalPages = ViewBag.TotalPages ?? 1;
+            var routeValues = new
+            {
+                search = Context.Request.Query["search"],
+                minPrice = Context.Request.Query["minPrice"],
+                maxPrice = Context.Request.Query["maxPrice"],
+                sortBy = Context.Request.Query["sortBy"],
+                sortOrder = Context.Request.Query["sortOrder"]
+            };
+        }
+        <div class="pagination">
+
+            <!-- Prev -->
+            @if (currentPage > 1)
+            {
+                <a class="page-btn"
+                   href="@Url.Action("Indexadmin", new { page = currentPage - 1 })">
+                    Prev
+                </a>
+            }
+
+            <!-- Numbers -->
+           
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <a class="page-btn @(i == currentPage ? "active" : "")"
+                  href="@Url.Action("Indexadmin", new {
+                    page = i,
+                    search = routeValues.search,
+                    minPrice = routeValues.minPrice,
+                    maxPrice = routeValues.maxPrice,
+                    sortBy = routeValues.sortBy,
+                    sortOrder = routeValues.sortOrder
+                })">
+                    @i
+                </a>
+            }
+
+            <!-- Next -->
+            @if (currentPage < totalPages)
+            {
+                <a class="page-btn"
+                   href="@Url.Action("Indexadmin", new { page = currentPage + 1 })">
+                    Next
+                </a>
+            }
+
+        </div>
 
     </div>
 

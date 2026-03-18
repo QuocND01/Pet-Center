@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
@@ -54,7 +55,7 @@ namespace ProductAPI.Controllers
         }
 
 
-
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(Guid id, UpdateCategoryDTOs updateCategoryDTOs)
         {
@@ -76,8 +77,8 @@ namespace ProductAPI.Controllers
             }
         }
 
-   
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostCategory( CreateCategoryDTOs categoryDTOs)
         {
@@ -106,8 +107,8 @@ namespace ProductAPI.Controllers
             }
         }
 
-      
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {

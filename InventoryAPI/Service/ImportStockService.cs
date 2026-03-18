@@ -56,7 +56,7 @@ namespace InventoryAPI.Service
             return _mapper.Map<ReadImportStockDto>(entity);
         }
 
-        public async Task ConfirmAsync(Guid id)
+        public async Task<List<IncreaseStockItemDto>> ConfirmAsync(Guid id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -68,22 +68,25 @@ namespace InventoryAPI.Service
             if (importStock.Status != ImportStatus.Pending)
                 throw new Exception("Only pending import can be confirmed");
 
-            // Nếu muốn update stock product
-            // foreach (var detail in importStock.ImportStockDetails)
-            // {
-            //     var product = await _context.Products
-            //         .FirstOrDefaultAsync(p => p.ProductId == detail.ProductId);
-            //
-            //     if (product == null)
-            //         throw new Exception("Product not found");
-            //
-            //     product.StockQuantity += detail.Quantity;
-            // }
+            // 🔥 map data TRƯỚC khi save
+            var items = importStock.ImportStockDetails
+                .Where(x => x.ProductId.HasValue)
+                .GroupBy(x => x.ProductId!.Value)
+                .Select(g => new IncreaseStockItemDto
+                {
+                    ProductId = g.Key,
+                    Quantity = g.Sum(x => x.Quantity)
+                })
+                .ToList();
 
+            // 🔥 update status
             importStock.Status = ImportStatus.Confirmed;
 
             await _repo.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            // 🔥 RETURN cho controller
+            return items;
         }
 
         public async Task CancelAsync(Guid id)
@@ -109,6 +112,72 @@ namespace InventoryAPI.Service
             var imports = await _repo.GetAllAsync();
 
             return _mapper.Map<List<ReadImportHeaderDto>>(imports);
+        }
+        public async Task<ImportExportResponseDto> Export(DateTime? fromDate, DateTime? toDate)
+        {
+            var (imports, details) = await _repo.GetExportData(fromDate, toDate);
+
+            return new ImportExportResponseDto
+            {
+                Imports = _mapper.Map<List<ReadImportHeaderDto>>(imports),
+                Details = _mapper.Map<List<ImportStockDetailDto>>(details)
+            };
+        }
+        // Trừ kho FIFO
+        public async Task<string> DeductFIFO(Guid productId, int quantity)
+        {
+            using var tran = await _context.Database.BeginTransactionAsync();
+
+            var stocks = await _repo.GetAvailableStock(productId);
+
+            int remain = quantity;
+            var map = new List<string>();
+
+            foreach (var s in stocks)
+            {
+                if (remain <= 0) break;
+
+                int take = Math.Min(s.StockLeft, remain);
+
+                s.StockLeft -= take;
+                remain -= take;
+
+                map.Add($"{s.ImportStockDetailId}:{take}");
+            }
+
+            if (remain > 0)
+                throw new Exception("Not enough stock");
+
+            await _repo.SaveChangesAsync();
+            await tran.CommitAsync();
+
+            return string.Join(",", map);
+        }
+
+        //  Trả hàng
+        public async Task ReturnStock(string mapping)
+        {
+            if (string.IsNullOrEmpty(mapping)) return;
+
+            using var tran = await _context.Database.BeginTransactionAsync();
+
+            var items = mapping.Split(',');
+
+            foreach (var item in items)
+            {
+                var parts = item.Split(':');
+
+                var id = Guid.Parse(parts[0]);
+                var qty = int.Parse(parts[1]);
+
+                var stock = await _repo.GetById(id);
+
+                if (stock != null)
+                    stock.StockLeft += qty;
+            }
+
+            await _repo.SaveChangesAsync();
+            await tran.CommitAsync();
         }
     }
 }

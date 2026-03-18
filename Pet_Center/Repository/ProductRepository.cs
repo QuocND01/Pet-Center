@@ -133,6 +133,17 @@ namespace ProductAPI.Repository
             return await query.ProjectTo<T>(_mapper.ConfigurationProvider)
                               .ToListAsync();
         }
+        public async Task<List<Product>> GetByIds(List<Guid> ids)
+        {
+            return await _db.Products
+                .Where(x => ids.Contains(x.ProductId))
+                .ToListAsync();
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _db.SaveChangesAsync();
+        }
 
     }
 }

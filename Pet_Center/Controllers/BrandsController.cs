@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +54,7 @@ namespace ProductAPI.Controllers
             return brand;
         }
 
-
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrand(Guid id, UpdateBrandDTOs upadteBrand)
         {
@@ -75,7 +76,7 @@ namespace ProductAPI.Controllers
             }
         }
 
-       
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostBrand( CreateBrandDTOs createBrand)
         {
@@ -104,7 +105,7 @@ namespace ProductAPI.Controllers
             }
         }
 
-       
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBrand(Guid id)
         {

@@ -50,19 +50,43 @@ namespace InventoryAPI.Controllers
 
             return Ok(result);
         }
-        
+
         [HttpPut("{id}/confirm")]
         public async Task<IActionResult> Confirm(Guid id)
         {
-            await _service.ConfirmAsync(id);
-            return NoContent();
+            var items = await _service.ConfirmAsync(id);
+            return Ok(items);
         }
-        
+
         [HttpPut("{id}/cancel")]
         public async Task<IActionResult> Cancel(Guid id)
         {
             await _service.CancelAsync(id);
             return NoContent();
+        }
+        [HttpGet("export")]
+        public async Task<IActionResult> Export(DateTime? fromDate, DateTime? toDate)
+        {
+            var result = await _service.Export(fromDate, toDate);
+            return Ok(result);
+        }
+
+        [HttpPost("deduct")]
+        public async Task<IActionResult> Deduct(DeductStockRequest req)
+        {
+            var mapping = await _service.DeductFIFO(req.ProductId, req.Quantity);
+
+            return Ok(new DeductStockResponse
+            {
+                Mapping = mapping
+            });
+        }
+
+        [HttpPost("return")]
+        public async Task<IActionResult> Return(ReturnStockRequest req)
+        {
+            await _service.ReturnStock(req.Mapping);
+            return Ok();
         }
     }
 }

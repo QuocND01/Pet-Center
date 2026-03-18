@@ -174,7 +174,7 @@ namespace FeedbackAPI.Service
             if (feedback == null)
                 throw new Exception("Feedback not found");
 
-            feedback.IsVisible = !(feedback.IsVisible ?? true);
+            feedback.IsVisible = !feedback.IsVisible;
 
             await _context.SaveChangesAsync();
         }
