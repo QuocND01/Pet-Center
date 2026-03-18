@@ -16,19 +16,19 @@ namespace PetCenterClient.Controllers
             _customerService = customerService;
         }
 
-        // 1. DANH SÁCH (READ ALL)
+        // 1. LIST (READ ALL)
         public async Task<IActionResult> Index()
         {
             var profile = await _customerService.GetProfileAsync();
             if (profile == null) return RedirectToAction("Login", "Auth");
 
-            // GỌI ĐÚNG HÀM GetByCustomerIdAsync ĐỂ NÓ LỌC SẴN TỪ DATABASE DƯỚI BACKEND
+            // CALL GetByCustomerIdAsync SO IT FILTERS DIRECTLY FROM THE DATABASE ON THE BACKEND
             var myAddresses = await _addressService.GetByCustomerIdAsync(profile.CustomerId);
 
             return View("~/Views/CustomerViews/Address/Index.cshtml", myAddresses);
         }
 
-        // 2. CHI TIẾT (READ ONE)
+        // 2. DETAILS (READ ONE)
         public async Task<IActionResult> Details(Guid id)
         {
             var address = await _addressService.GetByIdAsync(id);
@@ -37,7 +37,7 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Address/Details.cshtml", address);
         }
 
-        // 3. THÊM MỚI (GET)
+        // 3. CREATE (GET)
         public IActionResult Create()
         {
             return View("~/Views/CustomerViews/Address/Create.cshtml", new AddressCreateDTO());
@@ -58,16 +58,16 @@ namespace PetCenterClient.Controllers
                 var success = await _addressService.CreateAsync(dto);
                 if (success)
                 {
-                    TempData["Success"] = "Thêm địa chỉ thành công!";
+                    TempData["Success"] = "Address added successfully!";
                     return RedirectToAction(nameof(Index));
                 }
-                ModelState.AddModelError("", "API từ chối lưu. Có thể do trùng dữ liệu hoặc lỗi DB.");
+                ModelState.AddModelError("", "API rejected the request. It might be due to duplicate data or a database error.");
             }
-            // Trả về View Create nếu có lỗi
+            // Return to Create view if there are errors
             return View("~/Views/CustomerViews/Address/Create.cshtml", dto);
         }
 
-        // 5. CHỈNH SỬA (GET)
+        // 5. EDIT (GET)
         public async Task<IActionResult> Edit(Guid id)
         {
             var profile = await _customerService.GetProfileAsync();
@@ -75,7 +75,7 @@ namespace PetCenterClient.Controllers
 
             var address = await _addressService.GetByIdAsync(id);
 
-            // Check xem địa chỉ này có phải của ông đang đăng nhập không
+            // Check if this address belongs to the currently logged-in user
             if (address == null || address.CustomerId != profile.CustomerId)
                 return Forbid();
 
@@ -105,14 +105,14 @@ namespace PetCenterClient.Controllers
                 var success = await _addressService.UpdateAsync(id, dto);
                 if (success)
                 {
-                    TempData["Success"] = "Cập nhật địa chỉ thành công!";
+                    TempData["Success"] = "Address updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
             }
             return View("~/Views/CustomerViews/Address/Edit.cshtml", dto);
         }
 
-        // 7. XÓA (GET)
+        // 7. DELETE (GET)
         public async Task<IActionResult> Delete(Guid id)
         {
             var address = await _addressService.GetByIdAsync(id);
@@ -121,14 +121,14 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Address/Delete.cshtml", address);
         }
 
-        // 8. XÓA (POST)
+        // 8. DELETE (POST)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var success = await _addressService.DeleteAsync(id);
-            if (success) TempData["Success"] = "Đã xóa địa chỉ.";
-            else TempData["Error"] = "Xóa thất bại.";
+            if (success) TempData["Success"] = "Address deleted successfully.";
+            else TempData["Error"] = "Failed to delete address.";
 
             return RedirectToAction(nameof(Index));
         }
