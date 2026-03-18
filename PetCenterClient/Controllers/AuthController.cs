@@ -101,11 +101,18 @@ namespace PetCenterClient.Controllers
 
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.token);
+
             var role = jwt.Claims
                 .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
                 ?.Value ?? "";
             var name = jwt.Claims
                 .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+                ?.Value ?? "";
+
+            var staffId = jwt.Claims
+                .FirstOrDefault(c => c.Type == "sub" ||
+                                     c.Type == "nameid" ||
+                                     c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
                 ?.Value ?? "";
 
             if (selectedRole == "Admin" && role != "Admin")
@@ -129,6 +136,11 @@ namespace PetCenterClient.Controllers
             HttpContext.Session.SetString("JWT", result.token);
             HttpContext.Session.SetString("Role", role);
             HttpContext.Session.SetString("Name", name);
+
+            if (!string.IsNullOrEmpty(staffId))
+            {
+                HttpContext.Session.SetString("StaffId", staffId);
+            }
 
             return RedirectToAction("Indexadmin", "Products");
         }
