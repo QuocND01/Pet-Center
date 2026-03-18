@@ -272,15 +272,44 @@ namespace PetCenterClient.Services
             if (!res.IsSuccessStatusCode)
                 throw new Exception($"IncreaseStockBulk failed: {res.StatusCode} - {content}");
         }
-        public async Task DecreaseStockBulk(List<DecreaseStockItemDto> items)
+
+        public async Task<bool> DecreaseStockAsync(Guid productId, int quantity)
         {
-            AddAuthorizationHeader();
-            var res = await _http.PostAsJsonAsync("product-service/Products/decrease-stock-bulk", items);
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+            if (!string.IsNullOrEmpty(token))
+            {
+                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
 
-            var content = await res.Content.ReadAsStringAsync();
+            try
+            {
+                var response = await _http.PutAsJsonAsync($"product-service/Products/decrease-stock/{productId}", quantity);
 
-            if (!res.IsSuccessStatusCode)
-                throw new Exception($"DecreaseStockBulk failed: {res.StatusCode} - {content}");
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async Task<bool> IncreaseStockAsync(Guid productId, int quantity)
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+            if (!string.IsNullOrEmpty(token))
+            {
+                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            try
+            {
+                // Gọi chuẩn đường dẫn qua API Gateway xuống ProductAPI
+                var response = await _http.PutAsJsonAsync($"product-service/Products/increase-stock/{productId}", quantity);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 

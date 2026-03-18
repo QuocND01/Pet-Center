@@ -118,12 +118,29 @@
                             <div class="btn-group">
                                 <a asp-action="Details" asp-route-id="@item.OrderId" class="btn btn-sm btn-info text-white">Details</a>
 
-                                @if (isStaffOrAdmin)
+                                @if (isStaffOrAdmin && item.Status > 0 && item.Status < 4)
                                 {
-                                    <a asp-action="Edit" asp-route-id="@item.OrderId" class="btn btn-sm btn-warning">Edit</a>
+                                    <form asp-action="ForwardStatus" asp-route-id="@item.OrderId" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold">
+                                            @if (item.Status == 1)
+                                            {
+                                                <span><i class="fas fa-check-circle"></i> Approve</span>
+                                            }
+                                            else if (item.Status == 2)
+                                            {
+
+                                                <span><i class="fas fa-truck"></i> Ship</span>
+                                            }
+                                            else if (item.Status == 3)
+                                            {
+
+                                                <span><i class="fas fa-box-check"></i> Complete</span>
+                                            }
+                                        </button>
+                                    </form>
                                 }
 
-                                @if (item.Status == 1)
+                                @if (item.Status >= 1 && item.Status <= 2)
                                 {
                                     <a asp-action="Delete" asp-route-id="@item.OrderId" class="btn btn-sm btn-danger ms-1">Cancel</a>
                                 }

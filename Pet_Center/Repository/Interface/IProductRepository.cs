@@ -27,5 +27,8 @@ namespace ProductAPI.Repository.Interface
         //get by list
         Task<List<Product>> GetByIds(List<Guid> ids);
         Task SaveChangesAsync();
+
+        Task<bool> DecreaseStockAsync(Guid productId, int quantity);
+        Task<bool> IncreaseStockAsync(Guid productId, int quantity);
     }
 }

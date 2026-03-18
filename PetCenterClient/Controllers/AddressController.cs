@@ -21,10 +21,9 @@ namespace PetCenterClient.Controllers
         {
             var profile = await _customerService.GetProfileAsync();
             if (profile == null) return RedirectToAction("Login", "Auth");
-            var allAddresses = await _addressService.GetAllAsync();
-            var myAddresses = allAddresses
-                .Where(a => a.CustomerId == profile.CustomerId)
-                .ToList();
+
+            // GỌI ĐÚNG HÀM GetByCustomerIdAsync ĐỂ NÓ LỌC SẴN TỪ DATABASE DƯỚI BACKEND
+            var myAddresses = await _addressService.GetByCustomerIdAsync(profile.CustomerId);
 
             return View("~/Views/CustomerViews/Address/Index.cshtml", myAddresses);
         }

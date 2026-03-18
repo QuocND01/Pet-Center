@@ -145,5 +145,40 @@ namespace ProductAPI.Repository
             await _db.SaveChangesAsync();
         }
 
+        public async Task<bool> DecreaseStockAsync(Guid productId, int quantity)
+        {
+            // Tìm sản phẩm
+            var product = await _db.Products.FindAsync(productId);
+
+            // Kiểm tra xem sản phẩm có tồn tại và kho có đủ hàng không
+            if (product == null || product.StockQuantity < quantity)
+            {
+                return false;
+            }
+
+            // Trừ kho và lưu lại
+            product.StockQuantity -= quantity;
+            _db.Products.Update(product);
+            await _db.SaveChangesAsync();
+
+            return true;
+        }
+        public async Task<bool> IncreaseStockAsync(Guid productId, int quantity)
+        {
+            var product = await _db.Products.FindAsync(productId);
+
+            if (product == null)
+            {
+                return false;
+            }
+
+            // Cộng trả lại kho
+            product.StockQuantity += quantity;
+
+            _db.Products.Update(product);
+            await _db.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

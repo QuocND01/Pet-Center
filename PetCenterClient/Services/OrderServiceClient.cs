@@ -58,5 +58,25 @@ namespace PetCenterClient.Services
             var response = await _http.DeleteAsync($"{_route}/{id}");
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<List<OrderDetailVM>> GetOrderDetailsAsync(Guid orderId)
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+            if (!string.IsNullOrEmpty(token))
+            {
+                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            try
+            {
+                // Đã sửa: dùng {_route} thay vì chuỗi cứng có chữ gateway/
+                var response = await _http.GetFromJsonAsync<List<OrderDetailVM>>($"{_route}/{orderId}/details");
+                return response ?? new List<OrderDetailVM>();
+            }
+            catch
+            {
+                return new List<OrderDetailVM>();
+            }
+        }
     }
 }

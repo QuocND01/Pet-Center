@@ -142,11 +142,31 @@ namespace ProductAPI.Controllers
             await _productService.IncreaseStockBulk(items);
             return Ok();
         }
-        [HttpPost("decrease-stock-bulk")]
-        public async Task<IActionResult> DecreaseStockBulk([FromBody] List<DecreaseStockItemDto> items)
+
+        [HttpPut("decrease-stock/{id}")]
+        public async Task<IActionResult> DecreaseStock(Guid id, [FromBody] int quantity)
         {
-            await _productService.DecreaseStockBulk(items);
-            return Ok();
+            var success = await _productService.DecreaseStockAsync(id, quantity);
+
+            if (!success)
+            {
+                return BadRequest(new { message = "Sản phẩm không tồn tại hoặc số lượng tồn kho không đủ để xử lý." });
+            }
+
+            return Ok(true);
+        }
+
+        [HttpPut("increase-stock/{id}")]
+        public async Task<IActionResult> IncreaseStock(Guid id, [FromBody] int quantity)
+        {
+            var success = await _productService.IncreaseStockAsync(id, quantity);
+
+            if (!success)
+            {
+                return BadRequest(new { message = "Sản phẩm không tồn tại để cộng lại kho." });
+            }
+
+            return Ok(true);
         }
     }
 }

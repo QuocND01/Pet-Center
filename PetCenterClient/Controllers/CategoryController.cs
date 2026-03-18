@@ -111,10 +111,16 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(Guid id, UpdateCategoryDTOs model)
+        public async Task<IActionResult> Edit(Guid id, UpdateCategoryDTOs model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Invalid data"
+                });
+            }
 
             await _categoryService.UpdateCategoryAsync(id, model);
 
@@ -141,15 +147,21 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> DeleteConfirm(Guid id)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                await _categoryService.DeleteCategoryAsync(id);
+
+                return Json(new { success = true });
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 

@@ -17,6 +17,8 @@ namespace ProductAPI.Service.Interface
         Task<IEnumerable<ReadProductDTO>> GetHotProducts();
 
         Task IncreaseStockBulk(List<IncreaseStockItemDto> items);
-        Task DecreaseStockBulk(List<DecreaseStockItemDto> items);
+        Task<bool> DecreaseStockAsync(Guid productId, int quantity);
+
+        Task<bool> IncreaseStockAsync(Guid productId, int quantity);
     }
 }
