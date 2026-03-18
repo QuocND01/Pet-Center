@@ -68,7 +68,11 @@ namespace OrdersAPI.Service
             var order = await _repo.GetByIdAsync(id);
             if (order == null) return false;
 
-            _repo.Delete(order);
+            // Soft delete
+            order.Status = 0;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            // gọi repo để lưu
             return await _repo.SaveChangesAsync();
         }
 

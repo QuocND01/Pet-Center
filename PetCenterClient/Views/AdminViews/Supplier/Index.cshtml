@@ -44,8 +44,8 @@
                         <td class="address-cell">@s.SupplierAddress</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-detail btn-edit" data-id="@s.SupplierId" title="Edit">
-                                    <i class="bi bi-pencil-square"></i>
+                                <button class="btn-detail btn-edit" data-id="@s.SupplierId" title="Details and Edit">
+                                    <i class="bi bi-eye"></i>
                                 </button>
                                 <button class="btn-action-danger btn-delete" data-id="@s.SupplierId" data-name="@s.SupplierName" title="Delete">
                                     <i class="bi bi-trash"></i>
@@ -90,7 +90,7 @@
             // 2. Mở Modal EDIT
             $(document).on("click", ".btn-edit", function () {
                 var id = $(this).data("id");
-                $("#modalTitle").text("Edit Supplier");
+                $("#modalTitle").text("Details and Edit Supplier");
                 $("#modalBody").load('/Suppliers/Edit/' + id, function () {
                     myModal.show();
                 });
