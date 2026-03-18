@@ -224,5 +224,16 @@ namespace ProductAPI.Service
 
             await _productRepository.SaveChangesAsync();
         }
+
+        public async Task<bool> DecreaseStockAsync(Guid productId, int quantity)
+        {
+            return await _productRepository.DecreaseStockAsync(productId, quantity);
+        }
+
+        public async Task<bool> IncreaseStockAsync(Guid productId, int quantity)
+        {
+            // Chỗ này sau này bạn có thể cắm thêm logic ghi log: "Sản phẩm A được cộng lại X cái do đơn hàng Y bị hủy"
+            return await _productRepository.IncreaseStockAsync(productId, quantity);
+        }
     }
 }

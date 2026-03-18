@@ -214,23 +214,106 @@ namespace PetCenterClient.Controllers
             return View(order);
         }
 
-        // 8. THỰC HIỆN HỦY ĐƠN (POST)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            // Token JWT đã được tự động xử lý bởi IHttpContextAccessor bên trong OrderServiceClient
+            var order = await _orderService.GetByIdAsync(id);
+            if (order == null) return NotFound();
+
+            if (order.Status == 2)
+            {
+                // Lấy chi tiết các món hàng trong đơn ra
+                var orderDetails = await _detailService.GetByOrderIdAsync(id);
+
+                foreach (var item in orderDetails)
+                {
+                    // Gọi ProductService để cộng ngược số lượng kho
+                    var stockRestored = await _productService.IncreaseStockAsync(item.ProductId, item.Quantity);
+
+                    if (!stockRestored)
+                    {
+                        TempData["Error"] = $"Lỗi hệ thống: Không thể hoàn trả số lượng cho sản phẩm mã {item.ProductId}.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+            }
+
+            // 3. Tiến hành gọi API Hủy đơn (Cập nhật Status = 0)
             var success = await _orderService.DeleteAsync(id);
 
             if (success)
             {
-                TempData["Success"] = "Đã hủy đơn hàng thành công!";
+                if (order.Status == 1)
+                    TempData["Success"] = "Đã hủy đơn hàng chờ xử lý thành công!";
+                else
+                    TempData["Success"] = "Đã hủy đơn hàng và hoàn trả số lượng vào kho thành công!";
             }
             else
             {
                 TempData["Error"] = "Không thể hủy đơn hàng này. Kiểm tra lại quyền hạn!";
             }
+
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForwardStatus(Guid id)
+        {
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Admin" && role != "Staff") return Unauthorized();
+
+            // 1. Lấy thông tin đơn hàng hiện tại
+            var order = await _orderService.GetByIdAsync(id);
+            if (order == null || order.Status == 0 || order.Status >= 4)
+            {
+                TempData["Error"] = "Đơn hàng không hợp lệ để cập nhật trạng thái.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (order.Status == 1)
+            {
+                // ĐÃ SỬA: Dùng _detailService CÓ SẴN thay vì _orderService
+                var orderDetails = await _detailService.GetByOrderIdAsync(id);
+
+                foreach (var item in orderDetails)
+                {
+                    // Gọi sang API của Product/Inventory để trừ đi số lượng tương ứng
+                    var stockUpdated = await _productService.DecreaseStockAsync(item.ProductId, item.Quantity);
+
+                    if (!stockUpdated)
+                    {
+                        // Nếu trừ kho thất bại (do hết hàng hoặc lỗi API Product)
+                        TempData["Error"] = $"Lỗi: Sản phẩm mã {item.ProductId} không đủ số lượng trong kho hoặc API gọi thất bại!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+            }
+
+            // 3. Tịnh tiến trạng thái (Status + 1)
+            var newStatus = order.Status + 1;
+
+            // Đóng gói DTO để gửi đi update
+            var updateDto = new OrderRequestDTO
+            {
+                AddressId = order.AddressId,
+                Status = newStatus,
+                TotalAmount = order.TotalAmount
+                // Gán thêm các trường khác nếu cần thiết
+            };
+
+            // 4. Gọi API update đơn hàng
+            var success = await _orderService.UpdateAsync(id, updateDto);
+
+            if (success)
+                TempData["Success"] = "Đã cập nhật đơn hàng sang bước tiếp theo thành công!";
+            else
+                TempData["Error"] = "Lỗi khi cập nhật trạng thái đơn hàng.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
     }
 }
