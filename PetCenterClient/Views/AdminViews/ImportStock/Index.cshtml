@@ -1,7 +1,8 @@
 ﻿@using PetCenterClient.DTOs
 @model List<ReadImportHeaderDto>
 
-@{
+@{  
+    var currentRole = Context.Session.GetString("Role");
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Import Stocks";
     var staffDict = ViewBag.StaffDict as Dictionary<Guid, string>;
@@ -106,7 +107,7 @@
                                 <i class="bi bi-eye"></i>
                             </a>
 
-                            @if (item.Status == 0)
+                            @if (item.Status == 0 && currentRole == "Admin")
                                 {
                                     <a asp-action="Confirm" asp-route-id="@item.ImportId" class="btn-action-success" title="Confirm">
                                         <i class="bi bi-check-lg"></i>

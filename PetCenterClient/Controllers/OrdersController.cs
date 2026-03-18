@@ -233,18 +233,38 @@ namespace PetCenterClient.Controllers
 
                 foreach (var item in orderDetails)
                 {
-                    // Call ProductService to restore stock quantity
+                    // --- PHẦN CHÈN THÊM: HOÀN LÔ THEO MAPPING ---
+                    if (!string.IsNullOrEmpty(item.ImportStockDetailId))
+                    {
+                        // Gọi Inventory Service để trả hàng về đúng lô (Batch) dựa trên mapping đã lưu
+                        await _importStockService.ReturnStock(item.ImportStockDetailId);
+
+                        // Cập nhật lại Detail để xóa mapping (tránh hoàn kho trùng lặp)
+                        var detailUpdateDto = new OrderDetailRequestDTO
+                        {
+                            OrderId = id,
+                            ProductId = item.ProductId,
+                            Quantity = item.Quantity,
+                            UnitPrice = item.UnitPrice,
+                            ImportStockDetailId = null // Xóa mapping sau khi đã hoàn lô thành công
+                        };
+                        await _detailService.UpdateAsync(item.OrderDetailId, detailUpdateDto);
+                    }
+                    // --- KẾT THÚC PHẦN CHÈN THÊM ---
+
+                    // Call ProductService to restore stock quantity (CODE CÓ SẴN CỦA BẠN)
                     var stockRestored = await _productService.IncreaseStockAsync(item.ProductId, item.Quantity);
 
                     if (!stockRestored)
                     {
+                        // If stock restoration fails 
                         TempData["Error"] = $"System error: Cannot restore stock for product ID {item.ProductId}.";
                         return RedirectToAction(nameof(Index));
                     }
                 }
             }
 
-            // Call Cancel Order API (Update Status = 0)
+            // Call Cancel Order API (Update Status = 0) (CODE CÓ SẴN CỦA BẠN)
             var success = await _orderService.DeleteAsync(id);
 
             if (success)
@@ -295,13 +315,28 @@ namespace PetCenterClient.Controllers
                 {
                     // Call Product/Inventory API to deduct the corresponding quantity
                     var stockUpdated = await _productService.DecreaseStockAsync(item.ProductId, item.Quantity);
-
+                    var mapping = await _importStockService.DeductFIFO(item.ProductId, item.Quantity);
                     if (!stockUpdated)
                     {
                         // If stock deduction fails
                         TempData["Error"] = $"Error: Product ID {item.ProductId} has insufficient stock or API call failed!";
                         return RedirectToAction(nameof(Index));
                     }
+                    if (string.IsNullOrEmpty(mapping))
+                    {
+                        TempData["Error"] = $" Product ID {item.ProductId} is out of stocks!";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    // 3. Cập nhật Mapping vào OrderDetail (Dùng hàm Update có sẵn của bạn)
+                    var detailUpdateDto = new OrderDetailRequestDTO
+                    {
+                        OrderId = id,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice,
+                        ImportStockDetailId = mapping // Gán mapping vào đây
+                    };
+                    await _detailService.UpdateAsync(item.OrderDetailId, detailUpdateDto);
                 }
             }
 

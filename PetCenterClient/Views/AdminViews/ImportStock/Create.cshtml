@@ -32,7 +32,7 @@
                 </select>
             </div>
         </div>
-
+        
         <div class="table-card mb-4">
             <div class="table-header">
                 <h3><i class="bi bi-box-seam"></i> Product List</h3>
@@ -88,91 +88,92 @@
         </div>
     </form>
 </div>
-    <script>
-        let rowIndex = 1;
+<script>
+    let rowIndex = 1;
 
-        // Thêm dòng mới
-        document.getElementById("addRow").addEventListener("click", function () {
-            const tableBody = document.querySelector("#detailTable tbody");
+    // Thêm dòng mới
+    document.getElementById("addRow").addEventListener("click", function () {
+        const tableBody = document.querySelector("#detailTable tbody");
             const productOptions = document.querySelector('.productSelect').innerHTML;
 
             const newRow = `
                 <tr>
-                    <td>
+            <td>
                         <select name="Details[${rowIndex}].ProductId" class="search-input productSelect" style="padding-left: 14px;" required>
                             ${productOptions}
-                        </select>
-                    </td>
-                    <td>
-                        <input name="Details[${rowIndex}].Quantity" class="search-input quantity" type="number" min="1" placeholder="0" required />
-                    </td>
-                    <td>
-                        <input name="Details[${rowIndex}].ImportPrice" class="search-input price" type="number" min="0" placeholder="0.00" required />
-                    </td>
-                    <td style="text-align: center;">
-                        <button type="button" class="btn-action-danger removeRow">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
+                </select>
+            </td>
+            <td>
+                <input name="Details[${rowIndex}].Quantity" class="search-input quantity" type="number" min="1" placeholder="0" required />
+            </td>
+            <td>
+                <input name="Details[${rowIndex}].ImportPrice" class="search-input price" type="number" min="0" placeholder="0.00" required />
+            </td>
+            <td style="text-align: center;">
+                <button type="button" class="btn-action-danger removeRow">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
                 </tr>
-            `;
+        `;
 
             tableBody.insertAdjacentHTML("beforeend", newRow);
-            rowIndex++;
-        });
+        rowIndex++;
+    });
 
-        // Xóa dòng và tính lại Index
-        document.addEventListener("click", function (e) {
-            if (e.target.closest(".removeRow")) {
-                const rows = document.querySelectorAll("#detailTable tbody tr");
-                if (rows.length > 1) {
+    // Xóa dòng và tính lại Index
+    document.addEventListener("click", function (e) {
+        if (e.target.closest(".removeRow")) {
+            const rows = document.querySelectorAll("#detailTable tbody tr");
+            if (rows.length > 1) {
                     e.target.closest("tr").remove();
                     reIndexRows(); // Cập nhật lại index cho name attribute
-                    calculateTotal();
-                } else {
-                    alert("At least one product is required.");
-                }
+                calculateTotal();
+            } else {
+                alert("At least one product is required.");
             }
-        });
+        }
+    });
 
-        function reIndexRows() {
-            const rows = document.querySelectorAll("#detailTable tbody tr");
-            rows.forEach((row, index) => {
+    function reIndexRows() {
+        const rows = document.querySelectorAll("#detailTable tbody tr");
+        rows.forEach((row, index) => {
                 row.querySelector(".productSelect").name = `Details[${index}].ProductId`;
                 row.querySelector(".quantity").name = `Details[${index}].Quantity`;
                 row.querySelector(".price").name = `Details[${index}].ImportPrice`;
-            });
-            rowIndex = rows.length;
-        }
-
-        // Tính tổng tiền tự động
-        document.addEventListener("input", function (e) {
-            if (e.target.classList.contains("quantity") || e.target.classList.contains("price")) {
-                calculateTotal();
-            }
         });
+        rowIndex = rows.length;
+    }
 
-        function calculateTotal() {
-            let total = 0;
-            document.querySelectorAll("#detailTable tbody tr").forEach(row => {
-                const qty = parseFloat(row.querySelector(".quantity").value) || 0;
-                const price = parseFloat(row.querySelector(".price").value) || 0;
-                total += qty * price;
-            });
-            document.getElementById("totalAmount").innerText = total.toLocaleString('vi-VN');
+    // Tính tổng tiền tự động
+    document.addEventListener("input", function (e) {
+        if (e.target.classList.contains("quantity") || e.target.classList.contains("price")) {
+            calculateTotal();
         }
+    });
+
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll("#detailTable tbody tr").forEach(row => {
+            const qty = parseFloat(row.querySelector(".quantity").value) || 0;
+            const price = parseFloat(row.querySelector(".price").value) || 0;
+            total += qty * price;
+        });
+        document.getElementById("totalAmount").innerText = total.toLocaleString('vi-VN');
+    }
 
         // Chặn trùng sản phẩm
         document.addEventListener("change", function (e) {
             if (e.target.classList.contains("productSelect")) {
-                const allSelects = document.querySelectorAll(".productSelect");
-                const values = Array.from(allSelects).map(s => s.value).filter(v => v !== "");
-                const hasDuplicate = values.some((v, i) => values.indexOf(v) !== i);
+        const allSelects = document.querySelectorAll(".productSelect");
+        const values = Array.from(allSelects).map(s => s.value).filter(v => v !== "");
 
-                if (hasDuplicate) {
-                    alert("This product is already in the list!");
+        const hasDuplicate = values.some((v, i) => values.indexOf(v) !== i);
+
+        if (hasDuplicate) {
+            alert("This product is already in the list!");
                     e.target.value = "";
                 }
-            }
-        });
-    </script>
+        }
+    });
+</script>
