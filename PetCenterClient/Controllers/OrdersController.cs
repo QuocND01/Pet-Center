@@ -30,7 +30,7 @@ namespace PetCenterClient.Controllers
             _importStockService = importStockService;
         }
 
-        // 1. DANH SÁCH ĐƠN HÀNG (Có Search & Filter)
+        // 1. ORDER LIST (Includes Search & Filter)
         public async Task<IActionResult> Index(string? search, int? status, DateTime? fromDate, DateTime? toDate)
         {
             var token = HttpContext.Session.GetString("JWT");
@@ -39,7 +39,7 @@ namespace PetCenterClient.Controllers
             var role = HttpContext.Session.GetString("Role");
             var orders = await _orderService.GetAllAsync();
 
-            // Phân quyền: Customer chỉ thấy đơn của mình
+            // Authorization: Customer only sees their own orders
             if (role == "Customer")
             {
                 var profile = await _customerService.GetProfileAsync();
@@ -50,50 +50,50 @@ namespace PetCenterClient.Controllers
             }
 
             // ==========================================
-            // BẮT ĐẦU TÌM KIẾM & LỌC (Giống StaffController)
+            // START SEARCH & FILTER
             // ==========================================
 
-            // 1. Tìm theo mã đơn hàng (OrderId)
+            // 1. Search by OrderId
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.Trim().ToLower();
                 orders = orders.Where(o => o.OrderId.ToString().ToLower().Contains(search)).ToList();
             }
 
-            // 2. Lọc theo trạng thái
+            // 2. Filter by status
             if (status.HasValue)
             {
                 orders = orders.Where(o => o.Status == status.Value).ToList();
             }
 
-            // 3. Lọc từ ngày
+            // 3. Filter by from date
             if (fromDate.HasValue)
             {
                 orders = orders.Where(o => o.OrderDate >= fromDate.Value).ToList();
             }
 
-            // 4. Lọc đến ngày (Cộng thêm 1 ngày để lấy trọn vẹn ngày toDate)
+            // 4. Filter by to date (Add 1 day to include the whole toDate)
             if (toDate.HasValue)
             {
                 orders = orders.Where(o => o.OrderDate < toDate.Value.AddDays(1)).ToList();
             }
 
-            // Sắp xếp đơn hàng mới nhất lên đầu
+            // Sort newest orders first
             orders = orders.OrderByDescending(o => o.OrderDate).ToList();
 
             // ==========================================
-            // Lưu lại giá trị bộ lọc vào ViewBag để hiển thị lại trên Form UI
+            // Save filter values to ViewBag to display on the UI Form
             // ==========================================
             ViewBag.Search = search;
             ViewBag.Status = status;
-            // Input type="date" của HTML5 bắt buộc định dạng yyyy-MM-dd
+            // HTML5 input type="date" requires yyyy-MM-dd format
             ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
             ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
 
             return View(orders);
         }
 
-        // 2. CHI TIẾT ĐƠN HÀNG (Gom dữ liệu từ nhiều API)
+        // 2. ORDER DETAILS (Aggregate data from multiple APIs)
         public async Task<IActionResult> Details(Guid id)
         {
             var token = HttpContext.Session.GetString("JWT");
@@ -111,7 +111,7 @@ namespace PetCenterClient.Controllers
                 fullDetails.Add(new OrderDetailVM
                 {
                     ProductId = item.ProductId,
-                    ProductName = product?.ProductName ?? "Sản phẩm không xác định",
+                    ProductName = product?.ProductName ?? "Unknown Product",
                     ImageUrl = product?.Images?.FirstOrDefault() ?? "/no-image.png",
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice
@@ -122,7 +122,7 @@ namespace PetCenterClient.Controllers
             return View(order);
         }
 
-        // 3. TẠO MỚI ĐƠN HÀNG (GET)
+        // 3. CREATE NEW ORDER (GET)
         public async Task<IActionResult> Create()
         {
             var profile = await _customerService.GetProfileAsync();
@@ -134,7 +134,7 @@ namespace PetCenterClient.Controllers
             return View(new OrderRequestDTO());
         }
 
-        // 4. TẠO MỚI ĐƠN HÀNG (POST)
+        // 4. CREATE NEW ORDER (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(OrderRequestDTO dto)
@@ -153,7 +153,7 @@ namespace PetCenterClient.Controllers
                 var success = await _orderService.CreateAsync(dto);
                 if (success)
                 {
-                    TempData["Success"] = "Đặt hàng thành công!";
+                    TempData["Success"] = "Order placed successfully!";
                     return RedirectToAction(nameof(Index));
                 }
             }
@@ -163,7 +163,7 @@ namespace PetCenterClient.Controllers
             return View(dto);
         }
 
-        // 5. CHỈNH SỬA (GET) - Chỉ Admin hoặc Staff mới được vào
+        // 5. EDIT (GET) - Only Admin or Staff allowed
         public async Task<IActionResult> Edit(Guid id)
         {
             var role = HttpContext.Session.GetString("Role");
@@ -189,6 +189,7 @@ namespace PetCenterClient.Controllers
             return View(editDto);
         }
 
+        // 6. EDIT (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, OrderRequestDTO dto)
@@ -310,8 +311,7 @@ namespace PetCenterClient.Controllers
 
                 if (success)
                 {
-                    Console.WriteLine("[Success] Lưu Database thành công!");
-                    TempData["Success"] = "Cập nhật đơn hàng thành công!";
+                    TempData["Success"] = "Order updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
                 else
@@ -337,7 +337,7 @@ namespace PetCenterClient.Controllers
             return View(dto);
         }
 
-        // 7. XÁC NHẬN HỦY ĐƠN (GET) - Hiện trang Delete.cshtml
+        // 7. CONFIRM DELETE ORDER (GET) - Shows Delete.cshtml
         public async Task<IActionResult> Delete(Guid id)
         {
             var order = await _orderService.GetByIdAsync(id);
@@ -354,35 +354,35 @@ namespace PetCenterClient.Controllers
 
             if (order.Status == 2)
             {
-                // Lấy chi tiết các món hàng trong đơn ra
+                // Get the details of the items in the order
                 var orderDetails = await _detailService.GetByOrderIdAsync(id);
 
                 foreach (var item in orderDetails)
                 {
-                    // Gọi ProductService để cộng ngược số lượng kho
+                    // Call ProductService to restore stock quantity
                     var stockRestored = await _productService.IncreaseStockAsync(item.ProductId, item.Quantity);
 
                     if (!stockRestored)
                     {
-                        TempData["Error"] = $"Lỗi hệ thống: Không thể hoàn trả số lượng cho sản phẩm mã {item.ProductId}.";
+                        TempData["Error"] = $"System error: Cannot restore stock for product ID {item.ProductId}.";
                         return RedirectToAction(nameof(Index));
                     }
                 }
             }
 
-            // 3. Tiến hành gọi API Hủy đơn (Cập nhật Status = 0)
+            // 3. Call Cancel Order API (Update Status = 0)
             var success = await _orderService.DeleteAsync(id);
 
             if (success)
             {
                 if (order.Status == 1)
-                    TempData["Success"] = "Đã hủy đơn hàng chờ xử lý thành công!";
+                    TempData["Success"] = "Pending order canceled successfully!";
                 else
-                    TempData["Success"] = "Đã hủy đơn hàng và hoàn trả số lượng vào kho thành công!";
+                    TempData["Success"] = "Order canceled and stock restored successfully!";
             }
             else
             {
-                TempData["Error"] = "Không thể hủy đơn hàng này. Kiểm tra lại quyền hạn!";
+                TempData["Error"] = "Cannot cancel this order. Please check your permissions!";
             }
 
             return RedirectToAction(nameof(Index));
@@ -395,56 +395,54 @@ namespace PetCenterClient.Controllers
             var role = HttpContext.Session.GetString("Role");
             if (role != "Admin" && role != "Staff") return Unauthorized();
 
-            // 1. Lấy thông tin đơn hàng hiện tại
+            // 1. Get current order information
             var order = await _orderService.GetByIdAsync(id);
             if (order == null || order.Status == 0 || order.Status >= 4)
             {
-                TempData["Error"] = "Đơn hàng không hợp lệ để cập nhật trạng thái.";
+                TempData["Error"] = "Invalid order for status update.";
                 return RedirectToAction(nameof(Index));
             }
 
             if (order.Status == 1)
             {
-                // ĐÃ SỬA: Dùng _detailService CÓ SẴN thay vì _orderService
+                // FIXED: Use the EXISTING _detailService instead of _orderService
                 var orderDetails = await _detailService.GetByOrderIdAsync(id);
 
                 foreach (var item in orderDetails)
                 {
-                    // Gọi sang API của Product/Inventory để trừ đi số lượng tương ứng
+                    // Call Product/Inventory API to deduct the corresponding quantity
                     var stockUpdated = await _productService.DecreaseStockAsync(item.ProductId, item.Quantity);
 
                     if (!stockUpdated)
                     {
-                        // Nếu trừ kho thất bại (do hết hàng hoặc lỗi API Product)
-                        TempData["Error"] = $"Lỗi: Sản phẩm mã {item.ProductId} không đủ số lượng trong kho hoặc API gọi thất bại!";
+                        // If stock deduction fails (due to out of stock or Product API error)
+                        TempData["Error"] = $"Error: Product ID {item.ProductId} has insufficient stock or API call failed!";
                         return RedirectToAction(nameof(Index));
                     }
                 }
             }
 
-            // 3. Tịnh tiến trạng thái (Status + 1)
+            // 3. Increment status (Status + 1)
             var newStatus = order.Status + 1;
 
-            // Đóng gói DTO để gửi đi update
+            // Package DTO to send for update
             var updateDto = new OrderRequestDTO
             {
                 AddressId = order.AddressId,
                 Status = newStatus,
                 TotalAmount = order.TotalAmount
-                // Gán thêm các trường khác nếu cần thiết
+                // Assign other fields if necessary
             };
 
-            // 4. Gọi API update đơn hàng
+            // 4. Call order update API
             var success = await _orderService.UpdateAsync(id, updateDto);
 
             if (success)
-                TempData["Success"] = "Đã cập nhật đơn hàng sang bước tiếp theo thành công!";
+                TempData["Success"] = "Order status updated to the next step successfully!";
             else
-                TempData["Error"] = "Lỗi khi cập nhật trạng thái đơn hàng.";
+                TempData["Error"] = "Error updating order status.";
 
             return RedirectToAction(nameof(Index));
         }
-
-
     }
 }
