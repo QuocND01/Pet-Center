@@ -26,5 +26,6 @@ namespace PetCenterClient.Services.Interface
         Task<List<ReadProductDTO>> GetNewProductsAsync();
         Task<List<ProductSelectDto>> GetProductSelectAsync();
         Task IncreaseStockBulk(List<IncreaseStockItemDto> items);
+        Task DecreaseStockBulk(List<DecreaseStockItemDto> items);
     }
 }

@@ -99,4 +99,9 @@ namespace ProductAPI.DTOs
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
     }
+    public class DecreaseStockItemDto
+    {
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
+    }
 }

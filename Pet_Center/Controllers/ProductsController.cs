@@ -142,5 +142,11 @@ namespace ProductAPI.Controllers
             await _productService.IncreaseStockBulk(items);
             return Ok();
         }
+        [HttpPost("decrease-stock-bulk")]
+        public async Task<IActionResult> DecreaseStockBulk([FromBody] List<DecreaseStockItemDto> items)
+        {
+            await _productService.DecreaseStockBulk(items);
+            return Ok();
+        }
     }
 }

@@ -224,5 +224,47 @@ namespace ProductAPI.Service
 
             await _productRepository.SaveChangesAsync();
         }
+        public async Task DecreaseStockBulk(List<DecreaseStockItemDto> items)
+        {
+            if (items == null || !items.Any()) return;
+
+            // ❗ validate
+            if (items.Any(x => x.Quantity <= 0))
+                throw new Exception("Quantity must be greater than 0");
+
+            // 🔥 gộp product trùng
+            var grouped = items
+                .GroupBy(x => x.ProductId)
+                .Select(g => new
+                {
+                    ProductId = g.Key,
+                    Quantity = g.Sum(x => x.Quantity)
+                })
+                .ToList();
+
+            var ids = grouped.Select(x => x.ProductId).ToList();
+
+            var products = await _productRepository.GetByIds(ids);
+
+            // 🔥 tối ưu lookup
+            var productDict = products.ToDictionary(x => x.ProductId);
+
+            foreach (var item in grouped)
+            {
+                if (!productDict.TryGetValue(item.ProductId, out var product))
+                    throw new Exception($"Product {item.ProductId} not found");
+
+                product.StockQuantity ??= 0;
+
+                // ❗ check đủ hàng
+                if (product.StockQuantity < item.Quantity)
+                    throw new Exception($"Product {item.ProductId} is out of stock");
+
+                product.StockQuantity -= item.Quantity;
+                product.UpdateAt = DateTime.UtcNow;
+            }
+
+            await _productRepository.SaveChangesAsync();
+        }
     }
 }

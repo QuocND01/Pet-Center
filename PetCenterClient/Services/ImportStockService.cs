@@ -2,9 +2,11 @@
 using DocumentFormat.OpenXml.Office2010.Excel;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using static System.Net.WebRequestMethods;
 
 namespace PetCenterClient.Services
 {
@@ -118,5 +120,29 @@ namespace PetCenterClient.Services
 
             return data.Imports;
         }
+        // 🔥 GỌI API TRỪ KHO
+        public async Task<string?> DeductFIFO(Guid productId, int quantity)
+        {
+            AddAuthorizationHeader();
+            var res = await _httpClient.PostAsJsonAsync($"inventory/importstock/deduct", new { productId, quantity });
+            if (!res.IsSuccessStatusCode) return null;
+
+            // Đọc JSON và chỉ lấy giá trị của trường "mapping"
+            var result = await res.Content.ReadFromJsonAsync<DeductStockResponse>();
+            return result?.Mapping; // Trả về "id:qty,id:qty" (chuỗi sạch)
+        }
+
+        // 🔥 GỌI API HOÀN KHO
+        public async Task<bool> ReturnStock(string mapping)
+        {
+            AddAuthorizationHeader();
+            var res = await _httpClient.PostAsJsonAsync($"inventory/importstock/return", new
+            {
+                mapping
+            });
+
+            return res.IsSuccessStatusCode;
+        }
     }
 }
+

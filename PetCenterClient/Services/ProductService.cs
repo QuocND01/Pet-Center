@@ -272,6 +272,16 @@ namespace PetCenterClient.Services
             if (!res.IsSuccessStatusCode)
                 throw new Exception($"IncreaseStockBulk failed: {res.StatusCode} - {content}");
         }
+        public async Task DecreaseStockBulk(List<DecreaseStockItemDto> items)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.PostAsJsonAsync("product-service/Products/decrease-stock-bulk", items);
+
+            var content = await res.Content.ReadAsStringAsync();
+
+            if (!res.IsSuccessStatusCode)
+                throw new Exception($"DecreaseStockBulk failed: {res.StatusCode} - {content}");
+        }
     }
 
 }

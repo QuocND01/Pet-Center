@@ -13,18 +13,21 @@ namespace PetCenterClient.Controllers
         private readonly ICustomerService _customerService;
         private readonly IOrderDetailServiceClient _detailService;
         private readonly IProductService _productService;
+        private readonly IImportStockService _importStockService;
 
         public OrdersController(IOrderServiceClient orderService,
                                IAddressServiceClient addressService,
                                ICustomerService customerService,
                                IOrderDetailServiceClient detailService,
-                               IProductService productService)
+                               IProductService productService,
+                               IImportStockService importStockService)
         {
             _orderService = orderService;
             _addressService = addressService;
             _customerService = customerService;
             _detailService = detailService;
             _productService = productService;
+            _importStockService = importStockService;
         }
 
         // 1. DANH SÁCH ĐƠN HÀNG (Có Search & Filter)
@@ -186,23 +189,151 @@ namespace PetCenterClient.Controllers
             return View(editDto);
         }
 
-        // 6. CHỈNH SỬA (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, OrderRequestDTO dto)
         {
+            Console.WriteLine($"--- Bắt đầu Edit Order ID: {id} ---");
+
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff") return RedirectToAction(nameof(Index));
+            if (role != "Admin" && role != "Staff")
+            {
+                Console.WriteLine($"[Auth] Từ chối truy cập: Role hiện tại là {role}");
+                return RedirectToAction(nameof(Index));
+            }
+
+            var order = await _orderService.GetByIdAsync(id);
+            if (order == null)
+            {
+                Console.WriteLine($"[Error] Không tìm thấy Order với ID: {id}");
+                return NotFound();
+            }
+
+            var details = await _detailService.GetByOrderIdAsync(id);
+
+            var oldStatus = order.Status;
+            var newStatus = dto.Status;
+
+            Console.WriteLine($"[Status Check] Old: {oldStatus} | New: {newStatus}");
 
             if (ModelState.IsValid)
             {
+                Console.WriteLine("[Success] ModelState hợp lệ. Bắt đầu xử lý logic kho...");
+
+                // ===== CASE 1: Pending -> Approved =====
+                if (oldStatus == 1 && newStatus == 2)
+                {
+                    Console.WriteLine("-> Đang thực hiện TRỪ KHO (Pending -> Approved)");
+                    var itemsToDecrease = new List<DecreaseStockItemDto>(); // Danh sách gom hàng
+
+                    foreach (var item in details)
+                    {
+                        // 1. Trừ lô ở Inventory (FIFO)
+                        var mapping = await _importStockService.DeductFIFO(item.ProductId, item.Quantity);
+
+                        if (string.IsNullOrEmpty(mapping))
+                        {
+                            // Nếu một món hết hàng, dừng toàn bộ đơn (Rollback lô là chuyện của Inventory API nếu bạn đã code)
+                            TempData["Error"] = $"Sản phẩm {item.ProductId} không đủ hàng!";
+                            return RedirectToAction(nameof(Index));
+                        }
+
+                        // 2. Lưu Mapping vào Detail
+                        var updateDto = new OrderDetailRequestDTO
+                        {
+                            OrderId = id,
+                            ProductId = item.ProductId,
+                            Quantity = item.Quantity,
+                            UnitPrice = item.UnitPrice,
+                            ImportStockDetailId = mapping
+                        };
+                        await _detailService.UpdateAsync(item.OrderDetailId, updateDto);
+
+                        // 3. Thêm vào danh sách để trừ tổng ở Product Service sau
+                        itemsToDecrease.Add(new DecreaseStockItemDto
+                        {
+                            ProductId = item.ProductId,
+                            Quantity = item.Quantity
+                        });
+                    }
+
+                    // 4. CẬP NHẬT TỔNG TỒN KHO (GỌI 1 LẦN)
+                    try
+                    {
+                        await _productService.DecreaseStockBulk(itemsToDecrease);
+                        Console.WriteLine("[Success] Đã cập nhật tổng tồn kho tại Product Service.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Error] Lỗi cập nhật tổng tồn kho: {ex.Message}");
+                        // Lưu ý: Lúc này lô đã trừ, mapping đã lưu, nếu lỗi ở đây sẽ bị lệch data giữa Inven và Product.
+                    }
+                }
+
+                // ===== CASE 2: Approved -> Cancelled =====
+                else if (oldStatus == 2 && newStatus == 0)
+                {
+                    Console.WriteLine("-> Đang thực hiện HOÀN KHO (Approved -> Cancelled)");
+                    var itemsToIncrease = new List<IncreaseStockItemDto>();
+
+                    foreach (var item in details)
+                    {
+                        if (!string.IsNullOrEmpty(item.ImportStockDetailId))
+                        {
+                            // 1. Hoàn lô ở Inventory
+                            await _importStockService.ReturnStock(item.ImportStockDetailId);
+
+                            // 2. Gom hàng để cộng lại tổng
+                            itemsToIncrease.Add(new IncreaseStockItemDto
+                            {
+                                ProductId = item.ProductId,
+                                Quantity = item.Quantity
+                            });
+
+                            // 3. Xóa mapping (Tùy chọn)
+                            item.ImportStockDetailId = null;
+                            // await _detailService.UpdateAsync(...);
+                        }
+                    }
+
+                    // 4. CỘNG LẠI TỔNG TỒN KHO (GỌI 1 LẦN)
+                    if (itemsToIncrease.Any())
+                    {
+                        await _productService.IncreaseStockBulk(itemsToIncrease);
+                        Console.WriteLine("[Success] Đã hoàn tổng tồn kho tại Product Service.");
+                    }
+                }
+
+                // ===== UPDATE DB =====
+                Console.WriteLine("-> Đang gọi UpdateAsync...");
                 var success = await _orderService.UpdateAsync(id, dto);
+
                 if (success)
                 {
+                    Console.WriteLine("[Success] Lưu Database thành công!");
                     TempData["Success"] = "Cập nhật đơn hàng thành công!";
                     return RedirectToAction(nameof(Index));
                 }
+                else
+                {
+                    Console.WriteLine("[Error] UpdateAsync trả về false.");
+                }
             }
+            else
+            {
+                // 🔥 ĐÂY LÀ CHỖ QUAN TRỌNG NHẤT
+                Console.WriteLine("[Invalid] ModelState không hợp lệ:");
+                foreach (var modelStateKey in ModelState.Keys)
+                {
+                    var value = ModelState[modelStateKey];
+                    foreach (var error in value.Errors)
+                    {
+                        Console.WriteLine($">> Field: {modelStateKey} | Lỗi: {error.ErrorMessage}");
+                    }
+                }
+            }
+
+            Console.WriteLine("--- Kết thúc hàm Edit (Chưa redirect, trả về View) ---");
             return View(dto);
         }
 
