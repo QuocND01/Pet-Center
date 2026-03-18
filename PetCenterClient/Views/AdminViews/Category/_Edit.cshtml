@@ -196,10 +196,41 @@
 
 
     // remove attribute
-    $(document).on("click",".removeAttr",function(){
+    $(document).on("click", ".removeAttr", function () {
 
         $(this).closest(".attribute-item").remove()
 
+        reIndexAttributes() 
+
     })
+
+        $("form").on("submit", function () {
+        reIndexAttributes()
+    })
+
+             function reIndexAttributes() {
+        $("#attributeContainer .attribute-item").each(function (index) {
+
+            // 🔥 input name chính
+            $(this).find("input[name$='.AttributeName']")
+                   .attr("name", `Attributes[${index}].AttributeName`)
+
+            // 🔥 hidden id
+            $(this).find("input[name$='.CategoryAttributeId']")
+                   .attr("name", `Attributes[${index}].CategoryAttributeId`)
+
+            // 🔥 validation span
+            $(this).find("span[data-valmsg-for]")
+                   .attr("data-valmsg-for", `Attributes[${index}].AttributeName`)
+        })
+
+        attrIndex = $("#attributeContainer .attribute-item").length
+
+        let form = $("form")
+        form.removeData("validator")
+        form.removeData("unobtrusiveValidation")
+
+        $.validator.unobtrusive.parse(form)
+    }
 
 </script>

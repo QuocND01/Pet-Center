@@ -18,4 +18,5 @@
         public decimal UnitPrice { get; set; }
         public string? ImportStockDetailId { get; set; }
     }
+    
 }
