@@ -272,6 +272,45 @@ namespace PetCenterClient.Services
             if (!res.IsSuccessStatusCode)
                 throw new Exception($"IncreaseStockBulk failed: {res.StatusCode} - {content}");
         }
+
+        public async Task<bool> DecreaseStockAsync(Guid productId, int quantity)
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+            if (!string.IsNullOrEmpty(token))
+            {
+                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            try
+            {
+                var response = await _http.PutAsJsonAsync($"product-service/Products/decrease-stock/{productId}", quantity);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async Task<bool> IncreaseStockAsync(Guid productId, int quantity)
+        {
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
+            if (!string.IsNullOrEmpty(token))
+            {
+                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            try
+            {
+                // Gọi chuẩn đường dẫn qua API Gateway xuống ProductAPI
+                var response = await _http.PutAsJsonAsync($"product-service/Products/increase-stock/{productId}", quantity);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
 }
