@@ -31,7 +31,8 @@ namespace PetCenterClient.Services
      string sortOrder = "asc",
      int page = 1)
         {
-            int pageSize = 10;
+
+            int pageSize = 24;
 
             if (page < 1)
                 page = 1;
