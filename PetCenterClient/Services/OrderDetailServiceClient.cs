@@ -28,5 +28,22 @@ namespace PetCenterClient.Services
                 return new List<OrderDetailResponseDTO>();
             }
         }
+
+        public async Task<bool> UpdateAsync(Guid id, OrderDetailRequestDTO dto)
+        {
+            try
+            {
+                // Gọi API: PUT https://localhost:5000/orders/OrderDetails/{id}
+                var response = await _http.PutAsJsonAsync($"{_route}/{id}", dto);
+
+                // Trả về true nếu status code là 2xx (ví dụ 200 OK hoặc 204 No Content)
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Error ServiceClient] UpdateDetail thất bại: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

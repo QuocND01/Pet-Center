@@ -11,5 +11,6 @@ namespace OrdersAPI.Repository.Interface
         void Delete(OrderDetail detail);
         Task<bool> SaveChangesAsync();
         Task<List<Guid?>> GetTopSellingProductIds(int months = 3, int top = 10);
+       
     }
 }
