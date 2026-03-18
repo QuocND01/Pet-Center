@@ -1,18 +1,29 @@
 ﻿@model PetCenterClient.DTOs.OrderResponseDTO
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Cancel Order";
+
+    // AUTO SWITCH LAYOUT (Đồng bộ với các trang khác)
+    var role = HttpContextAccessor.HttpContext?.Session.GetString("Role");
+    var isStaffOrAdmin = (role == "Staff" || role == "Admin");
+    Layout = isStaffOrAdmin ? "~/Views/Shared/_AdminLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
+}
 
 <div class="container mt-4">
     <div class="alert alert-danger shadow-sm">
-        <h4>⚠️ Xác nhận hủy đơn hàng</h4>
-        @* Dùng string.Format để an toàn cho cả DateTime và DateTime? *@
-        <p>Bạn có chắc chắn muốn hủy đơn hàng đặt ngày <strong>@string.Format("{0:dd/MM/yyyy}", Model.OrderDate)</strong> với tổng tiền <strong>@Model.TotalAmount.ToString("N0") VNĐ</strong>?</p>
+        <h4>⚠️ Confirm Order Cancellation</h4>
+        @* Using string.Format for safe handling of DateTime and DateTime? *@
+        <p>Are you sure you want to cancel the order placed on <strong>@string.Format("{0:dd/MM/yyyy}", Model.OrderDate)</strong> with a total amount of <strong>@Model.TotalAmount.ToString("N0") VND</strong>?</p>
     </div>
 
     <form asp-action="Delete" method="post">
         @Html.AntiForgeryToken()
-        @* CỰC KỲ QUAN TRỌNG: Đổi name thành "id" để khớp với tham số trong Controller *@
+        @* EXTREMELY IMPORTANT: Name must be "id" to match the Controller parameter *@
         <input type="hidden" name="id" value="@Model.OrderId" />
 
-        <button type="submit" class="btn btn-danger px-4">Xác nhận hủy</button>
-        <a asp-action="Index" class="btn btn-secondary px-4">Quay lại</a>
+        <button type="submit" class="btn btn-danger px-4">Confirm Cancellation</button>
+        <a asp-action="Index" class="btn btn-secondary px-4">Back</a>
     </form>
 </div>

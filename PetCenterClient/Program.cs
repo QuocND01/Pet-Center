@@ -76,6 +76,10 @@ builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+builder.Services.AddHttpClient<IStatisticsServiceClient, StatisticsServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 //Excel service
 builder.Services.AddScoped<ExcelService>();
 

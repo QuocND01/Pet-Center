@@ -193,16 +193,28 @@
       ]
     },
     {
-      "UpstreamPathTemplate": "/address-service/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/{everything}",
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7297
-        }
-      ]
+        "UpstreamPathTemplate": "/address-service/{everything}",
+        "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+        "DownstreamPathTemplate": "/api/{everything}",
+        "DownstreamScheme": "https",
+        "DownstreamHostAndPorts": [
+            {
+                "Host": "localhost",
+                "Port": 7297
+            }
+        ]
+    },
+    {
+        "UpstreamPathTemplate": "/gateway/Statistics/summary",
+        "UpstreamHttpMethod": [ "GET" ],
+        "DownstreamPathTemplate": "/api/Statistics/summary",
+        "DownstreamScheme": "https",
+        "DownstreamHostAndPorts": [
+            {
+                "Host": "localhost",
+                "Port": 7007
+            }
+        ]
     }
   ],
   "GlobalConfiguration": {
