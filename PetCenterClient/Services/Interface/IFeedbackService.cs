@@ -14,5 +14,11 @@ namespace PetCenterClient.Services.Interface
         Task DeleteReplyAsync(Guid feedbackId);
         Task ToggleVisibilityAsync(Guid feedbackId);
         Task DeleteAsync(Guid feedbackId);
+        Task<List<FeedbackDTO>> FilterAsync(
+    int? rating,
+    Guid? productId,
+    bool? isVisible,
+    DateTime? fromDate,
+    DateTime? toDate);
     }
 }

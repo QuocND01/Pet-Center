@@ -55,17 +55,24 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Feedback/MyFeedback.cshtml", feedbacks);
         }
 
-        public IActionResult Create()
+        public IActionResult Create(Guid productId)
         {
-            return View("~/Views/CustomerViews/Feedback/Create.cshtml");
+            var dto = new CreateFeedbackDTO
+            {
+                ProductId = productId
+            };
+
+            return View("~/Views/CustomerViews/Feedback/Create.cshtml", dto);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateFeedbackDTO dto)
         {
+            dto.CustomerId = Guid.Parse(User.FindFirst("UserId").Value);
+
             await _service.CreateAsync(dto);
 
-            return RedirectToAction(nameof(MyFeedback), new { customerId = dto.CustomerId });
+            return RedirectToAction("Details", "Products", new { id = dto.ProductId });
         }
 
         //Staff
@@ -91,6 +98,19 @@ namespace PetCenterClient.Controllers
             await _service.DeleteReplyAsync(id);
 
             return RedirectToAction(nameof(AdminList));
+        }
+
+        public async Task<IActionResult> List(
+    int? rating,
+    Guid? productId,
+    bool? isVisible,
+    DateTime? fromDate,
+    DateTime? toDate)
+        {
+            var feedbacks = await _service.FilterAsync(
+                rating, productId, isVisible, fromDate, toDate);
+
+            return View("~/Views/AdminViews/Feedback/List.cshtml", feedbacks);
         }
     }
 }
