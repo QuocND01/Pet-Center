@@ -53,7 +53,7 @@ namespace PetCenterClient.Controllers
             // START SEARCH & FILTER
             // ==========================================
 
-            // 1. Search by OrderId
+            // 1. Search by Order ID
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.Trim().ToLower();
@@ -194,146 +194,18 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, OrderRequestDTO dto)
         {
-            Console.WriteLine($"--- Bắt đầu Edit Order ID: {id} ---");
-
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff")
-            {
-                Console.WriteLine($"[Auth] Từ chối truy cập: Role hiện tại là {role}");
-                return RedirectToAction(nameof(Index));
-            }
-
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null)
-            {
-                Console.WriteLine($"[Error] Không tìm thấy Order với ID: {id}");
-                return NotFound();
-            }
-
-            var details = await _detailService.GetByOrderIdAsync(id);
-
-            var oldStatus = order.Status;
-            var newStatus = dto.Status;
-
-            Console.WriteLine($"[Status Check] Old: {oldStatus} | New: {newStatus}");
+            if (role != "Admin" && role != "Staff") return RedirectToAction(nameof(Index));
 
             if (ModelState.IsValid)
             {
-                Console.WriteLine("[Success] ModelState hợp lệ. Bắt đầu xử lý logic kho...");
-
-                // ===== CASE 1: Pending -> Approved =====
-                if (oldStatus == 1 && newStatus == 2)
-                {
-                    Console.WriteLine("-> Đang thực hiện TRỪ KHO (Pending -> Approved)");
-                    var itemsToDecrease = new List<DecreaseStockItemDto>(); // Danh sách gom hàng
-
-                    foreach (var item in details)
-                    {
-                        // 1. Trừ lô ở Inventory (FIFO)
-                        var mapping = await _importStockService.DeductFIFO(item.ProductId, item.Quantity);
-
-                        if (string.IsNullOrEmpty(mapping))
-                        {
-                            // Nếu một món hết hàng, dừng toàn bộ đơn (Rollback lô là chuyện của Inventory API nếu bạn đã code)
-                            TempData["Error"] = $"Sản phẩm {item.ProductId} không đủ hàng!";
-                            return RedirectToAction(nameof(Index));
-                        }
-
-                        // 2. Lưu Mapping vào Detail
-                        var updateDto = new OrderDetailRequestDTO
-                        {
-                            OrderId = id,
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity,
-                            UnitPrice = item.UnitPrice,
-                            ImportStockDetailId = mapping
-                        };
-                        await _detailService.UpdateAsync(item.OrderDetailId, updateDto);
-
-                        // 3. Thêm vào danh sách để trừ tổng ở Product Service sau
-                        itemsToDecrease.Add(new DecreaseStockItemDto
-                        {
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity
-                        });
-                    }
-
-                    // 4. CẬP NHẬT TỔNG TỒN KHO (GỌI 1 LẦN)
-                    try
-                    {
-                        await _productService.DecreaseStockBulk(itemsToDecrease);
-                        Console.WriteLine("[Success] Đã cập nhật tổng tồn kho tại Product Service.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[Error] Lỗi cập nhật tổng tồn kho: {ex.Message}");
-                        // Lưu ý: Lúc này lô đã trừ, mapping đã lưu, nếu lỗi ở đây sẽ bị lệch data giữa Inven và Product.
-                    }
-                }
-
-                // ===== CASE 2: Approved -> Cancelled =====
-                else if (oldStatus == 2 && newStatus == 0)
-                {
-                    Console.WriteLine("-> Đang thực hiện HOÀN KHO (Approved -> Cancelled)");
-                    var itemsToIncrease = new List<IncreaseStockItemDto>();
-
-                    foreach (var item in details)
-                    {
-                        if (!string.IsNullOrEmpty(item.ImportStockDetailId))
-                        {
-                            // 1. Hoàn lô ở Inventory
-                            await _importStockService.ReturnStock(item.ImportStockDetailId);
-
-                            // 2. Gom hàng để cộng lại tổng
-                            itemsToIncrease.Add(new IncreaseStockItemDto
-                            {
-                                ProductId = item.ProductId,
-                                Quantity = item.Quantity
-                            });
-
-                            // 3. Xóa mapping (Tùy chọn)
-                            item.ImportStockDetailId = null;
-                            // await _detailService.UpdateAsync(...);
-                        }
-                    }
-
-                    // 4. CỘNG LẠI TỔNG TỒN KHO (GỌI 1 LẦN)
-                    if (itemsToIncrease.Any())
-                    {
-                        await _productService.IncreaseStockBulk(itemsToIncrease);
-                        Console.WriteLine("[Success] Đã hoàn tổng tồn kho tại Product Service.");
-                    }
-                }
-
-                // ===== UPDATE DB =====
-                Console.WriteLine("-> Đang gọi UpdateAsync...");
                 var success = await _orderService.UpdateAsync(id, dto);
-
                 if (success)
                 {
                     TempData["Success"] = "Order updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
-                else
-                {
-                    Console.WriteLine("[Error] UpdateAsync trả về false.");
-                }
             }
-            else
-            {
-                // 🔥 ĐÂY LÀ CHỖ QUAN TRỌNG NHẤT
-                Console.WriteLine("[Invalid] ModelState không hợp lệ:");
-                foreach (var modelStateKey in ModelState.Keys)
-                {
-                    var value = ModelState[modelStateKey];
-                    foreach (var error in value.Errors)
-                    {
-                        Console.WriteLine($">> Field: {modelStateKey} | Lỗi: {error.ErrorMessage}");
-                    }
-                }
-            }
-
-            Console.WriteLine("--- Kết thúc hàm Edit (Chưa redirect, trả về View) ---");
             return View(dto);
         }
 
@@ -345,6 +217,7 @@ namespace PetCenterClient.Controllers
             return View(order);
         }
 
+        // 8. DELETE ORDER (POST)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -352,7 +225,8 @@ namespace PetCenterClient.Controllers
             var order = await _orderService.GetByIdAsync(id);
             if (order == null) return NotFound();
 
-            if (order.Status == 2)
+            // LOGIC RESTORE STOCK: Only restore if order was approved (2) or delivering (3)
+            if (order.Status == 2 || order.Status == 3)
             {
                 // Get the details of the items in the order
                 var orderDetails = await _detailService.GetByOrderIdAsync(id);
@@ -370,7 +244,7 @@ namespace PetCenterClient.Controllers
                 }
             }
 
-            // 3. Call Cancel Order API (Update Status = 0)
+            // Call Cancel Order API (Update Status = 0)
             var success = await _orderService.DeleteAsync(id);
 
             if (success)
@@ -388,6 +262,7 @@ namespace PetCenterClient.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // 9. FORWARD STATUS (Update Status + Deduct Stock)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForwardStatus(Guid id)
@@ -395,7 +270,15 @@ namespace PetCenterClient.Controllers
             var role = HttpContext.Session.GetString("Role");
             if (role != "Admin" && role != "Staff") return Unauthorized();
 
-            // 1. Get current order information
+            // Get StaffId of the current user from Session
+            var currentUserIdString = HttpContext.Session.GetString("StaffId"); 
+            Guid? staffId = null;
+            if (Guid.TryParse(currentUserIdString, out Guid parsedId))
+            {
+                staffId = parsedId;
+            }
+
+            // Get current order information
             var order = await _orderService.GetByIdAsync(id);
             if (order == null || order.Status == 0 || order.Status >= 4)
             {
@@ -403,9 +286,9 @@ namespace PetCenterClient.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // LOGIC DEDUCT STOCK: Only when approving order (Status 1 -> 2)
             if (order.Status == 1)
             {
-                // FIXED: Use the EXISTING _detailService instead of _orderService
                 var orderDetails = await _detailService.GetByOrderIdAsync(id);
 
                 foreach (var item in orderDetails)
@@ -415,32 +298,47 @@ namespace PetCenterClient.Controllers
 
                     if (!stockUpdated)
                     {
-                        // If stock deduction fails (due to out of stock or Product API error)
+                        // If stock deduction fails
                         TempData["Error"] = $"Error: Product ID {item.ProductId} has insufficient stock or API call failed!";
                         return RedirectToAction(nameof(Index));
                     }
                 }
             }
 
-            // 3. Increment status (Status + 1)
+            // Increment status (Status + 1)
             var newStatus = order.Status + 1;
 
             // Package DTO to send for update
             var updateDto = new OrderRequestDTO
             {
+                CustomerId = order.CustomerId,
                 AddressId = order.AddressId,
+                AddressSnapshot = order.AddressSnapshot,
+                TotalAmount = order.TotalAmount,
+                DiscountAmount = order.DiscountAmount,
                 Status = newStatus,
-                TotalAmount = order.TotalAmount
-                // Assign other fields if necessary
+                StaffId = staffId 
             };
 
-            // 4. Call order update API
+            if (newStatus == 4)
+            {
+                updateDto.DeliveredDate = DateTime.Now;
+            }
+
+            // Call order update API
             var success = await _orderService.UpdateAsync(id, updateDto);
 
             if (success)
-                TempData["Success"] = "Order status updated to the next step successfully!";
+            {
+                if (newStatus == 4)
+                    TempData["Success"] = "Order completed successfully! Delivered date and Staff ID have been recorded.";
+                else
+                    TempData["Success"] = "Order status updated to the next step successfully!";
+            }
             else
+            {
                 TempData["Error"] = "Error updating order status.";
+            }
 
             return RedirectToAction(nameof(Index));
         }

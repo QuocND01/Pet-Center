@@ -46,7 +46,18 @@ namespace OrdersAPI.Service
             if (existingOrder == null) return false;
 
             _mapper.Map(dto, existingOrder);
-            existingOrder.UpdatedAt = DateTime.Now; // Cập nhật thời gian sửa
+
+            existingOrder.Status = dto.Status;
+            if (dto.StaffId.HasValue)
+            {
+                existingOrder.StaffId = dto.StaffId;
+            }
+            if (dto.DeliveredDate.HasValue)
+            {
+                existingOrder.DeliveredDate = dto.DeliveredDate;
+            }
+
+            existingOrder.UpdatedAt = DateTime.Now;
 
             _repo.Update(existingOrder);
             return await _repo.SaveChangesAsync();

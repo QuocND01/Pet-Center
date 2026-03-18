@@ -27,5 +27,7 @@
         public decimal TotalAmount { get; set; }
         public decimal? DiscountAmount { get; set; }
         public int? Status { get; set; }
+
+        public DateTime? DeliveredDate { get; set; }
     }
 }

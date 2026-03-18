@@ -14,7 +14,6 @@ namespace OrdersAPI.Repository
         public async Task<Order?> GetByIdAsync(Guid id) =>
             await _context.Orders
                 .Include(o => o.OrderDetails)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(o => o.OrderId == id);
 
         public async Task AddAsync(Order order) => await _context.Orders.AddAsync(order);
