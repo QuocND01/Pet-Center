@@ -11,14 +11,15 @@ namespace PetCenterClient.Controllers
         private readonly IProductService _productService;
         private readonly IBrandService _brandService;
         private readonly ICategoryService _categoryService;
-        private readonly IFeedbackService _feedbackService;
+    //    private readonly IFeedbackService _feedbackService;
 
-        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService, IFeedbackService feedbackService)
+        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService //IFeedbackService feedbackService)
+            )
         {
             _productService = productService;
             _brandService = brandService;
             _categoryService = categoryService;
-            _feedbackService = feedbackService;
+            //_feedbackService = feedbackService;
         }
 
         // GET: ReadProdutDTOs
@@ -108,8 +109,8 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var feedbacks = await _feedbackService.GetByProductAsync(id.Value);
-            ViewBag.Feedbacks = feedbacks;
+         //   var feedbacks = await _feedbackService.GetByProductAsync(id.Value);
+          //  ViewBag.Feedbacks = feedbacks;
 
             return View("~/Views/CustomerViews/Product/Details.cshtml", readProdutDTOs);
         }
@@ -205,7 +206,6 @@ namespace PetCenterClient.Controllers
             {
                 var brands = await _brandService.GetAllBrandAsync("", 1);
                 var categories = await _categoryService.GetAllCategoryAsync("", 1);
-
                 ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
                 return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);

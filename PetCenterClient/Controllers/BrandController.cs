@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PetCenterClient.DTOs;
@@ -112,12 +113,14 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, UpdateBrandDTOs model)
+        public async Task<IActionResult> Edit(Guid BrandId, UpdateBrandDTOs model)
         {
+            Console.WriteLine("ĐÃ VÀO EDIT");
+            Console.WriteLine($"ID: {BrandId}");
             if (!ModelState.IsValid)
                 return View(model);
 
-            await _brandService.UpdateBrandAsync(id, model);
+            await _brandService.UpdateBrandAsync(BrandId, model);
 
             return Json(new { success = true });
         }
