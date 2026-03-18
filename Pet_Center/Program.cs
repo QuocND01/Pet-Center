@@ -69,7 +69,7 @@ builder.Services.AddFluentValidationClientsideAdapters();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "StudentAPI", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProductAPI", Version = "v1" });
 
     // Cấu hình hỗ trợ Bearer token
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
