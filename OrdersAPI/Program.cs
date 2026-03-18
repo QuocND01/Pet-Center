@@ -32,6 +32,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 // ── AutoMapper ────────────────────────────────────────────────────
 // MappingProfile là class có sẵn trong OrdersAPI/Profile/MappingProfile.cs
