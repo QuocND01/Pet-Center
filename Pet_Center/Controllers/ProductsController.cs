@@ -1,4 +1,5 @@
 ﻿using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -24,9 +25,9 @@ namespace ProductAPI.Controllers
             _productService = productService;
         }
 
-        // GET: api/Products
+        // GET: api/
         [HttpGet]
-        [EnableQuery(PageSize = 10)]
+        [EnableQuery]
         public IQueryable<ReadProductDTO> Get()
         {
             return _productService.GetAllProduct();
@@ -48,6 +49,7 @@ namespace ProductAPI.Controllers
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(Guid id,[FromForm] UpdateProductDTO product)
         {
@@ -71,6 +73,7 @@ namespace ProductAPI.Controllers
 
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostProduct([FromForm] CreateProductDTO product)
         {
@@ -101,6 +104,7 @@ namespace ProductAPI.Controllers
         }
 
         // DELETE: api/Products/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {

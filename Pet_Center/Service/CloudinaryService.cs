@@ -49,16 +49,16 @@ public class CloudinaryService : ICloudinaryService
     }
 
     // Lấy URL ảnh
-    public string GetImageUrl(string publicId, int width = 0, int height = 0, bool crop = false)
-    {
-        if (string.IsNullOrEmpty(publicId))
-            return null;
+    //public string GetImageUrl(string publicId, int width = 0, int height = 0, bool crop = false)
+    //{
+    //    if (string.IsNullOrEmpty(publicId))
+    //        return null;
 
-        var transformation = new Transformation();
-        if (width > 0) transformation.Width(width);
-        if (height > 0) transformation.Height(height);
-        if (crop) transformation.Crop("fill");
+    //    var transformation = new Transformation();
+    //    if (width > 0) transformation.Width(width);
+    //    if (height > 0) transformation.Height(height);
+    //    if (crop) transformation.Crop("fill");
 
-        return _cloudinary.Api.UrlImgUp.Transform(transformation).BuildUrl(publicId);
-    }
+    //    return _cloudinary.Api.UrlImgUp.Transform(transformation).BuildUrl(publicId);
+    //}
 }

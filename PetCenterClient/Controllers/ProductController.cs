@@ -33,17 +33,18 @@ namespace PetCenterClient.Controllers
              string sortOrder = "asc",
              int page = 1)
         {
-            int pagesize = 3;
+            int pagesize = 24;
             var result = await _productService.GetAllProductAsync(
                search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
             int totalItems = result?.Count ?? 0;
-            var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
+            var totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             var hotProducts = await _productService.GetHotProductsAsync();
             var newProducts = await _productService.GetNewProductsAsync();
             ViewBag.HotProducts = hotProducts;
             ViewBag.NewProducts = newProducts;
+            ViewBag.PageSize = pagesize;
             ViewBag.Brands = await _brandService.GetAllBrandAsync("", 1);
             ViewBag.Categories = await _categoryService.GetAllCategoryAsync("", 1);
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
@@ -64,13 +65,14 @@ namespace PetCenterClient.Controllers
              string sortOrder = "asc",
              int page = 1)
         {
-            int pagesize = 3;
+            int pagesize = 24;
             var result = await _productService.GetAllProductAsync(
                search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
             int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pagesize;
             return View("~/Views/AdminViews/Product/Index.cshtml", result);
         }
 
