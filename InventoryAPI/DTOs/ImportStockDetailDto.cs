@@ -21,4 +21,25 @@
         public List<ReadImportHeaderDto> Imports { get; set; } = new();
         public List<ImportStockDetailDto> Details { get; set; } = new();
     }
+    // Dùng cho OrderAPI gọi để trừ tồn kho khi checkout và trả lại tồn kho khi hủy đơn
+    public class DeductStockRequest
+    {
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    public class DeductStockResponse
+    {
+        public string Mapping { get; set; } = string.Empty; // "id:qty,id:qty"
+    }
+
+    public class ReturnStockRequest
+    {
+        public string Mapping { get; set; } = string.Empty;
+    }
+    public class IncreaseStockItemDto
+    {
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
+    }
 }

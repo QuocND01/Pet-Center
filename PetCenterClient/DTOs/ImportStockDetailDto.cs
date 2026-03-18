@@ -17,4 +17,9 @@
         public int Quantity { get; set; }
         public decimal ImportPrice { get; set; }
     }
+    public class IncreaseStockItemDto
+    {
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
+    }
 }

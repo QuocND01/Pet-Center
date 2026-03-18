@@ -12,12 +12,14 @@ namespace PetCenterClient.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IProductService _productService;
 
-        public ImportStockService(HttpClient httpClient, IConfiguration config, IHttpContextAccessor httpContextAccessor)
+        public ImportStockService(HttpClient httpClient, IConfiguration config, IHttpContextAccessor httpContextAccessor, IProductService productService)
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(config["Api:Url"] ?? "");
             _httpContextAccessor = httpContextAccessor;
+            _productService = productService;
         }
 
         // Hàm helper để gán Token vào header cho mọi request
@@ -74,7 +76,11 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
             var res = await _httpClient.PutAsync($"inventory/importstock/{id}/confirm", null);
+
             res.EnsureSuccessStatusCode();
+            var items = await res.Content.ReadFromJsonAsync<List<IncreaseStockItemDto>>();
+
+            await _productService.IncreaseStockBulk(items);
         }
 
         public async Task CancelAsync(Guid id)

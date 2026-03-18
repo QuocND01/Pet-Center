@@ -261,6 +261,16 @@ namespace PetCenterClient.Services
                     new AuthenticationHeaderValue("Bearer", token);
             }
         }
+        public async Task IncreaseStockBulk(List<IncreaseStockItemDto> items)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.PostAsJsonAsync("product-service/Products/increase-stock-bulk", items);
+
+            var content = await res.Content.ReadAsStringAsync();
+
+            if (!res.IsSuccessStatusCode)
+                throw new Exception($"IncreaseStockBulk failed: {res.StatusCode} - {content}");
+        }
     }
 
 }

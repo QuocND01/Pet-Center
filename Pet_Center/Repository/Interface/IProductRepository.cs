@@ -1,4 +1,5 @@
-﻿using ProductAPI.Models;
+﻿using ProductAPI.DTOs;
+using ProductAPI.Models;
 using System.Linq.Expressions;
 
 namespace ProductAPI.Repository.Interface
@@ -21,5 +22,10 @@ namespace ProductAPI.Repository.Interface
         Task<IEnumerable<Product?>> GetNewProduct();
 
         Task<IEnumerable<Product?>> GetProductsByIds(List<Guid> ids);
+
+
+        //get by list
+        Task<List<Product>> GetByIds(List<Guid> ids);
+        Task SaveChangesAsync();
     }
 }
