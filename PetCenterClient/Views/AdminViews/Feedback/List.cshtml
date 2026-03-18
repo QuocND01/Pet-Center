@@ -3,49 +3,118 @@
 
 <div class="container">
 
-	<h2>Feedback Management</h2>
+    <h2>Feedback Management</h2>
 
-	<table>
+    <form method="get" asp-action="List" asp-controller="Feedback" class="filter-form">
 
-		<tr>
-			<th>Product</th>
-			<th>Customer</th>
-			<th>Rating</th>
-			<th>Comment</th>
-			<th>Visible</th>
-			<th>Created</th>
-			<th>Actions</th>
-		</tr>
+        <input type="number" name="rating" min="1" max="5"
+               placeholder="Rating"
+               value="@Context.Request.Query["rating"]" />
 
-		@foreach (var f in Model)
-		{
-			<tr>
+        <input type="text" name="productId" placeholder="GUID..." 
+               value="@Context.Request.Query["productId"]" />
 
-				<td>@f.ProductId</td>
-				<td>@f.CustomerId</td>
-				<td>@f.Rating ⭐</td>
-				<td>@f.Comment</td>
-				<td>@f.IsVisible</td>
-				<td>@f.CreatedDate.ToString("dd/MM/yyyy")</td>
+        <select name="isVisible">
+            <option value="">All Status</option>
+            <option value="true"
+                    selected="@(Context.Request.Query["isVisible"] == "true")">
+                Visible
+            </option>
+            <option value="false"
+                    selected="@(Context.Request.Query["isVisible"] == "false")">
+                Hidden
+            </option>
+        </select>
+        fromDate:
+        <input type="date" name="fromDate"
+               value="@Context.Request.Query["fromDate"]" />
+        toDate:
+        <input type="date" name="toDate"
+               value="@Context.Request.Query["toDate"]" />
 
-				<td>
+        <button type="submit" class="btn btn-primary">Filter</button>
 
-					<a class="btn btn-view" href="/Feedback/Detail/@f.FeedbackId">Detail</a>
+        <a href="/Feedback/List" class="btn btn-secondary">Reset</a>
 
-					<a class="btn btn-toggle" href="/Feedback/Toggle/@f.FeedbackId">Toggle</a>
+    </form>
 
-					<form method="post" action="/Feedback/Delete" style="display:inline;">
-						<input type="hidden" name="id" value="@f.FeedbackId" />
-						<button class="btn btn-delete">Delete</button>
-					</form>
+    <table>
 
-					<a class="btn btn-reply" href="/Feedback/Reply/@f.FeedbackId">Reply</a>
+        <tr>
+            <th>Product</th>
+            <th>Customer</th>
+            <th>Rating</th>
+            <th>Comment</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
 
-				</td>
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (var f in Model)
+            {
+                <tr>
 
-			</tr>
-		}
+                    <td>@f.ProductId</td>
+                    <td>@f.CustomerId</td>
 
-	</table>
+                    <td>
+                        @for (int i = 0; i < f.Rating; i++)
+                        {
+                            <span>⭐</span>
+                        }
+                    </td>
+
+                    <td>@f.Comment</td>
+
+                    <td>
+                        @(f.IsVisible ? "Visible" : "Hidden")
+                    </td>
+
+                    <td>@f.CreatedDate.ToString("dd/MM/yyyy")</td>
+
+                    <td>
+
+                        <a class="btn btn-view"
+                           href="/Feedback/Detail/@f.FeedbackId">Detail</a>
+
+                        <a class="btn btn-toggle"
+                           href="/Feedback/Toggle/@f.FeedbackId">
+                            @(f.IsVisible ? "Hide" : "Show")
+                        </a>
+
+                        <form method="post"
+                              action="/Feedback/Delete"
+                              style="display:inline;">
+                            <input type="hidden"
+                                   name="id"
+                                   value="@f.FeedbackId" />
+                            <button class="btn btn-delete"
+                                    onclick="return confirm('Delete this feedback?')">
+                                Delete
+                            </button>
+                        </form>
+
+                        <a class="btn btn-reply"
+                           href="/Feedback/Reply/@f.FeedbackId">
+                            Reply
+                        </a>
+
+                    </td>
+
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" style="text-align:center;">
+                    No feedback found
+                </td>
+            </tr>
+        }
+
+    </table>
 
 </div>

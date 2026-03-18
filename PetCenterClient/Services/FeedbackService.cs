@@ -12,7 +12,6 @@ namespace PetCenterClient.Services
         public FeedbackService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("https://localhost:7116/api/");
         }
 
         public async Task<List<FeedbackDTO>> GetAllAsync()
@@ -93,6 +92,46 @@ namespace PetCenterClient.Services
         public async Task DeleteAsync(Guid feedbackId)
         {
             await _httpClient.DeleteAsync(PREFIX + $"{feedbackId}");
+        }
+
+        public async Task<List<FeedbackDTO>> FilterAsync(
+     int? rating,
+     Guid? productId,
+     bool? isVisible,
+     DateTime? fromDate,
+     DateTime? toDate)
+        {
+            var query = new List<string>();
+
+            if (rating.HasValue)
+                query.Add($"rating={rating}");
+
+            if (productId.HasValue)
+                query.Add($"productId={productId}");
+
+            if (isVisible.HasValue)
+                query.Add($"isVisible={isVisible}");
+
+            if (fromDate.HasValue)
+                query.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+
+            if (toDate.HasValue)
+                query.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+
+            var url = PREFIX + "admin/filter";
+
+            if (query.Count > 0)
+                url += "?" + string.Join("&", query);
+
+            var response = await _httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+                return new List<FeedbackDTO>();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
+                   ?? new List<FeedbackDTO>();
         }
     }
 }
