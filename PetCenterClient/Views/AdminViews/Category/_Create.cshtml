@@ -110,7 +110,6 @@
 
     // ADD ATTRIBUTE
     let attrIndex = 0
-
     $("#addAttributeBtn").click(function () {
 
         const html = `
@@ -118,7 +117,8 @@
 
             <input name="Attributes[${attrIndex}].AttributeName"
                    class="form-control"
-                   placeholder="Attribute name" />
+                   placeholder="Attribute name"
+                   required /> 
 
             <button type="button"
                     class="btn btn-danger removeAttr">
@@ -132,7 +132,6 @@
         $.validator.unobtrusive.parse("#attributeContainer")
 
         attrIndex++
-
     })
 
 
@@ -141,6 +140,17 @@
 
         $(this).closest(".attribute-item").remove()
 
+        reIndexAttributes() 
+
     })
 
+
+    function reIndexAttributes() {
+        $("#attributeContainer .attribute-item").each(function (index) {
+            $(this).find("input").attr("name", `Attributes[${index}].AttributeName`)
+        })
+
+        attrIndex = $("#attributeContainer .attribute-item").length
+        $.validator.unobtrusive.parse("#attributeContainer")
+    }
 </script>
