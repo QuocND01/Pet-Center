@@ -193,6 +193,36 @@ namespace ProductAPI.Service
             // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
             return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.IsActive);
         }
-    }
+        public async Task IncreaseStockBulk(List<IncreaseStockItemDto> items)
+        {
+            if (items == null || !items.Any()) return;
 
+            // 🔥 gộp product trùng
+            var grouped = items
+                .GroupBy(x => x.ProductId)
+                .Select(g => new
+                {
+                    ProductId = g.Key,
+                    Quantity = g.Sum(x => x.Quantity)
+                })
+                .ToList();
+
+            var ids = grouped.Select(x => x.ProductId).ToList();
+
+            var products = await _productRepository.GetByIds(ids);
+
+            foreach (var item in grouped)
+            {
+                var product = products.FirstOrDefault(x => x.ProductId == item.ProductId);
+
+                if (product == null) continue;
+
+                product.StockQuantity ??= 0;
+                product.StockQuantity += item.Quantity;
+                product.UpdateAt = DateTime.UtcNow;
+            }
+
+            await _productRepository.SaveChangesAsync();
+        }
     }
+}

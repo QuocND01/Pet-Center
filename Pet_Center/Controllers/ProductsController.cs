@@ -136,5 +136,11 @@ namespace ProductAPI.Controllers
             var products = await _productService.GetHotProducts();
             return Ok(products);
         }
+        [HttpPost("increase-stock-bulk")]
+        public async Task<IActionResult> IncreaseStockBulk([FromBody] List<IncreaseStockItemDto> items)
+        {
+            await _productService.IncreaseStockBulk(items);
+            return Ok();
+        }
     }
 }

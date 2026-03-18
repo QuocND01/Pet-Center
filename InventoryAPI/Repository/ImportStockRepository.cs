@@ -69,5 +69,20 @@ namespace InventoryAPI.Repository
 
             return (imports, details);
         }
+        public async Task<List<ImportStockDetail>> GetAvailableStock(Guid productId)
+        {
+            return await _context.ImportStockDetails
+                .Include(x => x.Import)
+                .Where(x => x.ProductId == productId
+                            && x.StockLeft > 0
+                            && x.Import!.Status == ImportStock.ImportStatus.Confirmed)
+                .OrderBy(x => x.Import!.ImportDate)
+                .ToListAsync();
+        }
+
+        public async Task<ImportStockDetail?> GetById(Guid id)
+        {
+            return await _context.ImportStockDetails.FindAsync(id);
+        }
     }
 }
