@@ -1,0 +1,34 @@
+﻿@model PetCenterClient.DTOs.CreateVoucherDTO
+@{
+    ViewData["Title"] = "Voucher Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Create Voucher</h2>
+
+<form method="post">
+
+    <label>Code</label>
+    <input asp-for="Code" class="form-control mb-2" />
+
+    <label>Discount (%)</label>
+    <input asp-for="DiscountPercent" type="number" class="form-control mb-2" />
+
+    <label>Expired Date</label>
+    <input asp-for="ExpiredDate" type="date" class="form-control mb-2" />
+
+    <label>Min Order Amount</label>
+    <input asp-for="MinOrderAmount" class="form-control mb-2" />
+
+    <label>Max Discount</label>
+    <input asp-for="MaxDiscountAmount" class="form-control mb-2" />
+
+    <label>Usage Limit</label>
+    <input asp-for="UseageLimit" class="form-control mb-2" />
+
+    <label>Description</label>
+    <input asp-for="Description" class="form-control mb-2" />
+
+    <button class="btn btn-primary">Create</button>
+
+</form>
