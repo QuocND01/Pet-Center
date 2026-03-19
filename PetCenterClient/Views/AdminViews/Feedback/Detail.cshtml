@@ -1,44 +1,73 @@
 ﻿@model PetCenterClient.DTOs.FeedbackDTO
-<link rel="stylesheet" href="~/css/feedback.css" />
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Feedback Detail";
+}
 
-<div class="container">
+<div class="container mt-4">
 
-	<h2>Feedback Detail</h2>
+    <h3>📄 Feedback Detail</h3>
 
-	<p><b>Product:</b> @Model.ProductId</p>
-	<p><b>Customer:</b> @Model.CustomerId</p>
-	<p><b>Rating:</b> @Model.Rating ⭐</p>
-	<p><b>Comment:</b> @Model.Comment</p>
-	<p><b>Created Date:</b> @Model.CreatedDate</p>
-	<p><b>Visible:</b> @Model.IsVisible</p>
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
 
-	@if (Model.Reply != null)
-	{
-		<h3>Staff Reply</h3>
+            <p><b>Product:</b> @Model.ProductId</p>
+            <p><b>Customer:</b> @Model.CustomerId</p>
+            <p><b>Rating:</b> @Model.Rating ⭐</p>
+            <p><b>Comment:</b> @Model.Comment</p>
+            <p><b>Created:</b> @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</p>
 
-		<p>@Model.Reply</p>
+            <p>
+                <b>Status:</b>
+                @if (Model.IsVisible)
+                {
+                    <span class="badge bg-success">Visible</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Hidden</span>
+                }
+            </p>
 
-		@if (Model.ReplyDate != null)
-		{
-			<p>Reply Date: @Model.ReplyDate</p>
-		}
+        </div>
+    </div>
 
-		<form method="post" action="/Feedback/DeleteReply">
-			<input type="hidden" name="id" value="@Model.FeedbackId" />
-			<button class="btn btn-delete">Delete Reply</button>
-		</form>
-	}
-	else
-	{
-		<p>No reply yet.</p>
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
 
-		<a class="btn btn-reply" href="/Feedback/Reply/@Model.FeedbackId">
-			Reply now
-		</a>
-	}
+            <h5>Staff Reply</h5>
 
-	<br /><br />
+            @if (Model.Reply != null)
+            {
+                <p><b>Staff:</b> @Model.StaffId</p>
 
-	<a class="btn btn-back" href="/Feedback/AdminList">Back</a>
+                <p>@Model.Reply</p>
+
+                <p class="text-muted">
+                    @Model.ReplyDate?.ToString("dd/MM/yyyy HH:mm")
+                </p>
+
+                <a asp-action="Reply"
+                   asp-route-id="@Model.FeedbackId"
+                   class="btn btn-primary">
+                    Edit Reply
+                </a>
+
+            }
+            else
+            {
+                <p class="text-muted">No reply yet</p>
+
+                <a asp-action="Reply"
+                   asp-route-id="@Model.FeedbackId"
+                   class="btn btn-primary">
+                    Reply now
+                </a>
+            }
+
+        </div>
+    </div>
+
+    <a asp-action="AdminList" class="btn btn-secondary mt-3">Back</a>
 
 </div>

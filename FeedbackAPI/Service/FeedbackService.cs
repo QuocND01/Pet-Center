@@ -86,6 +86,7 @@ namespace FeedbackAPI.Service
         public async Task<List<FeedbackResponseDTO>> GetAllForAdminAsync()
         {
             var list = await _context.ProductFeedbacks
+                .Where(x => x.IsActive == true)
                 .OrderByDescending(x => x.CreatedDate)
                 .ToListAsync();
 
@@ -100,7 +101,9 @@ namespace FeedbackAPI.Service
             DateTime? fromDate,
             DateTime? toDate)
         {
-            var query = _context.ProductFeedbacks.AsQueryable();
+            var query = _context.ProductFeedbacks
+                .Where(x => x.IsActive == true) 
+                .AsQueryable();
 
             if (rating.HasValue)
                 query = query.Where(x => x.Rating == rating);
@@ -189,7 +192,12 @@ namespace FeedbackAPI.Service
 
             feedback.IsActive = false;
 
+            feedback.Reply = null;
+            feedback.ReplyDate = null;
+            feedback.StaffId = null;
+
             await _context.SaveChangesAsync();
+
         }
     }
 }

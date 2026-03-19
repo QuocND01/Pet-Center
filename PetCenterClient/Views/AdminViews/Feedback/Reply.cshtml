@@ -1,32 +1,44 @@
 ﻿@model PetCenterClient.DTOs.FeedbackDTO
-<link rel="stylesheet" href="~/css/feedback.css" />
 
-<div class="container">
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Reply Feedback";
+    var isUpdate = Model.Reply != null;
+}
 
-	<h2>Reply Feedback</h2>
+<div class="container mt-4">
 
-	<p><b>Customer:</b> @Model.CustomerId</p>
-	<p><b>Rating:</b> @Model.Rating ⭐</p>
-	<p><b>Comment:</b> @Model.Comment</p>
+    <h3>@(isUpdate ? "✏ Update Reply" : "💬 Reply Feedback")</h3>
 
-	<form method="post" action="/Feedback/Reply">
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
 
-		<input type="hidden" name="feedbackId" value="@Model.FeedbackId" />
+            <p><b>Customer:</b> @Model.CustomerId</p>
+            <p><b>Rating:</b> @Model.Rating ⭐</p>
+            <p><b>Comment:</b> @Model.Comment</p>
 
-		<label>Staff ID</label>
-		<input type="text" name="staffId" required />
+        </div>
+    </div>
 
-		<label>Reply</label>
-<textarea name="reply" rows="5"></textarea>
+    <form asp-action="Reply" method="post" class="mt-3">
 
-		<button type="submit">Send Reply</button>
+        <input type="hidden" name="feedbackId" value="@Model.FeedbackId" />
 
-	</form>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Reply</label>
+            <textarea name="reply" rows="5"
+                      class="form-control">@Model.Reply</textarea>
+        </div>
 
-	<br />
+        <button class="btn btn-success">
+            @(isUpdate ? "Update Reply" : "Send Reply")
+        </button>
 
-	<a class="btn btn-back" href="/Feedback/AdminList">
-		Back
-	</a>
+        <a asp-action="AdminList" class="btn btn-secondary">Back</a>
+    </form>
 
+    <form asp-action="DeleteReply" method="post">
+        <input type="hidden" name="id" value="@Model.FeedbackId" />
+        <button class="btn btn-danger">Delete</button>
+    </form>
 </div>

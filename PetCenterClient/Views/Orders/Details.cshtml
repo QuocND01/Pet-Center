@@ -99,6 +99,34 @@
             </div>
         </div>
     </div>
+
+    @foreach (var item in ViewBag.OrderDetails)
+    {
+        <div class="row mb-3 border-bottom pb-2">
+            <div class="col-md-2">
+                <img src="@item.ImageUrl" class="img-fluid" />
+            </div>
+            <div class="col-md-6">
+                <b>@item.ProductName</b>
+            </div>
+            <div class="col-md-2">
+                x @item.Quantity
+            </div>
+            <div class="col-md-2 text-end">
+                @item.UnitPrice.ToString("N0") VND
+            </div>
+
+            @if (Model.Status == 4) // completed
+            {
+                <div class="col-12 mt-2 text-end">
+                    <a href="/Feedback/Create?productId=@item.ProductId"
+                       class="btn btn-sm btn-outline-primary">
+                        ⭐ Write Feedback
+                    </a>
+                </div>
+            }
+        </div>
+    }
 </div>
 
 <style>
