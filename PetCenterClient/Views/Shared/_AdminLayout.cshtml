@@ -464,12 +464,18 @@
         </div>
 
         <nav class="sb-nav">
+            @{
+                var currentRole = Context.Session.GetString("Role");
+                bool isAdmin = currentRole == "Admin";
+            }
 
-            <div class="sb-section-label">Overview</div>
-            <a asp-controller="AdminDashboard" asp-action="Index" class="sb-link">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-
+            @if (isAdmin)
+            {
+                <div class="sb-section-label">Overview</div>
+                <a asp-controller="AdminDashboard" asp-action="Index" class="sb-link">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            }
             <div class="sb-section-label">Catalog</div>
             <a asp-controller="Products" asp-action="Indexadmin" class="sb-link">
                 <i class="bi bi-box-seam"></i> Products
@@ -489,13 +495,16 @@
                 <i class="bi bi-building"></i> Suppliers
             </a>
 
-            <div class="sb-section-label">Users</div>
-            <a asp-controller="Staff" asp-action="Index" class="sb-link">
-                <i class="bi bi-person-badge"></i> Staff
-            </a>
-            <a asp-controller="ManageCustomer" asp-action="Index" class="sb-link">
-                <i class="bi bi-people"></i> Customers
-            </a>
+            @if (isAdmin)
+            {
+                <div class="sb-section-label">Users</div>
+                <a asp-controller="Staff" asp-action="Index" class="sb-link">
+                    <i class="bi bi-person-badge"></i> Staff
+                </a>
+                <a asp-controller="ManageCustomer" asp-action="Index" class="sb-link">
+                    <i class="bi bi-people"></i> Customers
+                </a>
+            }
 
             <div class="sb-section-label">Sales</div>
             <a asp-controller="Orders" asp-action="Index" class="sb-link">
@@ -508,10 +517,13 @@
                 <i class="bi bi-chat-left-text"></i> Feedback
             </a>
 
-            <div class="sb-section-label">Analytics</div>
-            <a asp-controller="Reports" asp-action="Index" class="sb-link">
-                <i class="bi bi-graph-up-arrow"></i> Reports
-            </a>
+            @if (isAdmin)
+            {
+                <div class="sb-section-label">Analytics</div>
+                <a asp-controller="Reports" asp-action="Index" class="sb-link">
+                    <i class="bi bi-graph-up-arrow"></i> Reports
+                </a>
+            }
 
         </nav>
 
