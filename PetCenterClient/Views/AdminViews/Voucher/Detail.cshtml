@@ -1,0 +1,25 @@
+﻿@model PetCenterClient.DTOs.VoucherDTO
+@{
+    ViewData["Title"] = "Voucher Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h3>📄 Voucher Detail</h3>
+
+    <div class="card mt-3">
+        <div class="card-body">
+
+            <p><b>Code:</b> @Model.Code</p>
+            <p><b>Discount:</b> @Model.DiscountPercent %</p>
+            <p><b>Expire:</b> @Model.ExpiredDate</p>
+            <p><b>Min Order:</b> @Model.MinOrderAmount</p>
+            <p><b>Max Discount:</b> @Model.MaxDiscountAmount</p>
+            <p><b>Usage Limit:</b> @Model.UseageLimit</p>
+            <p><b>Description:</b> @Model.Description</p>
+
+        </div>
+    </div>
+
+    <a asp-action="Index" class="btn btn-secondary mt-3">Back</a>
+</div>

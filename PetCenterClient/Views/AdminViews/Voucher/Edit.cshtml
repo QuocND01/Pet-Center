@@ -1,0 +1,60 @@
+﻿@model PetCenterClient.DTOs.VoucherDTO
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Edit Voucher";
+}
+
+<div class="container mt-4">
+
+    <h3>✏ Edit Voucher</h3>
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post">
+
+                <input type="hidden" asp-for="VoucherId" />
+
+                <div class="mb-3">
+                    <label class="form-label">Code</label>
+                    <input asp-for="Code" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Discount (%)</label>
+                    <input asp-for="DiscountPercent" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Expire Date</label>
+                    <input asp-for="ExpiredDate" type="date" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Min Order</label>
+                    <input asp-for="MinOrderAmount" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Max Discount</label>
+                    <input asp-for="MaxDiscountAmount" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Usage Limit</label>
+                    <input asp-for="UseageLimit" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control"></textarea>
+                </div>
+
+                <button class="btn btn-warning">Update</button>
+                <a asp-action="Index" class="btn btn-secondary">Back</a>
+
+            </form>
+
+        </div>
+    </div>
+</div>

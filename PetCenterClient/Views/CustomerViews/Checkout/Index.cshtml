@@ -679,6 +679,51 @@
         showToast('Voucher applied! Save ' + fmt(disc), 's');
     }
 
+    @*     async function toggleVoucher(card) {
+        if (card.classList.contains('selected')) {
+            card.classList.remove('selected');
+            selVoucherId = null;
+            recalcSummary(0);
+            return;
+        }
+
+        document.querySelectorAll('.voucher-card')
+            .forEach(c => c.classList.remove('selected'));
+
+        card.classList.add('selected');
+
+        var code = card.querySelector('.voucher-code').innerText;
+
+        try {
+            var res = await fetch('/Voucher/Apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: code,
+                    orderAmount: SUB_TOTAL
+                })
+            });
+
+            var data = await res.json();
+
+            if (!data.success) {
+                showToast(data.message, 'e');
+                card.classList.remove('selected');
+                return;
+            }
+
+            selVoucherId = data.voucherId;
+
+            recalcSummary(data.discountAmount);
+
+            showToast("Saved " + fmt(data.discountAmount), 's');
+        } catch (e) {
+            showToast("Apply voucher failed", 'e');
+        }
+    } *@
+
+
+
     function recalcSummary(disc) {
         document.getElementById('finalDisplay').textContent = fmt(SUB_TOTAL - disc);
         var row = document.getElementById('discountRow');

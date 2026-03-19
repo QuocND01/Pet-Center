@@ -44,5 +44,19 @@ namespace PromotionAPI.Controllers
             var result = await _service.ApplyVoucherAsync(dto);
             return Ok(result);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, CreateVoucherDTO dto)
+        {
+            await _service.UpdateAsync(id, dto);
+            return Ok("Updated");
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(string? code)
+        {
+            return Ok(await _service.SearchAsync(code));
+        }
+
     }
 }

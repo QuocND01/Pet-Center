@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using System.Text;
@@ -58,6 +59,25 @@ namespace PetCenterClient.Services
             var json = await res.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<object>(json);
+        }
+
+        public async Task UpdateAsync(Guid id, CreateVoucherDTO dto)
+        {
+            var content = new StringContent(
+                JsonConvert.SerializeObject(dto),
+                Encoding.UTF8,
+                "application/json");
+
+            await _httpClient.PutAsync(PREFIX + id, content);
+        }
+
+        public async Task<List<VoucherDTO>> SearchAsync(string code)
+        {
+            var res = await _httpClient.GetAsync(PREFIX + "search?code=" + code);
+            var json = await res.Content.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<List<VoucherDTO>>(json)
+                   ?? new List<VoucherDTO>();
         }
     }
 }

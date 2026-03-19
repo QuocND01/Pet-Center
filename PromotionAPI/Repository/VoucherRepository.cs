@@ -55,5 +55,24 @@ namespace PromotionAPI.Repository
             _context.CustomerVouchers.Add(cv);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Voucher>> SearchAsync(string? code)
+        {
+            var query = _context.Vouchers.AsQueryable();
+
+            if (!string.IsNullOrEmpty(code))
+            {
+                code = code.ToLower();
+                query = query.Where(v => v.Code.ToLower().Contains(code));
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<int> CountVoucherUsage(Guid voucherId)
+        {
+            return await _context.CustomerVouchers
+                .CountAsync(x => x.VoucherId == voucherId && x.IsUsed == true);
+        }
     }
 }
