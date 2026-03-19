@@ -94,7 +94,14 @@ builder.Services.Configure<GoogleClientDto>(
 
 builder.Services.AddScoped<IGoogleClientService, GoogleClientService>();
 
-builder.Services.AddSession();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax; // quan trọng cho Google OAuth popup
+});
 builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
