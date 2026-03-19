@@ -13,6 +13,8 @@ namespace ProductAPI.Service.Interface
         Task DeleteProductAsync(Guid id);
         Task<List<SelectProductDto>> GetProductSelectListAsync();
 
+        Task<List<SelectProductDto>> GetProductSelectListToViewAsync();
+
         Task<IEnumerable<ReadProductDTO>> GetNewProducts();
         Task<IEnumerable<ReadProductDTO>> GetHotProducts();
 

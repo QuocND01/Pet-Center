@@ -235,6 +235,23 @@ namespace PetCenterClient.Services
                 ?? new List<ProductSelectDto>();
         }
 
+        public async Task<List<ProductSelectDto>> GetProductSelectAsyncToView()
+        {
+            AddAuthorizationHeader();
+
+            var res = await _http.GetAsync("product-service/products/selectToView");
+
+            if (!res.IsSuccessStatusCode)
+                return new List<ProductSelectDto>();
+
+            var json = await res.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<List<ProductSelectDto>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                ?? new List<ProductSelectDto>();
+        }
+
+
         public async Task<List<ReadProductDTO>> GetHotProductsAsync()
         {
             var result = await _http.GetFromJsonAsync<List<ReadProductDTO>>(
