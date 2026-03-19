@@ -53,8 +53,11 @@ namespace PromotionAPI.Service
             if (dto.OrderAmount < voucher.MinOrderAmount)
                 return new { success = false, message = "Not enough order value" };
 
-            var used = await _repo.GetCustomerVoucher(dto.CustomerId, voucher.VoucherId);
+            var totalUsed = await _repo.CountVoucherUsage(voucher.VoucherId);
+            if (voucher.UseageLimit.HasValue && totalUsed >= voucher.UseageLimit)
+                return new { success = false, message = "Voucher usage limit reached" };
 
+            var used = await _repo.GetCustomerVoucher(dto.CustomerId, voucher.VoucherId);
             if (used != null && used.IsUsed == true)
                 return new { success = false, message = "Voucher already used" };
 
@@ -63,26 +66,35 @@ namespace PromotionAPI.Service
             if (voucher.MaxDiscountAmount.HasValue && discount > voucher.MaxDiscountAmount)
                 discount = voucher.MaxDiscountAmount.Value;
 
-            if (used == null)
-            {
-                await _repo.AddCustomerVoucher(new CustomerVoucher
-                {
-                    CustomerId = dto.CustomerId,
-                    VoucherId = voucher.VoucherId,
-                    IsUsed = true
-                });
-            }
-            else
-            {
-                used.IsUsed = true;
-            }
-
             return new
             {
                 success = true,
                 discountAmount = discount,
-                finalAmount = dto.OrderAmount - discount
+                finalAmount = dto.OrderAmount - discount,
+                voucherId = voucher.VoucherId
             };
+        }
+
+        public async Task UpdateAsync(Guid id, CreateVoucherDTO dto)
+        {
+            var v = await _repo.GetByIdAsync(id);
+            if (v == null) return;
+
+            v.Code = dto.Code;
+            v.DiscountPercent = dto.DiscountPercent;
+            v.ExpiredDate = dto.ExpiredDate;
+            v.MinOrderAmount = dto.MinOrderAmount;
+            v.MaxDiscountAmount = dto.MaxDiscountAmount;
+            v.UseageLimit = dto.UseageLimit;
+            v.Description = dto.Description;
+
+            await _repo.UpdateAsync(v);
+        }
+
+        public async Task<List<VoucherResponseDTO>> SearchAsync(string? code)
+        {
+            var data = await _repo.SearchAsync(code);
+            return _mapper.Map<List<VoucherResponseDTO>>(data);
         }
     }
 

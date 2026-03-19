@@ -10,5 +10,7 @@ namespace PetCenterClient.Services.Interface
         Task DeleteAsync(Guid id);
 
         Task<object> ApplyVoucherAsync(ApplyVoucherDTO dto);
+        Task UpdateAsync(Guid id, CreateVoucherDTO dto);
+        Task<List<VoucherDTO>> SearchAsync(string code);
     }
 }

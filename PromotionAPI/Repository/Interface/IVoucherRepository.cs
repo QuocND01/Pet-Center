@@ -12,5 +12,7 @@ namespace PromotionAPI.Repository.Interface
         Task DeleteAsync(Guid id);
         Task<CustomerVoucher?> GetCustomerVoucher(Guid customerId, Guid voucherId);
         Task AddCustomerVoucher(CustomerVoucher cv);
+        Task<List<Voucher>> SearchAsync(string? code);
+        Task<int> CountVoucherUsage(Guid voucherId);
     }
 }

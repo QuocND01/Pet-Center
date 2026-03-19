@@ -152,7 +152,7 @@ namespace PetCenterClient.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction("DetailsForcustomer", "Products", new { id = dto.ProductId });
+            return RedirectToAction("Index", "Products");
         }
 
 

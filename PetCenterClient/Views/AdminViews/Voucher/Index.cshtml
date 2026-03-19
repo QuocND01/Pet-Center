@@ -4,35 +4,101 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h2>🎟 Voucher Management</h2>
+<div class="container mt-4">
 
-<a asp-action="Create" class="btn btn-success mb-3">+ Create Voucher</a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>🎟 Voucher Management</h2>
+        <a asp-action="Create" class="btn btn-success">+ Create Voucher</a>
+    </div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Code</th>
-            <th>Discount</th>
-            <th>Expire</th>
-            <th>Min Order</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var v in Model)
-        {
-            <tr>
-                <td>@v.Code</td>
-                <td>@v.DiscountPercent %</td>
-                <td>@v.ExpiredDate</td>
-                <td>@v.MinOrderAmount</td>
+    <form method="get" class="mb-3 d-flex gap-2">
 
-                <td>
-                    <form asp-action="Delete" asp-route-id="@v.VoucherId" method="post">
-                        <button class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <input type="text" name="code"
+               value="@Context.Request.Query["code"]"
+               class="form-control"
+               placeholder="Enter voucher code..." />
+
+        <button class="btn btn-primary">Search</button>
+
+        <a asp-action="Index" class="btn btn-secondary">Clear</a>
+
+    </form>
+
+    <div class="table-responsive shadow-sm">
+        <table class="table table-hover border">
+
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>Code</th>
+                    <th>Discount</th>
+                    <th>Expire</th>
+                    <th>Min Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No vouchers found
+                        </td>
+                    </tr>
+                }
+
+                @foreach (var v in Model)
+                {
+                    <tr class="text-center align-middle">
+
+                        <td>@v.Code</td>
+                        <td>@v.DiscountPercent %</td>
+                        <td>@v.ExpiredDate?.ToString("dd/MM/yyyy")</td>
+                        <td>@v.MinOrderAmount</td>
+
+                        <td>
+                            @if (v.IsActive == true)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+
+                                <a asp-action="Detail"
+                                   asp-route-id="@v.VoucherId"
+                                   class="btn btn-sm btn-info text-white">
+                                    View
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@v.VoucherId"
+                                   class="btn btn-sm btn-warning">
+                                    Edit
+                                </a>
+
+                                <form asp-action="Delete"
+                                      asp-route-id="@v.VoucherId"
+                                      method="post">
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Delete?')">
+                                        Delete
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+    </div>
+</div>
