@@ -187,27 +187,6 @@
             gap: 16px;
         }
 
-        #menu-toggle {
-            width: 36px;
-            height: 36px;
-            background: var(--g0);
-            border: 1.5px solid var(--g1);
-            border-radius: 9px;
-            font-size: 16px;
-            font-weight: 900;
-            color: var(--g5);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all .2s;
-            flex-shrink: 0;
-        }
-
-            #menu-toggle:hover {
-                background: var(--g1);
-                border-color: var(--g3);
-            }
 
         .topbar-title {
             font-family: var(--font-head);
@@ -540,8 +519,6 @@
 
         <!-- Topbar -->
         <div id="topbar">
-            <button id="menu-toggle">☰</button>
-
             <div class="topbar-title">@ViewData["Title"]</div>
 
             <div class="topbar-user">
@@ -617,172 +594,7 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-    <script>
-        $("#menu-toggle").click(function (e) {
-            e.preventDefault();
-            $("#wrapper").toggleClass("toggled");
-        });
-    </script>
-    @* <script>
-        // Điều khiển bật/tắt
-        const toggle = document.getElementById("admin-chat-toggle");
-        const box = document.getElementById("admin-chat-box");
-        const close = document.getElementById("admin-chat-close");
-        const send = document.getElementById("admin-chat-send");
-        const input = document.getElementById("admin-chat-input");
-        const messages = document.getElementById("admin-chat-messages");
-        const badge = document.getElementById("admin-chat-badge");
-        const badgeCount = document.getElementById("admin-chat-count");
-
-        // Lưu userName người dùng hiện tại đang chat (để trả lời lại)
-        let currentChatUserName = null;
-        let notificationCount = 0;
-
-        function saveChatHistory() {
-            const state = {
-                messages: messages.innerHTML,
-                currentChatUserName: currentChatUserName,
-                notificationCount: notificationCount
-            };
-            sessionStorage.setItem("worldbook_admin_chat_state", JSON.stringify(state));
-        }
-
-        function loadChatHistory() {
-            const state = sessionStorage.getItem("worldbook_admin_chat_state");
-            if (state) {
-                try {
-                    const parsed = JSON.parse(state);
-                    messages.innerHTML = parsed.messages || "";
-                    currentChatUserName = parsed.currentChatUserName || null;
-                    notificationCount = parsed.notificationCount || 0;
-
-                    // Hiển thị badge nếu có thông báo chưa đọc
-                    if (notificationCount > 0) {
-                        badge.style.display = "flex";
-                        badgeCount.textContent = notificationCount;
-                    }
-
-                    console.log(`Loaded chat history for user: ${currentChatUserName}`);
-                } catch (err) {
-                    console.error("Error loading chat state:", err);
-                }
-            }
-        }
-
-        window.addEventListener("DOMContentLoaded", () => {
-            loadChatHistory();
-        });
-
-        toggle.onclick = () => {
-            if (!currentChatUserName || messages.innerHTML.trim() === "") {
-                alert("Chưa có user nào liên hệ admin!");
-                return;
-            }
-
-            box.style.display = "flex";
-            toggle.style.display = "none";
-
-            badge.style.display = "none";
-            notificationCount = 0;
-            saveChatHistory();
-        };
-
-        close.onclick = () => {
-            box.style.display = "none";
-            toggle.style.display = "flex";
-            saveChatHistory();
-        };
-
-        // Kết nối SignalR
-        const adminConn = new signalR.HubConnectionBuilder()
-            .withUrl("/chatHub")
-            .build();
-
-        adminConn.start()
-            .then(() => console.log("Admin connected"))
-            .catch(err => console.error("SignalR error:", err));
-
-        // Nhận yêu cầu ban đầu từ user (liên hệ admin)
-        adminConn.on("ReceiveUserNotification", (userName, message) => {
-            currentChatUserName = userName; // Lưu userName
-            addMessage(`👤 <b>${userName}:</b> ${message}`, false);
-            console.log(`🔔 User ${userName} requested admin chat`);
-
-            if (box.style.display !== "flex") {
-                notificationCount++;
-                showNotification();
-            }
-            saveChatHistory();
-        });
-
-        // Nhận tin nhắn tiếp theo từ user
-        adminConn.on("ReceiveUserMessage", (userName, message) => {
-            currentChatUserName = userName; // Cập nhật userName
-            addMessage(`👤 <b>${userName}:</b> ${message}`, false);
-            console.log(`💬 User ${userName} sent: ${message}`);
-
-            if (box.style.display !== "flex") {
-                notificationCount++;
-                showNotification();
-            }
-            saveChatHistory();
-        });
-
-        function showNotification() {
-            badge.style.display = "flex";
-            badgeCount.textContent = notificationCount;
-        }
-
-        // Hàm thêm tin nhắn vào khung
-        function addMessage(content, isAdmin = false) {
-            const div = document.createElement("div");
-            if (isAdmin) {
-                div.className = "text-end text-primary";
-            } else {
-                div.className = "text-start text-dark";
-            }
-            div.innerHTML = `<div class="p-2">${content}</div>`;
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
-        }
-
-        // Gửi tin nhắn từ admin trả lời user cụ thể
-        send.onclick = async () => {
-            const msg = input.value.trim();
-            if (!msg) {
-                alert("Vui lòng nhập tin nhắn");
-                return;
-            }
-
-            if (!currentChatUserName) {
-                alert("Chưa có user nào liên hệ admin");
-                return;
-            }
-
-            addMessage(`<b>Admin:</b> ${msg}`, true);
-            input.value = "";
-            saveChatHistory();
-
-            try {
-                console.log(`Admin sending to ${currentChatUserName}: ${msg}`);
-                //Gửi cho user cụ thể thay vì SendMessageToAll
-                await adminConn.invoke("SendMessageToUser", currentChatUserName, msg);
-            } catch (err) {
-                console.error("Send error:", err);
-                addMessage("Gửi thất bại", false);
-                saveChatHistory();
-            }
-        };
-
-                $("#menu-toggle").click(function (e) {
-            e.preventDefault();
-            $("#wrapper").toggleClass("toggled");
-        });
-
-        input.addEventListener("keypress", e => {
-            if (e.key === "Enter") send.click();
-        });
-    </script> *@
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
