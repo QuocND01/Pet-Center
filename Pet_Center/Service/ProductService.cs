@@ -193,6 +193,13 @@ namespace ProductAPI.Service
             // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
             return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.IsActive);
         }
+
+        public async Task<List<SelectProductDto>> GetProductSelectListToViewAsync()
+        {
+            return await _productRepository.GetActiveProductsAsync<SelectProductDto>();
+        }
+
+
         public async Task IncreaseStockBulk(List<IncreaseStockItemDto> items)
         {
             if (items == null || !items.Any()) return;

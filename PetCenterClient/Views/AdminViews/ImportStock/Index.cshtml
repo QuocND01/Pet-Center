@@ -1,7 +1,7 @@
 ﻿@using PetCenterClient.DTOs
 @model List<ReadImportHeaderDto>
 
-@{  
+@{
     var currentRole = Context.Session.GetString("Role");
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Import Stocks";
@@ -90,33 +90,36 @@
                             @(staffDict != null && staffDict.ContainsKey(item.StaffId)
                                                     ? staffDict[item.StaffId]
                                                     : "Unknown Staff")
-                    </td>
-                    <td class="price-text">@item.TotalAmount.ToString("N0") ₫</td>
-                    <td class="email-cell" data-date="@item.ImportDate?.ToString("yyyy-MM-dd")">
-                        @item.ImportDate?.ToString("dd MMM yyyy")
-                    </td>
-                    <td>
-                        <span class="badge-status @badgeClass">
-                            <span class="badge-dot"></span>
-                            @statusText
-                        </span>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <a asp-action="Details" asp-route-id="@item.ImportId" class="btn-detail" title="View Details">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                        </td>
+                        <td class="price-text">@item.TotalAmount.ToString("N0") ₫</td>
+                        <td class="email-cell" data-date="@item.ImportDate?.ToString("yyyy-MM-dd")">
+                            @item.ImportDate?.ToString("dd MMM yyyy")
+                        </td>
+                        <td>
+                            <span class="badge-status @badgeClass">
+                                <span class="badge-dot"></span>
+                                @statusText
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a asp-action="Details" asp-route-id="@item.ImportId" class="btn-detail" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
 
-                            @if (item.Status == 0 && currentRole == "Admin")
+                                @if (item.Status == 0 && currentRole == "Admin")
                                 {
                                     <a asp-action="Confirm" asp-route-id="@item.ImportId" class="btn-action-success" title="Confirm">
                                         <i class="bi bi-check-lg"></i>
                                     </a>
                                 }
+                                @if (item.Status != 2 || item.Status != 1)
+                                {
+                                    <a asp-action="Cancel" asp-route-id="@item.ImportId" class="btn-action-danger" title="Cancel">
+                                        <i class="bi bi-x-lg"></i>
+                                    </a>
+                                }
 
-                                <a asp-action="Cancel" asp-route-id="@item.ImportId" class="btn-action-danger" title="Cancel">
-                                    <i class="bi bi-x-lg"></i>
-                                </a>
                             </div>
                         </td>
                     </tr>

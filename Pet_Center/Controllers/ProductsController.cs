@@ -120,6 +120,13 @@ namespace ProductAPI.Controllers
             return Ok(result);
         }
 
+        [HttpGet("selecttoview")]
+        public async Task<IActionResult> GetProductSelectToView()
+        {
+            var result = await _productService.GetProductSelectListToViewAsync();
+            return Ok(result);
+        }
+
 
         // Lấy sản phẩm mới
         [HttpGet("new-products")]
