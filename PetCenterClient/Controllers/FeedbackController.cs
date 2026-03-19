@@ -99,6 +99,7 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Feedback/Create.cshtml", dto);
         }
 
+       
         [HttpPost]
         public async Task<IActionResult> Create(CreateFeedbackDTO dto)
         {
@@ -129,11 +130,11 @@ namespace PetCenterClient.Controllers
                 }
             }
 
-            if (!hasBought)
-            {
-                TempData["Error"] = "You  must purchase this product before writting a feedback!";
-                return RedirectToAction("DetailsForcustomer", "Products", new { id = dto.ProductId });
-            }
+            //if (!hasBought)
+            //{
+            //    TempData["Error"] = "You  must purchase this product before writting a feedback!";
+            //    return RedirectToAction("DetailsForcustomer", "Products", new { id = dto.ProductId });
+            //}
 
             if (!ModelState.IsValid)
             {

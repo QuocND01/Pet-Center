@@ -8,7 +8,7 @@ namespace PetCenterClient.Services
     public class VoucherService : IVoucherService
     {
         private readonly HttpClient _httpClient;
-        private const string PREFIX = "voucher-service/voucher/";
+        private const string PREFIX = "voucher-service/vouchers/";
 
         public VoucherService(HttpClient httpClient)
         {

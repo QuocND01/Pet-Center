@@ -5,6 +5,20 @@
     ViewData["Title"] = Model.ProductName;
 }
 
+@if (TempData["Error"] != null)
+{
+    <div style="color:red; font-weight:bold;">
+        @TempData["Error"]
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div style="color:green; font-weight:bold;">
+        @TempData["Success"]
+    </div>
+}
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap" rel="stylesheet">
 
@@ -557,26 +571,27 @@
     }
 </script>
 
+
 <hr style="margin:40px 0;" />
 
- <h3>Customer Feedback</h3>
+<h3>Customer Feedback</h3>
 
-@* @if (ViewBag.Feedbacks != null) *@
-@* { *@
-@*     foreach (var item in ViewBag.Feedbacks) *@
-@*     { *@
-@*         <div class="border p-2 mb-2"> *@
-@*             <b>User: @item.CustomerId</b> ⭐ @item.Rating *@
-@*             <p>@item.Comment</p> *@
-@*             <small>@item.CreatedDate</small> *@
+@if (ViewBag.Feedbacks != null)
+{
+    foreach (var item in ViewBag.Feedbacks)
+    {
+        <div class="border p-2 mb-2">
+            <b>User: @item.CustomerId</b> ⭐ @item.Rating
+            <p>@item.Comment</p>
+            <small>@item.CreatedDate</small>
 
-@*             @if (item.Reply != null) *@
-@*             { *@
-@*                 <div class="bg-light p-2 mt-2"> *@
-@*                     <b>Shop reply:</b> *@
-@*                     <p>@item.Reply</p> *@
-@*                 </div> *@
-@*             } *@
-@*         </div> *@
-@*     } *@
-@* } *@
+            @if (item.Reply != null)
+            {
+                <div class="bg-light p-2 mt-2">
+                    <b>Shop reply:</b>
+                    <p>@item.Reply</p>
+                </div>
+            }
+        </div>
+    }
+}

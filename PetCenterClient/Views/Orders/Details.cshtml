@@ -116,15 +116,16 @@
                 @item.UnitPrice.ToString("N0") VND
             </div>
 
-            @if (Model.Status == 4) // completed
+            @if (Model.Status == 4 && !isStaffOrAdmin)
             {
                 <div class="col-12 mt-2 text-end">
-                    <a href="/Feedback/Create?productId=@item.ProductId"
+                    <a href="/Feedback/Create?orderId=@Model.OrderId"
                        class="btn btn-sm btn-outline-primary">
                         ⭐ Write Feedback
                     </a>
                 </div>
             }
+ 
         </div>
     }
 </div>
