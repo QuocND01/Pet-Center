@@ -180,5 +180,17 @@ namespace ProductAPI.Repository
 
             return true;
         }
+
+        public Task<Product?> GetProductByIdIncludeDeletedAsync(Guid id)
+        {
+            return _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                // Bỏ filter IsActive để lấy được cả sản phẩm đã xóa mềm
+                .FirstOrDefaultAsync(x => x.ProductId == id);
+        }
     }
 }

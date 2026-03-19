@@ -311,6 +311,25 @@ namespace PetCenterClient.Services
                 return false;
             }
         }
+
+        public async Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid? id)
+        {
+            try
+            {
+                // Gọi tới Endpoint mới vừa tạo bên Backend
+                var response = await _http.GetAsync($"product-service/Products/{id}/include-deleted");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ReadProductDTO>();
+                }
+                return null; // Nếu gặp lỗi (ví dụ sản phẩm thật sự không tồn tại trong DB), trả về null
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
 }

@@ -20,5 +20,7 @@ namespace ProductAPI.Service.Interface
         Task<bool> DecreaseStockAsync(Guid productId, int quantity);
 
         Task<bool> IncreaseStockAsync(Guid productId, int quantity);
+
+        Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid id);
     }
 }
