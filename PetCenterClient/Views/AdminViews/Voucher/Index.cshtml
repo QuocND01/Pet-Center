@@ -1,0 +1,38 @@
+﻿@model List<PetCenterClient.DTOs.VoucherDTO>
+@{
+    ViewData["Title"] = "Voucher Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>🎟 Voucher Management</h2>
+
+<a asp-action="Create" class="btn btn-success mb-3">+ Create Voucher</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Discount</th>
+            <th>Expire</th>
+            <th>Min Order</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var v in Model)
+        {
+            <tr>
+                <td>@v.Code</td>
+                <td>@v.DiscountPercent %</td>
+                <td>@v.ExpiredDate</td>
+                <td>@v.MinOrderAmount</td>
+
+                <td>
+                    <form asp-action="Delete" asp-route-id="@v.VoucherId" method="post">
+                        <button class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

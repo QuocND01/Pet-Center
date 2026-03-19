@@ -1,4 +1,4 @@
-﻿namespace PromotionAPI.DTOs
+﻿namespace PetCenterClient.DTOs
 {
     public class ApplyVoucherDTO
     {

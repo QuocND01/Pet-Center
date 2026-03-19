@@ -169,17 +169,31 @@
       ]
     },
     {
-  "UpstreamPathTemplate": "/feedback-service/{everything}",
-  "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-  "DownstreamPathTemplate": "/api/{everything}",
-  "DownstreamScheme": "https",
-  "DownstreamHostAndPorts": [
+      "UpstreamPathTemplate": "/feedback-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7116
+        }
+      ]
+    },
+
     {
-      "Host": "localhost",
-      "Port": 7116
-    }
-  ]
-},
+      "UpstreamPathTemplate": "/voucher-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7149
+        }
+      ]
+    },
+
     {
       "UpstreamPathTemplate": "/address-service/Addresses/customer/{customerId}",
       "UpstreamHttpMethod": [ "GET" ],

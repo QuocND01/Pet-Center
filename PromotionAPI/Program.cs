@@ -19,6 +19,7 @@ builder.Services.AddDbContext<VoucherDbContext>(options =>
 builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
