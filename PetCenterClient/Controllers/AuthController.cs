@@ -280,6 +280,17 @@ namespace PetCenterClient.Controllers
             HttpContext.Session.SetString("Role", role);
             HttpContext.Session.SetString("Name", name);
 
+            // Lấy CustomerId từ JWT — giống Login thường
+            var customerId = jwt.Claims
+                .FirstOrDefault(c =>
+                    c.Type == "sub" ||
+                    c.Type == "nameid" ||
+                    c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+                ?.Value ?? "";
+
+            if (!string.IsNullOrEmpty(customerId))
+                HttpContext.Session.SetString("CustomerId", customerId);
+
             return Json(new
             {
                 success = true,
@@ -326,6 +337,16 @@ namespace PetCenterClient.Controllers
 
             HttpContext.Session.SetString("Role", role);
             HttpContext.Session.SetString("Name", name);
+
+            var customerId = jwt.Claims
+    .FirstOrDefault(c =>
+        c.Type == "sub" ||
+        c.Type == "nameid" ||
+        c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+    ?.Value ?? "";
+
+            if (!string.IsNullOrEmpty(customerId))
+                HttpContext.Session.SetString("CustomerId", customerId);
 
             return Json(new
             {
