@@ -1,120 +1,167 @@
-﻿@model List<PetCenterClient.DTOs.FeedbackDTO>
-<link rel="stylesheet" href="~/css/feedback.css" />
+﻿@model IEnumerable<PetCenterClient.DTOs.FeedbackDTO>
+@{
+    ViewData["Title"] = "Feedback Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
 
-<div class="container">
+<div class="container mt-4">
 
-    <h2>Feedback Management</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>💬 Feedback Management</h2>
+    </div>
 
-    <form method="get" asp-action="List" asp-controller="Feedback" class="filter-form">
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body bg-light rounded">
 
-        <input type="number" name="rating" min="1" max="5"
-               placeholder="Rating"
-               value="@Context.Request.Query["rating"]" />
+            <form asp-action="List" method="get" class="row g-3 align-items-end">
 
-        <input type="text" name="productId" placeholder="GUID..." 
-               value="@Context.Request.Query["productId"]" />
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Rating</label>
+                    <input type="number" name="rating" min="1" max="5"
+                           value="@Context.Request.Query["rating"]"
+                           class="form-control" />
+                </div>
 
-        <select name="isVisible">
-            <option value="">All Status</option>
-            <option value="true"
-                    selected="@(Context.Request.Query["isVisible"] == "true")">
-                Visible
-            </option>
-            <option value="false"
-                    selected="@(Context.Request.Query["isVisible"] == "false")">
-                Hidden
-            </option>
-        </select>
-        fromDate:
-        <input type="date" name="fromDate"
-               value="@Context.Request.Query["fromDate"]" />
-        toDate:
-        <input type="date" name="toDate"
-               value="@Context.Request.Query["toDate"]" />
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Product ID</label>
+                    <input type="text" name="productId"
+                           value="@Context.Request.Query["productId"]"
+                           class="form-control"
+                           placeholder="GUID..." />
+                </div>
 
-        <button type="submit" class="btn btn-primary">Filter</button>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Status</label>
+                    <select name="isVisible" class="form-select">
+                        <option value="">All</option>
+                        <option value="true"
+                                selected="@(Context.Request.Query["isVisible"] == "true")">
+                            Visible
+                        </option>
+                        <option value="false"
+                                selected="@(Context.Request.Query["isVisible"] == "false")">
+                            Hidden
+                        </option>
+                    </select>
+                </div>
 
-        <a href="/Feedback/List" class="btn btn-secondary">Reset</a>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">From</label>
+                    <input type="date" name="fromDate"
+                           value="@Context.Request.Query["fromDate"]"
+                           class="form-control" />
+                </div>
 
-    </form>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">To</label>
+                    <input type="date" name="toDate"
+                           value="@Context.Request.Query["toDate"]"
+                           class="form-control" />
+                </div>
 
-    <table>
+                <div class="col-md-1">
+                    <button class="btn btn-primary w-100">Filter</button>
+                </div>
 
-        <tr>
-            <th>Product</th>
-            <th>Customer</th>
-            <th>Rating</th>
-            <th>Comment</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Actions</th>
-        </tr>
+                <div class="col-md-1">
+                    <a asp-action="List" class="btn btn-outline-secondary w-100">Clear</a>
+                </div>
 
-        @if (Model != null && Model.Count > 0)
-        {
-            foreach (var f in Model)
-            {
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive shadow-sm">
+        <table class="table table-hover border">
+
+            <thead class="table-dark text-center">
                 <tr>
-
-                    <td>@f.ProductId</td>
-                    <td>@f.CustomerId</td>
-
-                    <td>
-                        @for (int i = 0; i < f.Rating; i++)
-                        {
-                            <span>⭐</span>
-                        }
-                    </td>
-
-                    <td>@f.Comment</td>
-
-                    <td>
-                        @(f.IsVisible ? "Visible" : "Hidden")
-                    </td>
-
-                    <td>@f.CreatedDate.ToString("dd/MM/yyyy")</td>
-
-                    <td>
-
-                        <a class="btn btn-view"
-                           href="/Feedback/Detail/@f.FeedbackId">Detail</a>
-
-                        <a class="btn btn-toggle"
-                           href="/Feedback/Toggle/@f.FeedbackId">
-                            @(f.IsVisible ? "Hide" : "Show")
-                        </a>
-
-                        <form method="post"
-                              action="/Feedback/Delete"
-                              style="display:inline;">
-                            <input type="hidden"
-                                   name="id"
-                                   value="@f.FeedbackId" />
-                            <button class="btn btn-delete"
-                                    onclick="return confirm('Delete this feedback?')">
-                                Delete
-                            </button>
-                        </form>
-
-                        <a class="btn btn-reply"
-                           href="/Feedback/Reply/@f.FeedbackId">
-                            Reply
-                        </a>
-
-                    </td>
-
+                    <th class="text-start">Product</th>
+                    <th>Customer</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" style="text-align:center;">
-                    No feedback found
-                </td>
-            </tr>
-        }
+            </thead>
 
-    </table>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            No feedback found
+                        </td>
+                    </tr>
+                }
 
+                @foreach (var f in Model)
+                {
+                    <tr class="align-middle text-center">
+
+                        <td class="text-start">@f.ProductId</td>
+                        <td>@f.CustomerId</td>
+
+                        <td>
+                            @for (int i = 0; i < f.Rating; i++)
+                            {
+                                <span>⭐</span>
+                            }
+                        </td>
+
+                        <td>@f.Comment</td>
+
+                        <td>
+                            @if (f.IsVisible)
+                            {
+                                <span class="badge bg-success">Visible</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Hidden</span>
+                            }
+                        </td>
+
+                        <td>@f.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+
+                        <td>
+                            <div class="d-flex flex-wrap gap-2 justify-content-center">
+
+                                <a asp-action="Detail"
+                                   asp-route-id="@f.FeedbackId"
+                                   class="btn btn-sm btn-info text-white">
+                                    Detail
+                                </a>
+
+                                <a asp-action="Toggle"
+                                   asp-route-id="@f.FeedbackId"
+                                   class="btn btn-sm btn-warning">
+                                    @(f.IsVisible ? "Hide" : "Show")
+                                </a>
+
+                                <a asp-action="Reply"
+                                   asp-route-id="@f.FeedbackId"
+                                   class="btn btn-sm btn-primary">
+                                    Reply
+                                </a>
+
+                                <form asp-action="Delete"
+                                      asp-route-id="@f.FeedbackId"
+                                      method="post"
+                                      class="d-inline">
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Delete?')">
+                                        Delete
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

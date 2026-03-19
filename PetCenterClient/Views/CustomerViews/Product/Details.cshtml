@@ -561,32 +561,22 @@
 
 <h3>Customer Feedback</h3>
 
-@* <div style="margin-bottom:16px;">
-    <a asp-controller="Feedback"
-       asp-action="Create"
-       asp-route-productId="@Model.ProductId"
-       class="btn-cart"
-       style="max-width:220px; text-decoration:none;">
-        ✍️ Write Feedback
-    </a>
-</div> *@
-
-@* @if (ViewBag.Feedbacks != null && ViewBag.Feedbacks.Count > 0)
+@if (ViewBag.Feedbacks != null)
 {
-    foreach (var f in ViewBag.Feedbacks)
+    foreach (var item in ViewBag.Feedbacks)
     {
-        <div style="border:1px solid #eee; padding:12px; margin-bottom:10px; border-radius:10px;">
-            <p><strong>Rating:</strong> @f.Rating ⭐</p>
-            <p>@f.Comment</p>
+        <div class="border p-2 mb-2">
+            <b>User: @item.CustomerId</b> ⭐ @item.Rating
+            <p>@item.Comment</p>
+            <small>@item.CreatedDate</small>
 
-            @if (!string.IsNullOrEmpty(f.Reply))
+            @if (item.Reply != null)
             {
-                <p style="color:green;"><strong>Shop reply:</strong> @f.Reply</p>
+                <div class="bg-light p-2 mt-2">
+                    <b>Shop reply:</b>
+                    <p>@item.Reply</p>
+                </div>
             }
         </div>
     }
 }
-else
-{
-    <p>No feedback yet.</p>
-} *@

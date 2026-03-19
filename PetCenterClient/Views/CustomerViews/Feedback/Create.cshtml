@@ -1,38 +1,31 @@
 ﻿@model PetCenterClient.DTOs.CreateFeedbackDTO
-<link rel="stylesheet" href="~/css/feedback.css" />
 
-<div class="container">
+<div class="container mt-4" style="max-width:600px">
 
-	<h2>Create Feedback</h2>
+    <h3>Write Your Feedback</h3>
 
-	<form method="post">
+    <form asp-controller="Feedback" asp-action="Create" method="post">
 
-		<label>Product ID</label>
-		<input type="hidden" asp-for="ProductId" />
+        <input type="hidden" name="ProductId" value="@Model.ProductId" />
+        <input type="hidden" asp-for="CustomerId" />
 
-		<label>Customer ID</label>
-		<input type="hidden" asp-for="CustomerId" />
+        <div class="mb-3">
+            <label>Rating</label>
+            <select asp-for="Rating" class="form-control">
+                <option value="1">⭐ 1</option>
+                <option value="2">⭐⭐ 2</option>
+                <option value="3">⭐⭐⭐ 3</option>
+                <option value="4">⭐⭐⭐⭐ 4</option>
+                <option value="5">⭐⭐⭐⭐⭐ 5</option>
+            </select>
+        </div>
 
-		<label>Rating</label>
+        <div class="mb-3">
+            <label>Your Comment</label>
+            <textarea asp-for="Comment" class="form-control" rows="4"></textarea>
+        </div>
 
-		<select name="Rating">
-
-			<option value="1">1 ⭐</option>
-			<option value="2">2 ⭐</option>
-			<option value="3">3 ⭐</option>
-			<option value="4">4 ⭐</option>
-			<option value="5">5 ⭐</option>
-
-		</select>
-
-		<label>Comment</label>
-
-<textarea name="Comment" rows="5"></textarea>
-
-		<button type="submit">
-			Submit Feedback
-		</button>
-
-	</form>
+        <button class="btn btn-primary">Submit Feedback</button>
+    </form>
 
 </div>
