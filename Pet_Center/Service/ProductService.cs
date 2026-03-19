@@ -277,5 +277,10 @@ namespace ProductAPI.Service
             // Chỗ này sau này bạn có thể cắm thêm logic ghi log: "Sản phẩm A được cộng lại X cái do đơn hàng Y bị hủy"
             return await _productRepository.IncreaseStockAsync(productId, quantity);
         }
+        public async Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid id)
+        {
+            var product = await _productRepository.GetProductByIdIncludeDeletedAsync(id);
+            return _mapper.Map<ReadProductDTO>(product);
+        }
     }
 }

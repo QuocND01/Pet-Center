@@ -107,7 +107,7 @@ namespace PetCenterClient.Controllers
 
             foreach (var item in rawDetails)
             {
-                var product = await _productService.GetProductByIdAsync(item.ProductId);
+                var product = await _productService.GetProductByIdIncludeDeletedAsync(item.ProductId);
                 fullDetails.Add(new OrderDetailVM
                 {
                     ProductId = item.ProductId,

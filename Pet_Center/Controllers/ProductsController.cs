@@ -169,5 +169,19 @@ namespace ProductAPI.Controllers
 
             return Ok(true);
         }
+
+        // GET: api/Products/{id}/include-deleted
+        [HttpGet("{id}/include-deleted")]
+        public async Task<ActionResult<ReadProductDTO>> GetProductIncludeDeleted(Guid id)
+        {
+            var product = await _productService.GetProductByIdIncludeDeletedAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return product;
+        }
     }
 }
