@@ -13,19 +13,19 @@ public partial class Order
 
     public Guid AddressId { get; set; }
 
-    public string? AddressSnapshot { get; set; }
+    public string AddressSnapshot { get; set; } = null!;
 
     public DateTime? OrderDate { get; set; }
 
     public DateTime? DeliveredDate { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
-
     public decimal TotalAmount { get; set; }
 
     public decimal? DiscountAmount { get; set; }
 
-    public int? Status { get; set; }
+    public DateTime? UpdateAt { get; set; }
+
+    public int Status { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 }
