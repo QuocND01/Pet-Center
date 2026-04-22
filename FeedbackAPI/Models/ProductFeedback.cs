@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FeedbackAPI.Models;
 
-public class ProductFeedback
+public partial class ProductFeedback
 {
     public Guid FeedbackId { get; set; }
 
@@ -15,7 +15,7 @@ public class ProductFeedback
 
     public Guid? StaffId { get; set; }
 
-    public int Rating { get; set; }
+    public int? Rating { get; set; }
 
     public string? Comment { get; set; }
 
@@ -23,9 +23,11 @@ public class ProductFeedback
 
     public DateTime? ReplyDate { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 
-    public bool IsVisible { get; set; } = true;
+    public bool? IsVisible { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool? IsActive { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
 }
