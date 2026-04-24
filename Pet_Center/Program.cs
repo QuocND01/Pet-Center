@@ -17,10 +17,14 @@ using ProductAPI.Service.Interface;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
+                 optional: true,
+                 reloadOnChange: true);
+
 
 // Add services to the container.
-
-builder.Services.AddControllers();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -169,7 +173,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 
 app.UseCors("AllowClient");
 

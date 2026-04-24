@@ -7,6 +7,7 @@ namespace ProductAPI.DTOs
     {
         public Guid BrandId { get; set; }
         public string BrandName { get; set; } = null!;
+        public string? BrandDescription { get; set; }
 
         public string? BrandLogo { get; set; }
     }
@@ -19,6 +20,7 @@ namespace ProductAPI.DTOs
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
            ErrorMessage = "Brand name cannot contain special characters")]
         public string BrandName { get; set; } = null!;
+        public string? BrandDescription { get; set; }
         public string? BrandLogo { get; set; }
     }
 
@@ -29,6 +31,7 @@ namespace ProductAPI.DTOs
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
            ErrorMessage = "Brand name cannot contain special characters")]
         public string BrandName { get; set; } = null!;
+        public string? BrandDescription { get; set; }
 
         public string? BrandLogo { get; set; }
     }

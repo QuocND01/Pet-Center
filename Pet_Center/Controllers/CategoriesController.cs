@@ -55,7 +55,7 @@ namespace ProductAPI.Controllers
         }
 
 
-        [Authorize]
+       // [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(Guid id, UpdateCategoryDTOs updateCategoryDTOs)
         {
@@ -78,7 +78,7 @@ namespace ProductAPI.Controllers
         }
 
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> PostCategory( CreateCategoryDTOs categoryDTOs)
         {
@@ -108,7 +108,7 @@ namespace ProductAPI.Controllers
         }
 
 
-        [Authorize]
+        //[Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {

@@ -3,6 +3,12 @@ using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
+                 optional: true,
+                 reloadOnChange: true);
+
 
 var apiUrl = builder.Configuration["Api:url"];
 builder.Services.AddHttpContextAccessor();
@@ -114,7 +120,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();

@@ -13,15 +13,15 @@ public partial class Product
 
     public string? ProductDescription { get; set; }
 
-    public Guid? BrandId { get; set; }
+    public Guid BrandId { get; set; }
 
-    public Guid? CategoryId { get; set; }
+    public Guid CategoryId { get; set; }
 
     public DateTime? AddedAt { get; set; }
 
     public DateTime? UpdateAt { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual Brand? Brand { get; set; }
 
