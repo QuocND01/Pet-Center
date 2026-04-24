@@ -15,7 +15,7 @@ public partial class ImportStockDetail
 
     public int Quantity { get; set; }
 
-    public int? StockLeft { get; set; }
+    public int StockLeft { get; set; }
 
     public virtual ImportStock Import { get; set; } = null!;
 
