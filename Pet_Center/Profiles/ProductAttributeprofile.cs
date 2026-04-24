@@ -21,7 +21,7 @@ namespace ProductAPI.Profiles
 
             // Create DTO -> Entity
             CreateMap<CreateProductAttributeDTO, ProductAttribute>()
-                .ForMember(dest => dest.ProductAttributeId,
+                .ForMember(dest => dest.ProductAttributesId,
                     opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.ProductId,
                     opt => opt.Ignore())
@@ -30,7 +30,7 @@ namespace ProductAPI.Profiles
 
             // Update DTO -> Entity
             CreateMap<UpdateProductAttributeDTO, ProductAttribute>()
-                .ForMember(dest => dest.ProductAttributeId, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductAttributesId, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductId, opt => opt.Ignore())
                 .ForMember(dest => dest.CategoryAttribute, opt => opt.Ignore());
         }

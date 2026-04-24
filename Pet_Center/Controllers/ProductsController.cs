@@ -49,7 +49,7 @@ namespace ProductAPI.Controllers
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Admin")]
+       // [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(Guid id,[FromForm] UpdateProductDTO product)
         {
@@ -73,7 +73,7 @@ namespace ProductAPI.Controllers
 
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> PostProduct([FromForm] CreateProductDTO product)
         {
@@ -104,7 +104,7 @@ namespace ProductAPI.Controllers
         }
 
         // DELETE: api/Products/5
-        [Authorize(Roles = "Admin")]
+       // [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {
@@ -143,52 +143,52 @@ namespace ProductAPI.Controllers
             var products = await _productService.GetHotProducts();
             return Ok(products);
         }
-        [Authorize]
-        [HttpPost("increase-stock-bulk")]
-        public async Task<IActionResult> IncreaseStockBulk([FromBody] List<IncreaseStockItemDto> items)
-        {
-            await _productService.IncreaseStockBulk(items);
-            return Ok();
-        }
-        [Authorize]
-        [HttpPut("decrease-stock/{id}")]
-        public async Task<IActionResult> DecreaseStock(Guid id, [FromBody] int quantity)
-        {
-            var success = await _productService.DecreaseStockAsync(id, quantity);
+        //[Authorize]
+        //[HttpPost("increase-stock-bulk")]
+        //public async Task<IActionResult> IncreaseStockBulk([FromBody] List<IncreaseStockItemDto> items)
+        //{
+        //    await _productService.IncreaseStockBulk(items);
+        //    return Ok();
+        //}
+        //[Authorize]
+        //[HttpPut("decrease-stock/{id}")]
+        //public async Task<IActionResult> DecreaseStock(Guid id, [FromBody] int quantity)
+        //{
+        //    var success = await _productService.DecreaseStockAsync(id, quantity);
 
-            if (!success)
-            {
-                return BadRequest(new { message = "Sản phẩm không tồn tại hoặc số lượng tồn kho không đủ để xử lý." });
-            }
+        //    if (!success)
+        //    {
+        //        return BadRequest(new { message = "Sản phẩm không tồn tại hoặc số lượng tồn kho không đủ để xử lý." });
+        //    }
 
-            return Ok(true);
-        }
-        [Authorize]
-        [HttpPut("increase-stock/{id}")]
-        public async Task<IActionResult> IncreaseStock(Guid id, [FromBody] int quantity)
-        {
-            var success = await _productService.IncreaseStockAsync(id, quantity);
+        //    return Ok(true);
+        //}
+        //[Authorize]
+        //[HttpPut("increase-stock/{id}")]
+        //public async Task<IActionResult> IncreaseStock(Guid id, [FromBody] int quantity)
+        //{
+        //    var success = await _productService.IncreaseStockAsync(id, quantity);
 
-            if (!success)
-            {
-                return BadRequest(new { message = "Sản phẩm không tồn tại để cộng lại kho." });
-            }
+        //    if (!success)
+        //    {
+        //        return BadRequest(new { message = "Sản phẩm không tồn tại để cộng lại kho." });
+        //    }
 
-            return Ok(true);
-        }
+        //    return Ok(true);
+        //}
 
-        // GET: api/Products/{id}/include-deleted
-        [HttpGet("{id}/include-deleted")]
-        public async Task<ActionResult<ReadProductDTO>> GetProductIncludeDeleted(Guid id)
-        {
-            var product = await _productService.GetProductByIdIncludeDeletedAsync(id);
+        //// GET: api/Products/{id}/include-deleted
+        //[HttpGet("{id}/include-deleted")]
+        //public async Task<ActionResult<ReadProductDTO>> GetProductIncludeDeleted(Guid id)
+        //{
+        //    var product = await _productService.GetProductByIdIncludeDeletedAsync(id);
 
-            if (product == null)
-            {
-                return NotFound();
-            }
+        //    if (product == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            return product;
-        }
+        //    return product;
+        //}
     }
 }

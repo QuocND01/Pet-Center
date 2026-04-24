@@ -51,26 +51,28 @@ namespace ProductAPI.Repository
             await _db.SaveChangesAsync();
         }
 
+        //public IQueryable<Category> GetAllCategory()
+        //{
+        //    return _db.Categories
+        //        .Where(c => c.IsActive == true)
+        //        .Select(c => new Category
+        //        {
+        //            CategoryId = c.CategoryId,
+        //            CategoryName = c.CategoryName,
+        //            CategoryLogo = c.CategoryLogo,
+
+        //            CategoryAttributes = c.CategoryAttributes
+        //                .Where(a => a.IsActive == true)
+        //                .ToList()
+        //        });
+        //}
+
+
         public IQueryable<Category> GetAllCategory()
         {
-            return _db.Categories
-                .Where(c => c.IsActive == true)
-                .Select(c => new Category
-                {
-                    CategoryId = c.CategoryId,
-                    CategoryName = c.CategoryName,
-                    CategoryLogo = c.CategoryLogo,
-
-                    CategoryAttributes = c.CategoryAttributes
-                        .Where(a => a.IsActive == true)
-                        .ToList()
-                });
+            return _db.Categories.Include(c => c.CategoryAttributes).AsQueryable();
         }
 
-        //public async Task<IEnumerable<Category>> GetAllCategoryAsync()
-        //{
-        //   return await _db.Categories.Where(c => c.IsActive == true).ToListAsync();
-        //}
 
         public async Task<IEnumerable<CategoryAttribute>> GetAllCategoryAttributeByCategoryIDAsync(Guid id)
         {

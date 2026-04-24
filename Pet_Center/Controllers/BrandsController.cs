@@ -54,7 +54,7 @@ namespace ProductAPI.Controllers
             return brand;
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrand(Guid id, UpdateBrandDTOs upadteBrand)
         {
@@ -76,7 +76,7 @@ namespace ProductAPI.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> PostBrand( CreateBrandDTOs createBrand)
         {
@@ -105,7 +105,7 @@ namespace ProductAPI.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBrand(Guid id)
         {

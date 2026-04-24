@@ -9,7 +9,7 @@ namespace ProductAPI.DTOs
         public string ProductName { get; set; } = null!;
         public decimal ProductPrice { get; set; }
         public string? ProductDescription { get; set; }
-        public int? StockQuantity { get; set; }
+        public int StockQuantity { get; set; } = 0;
 
         public DateTime? AddedAt { get; set; }
         public DateTime? UpdateAt { get; set; }
@@ -46,7 +46,6 @@ namespace ProductAPI.DTOs
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? ProductDescription { get; set; }
 
-        public int StockQuantity { get; set; } = 0;
 
         public Guid? BrandId { get; set; }
 
@@ -75,7 +74,7 @@ namespace ProductAPI.DTOs
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? ProductDescription { get; set; }
 
-        public int StockQuantity { get; set; } = 0;
+
 
         [Required(ErrorMessage = "Brand is required")]
         public Guid BrandId { get; set; }

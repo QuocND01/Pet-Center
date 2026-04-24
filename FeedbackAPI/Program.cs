@@ -12,6 +12,11 @@ namespace FeedbackAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+                builder.Configuration
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
+                     optional: true,
+                     reloadOnChange: true);
 
             // Add services to the container.
 
@@ -19,12 +24,16 @@ namespace FeedbackAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddDbContext<PetCenterContext>(options =>
+            builder.Services.AddDbContext<PetCenterFeedbackServiceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 
             builder.Services.AddScoped<IFeedbackService, FeedbackService>();
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             var app = builder.Build();
+
+            
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -33,7 +42,11 @@ namespace FeedbackAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            if (!app.Environment.IsEnvironment("Docker"))
+            {
+                app.UseHttpsRedirection();
+            }
+
 
             app.UseAuthorization();
 

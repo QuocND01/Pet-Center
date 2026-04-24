@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ProductAPI.Models;
 
-public partial class PetCenterProductServiceContext : DbContext
+public partial class PetCenterContext : DbContext
 {
-    public PetCenterProductServiceContext()
+    public PetCenterContext()
     {
     }
 
-    public PetCenterProductServiceContext(DbContextOptions<PetCenterProductServiceContext> options)
+    public PetCenterContext(DbContextOptions<PetCenterContext> options)
         : base(options)
     {
     }

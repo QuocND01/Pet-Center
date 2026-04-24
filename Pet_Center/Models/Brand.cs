@@ -11,7 +11,7 @@ public partial class Brand
 
     public string? BrandLogo { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public string? BrandDescription { get; set; }
 
