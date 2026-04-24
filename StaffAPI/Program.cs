@@ -1,3 +1,15 @@
+﻿using Microsoft.AspNetCore.OData;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OData.ModelBuilder;
+using Microsoft.OpenApi.Models;
+using StaffAPI.Mappings;
+using StaffAPI.Models;
+using StaffAPI.Repositories;
+using StaffAPI.Repositories.Interfaces;
+using StaffAPI.Services;
+using StaffAPI.Services.Interfaces;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -5,13 +17,75 @@ builder.Configuration
                  optional: true,
                  reloadOnChange: true);
 
+// ── 1. DbContext ──────────────────────────────────────────────────────────────
+builder.Services.AddDbContext<PetCenterStaffServiceContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// ── 2. Repositories ──────────────────────────────────────────────────────────
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IVetProfileRepository, VetProfileRepository>();
+
+// ── 3. Services ───────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IVetProfileService, VetProfileService>();
+
+// ── 4. AutoMapper ─────────────────────────────────────────────────────────────
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// ── 5. OData ──────────────────────────────────────────────────────────────────
+var odataBuilder = new ODataConventionModelBuilder();
+odataBuilder.EntitySet<Staff>("Staffs");
+odataBuilder.EntitySet<VetProfile>("VetProfiles");
 // Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// File: Program.cs
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    })
+    .AddOData(opt => opt
+        .Select().Filter().OrderBy().Expand().Count().SetMaxTop(100)
+        .AddRouteComponents("odata", odataBuilder.GetEdmModel()));
+
+// ── 6. JWT Authentication ─────────────────────────────────────────────────────
+var jwt = builder.Configuration.GetSection("JwtSettings");
+var key = Encoding.UTF8.GetBytes(jwt["SecretKey"]!);
+
+builder.Services.AddAuthorization();
+// ── 7. Swagger ────────────────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PetCenter.StaffService API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter: Bearer {token}"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+// ── 8. CORS ───────────────────────────────────────────────────────────────────
+builder.Services.AddCors(options =>
+    options.AddPolicy("AllowAll", p =>
+        p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 var app = builder.Build();
 
@@ -24,8 +98,10 @@ if (app.Environment.IsDevelopment())
 
 if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
