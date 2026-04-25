@@ -47,7 +47,7 @@ namespace OrdersAPI.Service
 
             _mapper.Map(dto, existingOrder);
 
-            existingOrder.Status = dto.Status;
+ 
             if (dto.StaffId.HasValue)
             {
                 existingOrder.StaffId = dto.StaffId;
@@ -57,7 +57,7 @@ namespace OrdersAPI.Service
                 existingOrder.DeliveredDate = dto.DeliveredDate;
             }
 
-            existingOrder.UpdatedAt = DateTime.Now;
+
 
             _repo.Update(existingOrder);
             return await _repo.SaveChangesAsync();
@@ -70,7 +70,7 @@ namespace OrdersAPI.Service
 
             // Soft delete
             order.Status = 0;
-            order.UpdatedAt = DateTime.UtcNow;
+   
 
             // gọi repo để lưu
             return await _repo.SaveChangesAsync();

@@ -109,8 +109,8 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-          var feedbacks = await _feedbackService.GetByProductAsync(id.Value);
-          ViewBag.Feedbacks = feedbacks;
+         // var feedbacks = await _feedbackService.GetByProductAsync(id.Value);
+        //  ViewBag.Feedbacks = feedbacks;
 
             return View("~/Views/CustomerViews/Product/Details.cshtml", readProdutDTOs);
         }

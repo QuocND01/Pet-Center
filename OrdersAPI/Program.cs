@@ -7,6 +7,12 @@ using OrdersAPI.Service;
 using OrdersAPI.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
+                 optional: true,
+                 reloadOnChange: true);
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -16,22 +22,15 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<PetCenterOrderServiceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddDbContext<PetCenterCartServiceContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CartConnection")));
-
-builder.Services.AddDbContext<PetCenterVoucherServiceContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("VoucherConnection")));
 
 // ── Repositories ─────────────────────────────────────────────────
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
-builder.Services.AddScoped<ICartRepository, CartRepository>();
+
 
 // ── Services ─────────────────────────────────────────────────────
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 // ── AutoMapper ────────────────────────────────────────────────────
@@ -46,7 +45,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
