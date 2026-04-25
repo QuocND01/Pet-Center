@@ -93,54 +93,63 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> AdminLogin(LoginDto dto, string selectedRole)
         {
             var result = await _authService.StaffLoginAsync(dto);
-            if (result == null)
+
+            if (result == null || string.IsNullOrEmpty(result.token))
             {
                 ViewBag.Error = "Email or password incorrect";
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
+
+            var roles = result.roles ?? new List<string>();
+
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.token);
 
-            var role = jwt.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
-                ?.Value ?? "";
             var name = jwt.Claims
-                .FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+                .FirstOrDefault(c => c.Type ==
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
                 ?.Value ?? "";
 
             var staffId = jwt.Claims
-                .FirstOrDefault(c => c.Type == "sub" ||
-                                     c.Type == "nameid" ||
-                                     c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+                .FirstOrDefault(c =>
+                    c.Type == "sub" ||
+                    c.Type == "nameid" ||
+                    c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
                 ?.Value ?? "";
 
-            if (selectedRole == "Admin" && role != "Admin")
-            {
-                ViewBag.Error = "This account does not have Admin privileges";
-                return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
-            }
+            var allowedRoles = new[] { "Admin", "Staff", "Inventory Staff", "Sale Staff", "Vet" };
 
-            if (selectedRole == "Staff" && role != "Staff")
-            {
-                ViewBag.Error = "This account does not have Staff privileges";
-                return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
-            }
-
-            if (role != "Admin" && role != "Staff")
+            if (!roles.Any(r => allowedRoles.Contains(r)))
             {
                 ViewBag.Error = "You do not have permission to access this area";
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
+            if (selectedRole == "Admin" && !roles.Contains("Admin"))
+            {
+                ViewBag.Error = "This account does not have Admin privileges";
+                return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
+            }
+
+            if (selectedRole == "Staff" && roles.Contains("Admin"))
+            {
+                // Admin có thể login vào Staff tab
+            }
+            else if (selectedRole == "Staff" && !roles.Any(r => allowedRoles.Contains(r)))
+            {
+                ViewBag.Error = "This account does not have Staff privileges";
+                return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
+            }
+
+            var primaryRole = roles.Contains("Admin") ? "Admin" : roles.FirstOrDefault() ?? "Staff";
+
             HttpContext.Session.SetString("JWT", result.token);
-            HttpContext.Session.SetString("Role", role);
+            HttpContext.Session.SetString("Role", primaryRole);
             HttpContext.Session.SetString("Name", name);
 
             if (!string.IsNullOrEmpty(staffId))
-            {
                 HttpContext.Session.SetString("StaffId", staffId);
-            }
 
             return RedirectToAction("Indexadmin", "Products");
         }

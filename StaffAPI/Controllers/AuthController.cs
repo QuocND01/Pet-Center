@@ -6,7 +6,7 @@ using StaffAPI.Services.Interfaces;
 namespace StaffAPI.Controllers
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/staff/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IStaffAuthService _staffAuthService;
