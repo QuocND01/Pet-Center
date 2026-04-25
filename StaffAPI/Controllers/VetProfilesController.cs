@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using StaffAPI.DTOs.Staff;
+using StaffAPI.DTOs.VetProfile;
 using StaffAPI.Services.Interfaces;
 
 namespace StaffAPI.Controllers;

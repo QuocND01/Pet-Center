@@ -1,6 +1,6 @@
 ﻿// File: Services/VetProfileService.cs
 using AutoMapper;
-using StaffAPI.DTOs.Staff;
+using StaffAPI.DTOs.VetProfile;
 using StaffAPI.Models;
 using StaffAPI.Repositories.Interfaces;
 using StaffAPI.Services.Interfaces;

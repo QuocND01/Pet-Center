@@ -1,5 +1,5 @@
 ﻿// File: DTOs/Role/RoleReadDto.cs
-namespace StaffAPI.DTOs.Staff;
+namespace StaffAPI.DTOs.Role;
 
 public class RoleReadDto
 {

@@ -1,4 +1,7 @@
 ﻿// File: DTOs/Staff/StaffReadDto.cs
+using StaffAPI.DTOs.Role;
+using StaffAPI.DTOs.VetProfile;
+
 namespace StaffAPI.DTOs.Staff;
 
 public class StaffReadDto

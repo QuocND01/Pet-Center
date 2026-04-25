@@ -1,5 +1,6 @@
 ﻿// File: DTOs/Staff/StaffCreateDto.cs
 using System.ComponentModel.DataAnnotations;
+using StaffAPI.DTOs.VetProfile;
 
 namespace StaffAPI.DTOs.Staff;
 
