@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterClient.DTOs
+namespace ProductAPI.DTOs
 {
     public class CreateCategoryAttributeDTOs
     {
@@ -11,16 +11,19 @@ namespace PetCenterClient.DTOs
         public string? AttributeName { get; set; }
     }
 
-    public class ReadCategoryAttributeDTO
+    public class ReadCategoryAttributeDTOs
     {
-        public Guid CategoryAttributeId { get; set; }
 
-        public string AttributeName { get; set; } = null!;
+        public Guid CategoryAttributeId { get; set; }
+        public Guid CategoryID { get; set; }
+
+        public string? AttributeName { get; set; }
     }
 
 
     public class UpdateCategoryAttributeDTOs
     {
+
         [Required(ErrorMessage = "Category Attribute name is required")]
         [MaxLength(200, ErrorMessage = "Category Attribute name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",

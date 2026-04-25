@@ -1,14 +1,19 @@
-﻿using InventoryAPI.Models;
-using InventoryAPI.Profiles;
-using InventoryAPI.Repository;
-using InventoryAPI.Repository.Interface;
-using InventoryAPI.Service;
-using InventoryAPI.Service.Interface;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ProductAPI.Models;
+using ProductAPI.Models;
+using ProductAPI.Odata;
+using ProductAPI.Profiles;
+using ProductAPI.Repository;
+using ProductAPI.Repository.Interface;
+using ProductAPI.Service;
+using ProductAPI.Service.Interface;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +67,9 @@ builder.Services.AddAuthentication(options =>
 });
 
 
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -95,19 +103,39 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
-builder.Services.AddControllers();
+
 builder.Services.AddAuthorization();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-builder.Services.AddDbContext<PetCenterInventoryServiceContext>(options =>
+builder.Services.AddDbContext<PetCenterContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 
 
+builder.Services
+    .AddControllers()
+    .AddOData(opt => opt
+        .AddRouteComponents(
+            "odata",
+            EdmModelBuilder.GetEdmModel()
+        )
+        .Select()
+        .Filter()
+        .OrderBy()
+        .Expand()
+        .Count()
+        .SetMaxTop(100)
+    );
+
+
 // Đăng ký Automapper
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<InventoryProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<Brandprofile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<Categoryprofile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductAttributeProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>());
 
 
 builder.Services.AddCors(options =>
@@ -123,9 +151,25 @@ builder.Services.AddCors(options =>
 
 
 // Đăng ký Service và Repository
-builder.Services.AddScoped<IInventoryService, InventoryService>();
-builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddHttpClient("InventoryAPI", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Services:InventoryAPI"]);
+});
+builder.Services.AddHttpClient("OrdersAPI", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Services:OrdersAPI"]);
+});
 
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
@@ -140,7 +184,6 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 
 app.UseCors("AllowClient");
-
 
 app.UseAuthentication();
 app.UseAuthorization();

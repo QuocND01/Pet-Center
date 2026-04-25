@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using OrdersAPI.Models;
 using OrdersAPI.Repository.Interface;
 
@@ -24,13 +25,7 @@ namespace OrdersAPI.Repository
         {
             var fromDate = DateTime.UtcNow.AddMonths(-months);
 
-            return await _context.OrderDetails
-                .Where(od => od.Order.OrderDate >= fromDate)
-                .GroupBy(od => od.ProductId)
-                .OrderByDescending(g => g.Sum(x => x.Quantity))
-                .Take(top)
-                .Select(g => g.Key)
-                .ToListAsync();
+            return new();
         }
     }
 }

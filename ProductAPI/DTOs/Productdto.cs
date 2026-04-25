@@ -1,8 +1,7 @@
-﻿using PetCenterClient.DTOs;
-using PetCenterClient.Models;
+﻿using ProductAPI.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterClient.DTOs
+namespace ProductAPI.DTOs
 {
     public class ReadProductDTO
     {
@@ -10,7 +9,7 @@ namespace PetCenterClient.DTOs
         public string ProductName { get; set; } = null!;
         public decimal ProductPrice { get; set; }
         public string? ProductDescription { get; set; }
-        public int? StockQuantity { get; set; }
+        public int StockQuantity { get; set; } = 0;
 
         public DateTime? AddedAt { get; set; }
         public DateTime? UpdateAt { get; set; }
@@ -76,11 +75,12 @@ namespace PetCenterClient.DTOs
         public string? ProductDescription { get; set; }
 
 
+
         [Required(ErrorMessage = "Brand is required")]
-        public Guid? BrandId { get; set; }
+        public Guid BrandId { get; set; }
 
         [Required(ErrorMessage = "Category is required")]
-        public Guid? CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
 
         public List<IFormFile>? ImageFiles { get; set; }
 
@@ -88,9 +88,25 @@ namespace PetCenterClient.DTOs
     }
 
 
-    public class ProductSelectDto
+    public class SelectProductDto
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = null!;
+    }
+    public class IncreaseStockItemDto
+    {
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
+    }
+    public class DecreaseStockItemDto
+    {
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    public class StockDto
+    {
+        public Guid ProductId { get; set; }
+        public int QuantityAvailable { get; set; }
     }
 }

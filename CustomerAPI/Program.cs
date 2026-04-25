@@ -20,6 +20,11 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
                  optional: true,
                  reloadOnChange: true);
+<<<<<<< HEAD
+
+// Add services to the container.
+=======
+>>>>>>> origin/main
 
 // ── OData model builder ───────────────────────────────────────────────────
 var odataBuilder = new ODataConventionModelBuilder();
@@ -119,6 +124,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -132,6 +138,10 @@ if (!app.Environment.IsEnvironment("Docker"))
 {
     app.UseHttpsRedirection();
 }
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/main
 
 app.UseCors("AllowAll");
 app.UseAuthentication();

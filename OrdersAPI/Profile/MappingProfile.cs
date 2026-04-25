@@ -12,6 +12,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => DateTime.Now));
         CreateMap<OrderDetail, OrderDetailResponseDTO>();
         CreateMap<OrderDetailRequestDTO, OrderDetail>()
-            .ForMember(dest => dest.OrderDetailId, opt => opt.Ignore()); 
+            .ForMember(dest => dest.OrderDetailsId, opt => opt.Ignore()); 
     }
 }
