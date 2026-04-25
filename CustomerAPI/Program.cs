@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using CustomerAPI.Profiles;
+using Microsoft.OData.ModelBuilder;
+using Microsoft.AspNetCore.OData;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +21,24 @@ builder.Configuration
                  optional: true,
                  reloadOnChange: true);
 
-// Add services to the container.
+// ── OData model builder ───────────────────────────────────────────────────
+var odataBuilder = new ODataConventionModelBuilder();
+odataBuilder.EntitySet<Customer>("Customers");
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    })
+    .AddOData(opt => opt
+        .Select().Filter().OrderBy().Expand().Count().SetMaxTop(100)
+        .AddRouteComponents("odata", odataBuilder.GetEdmModel()));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "CustomerAPI", Version = "v1" });
@@ -53,8 +69,25 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// ── 1. DbContext ──────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<PetCenterCustomerServiceContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
+
+// ── 2. Repositories ──────────────────────────────────────────────────────────
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+
+// ── 3. Services ───────────────────────────────────────────────────────────────
+builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddSingleton<PasswordService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+
+// ── 4. AutoMapper ─────────────────────────────────────────────────────────────
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CustomerMappingProfile>());
+
 
 // Google settings
 builder.Services.Configure<GoogleAuthSettings>(
@@ -63,14 +96,9 @@ builder.Services.Configure<GoogleAuthSettings>(
 // HttpClient cho GoogleAuthService
 builder.Services.AddHttpClient();
 
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
-builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
-builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddSingleton<PasswordService>();
-
+builder.Services.AddCors(options =>
+    options.AddPolicy("AllowAll", p =>
+        p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 
 // JWT Auth
@@ -105,7 +133,7 @@ if (!app.Environment.IsEnvironment("Docker"))
     app.UseHttpsRedirection();
 }
 
-
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 

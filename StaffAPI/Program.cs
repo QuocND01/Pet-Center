@@ -59,8 +59,8 @@ builder.Services.AddControllers()
         .AddRouteComponents("odata", odataBuilder.GetEdmModel()));
 
 // ── 6. JWT Authentication ─────────────────────────────────────────────────────
-var jwt = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.UTF8.GetBytes(jwt["SecretKey"]!);
+var jwt = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
