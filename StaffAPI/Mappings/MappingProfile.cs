@@ -1,6 +1,8 @@
 ﻿// File: Mappings/MappingProfile.cs
 using AutoMapper;
+using StaffAPI.DTOs.Role;
 using StaffAPI.DTOs.Staff;
+using StaffAPI.DTOs.VetProfile;
 using StaffAPI.Models;
 
 namespace StaffAPI.Mappings;

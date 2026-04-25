@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
+using StaffAPI.DTOs.Role;
 using StaffAPI.DTOs.Staff;
 using StaffAPI.Services.Interfaces;
 
@@ -57,7 +58,7 @@ public class StaffsController : ODataController
                         RoleId = r.RoleId,
                         RoleName = r.RoleName
                     }).ToList(),
-                    VetProfile = s.VetProfile == null ? null : new VetProfileReadDto
+                    VetProfile = s.VetProfile == null ? null : new DTOs.VetProfile.VetProfileReadDto
                     {
                         VetProfileId = s.VetProfile.VetProfileId,
                         StaffId = s.VetProfile.StaffId,
