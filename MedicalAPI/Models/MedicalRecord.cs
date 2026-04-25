@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace MedicalAPI.Models;
 
 public partial class MedicalRecord
 {
+    [Key]
     public Guid RecordId { get; set; }
 
     public Guid AppointmentId { get; set; }
