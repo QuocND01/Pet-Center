@@ -8,5 +8,7 @@
         public bool Success { get; set; }
 
         public string ErrorType { get; set; }
+
+        public List<string>? roles { get; set; }
     }
 }

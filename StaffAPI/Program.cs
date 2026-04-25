@@ -1,13 +1,4 @@
-<<<<<<< HEAD
-var builder = WebApplication.CreateBuilder(args);
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
-                 optional: true,
-                 reloadOnChange: true);
-
-=======
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,7 +12,6 @@ using StaffAPI.Security;
 using StaffAPI.Services;
 using StaffAPI.Services.Interfaces;
 using System.Text;
->>>>>>> origin/main
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
@@ -130,12 +120,10 @@ if (app.Environment.IsDevelopment())
 
 if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 
-<<<<<<< HEAD
-=======
+
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
->>>>>>> origin/main
 app.UseAuthorization();
 app.MapControllers();
 
