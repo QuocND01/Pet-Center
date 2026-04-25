@@ -29,17 +29,17 @@ namespace StaffAPI.Security
             }
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_config["JwtSettings:SecretKey"])
+                Encoding.UTF8.GetBytes(_config["Jwt:Key"])
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _config["JwtSettings:Issuer"],
-                audience: _config["JwtSettings:Audience"],
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.Now.AddMinutes(
-                    double.Parse(_config["JwtSettings:ExpiryMinutes"])
+                    double.Parse(_config["Jwt:ExpireMinutes"])
                 ),
                 signingCredentials: creds
             );
