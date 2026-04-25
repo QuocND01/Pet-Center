@@ -55,6 +55,23 @@ namespace ProductAPI.Repository
                 .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsActive, false));
         }
 
+        //public IQueryable<Category> GetAllCategory()
+        //{
+        //    return _db.Categories
+        //        .Where(c => c.IsActive == true)
+        //        .Select(c => new Category
+        //        {
+        //            CategoryId = c.CategoryId,
+        //            CategoryName = c.CategoryName,
+        //            CategoryLogo = c.CategoryLogo,
+
+        //            CategoryAttributes = c.CategoryAttributes
+        //                .Where(a => a.IsActive == true)
+        //                .ToList()
+        //        });
+        //}
+
+
         public IQueryable<Category> GetAllCategory()
         {
             return _db.Categories

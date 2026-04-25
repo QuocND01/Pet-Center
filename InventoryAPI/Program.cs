@@ -141,6 +141,7 @@ if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 
 app.UseCors("AllowClient");
 
+
 app.UseAuthentication();
 app.UseAuthorization();
 

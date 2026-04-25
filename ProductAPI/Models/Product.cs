@@ -23,6 +23,7 @@ public partial class Product
 
     public bool IsActive { get; set; } = true;
 
+
     public virtual Brand? Brand { get; set; }
 
     public virtual Category? Category { get; set; }
