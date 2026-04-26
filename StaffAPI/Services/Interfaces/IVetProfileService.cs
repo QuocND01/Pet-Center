@@ -1,5 +1,5 @@
 ﻿// File: Services/Interfaces/IVetProfileService.cs
-using StaffAPI.DTOs.Staff;
+using StaffAPI.DTOs.VetProfile;
 
 namespace StaffAPI.Services.Interfaces;
 

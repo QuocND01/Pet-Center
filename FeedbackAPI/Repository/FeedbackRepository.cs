@@ -5,9 +5,9 @@ namespace FeedbackAPI.Repository
 {
     public class FeedbackRepository
     {
-        private readonly PetCenterContext _db;
+        private readonly PetCenterFeedbackServiceContext _db;
 
-        public FeedbackRepository(PetCenterContext db)
+        public FeedbackRepository(PetCenterFeedbackServiceContext db)
         {
             _db = db;
         }

@@ -1,7 +1,7 @@
 ﻿// File: DTOs/VetProfile/VetProfileCreateDto.cs
 using System.ComponentModel.DataAnnotations;
 
-namespace StaffAPI.DTOs.Staff;
+namespace StaffAPI.DTOs.VetProfile;
 
 public class VetProfileCreateDto
 {

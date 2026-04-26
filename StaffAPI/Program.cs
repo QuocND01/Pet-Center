@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.OData;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
 using StaffAPI.Mappings;
 using StaffAPI.Models;
 using StaffAPI.Repositories;
 using StaffAPI.Repositories.Interfaces;
+using StaffAPI.Security;
 using StaffAPI.Services;
 using StaffAPI.Services.Interfaces;
 using System.Text;
@@ -24,10 +27,14 @@ builder.Services.AddDbContext<PetCenterStaffServiceContext>(options =>
 // ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IVetProfileRepository, VetProfileRepository>();
+builder.Services.AddScoped<IStaffAuthRepository, StaffAuthRepository>();
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IVetProfileService, VetProfileService>();
+builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddSingleton<PasswordService>();
 
 // ── 4. AutoMapper ─────────────────────────────────────────────────────────────
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -52,8 +59,23 @@ builder.Services.AddControllers()
         .AddRouteComponents("odata", odataBuilder.GetEdmModel()));
 
 // ── 6. JWT Authentication ─────────────────────────────────────────────────────
-var jwt = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.UTF8.GetBytes(jwt["SecretKey"]!);
+var jwt = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwt["Issuer"],
+            ValidAudience = jwt["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    });
 
 builder.Services.AddAuthorization();
 // ── 7. Swagger ────────────────────────────────────────────────────────────────
@@ -97,6 +119,7 @@ if (app.Environment.IsDevelopment())
 }
 
 if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");

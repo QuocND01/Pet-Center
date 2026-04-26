@@ -1,7 +1,7 @@
 ﻿// File: DTOs/VetProfile/VetProfileUpdateDto.cs
 using System.ComponentModel.DataAnnotations;
 
-namespace StaffAPI.DTOs.Staff;
+namespace StaffAPI.DTOs.VetProfile;
 
 /// <summary>
 /// Chỉ cho phép cập nhật Description.

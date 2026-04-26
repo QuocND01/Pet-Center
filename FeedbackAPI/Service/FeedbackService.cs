@@ -8,10 +8,10 @@ namespace FeedbackAPI.Service
 {
     public class FeedbackService : IFeedbackService
     {
-        private readonly PetCenterContext _context;
+        private readonly PetCenterFeedbackServiceContext _context;
         private readonly IMapper _mapper;
 
-        public FeedbackService(PetCenterContext context, IMapper mapper)
+        public FeedbackService(PetCenterFeedbackServiceContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;

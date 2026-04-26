@@ -122,8 +122,13 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsEnvironment("Docker"))
 {
     app.UseHttpsRedirection();
+<<<<<<< HEAD
+}
+
+=======
     app.UseAuthentication();
 }
+>>>>>>> origin/main
 
 app.UseAuthorization();
 

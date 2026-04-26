@@ -1,5 +1,5 @@
 ﻿// File: DTOs/VetProfile/VetProfileReadDto.cs
-namespace StaffAPI.DTOs.Staff;
+namespace StaffAPI.DTOs.VetProfile;
 
 public class VetProfileReadDto
 {
