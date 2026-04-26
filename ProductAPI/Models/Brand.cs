@@ -15,6 +15,7 @@ public partial class Brand
 
 
     public string? BrandDescription { get; set; }
+    public string? PublicId { get; set; }
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

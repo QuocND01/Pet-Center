@@ -56,52 +56,99 @@ namespace ProductAPI.Controllers
 
         //[Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBrand(Guid id, UpdateBrandDTOs upadteBrand)
+        public async Task<IActionResult> PutBrand(
+            Guid id,
+            [FromForm] UpdateBrandDTOs updateBrand)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = errors
+                });
+            }
 
             try
             {
-                await _brandService.UpdateBrandAsync(id, upadteBrand);
-                return Ok(upadteBrand);
+                await _brandService.UpdateBrandAsync(id, updateBrand);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Brand updated successfully"
+                });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message);
+                return Conflict(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 
         //[Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostBrand( CreateBrandDTOs createBrand)
+        public async Task<IActionResult> PostBrand([FromForm] CreateBrandDTOs createBrand)
         {
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
-           .SelectMany(v => v.Errors)
-           .Select(e => e.ErrorMessage)
-           .ToList();
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-                return BadRequest(errors);
+                return BadRequest(new { success = false, message = errors });
             }
 
             try
             {
                 await _brandService.AddBrandAsync(createBrand);
-                return Ok();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Brand created successfully"
+                });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message); // 409
+                return Conflict(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 

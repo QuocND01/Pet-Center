@@ -49,25 +49,39 @@ namespace ProductAPI.Controllers
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-       // [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(Guid id,[FromForm] UpdateProductDTO product)
+        public async Task<IActionResult> PutProduct(
+            Guid id,
+            [FromForm] UpdateProductDTO product)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new { message = string.Join(", ", errors) });
+            }
 
             try
             {
                 await _productService.UpdateProductAsync(id, product);
-                return Ok(product);
+
+                return Ok(new { success = true, message = "Product updated successfully" });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message);
+                return Conflict(new { success = false, message = ex.Message }); // 409
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message }); // 404
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
 
@@ -77,34 +91,50 @@ namespace ProductAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> PostProduct([FromForm] CreateProductDTO product)
         {
-
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
-           .SelectMany(v => v.Errors)
-           .Select(e => e.ErrorMessage)
-           .ToList();
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-                return BadRequest(errors);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.Join(", ", errors)
+                });
             }
 
-                try
+            try
             {
                 await _productService.AddProductAsync(product);
-                return Ok(product);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Product created successfully"
+                });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message); // 409
+                return Conflict(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 
         // DELETE: api/Products/5
-       // [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {

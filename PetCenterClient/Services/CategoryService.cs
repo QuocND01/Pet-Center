@@ -18,8 +18,42 @@ namespace PetCenterClient.Services
         public async Task AddCategoryAsync(CreateCategoryDTOs createCategory)
         {
             AddAuthorizationHeader();
-            var response = await _http.PostAsJsonAsync("product-service/Categories", createCategory);
-            response.EnsureSuccessStatusCode();
+
+            var content = new MultipartFormDataContent();
+            content.Add(new StringContent(createCategory.CategoryName), "CategoryName");
+
+            if (!string.IsNullOrEmpty(createCategory.CategoryDescription))
+            {
+                content.Add(new StringContent(createCategory.CategoryDescription), "CategoryDescription");
+            }
+
+            if (createCategory.CategoryLogo != null)
+            {
+                var streamContent = new StreamContent(createCategory.CategoryLogo.OpenReadStream());
+                streamContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(createCategory.CategoryLogo.ContentType);
+
+                content.Add(streamContent, "CategoryLogo", createCategory.CategoryLogo.FileName);
+            }
+            if (createCategory.Attributes != null)
+            {
+                for (int i = 0; i < createCategory.Attributes.Count; i++)
+                {
+                    content.Add(
+                        new StringContent(createCategory.Attributes[i].AttributeName),
+                        $"Attributes[{i}].AttributeName"
+                    );
+                }
+            }
+
+            var response = await _http.PostAsync("product-service/Categories", content);
+
+            var result = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(result);
+            }
         }
 
         public async Task DeleteCategoryAsync(Guid? id)
@@ -76,8 +110,43 @@ namespace PetCenterClient.Services
         public async Task UpdateCategoryAsync(Guid? id, UpdateCategoryDTOs updateCategory)
         {
             AddAuthorizationHeader();
-            var response = await _http.PutAsJsonAsync($"product-service/Categories/{id}", updateCategory);
-            response.EnsureSuccessStatusCode();
+
+            var form = new MultipartFormDataContent();
+            form.Add(new StringContent(updateCategory.CategoryName), "CategoryName");
+
+            if (!string.IsNullOrEmpty(updateCategory.CategoryDescription))
+            {
+                form.Add(new StringContent(updateCategory.CategoryDescription), "CategoryDescription");
+            }
+            if (updateCategory.CategoryLogo != null)
+            {
+                var stream = updateCategory.CategoryLogo.OpenReadStream();
+                var content = new StreamContent(stream);
+
+                content.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(updateCategory.CategoryLogo.ContentType);
+
+                form.Add(content, "CategoryLogo", updateCategory.CategoryLogo.FileName);
+            }
+            if (updateCategory.Attributes != null)
+            {
+                for (int i = 0; i < updateCategory.Attributes.Count; i++)
+                {
+                    form.Add(
+                        new StringContent(updateCategory.Attributes[i].AttributeName),
+                        $"Attributes[{i}].AttributeName"
+                    );
+                }
+            }
+
+            var response = await _http.PutAsync($"product-service/Categories/{id}", form);
+
+            var result = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(result);
+            }
         }
 
         private void AddAuthorizationHeader()

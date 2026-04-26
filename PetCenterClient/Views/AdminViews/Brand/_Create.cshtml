@@ -1,55 +1,60 @@
 ﻿@model PetCenterClient.DTOs.CreateBrandDTOs
 
 <style>
-
     .logo-preview {
         width: 120px;
         height: 120px;
         object-fit: cover;
         border: 2px dashed #ccc;
         border-radius: 8px;
+        cursor: pointer;
     }
-
 </style>
 
 <form method="post"
+      enctype="multipart/form-data"
       asp-action="Create"
       asp-controller="Brand">
 
-    <!-- HIỂN THỊ LỖI MODEL -->
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="row">
 
         <!-- BRAND NAME -->
         <div class="col-md-12 mb-3">
-
             <label asp-for="BrandName" class="form-label"></label>
-
-            <input asp-for="BrandName"
-                   class="form-control" />
-
-            <!-- HIỂN THỊ LỖI -->
-            <span asp-validation-for="BrandName"
-                  class="text-danger"></span>
-
+            <input asp-for="BrandName" class="form-control" />
+            <span asp-validation-for="BrandName" class="text-danger"></span>
         </div>
 
+        <!-- BRAND DESCRIPTION -->
+        <div class="col-md-12 mb-3">
+            <label asp-for="BrandDescription" class="form-label"></label>
 
-        <!-- LOGO URL -->
+            <textarea asp-for="BrandDescription"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Enter brand description"></textarea>
+
+            <span asp-validation-for="BrandDescription"
+                  class="text-danger"></span>
+        </div>
+
+        <!-- FILE INPUT -->
         <div class="col-md-12 mb-3">
 
-            <label asp-for="BrandLogo" class="form-label"></label>
+            <label class="form-label">Brand Logo</label>
 
-            <input asp-for="BrandLogo"
+            <input type="file"
+                   name="BrandLogo"
                    id="logoInput"
-                   class="form-control"
-                   placeholder="Enter logo image url" />
+                   accept="image/*"
+                   hidden
+                   onchange="previewLogo(this)" />
 
         </div>
 
     </div>
-
 
     <!-- PREVIEW -->
     <div class="mt-3">
@@ -60,12 +65,12 @@
 
             <img id="logoPreview"
                  src="https://via.placeholder.com/120"
-                 class="logo-preview" />
+                 class="logo-preview"
+                 onclick="document.getElementById('logoInput').click()" />
 
         </div>
 
     </div>
-
 
     <button class="btn btn-primary mt-3">
         Create Brand
@@ -73,20 +78,19 @@
 
 </form>
 
-
 <script>
+    function previewLogo(input) {
 
-    // preview khi thay đổi url
-    $("#logoInput").on("input", function () {
+        const file = input.files[0]
 
-        const url = $(this).val()
+        if (!file) return
 
-        if (url) {
-            $("#logoPreview").attr("src", url)
-        } else {
-            $("#logoPreview").attr("src", "https://via.placeholder.com/120")
+        const reader = new FileReader()
+
+        reader.onload = function (e) {
+            document.getElementById("logoPreview").src = e.target.result
         }
 
-    })
-
+        reader.readAsDataURL(file)
+    }
 </script>

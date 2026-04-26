@@ -21,7 +21,7 @@ namespace ProductAPI.DTOs
            ErrorMessage = "Brand name cannot contain special characters")]
         public string BrandName { get; set; } = null!;
         public string? BrandDescription { get; set; }
-        public string? BrandLogo { get; set; }
+        public IFormFile? BrandLogo { get; set; }
     }
 
     public class CreateBrandDTOs
@@ -33,6 +33,6 @@ namespace ProductAPI.DTOs
         public string BrandName { get; set; } = null!;
         public string? BrandDescription { get; set; }
 
-        public string? BrandLogo { get; set; }
+        public IFormFile? BrandLogo { get; set; }
     }
 }
