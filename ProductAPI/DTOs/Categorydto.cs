@@ -22,7 +22,7 @@ namespace ProductAPI.DTOs
     ErrorMessage = "Category name cannot contain special characters")]
         public string CategoryName { get; set; } = null!;
 
-        public string? CategoryLogo { get; set; }
+        public IFormFile? CategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
 
         public List<CreateCategoryAttributeDTOs>? Attributes { get; set; }
@@ -36,7 +36,7 @@ namespace ProductAPI.DTOs
     ErrorMessage = "Category name cannot contain special characters")]
         public string CategoryName { get; set; } = null!;
 
-        public string? CategoryLogo { get; set; }
+        public IFormFile? CategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
 
         public List<UpdateCategoryAttributeDTOs>? Attributes { get; set; }

@@ -14,6 +14,7 @@ public partial class Category
     public bool IsActive { get; set; } = true;
 
     public string? CategoryDescription { get; set; }
+    public string? PublicId { get; set; }
 
     public virtual ICollection<CategoryAttribute> CategoryAttributes { get; set; } = new List<CategoryAttribute>();
 

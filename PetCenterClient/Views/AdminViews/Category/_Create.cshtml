@@ -1,58 +1,62 @@
 ﻿@model PetCenterClient.DTOs.CreateCategoryDTOs
 
 <style>
-
     .logo-preview {
         width: 120px;
         height: 120px;
         object-fit: cover;
         border: 2px dashed #ccc;
         border-radius: 8px;
+        cursor: pointer;
     }
-
 </style>
 
 <form method="post"
+      enctype="multipart/form-data"
       asp-action="Create"
       asp-controller="Category">
 
-    <!-- HIỂN THỊ LỖI MODEL -->
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="row">
 
         <!-- CATEGORY NAME -->
         <div class="col-md-12 mb-3">
-
-            <label asp-for="CategoryName" class="form-label"></label>
-
-            <input asp-for="CategoryName"
-                   class="form-control" />
-
-            <span asp-validation-for="CategoryName"
-                  class="text-danger"></span>
-
+            <label asp-for="CategoryName"></label>
+            <input asp-for="CategoryName" class="form-control" />
+            <span asp-validation-for="CategoryName" class="text-danger"></span>
         </div>
 
+        <!-- CATEGORY DESCRIPTION -->
+        <div class="col-md-12 mb-3">
+            <label asp-for="CategoryDescription" class="form-label"></label>
 
-        <!-- LOGO URL -->
+            <textarea asp-for="CategoryDescription"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Enter category description"></textarea>
+
+            <span asp-validation-for="CategoryDescription"
+                  class="text-danger"></span>
+        </div>
+
+        <!-- FILE INPUT -->
         <div class="col-md-12 mb-3">
 
-            <label asp-for="CategoryLogo"
-                   class="form-label"></label>
+            <label class="form-label">Category Logo</label>
 
-            <input asp-for="CategoryLogo"
+            <input type="file"
+                   name="CategoryLogo"
                    id="logoInput"
-                   class="form-control"
-                   placeholder="Enter category logo url" />
+                   accept="image/*"
+                   hidden
+                   onchange="previewLogo(this)" />
 
         </div>
 
     </div>
 
-
     <!-- PREVIEW -->
-
     <div class="mt-3">
 
         <label class="fw-bold">Preview</label>
@@ -61,15 +65,14 @@
 
             <img id="logoPreview"
                  src="https://via.placeholder.com/120"
-                 class="logo-preview" />
+                 class="logo-preview"
+                 onclick="document.getElementById('logoInput').click()" />
 
         </div>
 
     </div>
 
-
     <!-- ATTRIBUTES -->
-
     <div class="mt-4">
 
         <label class="fw-bold">Attributes</label>
@@ -84,32 +87,32 @@
 
     </div>
 
-
-    <button class="btn btn-primary mt-4">
+    <button type="submit" class="btn btn-primary mt-4">
         Create Category
     </button>
 
 </form>
 
-
 <script>
 
-    // LOGO PREVIEW
-    $("#logoInput").on("input", function () {
+    // PREVIEW FILE (thay vì URL)
+    function previewLogo(input) {
 
-        const url = $(this).val()
+        const file = input.files[0]
+        if (!file) return
 
-        if (url) {
-            $("#logoPreview").attr("src", url)
-        } else {
-            $("#logoPreview").attr("src", "https://via.placeholder.com/120")
+        const reader = new FileReader()
+
+        reader.onload = function (e) {
+            $("#logoPreview").attr("src", e.target.result)
         }
 
-    })
-
+        reader.readAsDataURL(file)
+    }
 
     // ADD ATTRIBUTE
     let attrIndex = 0
+
     $("#addAttributeBtn").click(function () {
 
         const html = `
@@ -118,7 +121,7 @@
             <input name="Attributes[${attrIndex}].AttributeName"
                    class="form-control"
                    placeholder="Attribute name"
-                   required /> 
+                   required />
 
             <button type="button"
                     class="btn btn-danger removeAttr">
@@ -134,23 +137,78 @@
         attrIndex++
     })
 
-
     // REMOVE ATTRIBUTE
     $(document).on("click", ".removeAttr", function () {
 
         $(this).closest(".attribute-item").remove()
-
-        reIndexAttributes() 
+        reIndexAttributes()
+        checkDuplicate()
 
     })
 
-
     function reIndexAttributes() {
         $("#attributeContainer .attribute-item").each(function (index) {
-            $(this).find("input").attr("name", `Attributes[${index}].AttributeName`)
+            $(this).find("input")
+                   .attr("name", `Attributes[${index}].AttributeName`)
         })
 
         attrIndex = $("#attributeContainer .attribute-item").length
         $.validator.unobtrusive.parse("#attributeContainer")
     }
+
+
+        function checkDuplicate() {
+
+        let map = {}
+        let isDuplicate = false
+
+        // xoá lỗi tổng cũ
+        $(".duplicate-error").remove()
+
+        $("input[name*='AttributeName']").each(function () {
+
+            const val = $(this).val().trim().toLowerCase()
+
+            // reset UI
+            $(this).removeClass("is-invalid")
+            $(this).next(".duplicate-field-error").remove()
+
+            if (!val) return
+
+            if (map[val]) {
+                isDuplicate = true
+
+                // highlight input
+                $(this).addClass("is-invalid")
+
+                // thêm lỗi dưới input
+                $(this).after(`
+                    <span class="text-danger duplicate-field-error">
+                        Duplicate attribute
+                    </span>
+                `)
+
+            } else {
+                map[val] = true
+            }
+
+        })
+
+        // lỗi tổng
+        if (isDuplicate) {
+            $("#attributeContainer").prepend(`
+                <div class="text-danger duplicate-error mb-2">
+                    Attributes must be unique
+                </div>
+            `)
+        }
+
+        // giữ logic disable của bạn
+        $("button[type='submit']").prop("disabled", isDuplicate)
+    }
+
+
+    // chạy realtime
+    $(document).on("input", "input[name*='AttributeName']", checkDuplicate)
+
 </script>

@@ -55,55 +55,106 @@ namespace ProductAPI.Controllers
         }
 
 
-       // [Authorize]
+        // [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(Guid id, UpdateCategoryDTOs updateCategoryDTOs)
+        public async Task<IActionResult> PutCategory(
+      Guid id,
+      [FromForm] UpdateCategoryDTOs updateCategoryDTOs)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.Join(", ", errors)
+                });
+            }
 
             try
             {
                 await _categoryService.UpdateCategoryAsync(id, updateCategoryDTOs);
-                return Ok(updateCategoryDTOs);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Category updated successfully"
+                });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message);
+                return Conflict(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 
 
         //[Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostCategory( CreateCategoryDTOs categoryDTOs)
+        public async Task<IActionResult> PostCategory([FromForm] CreateCategoryDTOs categoryDTOs)
         {
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
-           .SelectMany(v => v.Errors)
-           .Select(e => e.ErrorMessage)
-           .ToList();
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-                return BadRequest(errors);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.Join(", ", errors)
+                });
             }
 
             try
             {
                 await _categoryService.AddCategoryAsync(categoryDTOs);
-                return Ok(categoryDTOs);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Category created successfully"
+                });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message); // 409
+                return Conflict(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 

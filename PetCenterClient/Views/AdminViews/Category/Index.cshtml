@@ -6,6 +6,27 @@
     ViewData["Title"] = "Manage Categories";
 }
 
+<style>
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .page-btn {
+        padding: 6px 12px;
+        background: #eee;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+        .page-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+
+</style>
+
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
 
 <div class="page-wrapper">
@@ -194,6 +215,47 @@
     </div>
 
 </div>
+
+@{
+    int pageSize = 10;
+    int totalItems = Model?.Count ?? 0;
+    int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+    int currentPage = ViewBag.CurrentPage ?? 1;
+}
+
+@if (totalPages > 1)
+{
+    <div class="pagination">
+
+        <!-- PREV -->
+        @if (currentPage > 1)
+        {
+            <a class="page-btn"
+               href="@Url.Action("Indexadmin", new { page = currentPage - 1, search = ViewBag.Search })">
+                Prev
+            </a>
+        }
+
+        <!-- NUMBERS -->
+        @for (int i = 1; i <= totalPages; i++)
+        {
+            <a class="page-btn @(i == currentPage ? "active" : "")"
+               href="@Url.Action("Indexadmin", new { page = i, search = ViewBag.Search })">
+                @i
+            </a>
+        }
+
+        <!-- NEXT -->
+        @if (currentPage < totalPages)
+        {
+            <a class="page-btn"
+               href="@Url.Action("Indexadmin", new { page = currentPage + 1, search = ViewBag.Search })">
+                Next
+            </a>
+        }
+
+    </div>
+}
 
 
 <!-- LOADING -->

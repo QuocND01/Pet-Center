@@ -249,13 +249,17 @@
         <div class="pagination">
 
             <!-- Prev -->
-            @if (currentPage > 1)
-            {
-                <a class="page-btn"
-                   href="@Url.Action("Indexadmin", new { page = currentPage - 1 })">
-                    Prev
-                </a>
-            }
+           <a class="page-btn"
+   href="@Url.Action("Indexadmin", new {
+        page = currentPage - 1,
+        search = routeValues.search,
+        minPrice = routeValues.minPrice,
+        maxPrice = routeValues.maxPrice,
+        sortBy = routeValues.sortBy,
+        sortOrder = routeValues.sortOrder
+   })">
+    Prev
+</a>
 
             <!-- Numbers -->
            
@@ -275,15 +279,17 @@
             }
 
             <!-- Next -->
-            @if (currentPage < totalPages)
-            {
-                <a class="page-btn"
-                   href="@Url.Action("Indexadmin", new { page = currentPage + 1 })">
-                    Next
-                </a>
-            }
-
-        </div>
+            <a class="page-btn"
+   href="@Url.Action("Indexadmin", new {
+        page = currentPage + 1,
+        search = routeValues.search,
+        minPrice = routeValues.minPrice,
+        maxPrice = routeValues.maxPrice,
+        sortBy = routeValues.sortBy,
+        sortOrder = routeValues.sortOrder
+   })">
+    Next
+</a>
 
     </div>
 

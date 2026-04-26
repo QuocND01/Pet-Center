@@ -13,11 +13,13 @@ namespace ProductAPI.Service
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper)
+        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper, ICloudinaryService cloudinaryService)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task AddAttribute(CreateCategoryAttributeDTOs attributeValue)
@@ -28,13 +30,56 @@ namespace ProductAPI.Service
 
         public async Task AddCategoryAsync(CreateCategoryDTOs createCategory)
         {
-            bool hasExist = false;
-            hasExist = await _categoryRepository.CheckCategoryExist(createCategory.CategoryName);
-            if (hasExist) {
+
+            if (createCategory.Attributes != null && createCategory.Attributes.Any())
+            {
+                if (createCategory.Attributes.Any(a => string.IsNullOrWhiteSpace(a.AttributeName)))
+                {
+                    throw new InvalidOperationException("Attribute name cannot be empty");
+                }
+
+                var duplicate = createCategory.Attributes
+                    .GroupBy(x => x.AttributeName.Trim().ToLower())
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.First().AttributeName)
+                    .ToList();
+
+                if (duplicate.Any())
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate attributes: {string.Join(", ", duplicate)}"
+                    );
+                }
+            }
+
+            bool hasExist = await _categoryRepository
+                .CheckCategoryExist(createCategory.CategoryName);
+
+            if (hasExist)
+            {
                 throw new InvalidOperationException("Category already exists");
             }
 
             var category = _mapper.Map<Category>(createCategory);
+
+            category.CategoryId = Guid.NewGuid();
+
+            // 👇 xử lý upload ảnh
+            if (createCategory.CategoryLogo != null)
+            {
+                var uploadResult = await _cloudinaryService
+                    .UploadImageAsync(createCategory.CategoryLogo, "categories");
+
+                if (uploadResult == null ||
+                    uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception("Failed to upload category logo");
+                }
+
+                category.CategoryLogo = uploadResult.SecureUrl.ToString();
+                category.PublicId = uploadResult.PublicId;
+            }
+
             await _categoryRepository.AddCategoryAsync(category);
         }
 
@@ -48,12 +93,6 @@ namespace ProductAPI.Service
         {
             return _categoryRepository.GetAllCategory().ProjectTo<ReadCategoryDTOs>(_mapper.ConfigurationProvider);
         }
-
-        //public async Task<IEnumerable<ReadCategoryDTOs>> GetAllCategoryAsync()
-        //{
-        //    var categories = await _categoryRepository.GetAllCategoryAsync();
-        //   return _mapper.Map<IEnumerable<ReadCategoryDTOs>>(categories);
-        //}
 
         public async Task<IEnumerable<ReadCategoryAttributeDTOs>> GetAllCategoryAttributeByCategoryIDAsync(Guid id)
         {
@@ -76,23 +115,62 @@ namespace ProductAPI.Service
             var existingCategory = await _categoryRepository.GetCategoryByIdAsync(id);
 
             if (existingCategory == null)
-                throw new Exception("Category not found");
+                throw new KeyNotFoundException("Category not found");
 
-            bool hasExist = await _categoryRepository.CheckCategoryExist(category.CategoryName);
+            if (category.Attributes != null && category.Attributes.Any())
+            {
+                if (category.Attributes.Any(a => string.IsNullOrWhiteSpace(a.AttributeName)))
+                {
+                    throw new InvalidOperationException("Attribute name cannot be empty");
+                }
+                var duplicate = category.Attributes
+                    .GroupBy(x => x.AttributeName.Trim().ToLower())
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.First().AttributeName)
+                    .ToList();
 
-            if (hasExist && existingCategory.CategoryName != category.CategoryName)
+                if (duplicate.Any())
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate attributes: {string.Join(", ", duplicate)}"
+                    );
+                }
+            }
+
+            bool hasExist = await _categoryRepository
+                .CheckCategoryExist(category.CategoryName);
+
+            if (hasExist &&
+                !string.Equals(existingCategory.CategoryName, category.CategoryName, StringComparison.OrdinalIgnoreCase))
+            {
                 throw new InvalidOperationException("Category already exists");
+            }
 
-            // update category info
             _mapper.Map(category, existingCategory);
 
-            // update attributes
+            if (category.CategoryLogo != null)
+            {
+                if (!string.IsNullOrEmpty(existingCategory.PublicId))
+                {
+                    await _cloudinaryService.DeleteImageAsync(existingCategory.PublicId);
+                }
+                var uploadResult = await _cloudinaryService
+                    .UploadImageAsync(category.CategoryLogo, "categories");
+
+                if (uploadResult == null ||
+                    uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception("Failed to upload category logo");
+                }
+
+                existingCategory.CategoryLogo = uploadResult.SecureUrl.ToString();
+                existingCategory.PublicId = uploadResult.PublicId;
+            }
             if (category.Attributes != null)
             {
                 existingCategory.CategoryAttributes ??= new List<CategoryAttribute>();
 
                 var existingAttrs = existingCategory.CategoryAttributes;
-
                 foreach (var oldAttr in existingAttrs)
                 {
                     if (!category.Attributes.Any(a =>
@@ -121,7 +199,6 @@ namespace ProductAPI.Service
                     }
                 }
             }
-
             await _categoryRepository.UpdateCategoryAsync(existingCategory);
         }
     }

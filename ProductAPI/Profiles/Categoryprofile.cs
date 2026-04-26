@@ -20,8 +20,12 @@ namespace ProductAPI.Profiles
 
             // Update DTO -> Entity
             CreateMap<UpdateCategoryDTOs, Category>()
-                .ForMember(dest => dest.CategoryAttributes,
-                    opt => opt.Ignore()); // update xử lý riêng
+         .ForMember(dest => dest.CategoryAttributes,
+             opt => opt.Ignore()) // update xử lý riêng
+         .ForMember(dest => dest.CategoryLogo,
+             opt => opt.Ignore())
+         .ForMember(dest => dest.PublicId,
+             opt => opt.Ignore());
         }
     }
 }

@@ -17,11 +17,39 @@ namespace PetCenterClient.Services
             _http = http;
             _httpContextAccessor = httpContextAccessor;
         }
+
         public async Task AddBrandAsync(CreateBrandDTOs createBrand)
         {
             AddAuthorizationHeader();
-            var response = await _http.PostAsJsonAsync("product-service/Brands", createBrand);
-            response.EnsureSuccessStatusCode();
+
+            var content = new MultipartFormDataContent();
+
+            // 👇 text
+            content.Add(new StringContent(createBrand.BrandName), "BrandName");
+
+            if (!string.IsNullOrEmpty(createBrand.BrandDescription))
+            {
+                content.Add(new StringContent(createBrand.BrandDescription), "BrandDescription");
+            }
+
+            // 👇 file (phải đúng tên BrandLogo)
+            if (createBrand.BrandLogo != null)
+            {
+                var streamContent = new StreamContent(createBrand.BrandLogo.OpenReadStream());
+                streamContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(createBrand.BrandLogo.ContentType);
+
+                content.Add(streamContent, "BrandLogo", createBrand.BrandLogo.FileName);
+            }
+
+            var response = await _http.PostAsync("product-service/Brands", content);
+
+            var result = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(result);
+            }
         }
 
         public async Task DeleteBrandAsync(Guid? id)
@@ -70,13 +98,40 @@ namespace PetCenterClient.Services
             return await _http.GetFromJsonAsync<ReadBrandDTOs>($"product-service/Brands/{id}");
         }
 
+
         public async Task UpdateBrandAsync(Guid? id, UpdateBrandDTOs updateBrand)
         {
             AddAuthorizationHeader();
-            var response = await _http.PutAsJsonAsync($"product-service/Brands/{id}", updateBrand);
-            response.EnsureSuccessStatusCode();
-        }
 
+            var form = new MultipartFormDataContent();
+
+            form.Add(new StringContent(updateBrand.BrandName), "BrandName");
+
+            if (!string.IsNullOrEmpty(updateBrand.BrandDescription))
+            {
+                form.Add(new StringContent(updateBrand.BrandDescription), "BrandDescription");
+            }
+
+            if (updateBrand.BrandLogo != null)
+            {
+                var stream = updateBrand.BrandLogo.OpenReadStream();
+                var content = new StreamContent(stream);
+
+                content.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(updateBrand.BrandLogo.ContentType);
+
+                form.Add(content, "BrandLogo", updateBrand.BrandLogo.FileName);
+            }
+
+            var response = await _http.PutAsync($"product-service/Brands/{id}", form);
+
+            var result = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(result);
+            }
+        }
 
         private void AddAuthorizationHeader()
         {

@@ -19,12 +19,20 @@ namespace PetCenterClient.Controllers
         public async Task<ActionResult> Index(string? search, int page = 1)
         {
             var result = await _categoryService.GetAllCategoryAsync(search, page);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.Search = search;
+
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
 
         public async Task<ActionResult> Indexadmin(string? search, int page = 1)
         {
             var result = await _categoryService.GetAllCategoryAsync(search, page);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.Search = search;
+
             return View("~/Views/AdminViews/Category/Index.cshtml", result);
         }
 

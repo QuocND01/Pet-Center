@@ -19,7 +19,11 @@ namespace PetCenterClient.Controllers
         // GET: BrandController
         public async Task<ActionResult> Index(string? search, int page = 1)
         {
-           var result = await _brandService.GetAllBrandAsync(search, page);
+            var result = await _brandService.GetAllBrandAsync(search, page);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.Search = search;
+
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
 
@@ -27,6 +31,10 @@ namespace PetCenterClient.Controllers
         public async Task<ActionResult> Indexadmin(string? search, int page = 1)
         {
             var result = await _brandService.GetAllBrandAsync(search, page);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.Search = search;
+
             return View("~/Views/AdminViews/Brand/Index.cshtml", result);
         }
 
@@ -76,22 +84,24 @@ namespace PetCenterClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
                 return PartialView("~/Views/AdminViews/Brand/_Create.cshtml", model);
             }
+
             try
             {
                 await _brandService.AddBrandAsync(model);
+                return Json(new { success = true });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                return PartialView("~/Views/AdminViews/Brand/_Create.cshtml", model);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ModelState.AddModelError("", "Something went wrong: " + ex.Message);
+                return PartialView("~/Views/AdminViews/Brand/_Create.cshtml", model);
             }
-
-            return Json(new { success = true });
         }
 
         // GET: BrandController/Edit/5
