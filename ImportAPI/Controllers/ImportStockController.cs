@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace ImportAPI.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ImportStockController : ControllerBase

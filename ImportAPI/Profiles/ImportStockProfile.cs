@@ -35,7 +35,7 @@ namespace ImportAPI.Profiles
 
             // Create detail
             CreateMap<CreateImportStockDetailDto, ImportStockDetail>()
-                .ForMember(dest => dest.ImportStockDetailId,
+                .ForMember(dest => dest.ImportStockDetailsId,
                     opt => opt.MapFrom(_ => Guid.NewGuid()))
                 .ForMember(dest => dest.StockLeft,
                     opt => opt.MapFrom(src => src.Quantity));

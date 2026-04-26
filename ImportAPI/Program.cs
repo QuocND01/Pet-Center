@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using ImportAPI.Models;
+using ImportAPI.Profiles;
+using ImportAPI.Repository;
+using ImportAPI.Repository.Interface;
+using ImportAPI.Service;
+using ImportAPI.Service.Interface;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using ImportAPI.Repository;
-using ImportAPI.Service;
-using ImportAPI.Profiles;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +17,8 @@ builder.Configuration
                  optional: true,
                  reloadOnChange: true);
 
-
+builder.Services.AddDbContext<PetCenterImportServiceContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 // Add services to the container.
 
 builder.Services.AddControllers();

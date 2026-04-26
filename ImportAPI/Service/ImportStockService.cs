@@ -69,14 +69,12 @@ namespace ImportAPI.Service
 
             // 🔥 map data TRƯỚC khi save
             var items = importStock.ImportStockDetails
-                .Where(x => x.ProductId.HasValue)
-                .GroupBy(x => x.ProductId!.Value)
-                .Select(g => new IncreaseStockItemDto
-                {
-                    ProductId = g.Key,
-                    Quantity = g.Sum(x => x.Quantity)
-                })
-                .ToList();
+            .GroupBy(x => x.ProductId)
+            .Select(g => new IncreaseStockItemDto
+            {
+                ProductId = g.Key,
+                Quantity = g.Sum(x => x.Quantity)
+            }).ToList();
 
             // 🔥 update status
             importStock.Status = ImportStatus.Confirmed;
@@ -141,7 +139,7 @@ namespace ImportAPI.Service
                 s.StockLeft -= take;
                 remain -= take;
 
-                map.Add($"{s.ImportStockDetailId}:{take}");
+                map.Add($"{s.ImportStockDetailsId}:{take}");
             }
 
             if (remain > 0)

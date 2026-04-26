@@ -7,7 +7,7 @@ namespace ImportAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
 
     public class SuppliersController : ControllerBase
     {
