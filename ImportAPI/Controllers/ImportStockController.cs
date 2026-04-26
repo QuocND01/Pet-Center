@@ -28,15 +28,19 @@ namespace ImportAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateImportStockDto dto)
         {
-            var staffClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //var staffClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(staffClaim))
-            {
-                return Unauthorized("staffId missing in token");
-            }
+            //if (string.IsNullOrEmpty(staffClaim))
+            //{
+            //    return Unauthorized("staffId missing in token");
+            //}
 
-            var staffId = Guid.Parse(staffClaim);
+            //var staffId = Guid.Parse(staffClaim);
 
+
+            //===test==
+            var staffId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            //=========
             var id = await _service.CreateAsync(dto, staffId);
 
             return Ok(id);

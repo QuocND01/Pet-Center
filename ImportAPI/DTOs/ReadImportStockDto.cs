@@ -10,6 +10,7 @@ namespace ImportAPI.DTOs
         public Guid SupplierId { get; set; }
         public string SupplierName { get; set; } = null!;
         public Guid StaffId { get; set; }
+        public string InvoiceNumber { get; set; } = null!;
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
         public ImportStatus Status { get; set; } 
@@ -22,7 +23,8 @@ namespace ImportAPI.DTOs
     {
         public Guid SupplierId { get; set; }
         public Guid StaffId { get; set; }
-        
+        public string InvoiceNumber { get; set; } = null!;
+
 
         public List<CreateImportStockDetailDto> Details { get; set; } = new();
     }
@@ -34,7 +36,7 @@ namespace ImportAPI.DTOs
 
         public Guid SupplierId { get; set; }
         public string SupplierName { get; set; } = null!;
-
+        public string InvoiceNumber { get; set; } = null!;
         public Guid StaffId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }

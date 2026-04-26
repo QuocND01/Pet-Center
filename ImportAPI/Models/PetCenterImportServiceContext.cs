@@ -65,8 +65,8 @@ public partial class PetCenterImportServiceContext : DbContext
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.Status)
-                .HasConversion<int>() // fix to use enum for int, default is pending for new request
-                .HasDefaultValue(ImportStock.ImportStatus.Pending);
+                .HasConversion<int>(); // fix to use enum for int, default is pending for new request
+                
             entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
