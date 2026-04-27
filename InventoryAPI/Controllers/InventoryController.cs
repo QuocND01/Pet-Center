@@ -3,6 +3,7 @@ using InventoryAPI.Models;
 using InventoryAPI.Service.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace InventoryAPI.Controllers
 {
@@ -18,10 +19,27 @@ namespace InventoryAPI.Controllers
         }
 
         [HttpPost("stocks")]
-        public async Task<ActionResult<IEnumerable<ProductInventoryDTO>>> GetProductStocks([FromBody] List<Guid> productIds)
+        public async Task<ActionResult<IEnumerable<ProductQuantityDTO>>> GetProductStocks([FromBody] List<Guid> productIds)
         {
             var stocks = await _inventoryService.GetProductStockAsync(productIds);
             return Ok(stocks);
+        }
+
+        // View Inventory + Search (OData)
+        [HttpGet]
+        [EnableQuery]
+        public IActionResult Get()
+        {
+            return Ok(_inventoryService.GetInventories());
+        }
+
+        // View Inventory by Id
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var data = await _inventoryService.GetInventoryById(id);
+            if (data == null) return NotFound();
+            return Ok(data);
         }
     }
 }
