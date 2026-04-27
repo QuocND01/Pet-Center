@@ -4,6 +4,9 @@ namespace InventoryAPI.Service.Interface
 {
     public interface IInventoryService
     {
-        Task<IEnumerable<ProductInventoryDTO>> GetProductStockAsync(List<Guid> productIds);
+        Task<IEnumerable<ProductQuantityDTO>> GetProductStockAsync(List<Guid> productIds);
+
+        IQueryable<ReadInventoryDto> GetInventories();
+        Task<ReadInventoryDto?> GetInventoryById(Guid id);
     }
 }

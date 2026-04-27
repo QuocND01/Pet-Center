@@ -6,17 +6,26 @@ namespace InventoryAPI.Repository
 {
     public class InventoryRepository : IInventoryRepository
     {
-        private readonly PetCenterInventoryServiceContext _db;
+        private readonly PetCenterInventoryServiceContext _context;
 
-        public InventoryRepository(PetCenterInventoryServiceContext db)
+        public InventoryRepository(PetCenterInventoryServiceContext context)
         {
-            _db = db;
+            _context = context;
         }
         public async Task<List<Inventory>> GetByProductIds(List<Guid> productIds)
         {
-            return await _db.Inventories
+            return await _context.Inventories
                 .Where(x => productIds.Contains((Guid)x.ProductId))
                 .ToListAsync();
+        }
+        public IQueryable<Inventory> GetAll()
+        {
+            return _context.Inventories.AsQueryable();
+        }
+
+        public async Task<Inventory?> GetByIdAsync(Guid id)
+        {
+            return await _context.Inventories.FindAsync(id);
         }
     }
 }

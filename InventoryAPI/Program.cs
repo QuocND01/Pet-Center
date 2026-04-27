@@ -104,7 +104,14 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<PetCenterInventoryServiceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
-
+builder.Services.AddControllers()
+    .AddOData(opt => opt
+        .Select()
+        .Filter()
+        .OrderBy()
+        .Expand()
+        .Count()
+        .SetMaxTop(100));
 
 // Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<InventoryProfile>());
@@ -125,6 +132,8 @@ builder.Services.AddCors(options =>
 // Đăng ký Service và Repository
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IInventoryTransactionRepository, InventoryTransactionRepository>();
+builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionService>();
 
 builder.Services.AddHttpClient();
 
