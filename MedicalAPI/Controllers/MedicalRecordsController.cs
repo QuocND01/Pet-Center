@@ -10,7 +10,7 @@ using System.Globalization;
 namespace MedicalAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/medical-records")]
+[Route("api/medical-records")]
 //[Authorize]
 public class MedicalRecordsController : ControllerBase
 {
@@ -35,7 +35,7 @@ public class MedicalRecordsController : ControllerBase
     // ─────────────────────────────────────────────
 
     /// <summary>
-    /// GET /api/v1/medical-records
+    /// GET /api/medical-records
     /// Supports OData: $filter, $select, $orderby, $top, $skip, $count
     /// </summary>
     [HttpGet]
@@ -60,7 +60,7 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>GET /api/v1/medical-records/{id}</summary>
+    /// <summary>GET /api/medical-records/{id}</summary>
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -79,7 +79,7 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>GET /api/v1/medical-records/by-appointment/{appointmentId}</summary>
+    /// <summary>GET /api/medical-records/by-appointment/{appointmentId}</summary>
     [HttpGet("by-appointment/{appointmentId:guid}")]
     public async Task<IActionResult> GetByAppointmentId(Guid appointmentId)
     {
@@ -94,7 +94,7 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>POST /api/v1/medical-records</summary>
+    /// <summary>POST /api/medical-records</summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] MedicalRecordCreateDto dto)
     {
@@ -124,7 +124,7 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>PUT /api/v1/medical-records/{id}</summary>
+    /// <summary>PUT /api/medical-records/{id}</summary>
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] MedicalRecordUpdateDto dto)
     {
@@ -153,7 +153,7 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>PATCH /api/v1/medical-records/{id}/status</summary>
+    /// <summary>PATCH /api/medical-records/{id}/status</summary>
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] MedicalRecordStatusUpdateDto dto)
     {
@@ -182,7 +182,7 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>DELETE /api/v1/medical-records/{id} — Soft delete (set status = Draft)</summary>
+    /// <summary>DELETE /api/medical-records/{id} — Soft delete (set status = Draft)</summary>
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -205,7 +205,7 @@ public class MedicalRecordsController : ControllerBase
     // Prescription Items — nested under record
     // ─────────────────────────────────────────────
 
-    /// <summary>GET /api/v1/medical-records/{recordId}/prescriptions</summary>
+    /// <summary>GET /api/medical-records/{recordId}/prescriptions</summary>
     [HttpGet("{recordId:guid}/prescriptions")]
     public async Task<IActionResult> GetPrescriptions(Guid recordId)
     {
@@ -224,7 +224,7 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>POST /api/v1/medical-records/{recordId}/prescriptions</summary>
+    /// <summary>POST /api/medical-records/{recordId}/prescriptions</summary>
     [HttpPost("{recordId:guid}/prescriptions")]
     public async Task<IActionResult> AddPrescription(Guid recordId, [FromBody] PrescriptionItemCreateDto dto)
     {
@@ -258,8 +258,8 @@ public class MedicalRecordsController : ControllerBase
     // Prescription Items — standalone
     // ─────────────────────────────────────────────
 
-    /// <summary>GET /api/v1/prescriptions/{id}</summary>
-    [HttpGet("/api/v1/prescriptions/{id:guid}", Name = "GetPrescriptionById")]
+    /// <summary>GET /api/prescriptions/{id}</summary>
+    [HttpGet("/api/prescriptions/{id:guid}", Name = "GetPrescriptionById")]
     public async Task<IActionResult> GetPrescriptionById(Guid id)
     {
         try
@@ -277,8 +277,8 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>PUT /api/v1/prescriptions/{id}</summary>
-    [HttpPut("/api/v1/prescriptions/{id:guid}")]
+    /// <summary>PUT /api/prescriptions/{id}</summary>
+    [HttpPut("/api/prescriptions/{id:guid}")]
     public async Task<IActionResult> UpdatePrescription(Guid id, [FromBody] PrescriptionItemUpdateDto dto)
     {
         if (!ModelState.IsValid)
@@ -306,8 +306,8 @@ public class MedicalRecordsController : ControllerBase
         }
     }
 
-    /// <summary>DELETE /api/v1/prescriptions/{id}</summary>
-    [HttpDelete("/api/v1/prescriptions/{id:guid}")]
+    /// <summary>DELETE /api/prescriptions/{id}</summary>
+    [HttpDelete("/api/prescriptions/{id:guid}")]
     public async Task<IActionResult> DeletePrescription(Guid id)
     {
         try

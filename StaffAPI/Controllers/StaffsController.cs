@@ -12,7 +12,7 @@ namespace StaffAPI.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 public class StaffsController : ODataController
 {
     private readonly IStaffService _staffService;

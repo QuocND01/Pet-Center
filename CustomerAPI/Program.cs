@@ -24,6 +24,7 @@ builder.Configuration
 // ── OData model builder ───────────────────────────────────────────────────
 var odataBuilder = new ODataConventionModelBuilder();
 odataBuilder.EntitySet<Customer>("Customers");
+odataBuilder.EntitySet<Pet>("Pets");
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -75,6 +76,7 @@ builder.Services.AddDbContext<PetCenterCustomerServiceContext>(options =>
 
 // ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IPetRepository, PetRepository>();
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
@@ -84,9 +86,14 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IPetService, PetService>();
 
 // ── 4. AutoMapper ─────────────────────────────────────────────────────────────
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CustomerMappingProfile>());
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<CustomerMappingProfile>();
+    cfg.AddProfile<PetMappingProfile>();
+});
 
 
 // Google settings
