@@ -1,4 +1,6 @@
-﻿namespace InventoryAPI.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace InventoryAPI.DTOs
 {
     public class ProductQuantityDTO
     {
@@ -7,6 +9,7 @@
     }
     public class ReadInventoryDto
     {
+        [Key]
         public Guid InventoryId { get; set; }
         public Guid? ProductId { get; set; }
         public int QuantityAvailable { get; set; }
@@ -14,6 +17,7 @@
     }
     public class ReadTransactionDto
     {
+        [Key]
         public Guid TransactionId { get; set; }
         public Guid InventoryId { get; set; }
         public int QuantityChange { get; set; }

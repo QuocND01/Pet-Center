@@ -15,9 +15,9 @@ namespace InventoryAPI.Controllers
             _service = service;
         }
 
-        // View all transactions (OData)
+        
         [HttpGet]
-        [EnableQuery]
+        
         public IActionResult Get()
         {
             return Ok(_service.GetTransactions());
