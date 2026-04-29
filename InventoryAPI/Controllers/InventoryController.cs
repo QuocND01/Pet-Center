@@ -25,9 +25,9 @@ namespace InventoryAPI.Controllers
             return Ok(stocks);
         }
 
-        // View Inventory + Search (OData)
+        
         [HttpGet]
-        [EnableQuery]
+        
         public IActionResult Get()
         {
             return Ok(_inventoryService.GetInventories());
