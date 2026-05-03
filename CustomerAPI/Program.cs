@@ -77,6 +77,7 @@ builder.Services.AddDbContext<PetCenterCustomerServiceContext>(options =>
 // ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IPetRepository, PetRepository>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
@@ -87,12 +88,14 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IPetService, PetService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 
 // ── 4. AutoMapper ─────────────────────────────────────────────────────────────
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<CustomerMappingProfile>();
     cfg.AddProfile<PetMappingProfile>();
+    cfg.AddProfile<AddressProfile>();
 });
 
 
