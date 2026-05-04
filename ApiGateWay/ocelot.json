@@ -183,13 +183,13 @@
 
         {
             "UpstreamPathTemplate": "/voucher-service/{everything}",
-            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "PATCH" ],
             "DownstreamPathTemplate": "/api/{everything}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
                 {
                     "Host": "localhost",
-                    "Port": 7149
+                    "Port": 7217
                 }
             ]
         },
