@@ -6,201 +6,65 @@ namespace PetCenterClient.Controllers
 {
     public class FeedbackController : Controller
     {
-        private readonly IFeedbackService _service;
-        private readonly IOrderServiceClient _orderService;
-        private readonly IOrderDetailServiceClient _detailService;
+        private readonly IFeedbackService _feedbackService;
+        private readonly IProductService _productService;
 
-        public FeedbackController(IFeedbackService service, IOrderServiceClient orderService, IOrderDetailServiceClient detailService)
+        public FeedbackController(
+            IFeedbackService feedbackService,
+            IProductService productService)
         {
-            _service = service;
-            _orderService = orderService;
-            _detailService = detailService;
+            _feedbackService = feedbackService;
+            _productService = productService;
         }
 
-        private Guid? GetUserIdFromToken()
+        // GET: Feedback/CheckOrderFeedback?orderId=xxx
+        // AJAX endpoint để kiểm tra order đã feedback chưa
+        [HttpGet]
+        public async Task<IActionResult> CheckOrderFeedback(Guid orderId)
         {
-            var token = HttpContext.Session.GetString("JWT");
-            if (string.IsNullOrEmpty(token))
-                return null;
-
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
-
-            var userId = jwt.Claims
-                .FirstOrDefault(c =>
-                    c.Type == "sub" ||
-                    c.Type == "nameid" ||
-                    c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
-                ?.Value;
-
-            if (Guid.TryParse(userId, out var guid))
-                return guid;
-
-            return null;
+            var hasFeedback = await _feedbackService.HasFeedbackForOrderAsync(orderId);
+            return Json(new { success = true, hasFeedback });
         }
 
-        // Feedback
-        public async Task<IActionResult> Index()
+        // GET: Feedback/GetOrderFeedbacks?orderId=xxx
+        // AJAX endpoint để lấy danh sách feedback của order
+        [HttpGet]
+        public async Task<IActionResult> GetOrderFeedbacks(Guid orderId)
         {
-            return await AdminList();
+            var feedbacks = await _feedbackService.GetFeedbacksByOrderIdAsync(orderId);
+            return Json(new { success = true, data = feedbacks });
         }
 
-        public async Task<IActionResult> AdminList()
-        {
-            var role = HttpContext.Session.GetString("Role");
-
-            if (role != "Admin" && role != "Staff")
-                return RedirectToAction("AdminLogin", "Auth");
-
-            var feedbacks = await _service.GetAllAsync();
-
-            return View("~/Views/AdminViews/Feedback/List.cshtml", feedbacks);
-        }
-
-        public async Task<IActionResult> Detail(Guid id)
-        {
-            var feedback = await _service.GetDetailAsync(id);
-
-            if (feedback == null)
-                return NotFound();
-
-            return View("~/Views/AdminViews/Feedback/Detail.cshtml", feedback);
-        }
-
-        public async Task<IActionResult> Toggle(Guid id)
-        {
-            await _service.ToggleVisibilityAsync(id);
-
-            return RedirectToAction(nameof(AdminList));
-        }
-
+        // POST: Feedback/CreateBulk
+        // AJAX endpoint để submit feedback nhiều sản phẩm
         [HttpPost]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> CreateBulk([FromBody] CreateBulkFeedbackDto dto)
         {
-            await _service.DeleteAsync(id);
+            if (dto?.Feedbacks == null || dto.Feedbacks.Count == 0)
+                return Json(new { success = false, message = "Vui lòng nhập đánh giá." });
 
-            return RedirectToAction(nameof(AdminList));
+            var success = await _feedbackService.CreateBulkFeedbackAsync(dto);
+
+            if (success)
+                return Json(new { success = true, message = "Đánh giá của bạn đã được gửi thành công!" });
+
+            return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
         }
 
-        public async Task<IActionResult> MyFeedback(Guid customerId)
-        {
-            var feedbacks = await _service.GetByCustomerAsync(customerId);
-
-            return View("~/Views/CustomerViews/Feedback/MyFeedback.cshtml", feedbacks);
-        }
-
-        public IActionResult Create(Guid productId)
-        {
-            var dto = new CreateFeedbackDTO
-            {
-                ProductId = productId
-            };
-
-            return View("~/Views/CustomerViews/Feedback/Create.cshtml", dto);
-        }
-
-       
+        // POST: Feedback/Update
+        // AJAX endpoint để cập nhật feedback
         [HttpPost]
-        public async Task<IActionResult> Create(CreateFeedbackDTO dto)
+        public async Task<IActionResult> Update([FromBody] UpdateProductFeedbackDto dto)
         {
-            var customerId = GetUserIdFromToken();
-            if (customerId == null)
-                return RedirectToAction("Login", "Auth");
+            if (dto == null || dto.Rating < 1 || dto.Rating > 5)
+                return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
 
-            dto.CustomerId = customerId.Value;
+            var success = await _feedbackService.UpdateFeedbackAsync(dto);
 
-            var orders = await _orderService.GetAllAsync();
+            if (success)
+                return Json(new { success = true, message = "Cập nhật đánh giá thành công!" });
 
-            var hasBought = false;
-
-            Console.WriteLine("ProductId: " + dto.ProductId);
-            Console.WriteLine("CustomerId: " + dto.CustomerId);
-
-            foreach (var order in orders.Where(o => o.CustomerId == customerId.Value && o.Status == 4))
-            {
-                var details = await _detailService.GetByOrderIdAsync(order.OrderId);
-
-                if (details.Any(d => d.ProductId == dto.ProductId))
-                {
-                    hasBought = true;
-
-                    dto.OrderId = order.OrderId;
-
-                    break;
-                }
-            }
-
-            //if (!hasBought)
-            //{
-            //    TempData["Error"] = "You  must purchase this product before writting a feedback!";
-            //    return RedirectToAction("DetailsForcustomer", "Products", new { id = dto.ProductId });
-            //}
-
-            if (!ModelState.IsValid)
-            {
-                return View("~/Views/CustomerViews/Feedback/Create.cshtml", dto);
-            }
-
-            try
-            {
-                await _service.CreateAsync(dto);
-
-                TempData["Success"] = "Feedback submitted successfully!";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = ex.Message;
-            }
-
-            return RedirectToAction("Index", "Products");
-        }
-
-
-        public async Task<IActionResult> List(
-    int? rating,
-    Guid? productId,
-    bool? isVisible,
-    DateTime? fromDate,
-    DateTime? toDate)
-        {
-            var feedbacks = await _service.FilterAsync(
-                rating, productId, isVisible, fromDate, toDate);
-
-            return View("~/Views/AdminViews/Feedback/List.cshtml", feedbacks);
-        }
-
-
-        // Reply
-
-        public async Task<IActionResult> Reply(Guid id)
-        {
-            var feedback = await _service.GetDetailAsync(id);
-
-            return View("~/Views/AdminViews/Feedback/Reply.cshtml", feedback);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Reply(Guid feedbackId, string reply)
-        {
-            var staffId = GetUserIdFromToken();
-            if (staffId == null)
-                return RedirectToAction("AdminLogin", "Auth");
-
-            await _service.ReplyAsync(feedbackId, staffId.Value, reply);
-
-            return RedirectToAction(nameof(AdminList));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteReply(Guid id)
-        {
-            var staffId = GetUserIdFromToken();
-            if (staffId == null)
-                return RedirectToAction("AdminLogin", "Auth");
-
-            await _service.DeleteReplyAsync(id);
-
-            return RedirectToAction(nameof(AdminList));
+            return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
         }
     }
 }

@@ -383,5 +383,17 @@ namespace ProductAPI.Service
         //    var product = await _productRepository.GetProductByIdIncludeDeletedAsync(id);
         //    return _mapper.Map<ReadProductDTO>(product);
         //}
+
+        //Code Hồ mới thêm
+        public async Task<ProductInternalDto?> GetInternalAsync(Guid productId)
+        {
+            var product = await _productRepository.GetByIdInternalAsync(productId);
+            if (product == null) return null;
+            return new ProductInternalDto
+            {
+                ProductName = product.ProductName,
+                ImageUrl = product.Images.FirstOrDefault()?.ImageUrl
+            };
+        }
     }
 }
