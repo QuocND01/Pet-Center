@@ -1,104 +1,1622 @@
-﻿@model List<PetCenterClient.DTOs.VoucherDTO>
-@{
+﻿@{
     ViewData["Title"] = "Voucher Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var currentRole = Context.Session.GetString("Role");
 }
 
-<div class="container mt-4">
+<style>
+    /* ── PAGE VARS ── */
+    :root {
+        --v-gold: #f59e0b;
+        --v-gold-light: #fef3c7;
+        --v-gold-dark: #d97706;
+        --v-green: #2ecc71;
+        --v-red: #ef4444;
+        --v-red-light: #fee2e2;
+        --v-blue: #3b82f6;
+        --v-blue-light: #dbeafe;
+        --v-purple: #8b5cf6;
+        --v-purple-light: #ede9fe;
+        --radius: 14px;
+    }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>🎟 Voucher Management</h2>
-        <a asp-action="Create" class="btn btn-success">+ Create Voucher</a>
+    /* ── STAT CARDS ── */
+    .voucher-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .vstat-card {
+        background: #fff;
+        border-radius: var(--radius);
+        padding: 20px 22px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border: 1.5px solid var(--border);
+        transition: box-shadow .2s, transform .2s;
+    }
+
+        .vstat-card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,.08);
+            transform: translateY(-2px);
+        }
+
+    .vstat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .vstat-label {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--muted);
+        margin-bottom: 3px;
+    }
+
+    .vstat-val {
+        font-size: 26px;
+        font-weight: 900;
+        color: var(--ink);
+        line-height: 1;
+        font-family: var(--font-head);
+    }
+
+    /* ── MAIN CARD ── */
+    .voucher-card {
+        background: #fff;
+        border-radius: var(--radius);
+        border: 1.5px solid var(--border);
+        overflow: hidden;
+    }
+
+    .voucher-card-header {
+        padding: 20px 24px;
+        border-bottom: 1.5px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .voucher-card-title {
+        font-family: var(--font-head);
+        font-size: 18px;
+        font-weight: 900;
+        color: var(--ink);
+        flex: 1;
+    }
+
+    /* ── SEARCH / FILTER BAR ── */
+    .vfilter-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .vsearch-wrap {
+        position: relative;
+    }
+
+        .vsearch-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+    .vsearch-input {
+        border: 1.5px solid var(--border);
+        border-radius: 100px;
+        padding: 8px 14px 8px 36px;
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 600;
+        width: 220px;
+        outline: none;
+        transition: border .2s;
+    }
+
+        .vsearch-input:focus {
+            border-color: var(--v-gold);
+        }
+
+    .vfilter-select {
+        border: 1.5px solid var(--border);
+        border-radius: 100px;
+        padding: 8px 16px;
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 600;
+        outline: none;
+        cursor: pointer;
+        background: #fff;
+        transition: border .2s;
+    }
+
+        .vfilter-select:focus {
+            border-color: var(--v-gold);
+        }
+
+    /* ── ADD BUTTON ── */
+    .btn-add-voucher {
+        background: linear-gradient(135deg, var(--v-gold), var(--v-gold-dark));
+        color: #fff;
+        border: none;
+        border-radius: 100px;
+        padding: 9px 20px;
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        transition: opacity .2s, transform .15s;
+        white-space: nowrap;
+    }
+
+        .btn-add-voucher:hover {
+            opacity: .9;
+            transform: translateY(-1px);
+        }
+
+    /* ── TABLE ── */
+    .voucher-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+    }
+
+        .voucher-table thead th {
+            background: #f9fafb;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+            border-bottom: 1.5px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .voucher-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background .15s;
+        }
+
+            .voucher-table tbody tr:hover {
+                background: #fffbf2;
+            }
+
+            .voucher-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .voucher-table td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            color: var(--ink2);
+        }
+
+    /* ── VOUCHER CODE BADGE ── */
+    .voucher-code-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--v-gold-light);
+        color: var(--v-gold-dark);
+        border: 1.5px dashed var(--v-gold);
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+        .voucher-code-badge:hover {
+            background: #fde68a;
+        }
+
+    /* ── DISCOUNT PILL ── */
+    .discount-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .discount-pill-pct {
+        background: var(--v-purple-light);
+        color: var(--v-purple);
+    }
+
+    /* ── STATUS BADGE ── */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-inactive {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .status-expired {
+        background: var(--v-red-light);
+        color: #991b1b;
+    }
+
+    /* ── USAGE BAR ── */
+    .usage-wrap {
+        min-width: 110px;
+    }
+
+    .usage-text {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 4px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .usage-bar-bg {
+        background: #f3f4f6;
+        border-radius: 100px;
+        height: 6px;
+        overflow: hidden;
+    }
+
+    .usage-bar-fill {
+        height: 100%;
+        border-radius: 100px;
+        background: linear-gradient(90deg, var(--v-green), #16a34a);
+        transition: width .4s ease;
+    }
+
+        .usage-bar-fill.warn {
+            background: linear-gradient(90deg, var(--v-gold), var(--v-gold-dark));
+        }
+
+        .usage-bar-fill.danger {
+            background: linear-gradient(90deg, var(--v-red), #dc2626);
+        }
+
+    /* ── ACTION BTNS ── */
+    .action-btns {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all .15s;
+        color: var(--muted);
+    }
+
+        .btn-icon:hover.edit {
+            border-color: var(--v-blue);
+            background: var(--v-blue-light);
+            color: var(--v-blue);
+        }
+
+        .btn-icon:hover.delete {
+            border-color: var(--v-red);
+            background: var(--v-red-light);
+            color: var(--v-red);
+        }
+
+        .btn-icon:hover.toggle {
+            border-color: var(--v-green);
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted);
+    }
+
+        .empty-state i {
+            font-size: 48px;
+            opacity: .3;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    /* ── PAGINATION ── */
+    .vpagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-top: 1.5px solid var(--border);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .vpagination-btns {
+        display: flex;
+        gap: 4px;
+    }
+
+    .vpag-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        color: var(--ink2);
+        transition: all .15s;
+    }
+
+        .vpag-btn:hover, .vpag-btn.active {
+            background: var(--v-gold);
+            border-color: var(--v-gold);
+            color: #fff;
+        }
+
+        .vpag-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+    /* ── MODAL OVERLAY ── */
+    .vmodal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15,31,15,.5);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+        .vmodal-overlay.open {
+            display: flex;
+            animation: fadeIn .2s ease;
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0
+        }
+
+        to {
+            opacity: 1
+        }
+    }
+
+    .vmodal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 620px;
+        box-shadow: 0 24px 80px rgba(0,0,0,.2);
+        animation: slideUp .25s ease;
+        overflow: hidden;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translateY(24px);
+            opacity: 0
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1
+        }
+    }
+
+    .vmodal-header {
+        padding: 22px 26px 18px;
+        border-bottom: 1.5px solid var(--border);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+
+    .vmodal-title {
+        font-family: var(--font-head);
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--ink);
+        line-height: 1.2;
+    }
+
+    .vmodal-subtitle {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    .vmodal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border);
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        color: var(--muted);
+        transition: all .15s;
+        flex-shrink: 0;
+    }
+
+        .vmodal-close:hover {
+            border-color: var(--v-red);
+            background: var(--v-red-light);
+            color: var(--v-red);
+        }
+
+    .vmodal-body {
+        padding: 22px 26px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .vmodal-footer {
+        padding: 16px 26px;
+        border-top: 1.5px solid var(--border);
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-shrink: 0;
+    }
+
+    /* ── SERVER ERROR BANNER ── */
+    .server-error-banner {
+        display: none;
+        background: var(--v-red-light);
+        border: 1.5px solid var(--v-red);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #991b1b;
+        margin-top: 16px;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .server-error-banner.show {
+            display: flex;
+            animation: fadeIn .2s ease;
+        }
+
+    /* ── FORM SECTIONS ── */
+    .form-section {
+        margin-bottom: 22px;
+    }
+
+    .form-section-title {
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--muted);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .form-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+        .form-row.single {
+            grid-template-columns: 1fr;
+        }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .form-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--ink2);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .form-label .req {
+            color: var(--v-red);
+            font-size: 14px;
+        }
+
+        .form-label .hint {
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 11px;
+            margin-left: auto;
+        }
+
+    .form-control-v {
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 600;
+        outline: none;
+        transition: border .2s, box-shadow .2s;
+        width: 100%;
+        background: #fff;
+        color: var(--ink);
+    }
+
+        .form-control-v:focus {
+            border-color: var(--v-gold);
+            box-shadow: 0 0 0 3px rgba(245,158,11,.12);
+        }
+
+        .form-control-v.error {
+            border-color: var(--v-red);
+        }
+
+    .form-help {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--muted);
+        margin-top: 1px;
+    }
+
+    .form-error {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--v-red);
+        margin-top: 1px;
+        display: none;
+    }
+
+    /* ── SMART PREVIEW ── */
+    .smart-preview {
+        background: linear-gradient(135deg, #fffbf2, #fff7e6);
+        border: 1.5px solid var(--v-gold);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 6px;
+        display: none;
+    }
+
+        .smart-preview.show {
+            display: block;
+            animation: fadeIn .2s ease;
+        }
+
+    .preview-title {
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--v-gold-dark);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .preview-item {
+        background: #fff;
+        border-radius: 8px;
+        padding: 10px 12px;
+        border: 1px solid rgba(245,158,11,.2);
+    }
+
+    .preview-item-label {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 3px;
+    }
+
+    .preview-item-val {
+        font-size: 14px;
+        font-weight: 900;
+        color: var(--ink);
+    }
+
+        .preview-item-val.positive {
+            color: #065f46;
+        }
+
+        .preview-item-val.warning {
+            color: var(--v-gold-dark);
+        }
+
+        .preview-item-val.danger {
+            color: var(--v-red);
+        }
+
+    .preview-warn {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background: var(--v-red-light);
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #991b1b;
+        display: none;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .preview-warn.show {
+            display: flex;
+        }
+
+    /* ── MODAL SUBMIT BUTTON ── */
+    .btn-modal-submit {
+        background: linear-gradient(135deg, var(--v-gold), var(--v-gold-dark));
+        color: #fff;
+        border: none;
+        border-radius: 100px;
+        padding: 10px 26px;
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: opacity .2s, transform .15s;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+        .btn-modal-submit:hover {
+            opacity: .9;
+            transform: translateY(-1px);
+        }
+
+        .btn-modal-submit:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .btn-modal-cancel {
+        background: #f3f4f6;
+        color: var(--ink2);
+        border: none;
+        border-radius: 100px;
+        padding: 10px 20px;
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+        .btn-modal-cancel:hover {
+            background: #e5e7eb;
+        }
+
+    /* ── DELETE CONFIRM ── */
+    .delete-modal .vmodal {
+        max-width: 420px;
+    }
+
+    .delete-icon-wrap {
+        width: 64px;
+        height: 64px;
+        background: var(--v-red-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: var(--v-red);
+        margin: 0 auto 16px;
+    }
+
+    /* ── CODE GENERATOR ── */
+    .code-gen-wrap {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-gen-code {
+        border: 1.5px solid var(--v-gold);
+        background: var(--v-gold-light);
+        color: var(--v-gold-dark);
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all .15s;
+    }
+
+        .btn-gen-code:hover {
+            background: var(--v-gold);
+            color: #fff;
+        }
+
+    /* ── LOADING SPINNER ── */
+    .spin {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .6s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg)
+        }
+    }
+
+    /* ── RESPONSIVE ── */
+    @@media (max-width: 900px) {
+        .voucher-stat-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+
+        .preview-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .voucher-stat-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<!-- ══ STAT CARDS ════════════════════════════════════════════ -->
+<div class="voucher-stat-grid">
+    <div class="vstat-card">
+        <div class="vstat-icon" style="background:#fef3c7"><span style="font-size:22px">🎟️</span></div>
+        <div>
+            <div class="vstat-label">Total Vouchers</div>
+            <div class="vstat-val" id="statTotal">—</div>
+        </div>
+    </div>
+    <div class="vstat-card">
+        <div class="vstat-icon" style="background:#d1fae5"><span style="font-size:22px">✅</span></div>
+        <div>
+            <div class="vstat-label">Active</div>
+            <div class="vstat-val" id="statActive">—</div>
+        </div>
+    </div>
+    <div class="vstat-card">
+        <div class="vstat-icon" style="background:#fee2e2"><span style="font-size:22px">⏰</span></div>
+        <div>
+            <div class="vstat-label">Expired</div>
+            <div class="vstat-val" id="statExpired">—</div>
+        </div>
+    </div>
+    <div class="vstat-card">
+        <div class="vstat-icon" style="background:#ede9fe"><span style="font-size:22px">📊</span></div>
+        <div>
+            <div class="vstat-label">Avg. Discount</div>
+            <div class="vstat-val" id="statAvgDiscount">—</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MAIN TABLE CARD ══════════════════════════════════════ -->
+<div class="voucher-card">
+    <div class="voucher-card-header">
+        <div class="voucher-card-title">
+            <i class="bi bi-ticket-perforated me-2" style="color:var(--v-gold)"></i>Voucher List
+        </div>
+        <div class="vfilter-bar">
+            <div class="vsearch-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" class="vsearch-input" id="searchInput"
+                       placeholder="Search code, description…" oninput="filterVouchers()" />
+            </div>
+            <select class="vfilter-select" id="filterStatus" onchange="filterVouchers()">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="expired">Expired</option>
+            </select>
+            <button class="btn-add-voucher" onclick="openAddModal()">
+                <i class="bi bi-plus-circle-fill"></i> Add Voucher
+            </button>
+        </div>
     </div>
 
-    <form method="get" class="mb-3 d-flex gap-2">
-
-        <input type="text" name="code"
-               value="@Context.Request.Query["code"]"
-               class="form-control"
-               placeholder="Enter voucher code..." />
-
-        <button class="btn btn-primary">Search</button>
-
-        <a asp-action="Index" class="btn btn-secondary">Clear</a>
-
-    </form>
-
-    <div class="table-responsive shadow-sm">
-        <table class="table table-hover border">
-
-            <thead class="table-dark text-center">
+    <div style="overflow-x:auto">
+        <table class="voucher-table">
+            <thead>
                 <tr>
                     <th>Code</th>
                     <th>Discount</th>
-                    <th>Expire</th>
                     <th>Min Order</th>
+                    <th>Max Discount</th>
+                    <th>Usage</th>
+                    <th>Expires</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th style="text-align:center">Actions</th>
                 </tr>
             </thead>
-
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
-                            No vouchers found
-                        </td>
-                    </tr>
-                }
-
-                @foreach (var v in Model)
-                {
-                    <tr class="text-center align-middle">
-
-                        <td>@v.Code</td>
-                        <td>@v.DiscountPercent %</td>
-                        <td>@v.ExpiredDate?.ToString("dd/MM/yyyy")</td>
-                        <td>@v.MinOrderAmount</td>
-
-                        <td>
-                            @if (v.IsActive == true)
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Inactive</span>
-                            }
-                        </td>
-
-                        <td>
-                            <div class="d-flex gap-2 justify-content-center">
-
-                                <a asp-action="Detail"
-                                   asp-route-id="@v.VoucherId"
-                                   class="btn btn-sm btn-info text-white">
-                                    View
-                                </a>
-
-                                <a asp-action="Edit"
-                                   asp-route-id="@v.VoucherId"
-                                   class="btn btn-sm btn-warning">
-                                    Edit
-                                </a>
-
-                                <form asp-action="Delete"
-                                      asp-route-id="@v.VoucherId"
-                                      method="post">
-                                    <button class="btn btn-sm btn-danger"
-                                            onclick="return confirm('Delete?')">
-                                        Delete
-                                    </button>
-                                </form>
-
-                            </div>
-                        </td>
-
-                    </tr>
-                }
+            <tbody id="voucherTbody">
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;opacity:.4"></i>
+                            <p>Loading vouchers…</p>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
-
         </table>
     </div>
+
+    <div class="vpagination">
+        <span id="paginationInfo">Showing 0 of 0</span>
+        <div class="vpagination-btns" id="paginationBtns"></div>
+    </div>
 </div>
+
+<!-- ══ ADD / EDIT MODAL ══════════════════════════════════════ -->
+<div class="vmodal-overlay" id="voucherModal">
+    <div class="vmodal">
+        <div class="vmodal-header">
+            <div>
+                <div class="vmodal-title" id="modalTitle">Add New Voucher</div>
+                <div class="vmodal-subtitle" id="modalSubtitle">Fill in the details below.</div>
+            </div>
+            <button class="vmodal-close" onclick="closeModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <div class="vmodal-body">
+            <input type="hidden" id="editVoucherId" />
+
+            <!-- SECTION 1: Basic Info -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-tag"></i> Basic Information</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Voucher Code <span class="req">*</span></label>
+                        <div class="code-gen-wrap">
+                            <input type="text" class="form-control-v" id="fCode"
+                                   placeholder="e.g. SUMMER25"
+                                   oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,''); validateCode()"
+                                   maxlength="50" />
+                            <button class="btn-gen-code" type="button" onclick="generateCode()">
+                                <i class="bi bi-lightning-charge-fill"></i> Auto
+                            </button>
+                        </div>
+                        <span class="form-error" id="errCode">Code is required and must be alphanumeric.</span>
+                        <span class="form-help">Letters and numbers only.</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            Discount (%) <span class="req">*</span>
+                            <span class="hint" id="discountHint"></span>
+                        </label>
+                        <input type="number" class="form-control-v" id="fDiscount"
+                               placeholder="e.g. 20" min="1" max="100"
+                               oninput="validateDiscount(); computePreview()" />
+                        <span class="form-error" id="errDiscount">Must be between 1% and 80%.</span>
+                        <span class="form-help">Recommended: 5–30%. Max 80%.</span>
+                    </div>
+                </div>
+
+                <div class="form-row single" style="margin-top:14px">
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control-v" id="fDescription"
+                               placeholder="e.g. Summer sale — 20% off all pet food" maxlength="255" />
+                        <span class="form-help">Optional. Shown to customers on checkout.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Business Rules -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-shield-check"></i> Business Rules</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Min Order Amount (₫) <span class="req">*</span></label>
+                        <input type="number" class="form-control-v" id="fMinOrder"
+                               placeholder="e.g. 200000" min="0"
+                               oninput="validateMinOrder(); computePreview()" />
+                        <span class="form-error" id="errMinOrder">Min order must be ≥ 0.</span>
+                        <span class="form-help">Minimum cart value to unlock this voucher.</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Max Discount Cap (₫) <span class="req">*</span></label>
+                        <input type="number" class="form-control-v" id="fMaxDiscount"
+                               placeholder="e.g. 50000" min="0"
+                               oninput="validateMaxDiscount(); computePreview()" />
+                        <span class="form-error" id="errMaxDiscount">Must be > 0.</span>
+                        <span class="form-help">Hard cap on discount amount.</span>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:14px">
+                    <div class="form-group">
+                        <label class="form-label">Usage Limit</label>
+                        <input type="number" class="form-control-v" id="fUsageLimit"
+                               placeholder="Leave blank = unlimited" min="1"
+                               oninput="computePreview()" />
+                        <span class="form-help">Total times this voucher can be redeemed.</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date <span class="req">*</span></label>
+                        <input type="datetime-local" class="form-control-v" id="fExpiry"
+                               oninput="validateExpiry()" />
+                        <span class="form-error" id="errExpiry">Expiry must be in the future.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: Smart Preview -->
+            <div class="form-section" style="margin-bottom:0">
+                <div class="form-section-title"><i class="bi bi-graph-up-arrow"></i> Smart Profit Preview</div>
+                <div class="smart-preview" id="smartPreview">
+                    <div class="preview-title">
+                        <i class="bi bi-calculator"></i> Simulation at min order threshold
+                    </div>
+                    <div class="preview-grid">
+                        <div class="preview-item">
+                            <div class="preview-item-label">Order Value</div>
+                            <div class="preview-item-val" id="pvOrderVal">—</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-item-label">Discount Given</div>
+                            <div class="preview-item-val" id="pvDiscountGiven">—</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-item-label">Customer Pays</div>
+                            <div class="preview-item-val positive" id="pvCustomerPays">—</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-item-label">Effective Rate</div>
+                            <div class="preview-item-val" id="pvEffRate">—</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-item-label">Cap Applied?</div>
+                            <div class="preview-item-val" id="pvCapApplied">—</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-item-label">Total Budget</div>
+                            <div class="preview-item-val" id="pvBudget">—</div>
+                        </div>
+                    </div>
+                    <div class="preview-warn" id="pvWarn">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span id="pvWarnText"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SERVER ERROR BANNER (hiển thị lỗi từ server ngay trong modal) ── -->
+            <div class="server-error-banner" id="serverError">
+                <i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0"></i>
+                <span id="serverErrorText"></span>
+            </div>
+        </div>
+
+        <div class="vmodal-footer">
+            <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-modal-submit" id="submitBtn" onclick="submitVoucher()">
+                <i class="bi bi-check-circle-fill"></i>
+                <span id="submitBtnText">Save Voucher</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ── STATE ── */
+    const JWT      = '@Context.Session.GetString("JWT")';
+    const BASE     = '/Voucher';
+    const PAGE_SIZE = 10;
+
+    let allVouchers      = [];
+    let filteredVouchers = [];
+    let currentPage      = 1;
+    let isEditMode       = false;
+
+    /* ── INIT ── */
+    document.addEventListener('DOMContentLoaded', loadVouchers);
+
+    /* ── LOAD ── */
+    async function loadVouchers() {
+        try {
+            const res = await apiFetch('GET', `${BASE}/GetAll`);
+            allVouchers = Array.isArray(res) ? res : (res.data || res.value || []);
+            filterVouchers();
+            renderStats();
+        } catch (e) {
+            document.getElementById('voucherTbody').innerHTML = `
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <i class="bi bi-wifi-off"></i>
+                        <p>Could not load vouchers. Check API connection.</p>
+                    </div>
+                </td></tr>`;
+        }
+    }
+
+    /* ── FILTER ── */
+    function filterVouchers() {
+        const q      = document.getElementById('searchInput').value.toLowerCase().trim();
+        const status = document.getElementById('filterStatus').value;
+        const now    = new Date();
+
+        filteredVouchers = allVouchers.filter(v => {
+            const matchQ = !q
+                || (v.code        || '').toLowerCase().includes(q)
+                || (v.description || '').toLowerCase().includes(q);
+            const matchS = !status || getStatus(v, now) === status;
+            return matchQ && matchS;
+        });
+
+        currentPage = 1;
+        renderTable();
+        renderPagination();
+    }
+
+    function getStatus(v, now = new Date()) {
+        if (!v.isActive) return 'inactive';
+        if (v.expiredDate && new Date(v.expiredDate) < now) return 'expired';
+        return 'active';
+    }
+
+    /* ── STATS ── */
+    function renderStats() {
+        const now       = new Date();
+        const total     = allVouchers.length;
+        const active    = allVouchers.filter(v => getStatus(v, now) === 'active').length;
+        const expired   = allVouchers.filter(v => getStatus(v, now) === 'expired').length;
+        const discounts = allVouchers.map(v => v.discountPercent || 0).filter(d => d > 0);
+        const avg       = discounts.length
+            ? Math.round(discounts.reduce((a, b) => a + b, 0) / discounts.length) : 0;
+
+        document.getElementById('statTotal').textContent       = total;
+        document.getElementById('statActive').textContent      = active;
+        document.getElementById('statExpired').textContent     = expired;
+        document.getElementById('statAvgDiscount').textContent = avg + '%';
+    }
+
+    /* ── TABLE RENDER ── */
+    function renderTable() {
+        const tbody       = document.getElementById('voucherTbody');
+        const currentRole = '@currentRole';
+
+        if (!filteredVouchers.length) {
+            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+                <i class="bi bi-ticket-perforated"></i><p>No vouchers found.</p>
+            </div></td></tr>`;
+            return;
+        }
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const page  = filteredVouchers.slice(start, start + PAGE_SIZE);
+        const now   = new Date();
+
+        tbody.innerHTML = page.map(v => {
+            const status         = getStatus(v, now);
+            const usage          = v.useageLimit || null;
+            const usedCount      = v.usedCount || 0;
+            const usagePct       = usage ? Math.min(100, Math.round((usedCount / usage) * 100)) : 0;
+            const barClass       = usagePct >= 90 ? 'danger' : usagePct >= 60 ? 'warn' : '';
+            const expDate        = v.expiredDate ? new Date(v.expiredDate) : null;
+            const isExpiringSoon = expDate && expDate > now
+                && (expDate - now) < 3 * 24 * 60 * 60 * 1000;         
+
+            return `
+            <tr>
+                <td>
+                    <div class="voucher-code-badge"
+                         onclick="copyCode('${v.code}')" title="Click to copy">
+                        <i class="bi bi-ticket-perforated-fill" style="font-size:11px"></i>
+                        ${v.code}
+                        <i class="bi bi-copy" style="font-size:11px;opacity:.5"></i>
+                    </div>
+                    ${v.description
+                        ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600">
+                               ${v.description}</div>`
+                        : ''}
+                </td>
+                <td>
+                    <span class="discount-pill discount-pill-pct">
+                        <i class="bi bi-lightning-fill" style="font-size:11px"></i>
+                        ${v.discountPercent || 0}% OFF
+                    </span>
+                </td>
+                <td><span style="font-weight:700">${fmtVnd(v.minOrderAmount)}</span></td>
+                <td><span style="font-weight:700;color:var(--v-red)">−${fmtVnd(v.maxDiscountAmount)}</span></td>
+                <td>
+                    <div class="usage-wrap">
+                        <div class="usage-text">
+                            <span>${usedCount}</span>
+                            <span>${usage ? '/ ' + usage : '∞'}</span>
+                        </div>
+                        ${usage ? `<div class="usage-bar-bg">
+                            <div class="usage-bar-fill ${barClass}" style="width:${usagePct}%"></div>
+                        </div>` : ''}
+                    </div>
+                </td>
+                <td>
+                    ${expDate
+                        ? `<span style="font-weight:700;${isExpiringSoon ? 'color:var(--v-gold-dark)' : ''}">
+                               ${isExpiringSoon ? '⚠️ ' : ''}${formatDate(expDate)}</span>`
+                        : '<span style="color:var(--muted);font-weight:600">No expiry</span>'}
+                </td>
+                <td>
+                    <span class="status-badge ${status === 'active' ? 'status-active'
+                        : status === 'expired' ? 'status-expired' : 'status-inactive'}">
+                        <i class="bi bi-${status === 'active' ? 'check-circle-fill'
+                            : status === 'expired' ? 'clock-history' : 'dash-circle-fill'}"></i>
+                        ${status.charAt(0).toUpperCase() + status.slice(1)}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-btns" style="justify-content:center">
+                        <button class="btn-icon edit"
+                            onclick="openEditModal('${v.voucherId}')" title="Edit">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="btn-icon toggle"
+                            onclick="toggleStatus('${v.voucherId}', ${v.isActive})"
+                            title="${v.isActive ? 'Deactivate' : 'Activate'}">
+                            <i class="bi bi-${v.isActive ? 'toggle-on' : 'toggle-off'}"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    /* ── PAGINATION ── */
+    function renderPagination() {
+        const total      = filteredVouchers.length;
+        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        const start      = (currentPage - 1) * PAGE_SIZE + 1;
+        const end        = Math.min(currentPage * PAGE_SIZE, total);
+
+        document.getElementById('paginationInfo').textContent = total
+            ? `Showing ${start}–${end} of ${total}` : 'No results';
+
+        const btns = document.getElementById('paginationBtns');
+        let html = `<button class="vpag-btn" onclick="goPage(${currentPage - 1})"
+                        ${currentPage === 1 ? 'disabled' : ''}>
+                        <i class="bi bi-chevron-left"></i></button>`;
+
+        for (let p = 1; p <= totalPages; p++) {
+            if (totalPages <= 7 || p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1) {
+                html += `<button class="vpag-btn ${p === currentPage ? 'active' : ''}"
+                             onclick="goPage(${p})">${p}</button>`;
+            } else if (Math.abs(p - currentPage) === 2) {
+                html += `<span style="align-self:center;padding:0 4px;color:var(--muted)">…</span>`;
+            }
+        }
+
+        html += `<button class="vpag-btn" onclick="goPage(${currentPage + 1})"
+                     ${currentPage === totalPages ? 'disabled' : ''}>
+                     <i class="bi bi-chevron-right"></i></button>`;
+        btns.innerHTML = html;
+    }
+
+    function goPage(p) {
+        const totalPages = Math.ceil(filteredVouchers.length / PAGE_SIZE);
+        if (p < 1 || p > totalPages) return;
+        currentPage = p;
+        renderTable();
+        renderPagination();
+    }
+
+    /* ── COPY CODE ── */
+    function copyCode(code) {
+        navigator.clipboard.writeText(code)
+            .then(() => showToast(`Copied: ${code}`, 'success'));
+    }
+
+    /* ── OPEN ADD MODAL ── */
+    function openAddModal() {
+        isEditMode = false;
+        document.getElementById('modalTitle').textContent    = 'Add New Voucher';
+        document.getElementById('modalSubtitle').textContent = 'Fill in the details. Smart preview calculates customer impact.';
+        document.getElementById('submitBtnText').textContent = 'Save Voucher';
+        document.getElementById('editVoucherId').value       = '';
+        clearForm();
+        document.getElementById('voucherModal').classList.add('open');
+        document.getElementById('fCode').focus();
+    }
+
+    /* ── OPEN EDIT MODAL ── */
+    function openEditModal(id) {
+        const v = allVouchers.find(x => x.voucherId === id);
+        if (!v) return;
+
+        isEditMode = true;
+        document.getElementById('modalTitle').textContent    = 'Edit Voucher';
+        document.getElementById('modalSubtitle').textContent = `Editing: ${v.code}`;
+        document.getElementById('submitBtnText').textContent = 'Update Voucher';
+        document.getElementById('editVoucherId').value       = id;
+
+        document.getElementById('fCode').value        = v.code || '';
+        document.getElementById('fDiscount').value    = v.discountPercent || '';
+        document.getElementById('fDescription').value = v.description || '';
+        document.getElementById('fMinOrder').value    = v.minOrderAmount || '';
+        document.getElementById('fMaxDiscount').value = v.maxDiscountAmount || '';
+        document.getElementById('fUsageLimit').value  = v.useageLimit || '';
+
+        if (v.expiredDate) {
+            const d      = new Date(v.expiredDate);
+            const offset = d.getTimezoneOffset() * 60000;
+            document.getElementById('fExpiry').value =
+                new Date(d - offset).toISOString().slice(0, 16);
+        } else {
+            document.getElementById('fExpiry').value = '';
+        }
+
+        hideServerError();
+        document.getElementById('voucherModal').classList.add('open');
+        computePreview();
+    }
+
+    /* ── CLOSE MODAL ── */
+    function closeModal() {
+        document.getElementById('voucherModal').classList.remove('open');
+        hideServerError();
+    }
+
+    /* ── GENERATE CODE ── */
+    function generateCode() {
+        const prefixes = ['PETLOVE','PAWSOME','FURRY','SALE','DEAL','LUCKY','WOOF','MEOW'];
+        const prefix   = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const suffix   = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('fCode').value = prefix + suffix;
+        validateCode();
+    }
+
+    /* ── SMART PREVIEW ── */
+    function computePreview() {
+        const discount    = parseFloat(document.getElementById('fDiscount').value)    || 0;
+        const minOrder    = parseFloat(document.getElementById('fMinOrder').value)    || 0;
+        const maxDiscount = parseFloat(document.getElementById('fMaxDiscount').value) || 0;
+        const usageLimit  = parseInt(document.getElementById('fUsageLimit').value)    || 0;
+        const preview     = document.getElementById('smartPreview');
+
+        if (discount <= 0 || minOrder <= 0) { preview.classList.remove('show'); return; }
+        preview.classList.add('show');
+
+        const rawDiscount    = minOrder * (discount / 100);
+        const actualDiscount = (maxDiscount > 0 && rawDiscount > maxDiscount)
+            ? maxDiscount : rawDiscount;
+        const customerPays  = minOrder - actualDiscount;
+        const effectiveRate = (actualDiscount / minOrder) * 100;
+        const capApplied    = maxDiscount > 0 && rawDiscount > maxDiscount;
+        const totalBudget   = usageLimit > 0 ? actualDiscount * usageLimit : null;
+
+        document.getElementById('pvOrderVal').textContent      = fmtVnd(minOrder);
+        document.getElementById('pvDiscountGiven').textContent = `−${fmtVnd(actualDiscount)}`;
+        document.getElementById('pvCustomerPays').textContent  = fmtVnd(customerPays);
+        document.getElementById('pvEffRate').textContent       = effectiveRate.toFixed(1) + '%';
+
+        const pvEffEl = document.getElementById('pvEffRate');
+        pvEffEl.className = 'preview-item-val '
+            + (effectiveRate > 40 ? 'danger' : effectiveRate > 20 ? 'warning' : 'positive');
+
+        document.getElementById('pvCapApplied').textContent = capApplied ? '✅ Yes (protected)' : '❌ No';
+        document.getElementById('pvCapApplied').className   = 'preview-item-val '
+            + (capApplied ? 'positive' : 'warning');
+        document.getElementById('pvBudget').textContent = totalBudget
+            ? fmtVnd(totalBudget) : 'Unlimited';
+
+        const warn     = document.getElementById('pvWarn');
+        const warnText = document.getElementById('pvWarnText');
+
+        if (discount > 50 && !capApplied) {
+            warn.classList.add('show');
+            warnText.textContent = `⚠️ High discount (${discount}%) with no effective cap — `
+                + `customers saving up to ${fmtVnd(rawDiscount)} per order.`;
+        } else if (effectiveRate > 30) {
+            warn.classList.add('show');
+            warnText.textContent = `Note: Effective rate is ${effectiveRate.toFixed(1)}%. `
+                + `Ensure your margins can absorb this.`;
+        } else {
+            warn.classList.remove('show');
+        }
+    }
+
+    /* ── VALIDATION ── */
+    function validateCode() {
+        const val = document.getElementById('fCode').value.trim();
+        const ok  = val.length >= 2 && /^[A-Z0-9]+$/.test(val);
+        document.getElementById('fCode').classList.toggle('error', !ok);
+        document.getElementById('errCode').style.display = ok ? 'none' : 'block';
+        return ok;
+    }
+
+    function validateDiscount() {
+        const val = parseFloat(document.getElementById('fDiscount').value);
+        const ok  = val >= 1 && val <= 80;
+        document.getElementById('fDiscount').classList.toggle('error', !ok);
+        document.getElementById('errDiscount').style.display = ok ? 'none' : 'block';
+        document.getElementById('discountHint').textContent = val > 50 ? '⚠️ Very high'
+            : val > 30 ? '✓ Moderate' : val > 0 ? '✓ Conservative' : '';
+        return ok;
+    }
+
+    function validateMinOrder() {
+        const val = parseFloat(document.getElementById('fMinOrder').value);
+        const ok  = !isNaN(val) && val >= 0;
+        document.getElementById('fMinOrder').classList.toggle('error', !ok);
+        document.getElementById('errMinOrder').style.display = ok ? 'none' : 'block';
+        return ok;
+    }
+
+    function validateMaxDiscount() {
+        const val = parseFloat(document.getElementById('fMaxDiscount').value);
+        const ok  = !isNaN(val) && val > 0;
+        document.getElementById('fMaxDiscount').classList.toggle('error', !ok);
+        document.getElementById('errMaxDiscount').style.display = ok ? 'none' : 'block';
+        return ok;
+    }
+
+    function validateExpiry() {
+        const val = document.getElementById('fExpiry').value;
+        const ok  = isEditMode ? !!val : (!!val && new Date(val) > new Date());
+        document.getElementById('fExpiry').classList.toggle('error', !ok);
+        document.getElementById('errExpiry').style.display = ok ? 'none' : 'block';
+        return ok;
+    }
+
+    function validateAll() {
+        return [
+            validateCode(),
+            validateDiscount(),
+            validateMinOrder(),
+            validateMaxDiscount(),
+            validateExpiry()
+        ].every(Boolean);
+    }
+
+    /* ── SERVER ERROR BANNER ── */
+    function showServerError(msg) {
+        const el = document.getElementById('serverError');
+        document.getElementById('serverErrorText').textContent = msg;
+        el.classList.add('show');
+        // Scroll xuống để thấy banner lỗi
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideServerError() {
+        document.getElementById('serverError').classList.remove('show');
+    }
+
+    /* ── SUBMIT (CREATE / UPDATE) ── */
+    async function submitVoucher() {
+        // Ẩn lỗi server cũ
+        hideServerError();
+
+        // Validate client — nếu fail thì scroll lên đầu modal để thấy lỗi
+        if (!validateAll()) {
+            document.querySelector('.vmodal-body').scrollTop = 0;
+            return;
+        }
+
+        const btn     = document.getElementById('submitBtn');
+        const btnText = document.getElementById('submitBtnText');
+        btn.disabled  = true;
+        btnText.innerHTML = '<span class="spin"></span> Saving…';
+
+        const expiryVal = document.getElementById('fExpiry').value;
+        const payload   = {
+            code:              document.getElementById('fCode').value.trim().toUpperCase(),
+            discountPercent:   parseInt(document.getElementById('fDiscount').value),
+            description:       document.getElementById('fDescription').value.trim() || null,
+            minOrderAmount:    parseFloat(document.getElementById('fMinOrder').value),
+            maxDiscountAmount: parseFloat(document.getElementById('fMaxDiscount').value),
+            useageLimit:       document.getElementById('fUsageLimit').value
+                                   ? parseInt(document.getElementById('fUsageLimit').value)
+                                   : null,
+            expiredDate:       expiryVal ? new Date(expiryVal).toISOString() : null,
+            isActive:          true
+        };
+
+        try {
+            if (isEditMode) {
+                const id       = document.getElementById('editVoucherId').value;
+                const original = allVouchers.find(x => x.voucherId === id);
+                payload.isActive = original?.isActive ?? true;
+                await apiFetch('POST', `${BASE}/Update?id=${id}`, payload);
+            } else {
+                await apiFetch('POST', `${BASE}/Create`, payload);
+            }
+
+            // ✅ Thành công — đóng modal trước, toast sau
+            closeModal();
+            await loadVouchers();
+            showToast(isEditMode ? 'Voucher updated successfully!' : 'Voucher created successfully!', 'success');
+
+        } catch (e) {
+            // ❌ Thất bại — KHÔNG đóng modal, hiển thị lỗi ngay trong modal
+            showServerError(e.message || 'Operation failed. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btnText.innerHTML = isEditMode ? 'Update Voucher' : 'Save Voucher';
+        }
+    }
+
+    /* ── TOGGLE STATUS ── */
+    async function toggleStatus(id, currentActive) {
+        try {
+        const newStatus = !currentActive;
+        // truyền isActive thẳng lên query string, body = null
+        await apiFetch('POST', `${BASE}/Toggle?id=${id}&isActive=${newStatus}`);
+        showToast(`Voucher ${currentActive ? 'deactivated' : 'activated'}.`, 'success');
+        await loadVouchers();
+    } catch (e) {
+        showToast(e.message || 'Failed to toggle status.', 'danger');
+    }
+    }
+
+    /* ── HELPERS ── */
+    function clearForm() {
+        ['fCode','fDiscount','fDescription','fMinOrder','fMaxDiscount','fUsageLimit','fExpiry']
+            .forEach(id => {
+                document.getElementById(id).value = '';
+                document.getElementById(id).classList.remove('error');
+            });
+        ['errCode','errDiscount','errMinOrder','errMaxDiscount','errExpiry']
+            .forEach(id => document.getElementById(id).style.display = 'none');
+        document.getElementById('smartPreview').classList.remove('show');
+        document.getElementById('pvWarn').classList.remove('show');
+        document.getElementById('discountHint').textContent = '';
+        hideServerError();
+    }
+
+    function fmtVnd(val) {
+        if (val == null || val === '') return '—';
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency', currency: 'VND', maximumFractionDigits: 0
+        }).format(val);
+    }
+
+    function formatDate(d) {
+        return d.toLocaleDateString('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    /* ── API FETCH ── */
+    async function apiFetch(method, url, body = null) {
+        const opts = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (body !== null) opts.body = JSON.stringify(body);
+
+        const res = await fetch(url, opts);
+
+        if (!res.ok) {
+            let msg = `HTTP ${res.status}`;
+            try {
+                const j = await res.json();
+                msg = j.message || j.title || msg;
+            } catch {}
+            throw new Error(msg);
+        }
+
+        if (res.status === 204) return null;
+        return res.json();
+    }
+
+    function showToast(message, type = 'primary') {
+        const colorMap = {
+            success: 'text-bg-success',
+            danger:  'text-bg-danger',
+            primary: 'text-bg-primary',
+            warning: 'text-bg-warning'
+        };
+        const toast = document.getElementById('liveToast');
+        toast.className = `toast align-items-center border-0 ${colorMap[type] || 'text-bg-primary'}`;
+        toast.querySelector('.toast-body').textContent = message;
+        new bootstrap.Toast(toast, { delay: 3000 }).show();
+    }
+
+    /* ── CLOSE MODALS ON OVERLAY CLICK ── */
+    document.getElementById('voucherModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+</script>
