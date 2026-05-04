@@ -50,7 +50,7 @@ namespace CustomerAPI.Service
                     "Your account has been deactivated. Please contact support.");
 
             var token = _jwtService.GenerateToken(
-                customer.CustomerId, customer.Email!, new List<string> { "Customer" });
+                customer.CustomerId, customer.Email!, new List<string> { "Customer" }, customer.FullName ?? "");
 
             return (true, token, null, "Login success");
         }

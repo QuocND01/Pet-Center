@@ -79,5 +79,9 @@ namespace CustomerAPI.Repository
             _context.OtpCodes.Remove(otp);
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<Customer?> GetByIdInternalAsync(Guid customerId)
+    => await _context.Customers.AsNoTracking()
+        .FirstOrDefaultAsync(c => c.CustomerId == customerId && c.IsActive == true);
     }
 }

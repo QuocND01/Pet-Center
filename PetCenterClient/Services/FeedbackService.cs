@@ -1,137 +1,116 @@
 ﻿using Newtonsoft.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace PetCenterClient.Services
 {
     public class FeedbackService : IFeedbackService
     {
-        private readonly HttpClient _httpClient;
-        private const string PREFIX = "feedback-service/feedback/";
-        public FeedbackService(HttpClient httpClient)
+        private readonly HttpClient _http;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public FeedbackService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
-            _httpClient = httpClient;
+            _http = http;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<List<FeedbackDTO>> GetAllAsync()
+        private void AttachToken()
         {
-            var res = await _httpClient.GetAsync(PREFIX + "admin/all");
-            var json = await res.Content.ReadAsStringAsync();
-
-            return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
-                   ?? new List<FeedbackDTO>();
+            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
+            _http.DefaultRequestHeaders.Authorization = null;
+            _http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
         }
 
-        public async Task<FeedbackDTO?> GetDetailAsync(Guid id)
+        public async Task<bool> HasFeedbackForOrderAsync(Guid orderId)
         {
-            var res = await _httpClient.GetAsync(PREFIX + $"detail/{id}");
-            var json = await res.Content.ReadAsStringAsync();
+            try
+            {
+                AttachToken();
+                var response = await _http.GetAsync(
+                    $"feedback-service/ProductFeedback/check/{orderId}");
 
-            return JsonConvert.DeserializeObject<FeedbackDTO>(json);
+                if (!response.IsSuccessStatusCode) return false;
+
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<dynamic>(content);
+                return (bool)(result?.hasFeedback ?? false);
+            }
+            catch { return false; }
         }
 
-        public async Task<List<FeedbackDTO>> GetByCustomerAsync(Guid customerId)
+        public async Task<List<ProductFeedbackResponseDto>> GetFeedbacksByOrderIdAsync(Guid orderId)
         {
-            var res = await _httpClient.GetAsync(PREFIX + $"customer/{customerId}");
-            var json = await res.Content.ReadAsStringAsync();
+            try
+            {
+                AttachToken();
+                var response = await _http.GetAsync(
+                    $"feedback-service/ProductFeedback/order/{orderId}");
 
-            return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
-                   ?? new List<FeedbackDTO>();
+                if (!response.IsSuccessStatusCode) return new List<ProductFeedbackResponseDto>();
+
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<ApiResponse<List<ProductFeedbackResponseDto>>>(content);
+                return result?.Data ?? new List<ProductFeedbackResponseDto>();
+            }
+            catch { return new List<ProductFeedbackResponseDto>(); }
         }
 
-        public async Task<List<FeedbackDTO>> GetByProductAsync(Guid productId)
+        public async Task<bool> CreateBulkFeedbackAsync(CreateBulkFeedbackDto dto)
         {
-            var res = await _httpClient.GetAsync(PREFIX + $"product/{productId}");
-            var json = await res.Content.ReadAsStringAsync();
+            try
+            {
+                AttachToken();
+                var json = JsonConvert.SerializeObject(dto);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
-                   ?? new List<FeedbackDTO>();
+                var response = await _http.PostAsync(
+                    "feedback-service/ProductFeedback/bulk", content);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
         }
 
-        public async Task CreateAsync(CreateFeedbackDTO dto)
+        public async Task<bool> UpdateFeedbackAsync(UpdateProductFeedbackDto dto)
         {
-            var content = new StringContent(
-                JsonConvert.SerializeObject(dto),
-                Encoding.UTF8,
-                "application/json");
+            try
+            {
+                AttachToken();
+                var json = JsonConvert.SerializeObject(dto);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            await _httpClient.PostAsync(PREFIX, content);
+                var response = await _http.PutAsync(
+                    "feedback-service/ProductFeedback/update", content);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
         }
 
-        public async Task ReplyAsync(Guid feedbackId, Guid staffId, string reply)
+        public async Task<List<ProductFeedbackResponseDto>> GetFeedbacksByProductIdAsync(Guid productId)
         {
-            var content = new StringContent(
-                JsonConvert.SerializeObject(reply),
-                Encoding.UTF8,
-                "application/json");
+            try
+            {
+                var response = await _http.GetAsync(
+                    $"feedback-service/ProductFeedback/product/{productId}");
 
-            await _httpClient.PutAsync(PREFIX + $"reply/{feedbackId}?staffId={staffId}", content);
-        }
+                if (!response.IsSuccessStatusCode)
+                    return new List<ProductFeedbackResponseDto>();
 
-        public async Task UpdateReplyAsync(Guid feedbackId, string reply)
-        {
-            var content = new StringContent(
-                JsonConvert.SerializeObject(reply),
-                Encoding.UTF8,
-                "application/json");
-
-            await _httpClient.PutAsync(PREFIX + $"reply/update/{feedbackId}", content);
-        }
-
-        public async Task DeleteReplyAsync(Guid feedbackId)
-        {
-            await _httpClient.DeleteAsync(PREFIX + $"reply/{feedbackId}");
-        }
-
-        public async Task ToggleVisibilityAsync(Guid feedbackId)
-        {
-            await _httpClient.PutAsync(PREFIX + $"admin/toggle-visibility/{feedbackId}", null);
-        }
-
-        public async Task DeleteAsync(Guid feedbackId)
-        {
-            await _httpClient.DeleteAsync(PREFIX + $"{feedbackId}");
-        }
-
-        public async Task<List<FeedbackDTO>> FilterAsync(
-     int? rating,
-     Guid? productId,
-     bool? isVisible,
-     DateTime? fromDate,
-     DateTime? toDate)
-        {
-            var query = new List<string>();
-
-            if (rating.HasValue)
-                query.Add($"rating={rating}");
-
-            if (productId.HasValue)
-                query.Add($"productId={productId}");
-
-            if (isVisible.HasValue)
-                query.Add($"isVisible={isVisible}");
-
-            if (fromDate.HasValue)
-                query.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
-
-            if (toDate.HasValue)
-                query.Add($"toDate={toDate.Value:yyyy-MM-dd}");
-
-            var url = PREFIX + "admin/filter";
-
-            if (query.Count > 0)
-                url += "?" + string.Join("&", query);
-
-            var response = await _httpClient.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
-                return new List<FeedbackDTO>();
-
-            var json = await response.Content.ReadAsStringAsync();
-
-            return JsonConvert.DeserializeObject<List<FeedbackDTO>>(json)
-                   ?? new List<FeedbackDTO>();
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<ApiResponse<List<ProductFeedbackResponseDto>>>(content);
+                return result?.Data ?? new List<ProductFeedbackResponseDto>();
+            }
+            catch
+            {
+                return new List<ProductFeedbackResponseDto>();
+            }
         }
     }
+
+
 }

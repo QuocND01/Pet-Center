@@ -82,12 +82,21 @@ builder.Services.AddHttpClient<IVoucherService, VoucherService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<IFeedbackService, FeedbackService>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
 // ✅ Register CheckoutService
 builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 builder.Services.AddHttpClient<IStatisticsServiceClient, StatisticsServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+builder.Services.AddHttpClient<IAdminFeedbackService, AdminFeedbackService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });

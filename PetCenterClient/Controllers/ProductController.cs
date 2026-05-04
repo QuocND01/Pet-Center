@@ -12,14 +12,16 @@ namespace PetCenterClient.Controllers
         private readonly IBrandService _brandService;
         private readonly ICategoryService _categoryService;
         private readonly IFeedbackService _feedbackService;
+        private readonly ICustomerService _customerService;
 
-        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService, IFeedbackService feedbackService)
+        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService, IFeedbackService feedbackService, ICustomerService customerService)
             
         {
             _productService = productService;
             _brandService = brandService;
             _categoryService = categoryService;
             _feedbackService = feedbackService;
+            _customerService = customerService;
         }
 
         // GET: ReadProdutDTOs
@@ -109,8 +111,44 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-         // var feedbacks = await _feedbackService.GetByProductAsync(id.Value);
-        //  ViewBag.Feedbacks = feedbacks;
+            // Load feedbacks của sản phẩm này
+            var feedbacks = await _feedbackService.GetFeedbacksByProductIdAsync(id.Value);
+
+            var customerIds = feedbacks
+        .Select(f => f.CustomerId)
+        .Distinct()
+        .ToList();
+
+            var customerNameTasks = customerIds
+                .ToDictionary(
+                    cid => cid,
+                    cid => _customerService.GetDisplayNameAsync(cid)
+                );
+
+            await Task.WhenAll(customerNameTasks.Values);
+
+            var customerNames = customerNameTasks.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Result
+            );
+
+            // Thống kê rating
+            var totalCount = feedbacks.Count;
+            var avgRating = totalCount > 0
+                ? Math.Round(feedbacks.Average(f => f.Rating ?? 0), 1)
+                : 0.0;
+
+            var ratingCounts = Enumerable.Range(1, 5)
+                .ToDictionary(
+                    star => star,
+                    star => feedbacks.Count(f => f.Rating == star)
+                );
+
+            ViewBag.Feedbacks = feedbacks;
+            ViewBag.CustomerNames = customerNames;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.AvgRating = avgRating;
+            ViewBag.RatingCounts = ratingCounts;
 
             return View("~/Views/CustomerViews/Product/Details.cshtml", readProdutDTOs);
         }

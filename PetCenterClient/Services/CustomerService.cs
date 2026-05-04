@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using System.Text.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 
@@ -166,6 +167,29 @@ namespace PetCenterClient.Services
             catch
             {
                 return false;
+            }
+        }
+        public async Task<string> GetDisplayNameAsync(Guid customerId)
+        {
+            try
+            {
+                // Gọi qua API Gateway giống các method khác
+                var response = await _http.GetAsync(
+                    $"api/customers/{customerId}/display-name");
+
+                if (!response.IsSuccessStatusCode) return "Anonymous";
+
+                var raw = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[DEBUG DisplayName] Body: {raw}");
+
+                var json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(raw);
+                return json.TryGetProperty("displayName", out var name)
+                    ? name.GetString() ?? "Anonymous"
+                    : "Anonymous";
+            }
+            catch (Exception ex)
+            {
+                return "Anonymous";
             }
         }
     }

@@ -59,6 +59,9 @@ namespace PetCenterClient.Controllers
 
                 if (!string.IsNullOrEmpty(customerId))
                     HttpContext.Session.SetString("CustomerId", customerId);
+
+                var fullName = jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? "";
+                HttpContext.Session.SetString("FullName", fullName);
             }
             catch
             {
@@ -346,6 +349,8 @@ namespace PetCenterClient.Controllers
 
             HttpContext.Session.SetString("Role", role);
             HttpContext.Session.SetString("Name", name);
+            HttpContext.Session.SetString("FullName",                                  
+    jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? "");
 
             var customerId = jwt.Claims
     .FirstOrDefault(c =>

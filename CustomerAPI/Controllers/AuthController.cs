@@ -211,7 +211,8 @@ namespace CustomerAPI.Controllers
                 // Bước 5: Generate JWT
                 var roles = new List<string> { "Customer" };
                 var token = _jwtService.GenerateToken(
-                    customer.CustomerId, customer.Email, roles);
+    customer.CustomerId, customer.Email, roles,
+    customer.FullName ?? "");
 
                 return Ok(new
                 {

@@ -26,5 +26,7 @@ namespace CustomerAPI.Repository.Interface
         Task<bool> AddOtpAsync(OtpCode otp);
         Task<bool> UpdateOtpAsync(OtpCode otp);
         Task<bool> DeleteOtpAsync(OtpCode otp);
+
+        Task<Customer?> GetByIdInternalAsync(Guid customerId);
     }
 }

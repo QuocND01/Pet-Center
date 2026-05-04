@@ -1,0 +1,1256 @@
+﻿@{
+    ViewData["Title"] = "Feedback Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* ── TOKENS ───────────────────────────────────────────── */
+    :root {
+        --fb-bg: #f3f4f6;
+        --fb-card: #ffffff;
+        --fb-border: #e5e7eb;
+        --fb-ink: #111827;
+        --fb-ink2: #374151;
+        --fb-muted: #9ca3af;
+        --fb-green: #2ecc71;
+        --fb-green2: #27ae60;
+        --fb-green-bg: #dcfce7;
+        --fb-green-text: #166534;
+        --fb-yellow: #f59e0b;
+        --fb-yellow-bg: #fef3c7;
+        --fb-yellow-text: #92400e;
+        --fb-red: #ef4444;
+        --fb-red-bg: #fee2e2;
+        --fb-red-text: #991b1b;
+        --fb-blue: #3b82f6;
+        --fb-blue-bg: #dbeafe;
+        --fb-blue-text: #1e40af;
+        --fb-purple: #8b5cf6;
+        --fb-purple-bg: #ede9fe;
+        --fb-purple-text: #5b21b6;
+        --radius: 12px;
+        --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+        --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+    }
+
+    /* ── PAGE HEADER ─────────────────────────────────────── */
+    .fb-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .fb-header-left h1 {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--fb-ink);
+        margin: 0 0 2px;
+    }
+    .fb-header-left p {
+        font-size: 13px;
+        color: var(--fb-muted);
+        margin: 0;
+    }
+
+    /* ── STAT CARDS ──────────────────────────────────────── */
+    .fb-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .fb-stat {
+        background: var(--fb-card);
+        border: 1px solid var(--fb-border);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: var(--shadow);
+    }
+    .fb-stat-icon {
+        width: 42px; height: 42px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; flex-shrink: 0;
+    }
+    .fb-stat-icon.green  { background: var(--fb-green-bg);  color: var(--fb-green2); }
+    .fb-stat-icon.yellow { background: var(--fb-yellow-bg); color: var(--fb-yellow); }
+    .fb-stat-icon.blue   { background: var(--fb-blue-bg);   color: var(--fb-blue);   }
+    .fb-stat-icon.purple { background: var(--fb-purple-bg); color: var(--fb-purple); }
+    .fb-stat-val {
+        font-size: 22px; font-weight: 800;
+        color: var(--fb-ink); line-height: 1;
+    }
+    .fb-stat-lbl {
+        font-size: 11px; font-weight: 700;
+        color: var(--fb-muted); text-transform: uppercase;
+        letter-spacing: .05em; margin-top: 2px;
+    }
+
+    /* ── FILTER BAR ──────────────────────────────────────── */
+    .fb-filter-card {
+        background: var(--fb-card);
+        border: 1px solid var(--fb-border);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        margin-bottom: 18px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+    }
+    .fb-filter-group {
+        display: flex; flex-direction: column; gap: 4px;
+    }
+    .fb-filter-group label {
+        font-size: 11px; font-weight: 800;
+        color: var(--fb-muted); text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+    .fb-filter-group select,
+    .fb-filter-group input {
+        height: 36px;
+        border: 1.5px solid var(--fb-border);
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 13px;
+        font-family: inherit;
+        color: var(--fb-ink);
+        background: #fff;
+        outline: none;
+        transition: border .2s;
+        min-width: 130px;
+    }
+    .fb-filter-group select:focus,
+    .fb-filter-group input:focus { border-color: var(--fb-green); }
+    .fb-filter-group.search input { min-width: 220px; }
+    .fb-btn {
+        height: 36px; padding: 0 16px;
+        border-radius: 8px; border: none;
+        font-size: 13px; font-weight: 700;
+        font-family: inherit; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 6px;
+        transition: all .2s;
+    }
+    .fb-btn-primary {
+        background: var(--fb-green); color: #fff;
+    }
+    .fb-btn-primary:hover { background: var(--fb-green2); }
+    .fb-btn-ghost {
+        background: #f9fafb; color: var(--fb-ink2);
+        border: 1.5px solid var(--fb-border);
+    }
+    .fb-btn-ghost:hover { background: #f3f4f6; }
+
+    /* ── TABLE ───────────────────────────────────────────── */
+    .fb-table-card {
+        background: var(--fb-card);
+        border: 1px solid var(--fb-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+    .fb-table-head {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--fb-border);
+        display: flex; align-items: center;
+        justify-content: space-between; gap: 12px;
+    }
+    .fb-table-title {
+        font-size: 14px; font-weight: 800;
+        color: var(--fb-ink);
+    }
+    .fb-count-badge {
+        background: var(--fb-green-bg);
+        color: var(--fb-green-text);
+        font-size: 11px; font-weight: 800;
+        padding: 2px 10px; border-radius: 100px;
+    }
+    table.fb-table {
+        width: 100%; border-collapse: collapse;
+        font-size: 13px;
+    }
+    .fb-table thead th {
+        padding: 11px 14px;
+        background: #f9fafb;
+        color: var(--fb-muted);
+        font-size: 11px; font-weight: 800;
+        text-transform: uppercase; letter-spacing: .05em;
+        border-bottom: 1px solid var(--fb-border);
+        white-space: nowrap;
+    }
+    .fb-table tbody tr {
+        border-bottom: 1px solid var(--fb-border);
+        transition: background .15s;
+    }
+    .fb-table tbody tr:last-child { border-bottom: none; }
+    .fb-table tbody tr:hover { background: #f9fafb; }
+    .fb-table td {
+        padding: 12px 14px;
+        color: var(--fb-ink2);
+        vertical-align: middle;
+    }
+
+    /* Stars */
+    .fb-stars { display: flex; gap: 2px; }
+    .fb-star { font-size: 14px; color: #d1d5db; }
+    .fb-star.on { color: #f59e0b; }
+
+    /* Reply badge */
+    .fb-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 100px;
+        font-size: 11px; font-weight: 800;
+    }
+    .fb-badge-replied   { background: var(--fb-green-bg);  color: var(--fb-green-text); }
+    .fb-badge-pending   { background: var(--fb-yellow-bg); color: var(--fb-yellow-text); }
+    .fb-badge-hidden    { background: #f3f4f6; color: var(--fb-muted); }
+
+    /* Action buttons */
+    .fb-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fb-action-btn {
+        height: 30px; padding: 0 12px;
+        border-radius: 6px; border: 1.5px solid var(--fb-border);
+        font-size: 11px; font-weight: 800;
+        font-family: inherit; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 4px;
+        transition: all .18s; background: #fff;
+        color: var(--fb-ink2); white-space: nowrap;
+    }
+    .fb-action-btn:hover { background: #f3f4f6; }
+    .fb-action-btn.reply  { border-color: var(--fb-green);  color: var(--fb-green2); }
+    .fb-action-btn.reply:hover  { background: var(--fb-green-bg); }
+    .fb-action-btn.edit   { border-color: var(--fb-blue);   color: var(--fb-blue);   }
+    .fb-action-btn.edit:hover   { background: var(--fb-blue-bg);  }
+    .fb-action-btn.delete { border-color: var(--fb-red);    color: var(--fb-red);    }
+    .fb-action-btn.delete:hover { background: var(--fb-red-bg);   }
+    .fb-action-btn.detail { border-color: var(--fb-purple); color: var(--fb-purple); }
+    .fb-action-btn.detail:hover { background: var(--fb-purple-bg); }
+    .fb-action-btn.hide   { border-color: var(--fb-muted);  color: var(--fb-muted);  }
+    .fb-action-btn.hide:hover { background: #f3f4f6; }
+
+    /* Comment truncate */
+    .fb-comment {
+        max-width: 200px;
+        white-space: nowrap; overflow: hidden;
+        text-overflow: ellipsis; color: var(--fb-ink2);
+    }
+
+    /* ── PAGINATION ──────────────────────────────────────── */
+    .fb-pagination {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        border-top: 1px solid var(--fb-border);
+        flex-wrap: wrap; gap: 10px;
+    }
+    .fb-page-info {
+        font-size: 12px; color: var(--fb-muted); font-weight: 700;
+    }
+    .fb-page-btns { display: flex; gap: 4px; }
+    .fb-page-btn {
+        width: 32px; height: 32px;
+        border-radius: 6px; border: 1.5px solid var(--fb-border);
+        background: #fff; color: var(--fb-ink2);
+        font-size: 12px; font-weight: 800;
+        cursor: pointer; display: flex;
+        align-items: center; justify-content: center;
+        transition: all .18s;
+    }
+    .fb-page-btn:hover:not(:disabled) { background: #f3f4f6; }
+    .fb-page-btn.active {
+        background: var(--fb-green);
+        border-color: var(--fb-green); color: #fff;
+    }
+    .fb-page-btn:disabled { opacity: .4; cursor: default; }
+
+    /* ── LOADING / EMPTY ─────────────────────────────────── */
+    .fb-loading {
+        text-align: center; padding: 48px 24px;
+        color: var(--fb-muted); font-size: 13px; font-weight: 700;
+    }
+    .fb-empty {
+        text-align: center; padding: 48px 24px;
+    }
+    .fb-empty-icon { font-size: 40px; margin-bottom: 10px; }
+    .fb-empty-text {
+        font-size: 14px; font-weight: 700;
+        color: var(--fb-muted);
+    }
+
+    /* ── MODAL OVERLAY ───────────────────────────────────── */
+    .fb-overlay {
+        display: none; position: fixed;
+        inset: 0; background: rgba(0,0,0,.45);
+        z-index: 2000; align-items: center;
+        justify-content: center; padding: 20px;
+    }
+    .fb-overlay.open { display: flex; }
+    .fb-modal {
+        background: #fff; border-radius: 16px;
+        box-shadow: var(--shadow-lg);
+        width: 100%; max-width: 560px;
+        max-height: 90vh; overflow-y: auto;
+        animation: modalIn .2s ease;
+    }
+    .fb-modal.wide { max-width: 680px; }
+    @@keyframes modalIn {
+        from { transform: translateY(16px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+    .fb-modal-header {
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--fb-border);
+        display: flex; align-items: center;
+        justify-content: space-between;
+    }
+    .fb-modal-header h3 {
+        font-size: 15px; font-weight: 800;
+        color: var(--fb-ink); margin: 0;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .fb-modal-close {
+        width: 30px; height: 30px; border-radius: 8px;
+        border: 1.5px solid var(--fb-border);
+        background: #fff; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; color: var(--fb-muted);
+        transition: all .18s;
+    }
+    .fb-modal-close:hover { background: var(--fb-red-bg); color: var(--fb-red); border-color: var(--fb-red); }
+    .fb-modal-body { padding: 20px 22px; }
+    .fb-modal-footer {
+        padding: 14px 22px 18px;
+        border-top: 1px solid var(--fb-border);
+        display: flex; justify-content: flex-end; gap: 8px;
+    }
+
+    /* Detail sections */
+    .fb-detail-section {
+        background: #f9fafb; border-radius: 10px;
+        padding: 14px 16px; margin-bottom: 14px;
+    }
+    .fb-detail-section:last-child { margin-bottom: 0; }
+    .fb-detail-section-title {
+        font-size: 10px; font-weight: 900;
+        color: var(--fb-muted); text-transform: uppercase;
+        letter-spacing: .08em; margin-bottom: 10px;
+    }
+    .fb-detail-row {
+        display: flex; gap: 8px;
+        font-size: 13px; margin-bottom: 6px;
+        align-items: flex-start;
+    }
+    .fb-detail-row:last-child { margin-bottom: 0; }
+    .fb-detail-lbl {
+        font-weight: 800; color: var(--fb-muted);
+        min-width: 100px; flex-shrink: 0;
+    }
+    .fb-detail-val { color: var(--fb-ink2); }
+
+    /* Reply section in detail */
+    .fb-reply-box {
+        background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+        border: 1.5px solid #bbf7d0;
+        border-radius: 10px; padding: 14px 16px;
+        margin-top: 14px;
+    }
+    .fb-reply-box-title {
+        font-size: 11px; font-weight: 900;
+        color: var(--fb-green2); text-transform: uppercase;
+        letter-spacing: .08em; margin-bottom: 8px;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .fb-reply-box-content {
+        font-size: 13px; color: var(--fb-ink2);
+        line-height: 1.6;
+    }
+    .fb-reply-box-meta {
+        font-size: 11px; color: var(--fb-muted);
+        margin-top: 8px; font-weight: 700;
+    }
+
+    /* Form elements in modal */
+    .fb-form-group { margin-bottom: 16px; }
+    .fb-form-group:last-child { margin-bottom: 0; }
+    .fb-form-label {
+        display: block; font-size: 12px; font-weight: 800;
+        color: var(--fb-ink2); margin-bottom: 6px;
+    }
+    .fb-form-label span { color: var(--fb-red); }
+    .fb-form-input,
+    .fb-form-textarea {
+        width: 100%; border: 1.5px solid var(--fb-border);
+        border-radius: 8px; padding: 9px 12px;
+        font-size: 13px; font-family: inherit;
+        color: var(--fb-ink); outline: none;
+        transition: border .2s; resize: none;
+        box-sizing: border-box;
+    }
+    .fb-form-input:focus,
+    .fb-form-textarea:focus { border-color: var(--fb-green); }
+    .fb-form-textarea { min-height: 110px; line-height: 1.6; }
+    .fb-char-count {
+        text-align: right; font-size: 11px;
+        color: var(--fb-muted); margin-top: 4px;
+        font-weight: 700;
+    }
+    .fb-form-hint {
+        font-size: 11px; color: var(--fb-muted);
+        margin-top: 5px; font-weight: 600;
+    }
+
+    /* Context box inside reply modal */
+    .fb-context-box {
+        background: #f9fafb; border: 1.5px solid var(--fb-border);
+        border-radius: 8px; padding: 12px 14px;
+        margin-bottom: 16px;
+    }
+    .fb-context-box-lbl {
+        font-size: 10px; font-weight: 900;
+        color: var(--fb-muted); text-transform: uppercase;
+        letter-spacing: .08em; margin-bottom: 6px;
+    }
+    .fb-context-comment {
+        font-size: 13px; color: var(--fb-ink2);
+        line-height: 1.6; font-style: italic;
+    }
+
+    /* Delete confirm modal */
+    .fb-confirm-icon {
+        width: 54px; height: 54px; border-radius: 50%;
+        background: var(--fb-red-bg);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px; margin: 0 auto 14px;
+    }
+    .fb-confirm-title {
+        text-align: center; font-size: 16px;
+        font-weight: 800; color: var(--fb-ink);
+        margin-bottom: 6px;
+    }
+    .fb-confirm-desc {
+        text-align: center; font-size: 13px;
+        color: var(--fb-muted); line-height: 1.6;
+    }
+    .fb-btn-danger {
+        background: var(--fb-red); color: #fff;
+    }
+    .fb-btn-danger:hover { background: #dc2626; }
+
+    /* Toast */
+    .fb-toast-wrap {
+        position: fixed; top: 20px; right: 20px;
+        z-index: 9999; display: flex;
+        flex-direction: column; gap: 8px;
+        pointer-events: none;
+    }
+    .fb-toast {
+        background: var(--fb-ink);
+        color: #fff; font-size: 13px; font-weight: 700;
+        padding: 12px 18px; border-radius: 10px;
+        box-shadow: var(--shadow-lg);
+        display: flex; align-items: center; gap: 8px;
+        animation: toastIn .25s ease;
+        pointer-events: all;
+        max-width: 320px;
+    }
+    .fb-toast.success { background: var(--fb-green2); }
+    .fb-toast.error   { background: var(--fb-red);    }
+    @@keyframes toastIn {
+        from { transform: translateX(20px); opacity: 0; }
+        to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    @@media (max-width: 900px) {
+        .fb-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @@media (max-width: 600px) {
+        .fb-stats { grid-template-columns: 1fr; }
+        .fb-filter-card { flex-direction: column; }
+        .fb-filter-group select,
+        .fb-filter-group input { min-width: 100%; }
+    }
+</style>
+
+<!-- ══ TOAST CONTAINER ═══════════════════════════════════════ -->
+<div class="fb-toast-wrap" id="fbToastWrap"></div>
+
+<!-- ══ PAGE HEADER ═══════════════════════════════════════════ -->
+<div class="fb-header">
+    <div class="fb-header-left">
+        <h1><i class="bi bi-chat-left-text me-2" style="color:var(--g3)"></i>Feedback Management</h1>
+        <p>Quản lý và phản hồi đánh giá sản phẩm từ khách hàng</p>
+    </div>
+</div>
+
+<!-- ══ STAT CARDS ════════════════════════════════════════════ -->
+<div class="fb-stats">
+    <div class="fb-stat">
+        <div class="fb-stat-icon green"><i class="bi bi-chat-square-text"></i></div>
+        <div>
+            <div class="fb-stat-val" id="statTotal">–</div>
+            <div class="fb-stat-lbl">Tổng Feedback</div>
+        </div>
+    </div>
+    <div class="fb-stat">
+        <div class="fb-stat-icon yellow"><i class="bi bi-clock-history"></i></div>
+        <div>
+            <div class="fb-stat-val" id="statPending">–</div>
+            <div class="fb-stat-lbl">Chưa Reply</div>
+        </div>
+    </div>
+    <div class="fb-stat">
+        <div class="fb-stat-icon blue"><i class="bi bi-check2-circle"></i></div>
+        <div>
+            <div class="fb-stat-val" id="statReplied">–</div>
+            <div class="fb-stat-lbl">Đã Reply</div>
+        </div>
+    </div>
+    <div class="fb-stat">
+        <div class="fb-stat-icon purple"><i class="bi bi-star-half"></i></div>
+        <div>
+            <div class="fb-stat-val" id="statAvgRating">–</div>
+            <div class="fb-stat-lbl">Điểm TB</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ FILTER BAR ════════════════════════════════════════════ -->
+<div class="fb-filter-card">
+    <div class="fb-filter-group search">
+        <label>Tìm kiếm</label>
+        <input type="text" id="fKeyword" placeholder="🔍  Tìm trong nội dung feedback..." />
+    </div>
+    <div class="fb-filter-group">
+        <label>Trạng thái</label>
+        <select id="fHasReply">
+            <option value="">Tất cả</option>
+            <option value="false">Chưa reply</option>
+            <option value="true">Đã reply</option>
+        </select>
+    </div>
+    <div class="fb-filter-group">
+        <label>Đánh giá</label>
+        <select id="fRating">
+            <option value="">Tất cả</option>
+            <option value="5">⭐⭐⭐⭐⭐  5 sao</option>
+            <option value="4">⭐⭐⭐⭐  4 sao</option>
+            <option value="3">⭐⭐⭐  3 sao</option>
+            <option value="2">⭐⭐  2 sao</option>
+            <option value="1">⭐  1 sao</option>
+        </select>
+    </div>
+    <div class="fb-filter-group">
+        <label>Sắp xếp</label>
+        <select id="fSortBy">
+            <option value="newest">Mới nhất</option>
+            <option value="oldest">Cũ nhất</option>
+            <option value="rating_desc">Điểm cao nhất</option>
+            <option value="rating_asc">Điểm thấp nhất</option>
+        </select>
+    </div>
+    <div class="fb-filter-group">
+        <label>Hiển thị</label>
+        <select id="fPageSize">
+            <option value="10">10 / trang</option>
+            <option value="20">20 / trang</option>
+            <option value="50">50 / trang</option>
+        </select>
+    </div>
+    <button class="fb-btn fb-btn-primary" onclick="loadFeedbacks(1)">
+        <i class="bi bi-search"></i> Lọc
+    </button>
+    <button class="fb-btn fb-btn-ghost" onclick="resetFilter()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset
+    </button>
+</div>
+
+<!-- ══ TABLE CARD ════════════════════════════════════════════ -->
+<div class="fb-table-card">
+    <div class="fb-table-head">
+        <div style="display:flex;align-items:center;gap:10px">
+            <span class="fb-table-title">Danh sách Feedback</span>
+            <span class="fb-count-badge" id="totalBadge">0 kết quả</span>
+        </div>
+    </div>
+
+    <div id="fbTableBody">
+        <div class="fb-loading">
+            <i class="bi bi-arrow-repeat" style="font-size:22px;display:block;margin-bottom:8px"></i>
+            Đang tải dữ liệu...
+        </div>
+    </div>
+
+    <div class="fb-pagination" id="fbPagination" style="display:none">
+        <div class="fb-page-info" id="pageInfo"></div>
+        <div class="fb-page-btns" id="pageBtns"></div>
+    </div>
+</div>
+
+<!-- ══ MODAL: DETAIL ═════════════════════════════════════════ -->
+<div class="fb-overlay" id="modalDetail">
+    <div class="fb-modal wide">
+        <div class="fb-modal-header">
+            <h3><i class="bi bi-info-circle" style="color:var(--fb-purple)"></i> Chi tiết Feedback</h3>
+            <button class="fb-modal-close" onclick="closeModal('modalDetail')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="fb-modal-body" id="detailBody">
+            <!-- dynamic -->
+        </div>
+        <div class="fb-modal-footer">
+            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalDetail')">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MODAL: REPLY / EDIT REPLY ═════════════════════════════ -->
+<div class="fb-overlay" id="modalReply">
+    <div class="fb-modal">
+        <div class="fb-modal-header">
+            <h3 id="replyModalTitle">
+                <i class="bi bi-reply" style="color:var(--fb-green2)"></i> Phản hồi Feedback
+            </h3>
+            <button class="fb-modal-close" onclick="closeModal('modalReply')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="fb-modal-body">
+            <div class="fb-context-box">
+                <div class="fb-context-box-lbl">Nội dung feedback của khách</div>
+                <div class="fb-context-comment" id="replyContextComment">–</div>
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                    <div id="replyContextStars" class="fb-stars"></div>
+                    <span id="replyContextDate" style="font-size:11px;color:var(--fb-muted);font-weight:700"></span>
+                </div>
+            </div>
+            <div class="fb-form-group">
+                <label class="fb-form-label">
+                    Nội dung phản hồi <span>*</span>
+                </label>
+                <textarea class="fb-form-textarea" id="replyContent"
+                          placeholder="Cảm ơn bạn đã phản hồi! Chúng tôi..."
+                          maxlength="1000"
+                          oninput="updateCharCount(this,'replyCharCount',1000)"></textarea>
+                <div class="fb-char-count"><span id="replyCharCount">0</span> / 1000 ký tự</div>
+                <div class="fb-form-hint">
+                    <i class="bi bi-lightbulb"></i>
+                    Phản hồi chuyên nghiệp, lịch sự sẽ tạo ấn tượng tốt với khách hàng.
+                </div>
+            </div>
+            <input type="hidden" id="replyFeedbackId" />
+            <input type="hidden" id="replyMode" value="new" /> <!-- new | edit -->
+        </div>
+        <div class="fb-modal-footer">
+            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalReply')">Hủy</button>
+            <button class="fb-btn fb-btn-primary" onclick="submitReply()" id="replySubmitBtn">
+                <i class="bi bi-send"></i> Gửi phản hồi
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MODAL: CONFIRM DELETE ════════════════════════════════ -->
+<div class="fb-overlay" id="modalDelete">
+    <div class="fb-modal" style="max-width:420px">
+        <div class="fb-modal-body" style="padding:28px 24px">
+            <div class="fb-confirm-icon">🗑️</div>
+            <div class="fb-confirm-title">Xóa phản hồi?</div>
+            <div class="fb-confirm-desc">
+                Hành động này sẽ xóa toàn bộ nội dung phản hồi đã gửi.<br>
+                Bạn có thể reply lại sau khi xóa.
+            </div>
+            <input type="hidden" id="deleteFeedbackId" />
+        </div>
+        <div class="fb-modal-footer">
+            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalDelete')">Hủy</button>
+            <button class="fb-btn fb-btn-danger" onclick="confirmDeleteReply()">
+                <i class="bi bi-trash3"></i> Xóa phản hồi
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ── STATE ────────────────────────────────────────────────────
+        const STAFF_ID = '@ViewBag.StaffId';
+        let currentPage = 1;
+        let totalPages  = 1;
+
+        // ── INIT ─────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFeedbacks(1);
+
+            // Enter key on search
+            document.getElementById('fKeyword')
+                .addEventListener('keydown', e => { if (e.key === 'Enter') loadFeedbacks(1); });
+        });
+
+        // ── LOAD LIST ────────────────────────────────────────────────
+        async function loadFeedbacks(page) {
+            currentPage = page;
+            showTableLoading();
+
+            const params = buildParams(page);
+
+            try {
+                const res  = await fetch(`/AdminFeedback/GetList?${params}`);
+                const json = await res.json();
+
+                if (!json.success || !json.data) {
+                    showTableEmpty('Không thể tải dữ liệu. Vui lòng thử lại.');
+                    return;
+                }
+
+                const data = json.data;
+                renderTable(data.items);
+                renderPagination(data.page, data.totalPages, data.totalCount);
+                updateStats(data.items, data.totalCount);
+
+            } catch (err) {
+                showTableEmpty('Có lỗi xảy ra khi kết nối server.');
+            }
+        }
+
+        function buildParams(page) {
+            const p = new URLSearchParams();
+            p.set('page',     page);
+            p.set('pageSize', document.getElementById('fPageSize').value);
+
+            const keyword  = document.getElementById('fKeyword').value.trim();
+            const hasReply = document.getElementById('fHasReply').value;
+            const rating   = document.getElementById('fRating').value;
+            const sortBy   = document.getElementById('fSortBy').value;
+
+            if (keyword)  p.set('keyword',  keyword);
+            if (hasReply) p.set('hasReply', hasReply);
+            if (rating)   p.set('rating',   rating);
+            if (sortBy)   p.set('sortBy',   sortBy);
+
+            return p.toString();
+        }
+
+        // ── RENDER TABLE ─────────────────────────────────────────────
+                function renderTable(items) {
+            if (!items || items.length === 0) {
+                showTableEmpty('Không có feedback nào phù hợp với bộ lọc.');
+                return;
+            }
+
+            const rows = items.map(f => {
+                const stars   = `<div class="fb-stars">${renderStars(f.rating)}</div>`;
+                const badge   = renderReplyBadge(f.hasReply, f.isVisible);
+                const comment = escHtml(f.comment || '–');
+                const date    = formatDate(f.createdDate);
+                const actions = renderActions(f);
+
+                // ── Cột Product: ảnh + tên ────────────────────────────
+                const productCell = f.productImage
+                    ? `<div style="display:flex;align-items:center;gap:8px">
+                           <img src="${f.productImage}"
+                                style="width:36px;height:36px;object-fit:cover;
+                                       border-radius:6px;border:1px solid var(--fb-border)"
+                                onerror="this.style.display='none'">
+                           <span class="fb-comment" title="${escHtml(f.productName||'')}">
+                               ${escHtml(f.productName || '–')}
+                           </span>
+                       </div>`
+                    : `<span>${escHtml(f.productName || '–')}</span>`;
+
+                return `
+                <tr>
+                    <td>
+                        <span style="font-size:13px;font-weight:800;color:var(--fb-muted)">
+                            #${f.rowNumber}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-size:13px;font-weight:700;color:var(--fb-ink2)">
+                            ${escHtml(f.customerName || 'Khách hàng')}
+                        </span>
+                    </td>
+                    <td>${productCell}</td>
+                    <td>${stars}</td>
+                    <td><div class="fb-comment" title="${comment}">${comment}</div></td>
+                    <td>${badge}</td>
+                    <td style="font-size:12px;color:var(--fb-muted);white-space:nowrap">${date}</td>
+                    <td><div class="fb-actions">${actions}</div></td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('fbTableBody').innerHTML = `
+                <table class="fb-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Khách hàng</th>
+                            <th>Sản phẩm</th>
+                            <th>Đánh giá</th>
+                            <th>Nội dung</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
+
+        function renderStars(rating) {
+            const r = rating || 0;
+            return Array.from({length: 5}, (_, i) =>
+                `<span class="fb-star ${i < r ? 'on' : ''}">★</span>`
+            ).join('');
+        }
+
+        function renderReplyBadge(hasReply, isVisible) {
+            if (!isVisible)
+                return `<span class="fb-badge fb-badge-hidden"><i class="bi bi-eye-slash"></i> Đã ẩn</span>`;
+            if (hasReply)
+                return `<span class="fb-badge fb-badge-replied"><i class="bi bi-check-circle"></i> Đã reply</span>`;
+            return `<span class="fb-badge fb-badge-pending"><i class="bi bi-clock"></i> Chờ reply</span>`;
+        }
+
+        function renderActions(f) {
+            const detailBtn = `
+                <button class="fb-action-btn detail"
+                        onclick="openDetail('${f.feedbackId}')">
+                    <i class="bi bi-eye"></i> Detail
+                </button>`;
+
+            const hideBtn = f.isVisible
+                ? `<button class="fb-action-btn hide"
+                           onclick="toggleVisibility('${f.feedbackId}', false)">
+                       <i class="bi bi-eye-slash"></i>
+                   </button>`
+                : `<button class="fb-action-btn"
+                           onclick="toggleVisibility('${f.feedbackId}', true)"
+                           style="border-color:var(--fb-blue);color:var(--fb-blue)">
+                       <i class="bi bi-eye"></i>
+                   </button>`;
+
+            if (!f.hasReply) {
+                return `
+                    ${detailBtn}
+                    <button class="fb-action-btn reply"
+                            onclick="openReply('${f.feedbackId}','${escHtml(f.comment||'')}',${f.rating},'${f.createdDate}')">
+                        <i class="bi bi-reply"></i> Reply
+                    </button>
+                    ${hideBtn}`;
+            }
+
+            return `
+                ${detailBtn}
+                <button class="fb-action-btn edit"
+                        onclick="openEditReply('${f.feedbackId}','${escHtml(f.comment||'')}',${f.rating},'${f.createdDate}','${escHtml(f.replyContent||'')}')">
+                    <i class="bi bi-pencil"></i> Edit Reply
+                </button>
+                <button class="fb-action-btn delete"
+                        onclick="openDeleteReply('${f.feedbackId}')">
+                    <i class="bi bi-trash3"></i>
+                </button>
+                ${hideBtn}`;
+        }
+
+        // ── PAGINATION ────────────────────────────────────────────────
+        function renderPagination(page, pages, total) {
+            totalPages = pages;
+            const pageSize = parseInt(document.getElementById('fPageSize').value);
+            const from = (page - 1) * pageSize + 1;
+            const to   = Math.min(page * pageSize, total);
+
+            document.getElementById('pageInfo').textContent =
+                `Hiển thị ${from}–${to} trong ${total} kết quả`;
+
+            const btns = [];
+            btns.push(`<button class="fb-page-btn" onclick="loadFeedbacks(${page-1})"
+                ${page===1?'disabled':''}>‹</button>`);
+
+            const range = buildPageRange(page, pages);
+            range.forEach(p => {
+                if (p === '…')
+                    btns.push(`<button class="fb-page-btn" disabled>…</button>`);
+                else
+                    btns.push(`<button class="fb-page-btn ${p===page?'active':''}"
+                        onclick="loadFeedbacks(${p})">${p}</button>`);
+            });
+
+            btns.push(`<button class="fb-page-btn" onclick="loadFeedbacks(${page+1})"
+                ${page===pages?'disabled':''}>›</button>`);
+
+            document.getElementById('pageBtns').innerHTML = btns.join('');
+            document.getElementById('fbPagination').style.display = 'flex';
+        }
+
+        function buildPageRange(current, total) {
+            if (total <= 7) return Array.from({length:total}, (_,i)=>i+1);
+            const pages = [1];
+            if (current > 3) pages.push('…');
+            for (let i = Math.max(2, current-1); i <= Math.min(total-1, current+1); i++)
+                pages.push(i);
+            if (current < total - 2) pages.push('…');
+            pages.push(total);
+            return pages;
+        }
+
+        // ── STATS ─────────────────────────────────────────────────────
+        function updateStats(items, total) {
+            document.getElementById('statTotal').textContent = total;
+
+            // Load all to compute pending/replied/avg using filter trick
+            const pending = items.filter(f => !f.hasReply).length;
+            const replied = items.filter(f =>  f.hasReply).length;
+            const ratings = items.map(f => f.rating || 0).filter(r => r > 0);
+            const avg     = ratings.length
+                ? (ratings.reduce((a,b) => a+b, 0) / ratings.length).toFixed(1)
+                : '–';
+
+            document.getElementById('statPending').textContent   = pending;
+            document.getElementById('statReplied').textContent   = replied;
+            document.getElementById('statAvgRating').textContent = avg === '–' ? '–' : avg + ' ★';
+            document.getElementById('totalBadge').textContent    = `${total} kết quả`;
+        }
+
+        // ── DETAIL MODAL ─────────────────────────────────────────────
+        async function openDetail(feedbackId) {
+            try {
+                const res  = await fetch(`/AdminFeedback/GetDetail?feedbackId=${feedbackId}`);
+                const json = await res.json();
+                if (!json.success) { showToast('Không thể tải chi tiết.', 'error'); return; }
+
+                const f = json.data;
+                document.getElementById('detailBody').innerHTML = buildDetailHtml(f);
+                openModal('modalDetail');
+            } catch {
+                showToast('Lỗi kết nối.', 'error');
+            }
+        }
+
+                function buildDetailHtml(f) {
+            const stars = `<div class="fb-stars" style="display:inline-flex">${renderStars(f.rating)}</div>`;
+
+            // ── Product block ─────────────────────────────────────────
+            const productBlock = `
+                <div style="display:flex;align-items:center;gap:12px">
+                    ${f.productImage
+                        ? `<img src="${f.productImage}"
+                                style="width:56px;height:56px;object-fit:cover;
+                                       border-radius:8px;border:1px solid var(--fb-border)"
+                                onerror="this.style.display='none'">`
+                        : ''}
+                    <span style="font-weight:700;font-size:13px;color:var(--fb-ink2)">
+                        ${escHtml(f.productName || '–')}
+                    </span>
+                </div>`;
+
+            // ── Reply section ─────────────────────────────────────────
+            const replySection = f.hasReply ? `
+                <div class="fb-reply-box">
+                    <div class="fb-reply-box-title">
+                        <i class="bi bi-reply-fill"></i> Phản hồi từ nhân viên
+                    </div>
+                    <div class="fb-reply-box-content">${escHtml(f.replyContent || '')}</div>
+                    <div class="fb-reply-box-meta">
+                        <i class="bi bi-clock"></i> ${formatDate(f.replyDate)}
+                        &nbsp;·&nbsp;
+                        <i class="bi bi-person-badge"></i>
+                        ${escHtml(f.staffName || 'Nhân viên')}
+                    </div>
+                </div>` : `
+                <div style="background:#fef3c7;border:1.5px solid #fcd34d;border-radius:10px;
+                            padding:12px 14px;margin-top:14px;font-size:13px;
+                            color:#92400e;font-weight:700;display:flex;gap:8px;align-items:center">
+                    <i class="bi bi-clock-history"></i>
+                    Feedback này chưa có phản hồi.
+                </div>`;
+
+            return `
+                <div class="fb-detail-section">
+                    <div class="fb-detail-section-title">Thông tin Feedback</div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Feedback ID</span>
+                        <span class="fb-detail-val" style="font-family:monospace;font-size:12px">
+                            ${f.feedbackId}
+                        </span>
+                    </div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Đánh giá</span>
+                        <span class="fb-detail-val">${stars} (${f.rating}/5)</span>
+                    </div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Ngày tạo</span>
+                        <span class="fb-detail-val">${formatDate(f.createdDate)}</span>
+                    </div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Hiển thị</span>
+                        <span class="fb-detail-val">
+                            ${f.isVisible
+                                ? '<span class="fb-badge fb-badge-replied">Hiển thị</span>'
+                                : '<span class="fb-badge fb-badge-hidden">Đã ẩn</span>'}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="fb-detail-section">
+                    <div class="fb-detail-section-title">Khách hàng</div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Họ tên</span>
+                        <span class="fb-detail-val" style="font-weight:700">
+                            ${escHtml(f.customerName || '–')}
+                        </span>
+                    </div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Email</span>
+                        <span class="fb-detail-val" style="color:var(--fb-blue)">
+                            ${escHtml(f.customerEmail || '–')}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="fb-detail-section">
+                    <div class="fb-detail-section-title">Sản phẩm</div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Thông tin</span>
+                        <span class="fb-detail-val">${productBlock}</span>
+                    </div>
+                    <div class="fb-detail-row">
+                        <span class="fb-detail-lbl">Order ID</span>
+                        <span class="fb-detail-val" style="font-family:monospace;font-size:12px">
+                            ${f.orderId}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="fb-detail-section">
+                    <div class="fb-detail-section-title">Nội dung đánh giá</div>
+                    <div style="font-size:13px;color:var(--fb-ink2);line-height:1.7;font-style:italic">
+                        "${escHtml(f.comment || 'Không có nội dung')}"
+                    </div>
+                </div>
+
+                ${replySection}`;
+        }
+
+        // ── REPLY MODAL ───────────────────────────────────────────────
+        function openReply(feedbackId, comment, rating, createdDate) {
+            document.getElementById('replyModalTitle').innerHTML =
+                `<i class="bi bi-reply" style="color:var(--fb-green2)"></i> Phản hồi Feedback`;
+            document.getElementById('replySubmitBtn').innerHTML =
+                `<i class="bi bi-send"></i> Gửi phản hồi`;
+            document.getElementById('replyContent').value    = '';
+            document.getElementById('replyFeedbackId').value = feedbackId;
+            document.getElementById('replyMode').value       = 'new';
+            document.getElementById('replyContextComment').textContent = comment || 'Không có nội dung';
+            document.getElementById('replyContextStars').innerHTML     = renderStars(rating);
+            document.getElementById('replyContextDate').textContent    = formatDate(createdDate);
+            document.getElementById('replyCharCount').textContent      = '0';
+            openModal('modalReply');
+            setTimeout(() => document.getElementById('replyContent').focus(), 200);
+        }
+
+        function openEditReply(feedbackId, comment, rating, createdDate, existingReply) {
+            document.getElementById('replyModalTitle').innerHTML =
+                `<i class="bi bi-pencil-square" style="color:var(--fb-blue)"></i> Chỉnh sửa phản hồi`;
+            document.getElementById('replySubmitBtn').innerHTML =
+                `<i class="bi bi-check-lg"></i> Cập nhật`;
+            document.getElementById('replyContent').value    = existingReply || '';
+            document.getElementById('replyFeedbackId').value = feedbackId;
+            document.getElementById('replyMode').value       = 'edit';
+            document.getElementById('replyContextComment').textContent = comment || 'Không có nội dung';
+            document.getElementById('replyContextStars').innerHTML     = renderStars(rating);
+            document.getElementById('replyContextDate').textContent    = formatDate(createdDate);
+            document.getElementById('replyCharCount').textContent      = (existingReply||'').length;
+            openModal('modalReply');
+            setTimeout(() => document.getElementById('replyContent').focus(), 200);
+        }
+
+        async function submitReply() {
+            const content    = document.getElementById('replyContent').value.trim();
+            const feedbackId = document.getElementById('replyFeedbackId').value;
+            const mode       = document.getElementById('replyMode').value;
+
+            if (!content) {
+                showToast('Vui lòng nhập nội dung phản hồi.', 'error');
+                document.getElementById('replyContent').focus();
+                return;
+            }
+
+            const btn = document.getElementById('replySubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="bi bi-arrow-repeat"></i> Đang gửi...`;
+
+            try {
+                let url, body;
+                if (mode === 'new') {
+                    url  = '/AdminFeedback/Reply';
+                    body = { feedbackId, staffId: STAFF_ID, replyContent: content };
+                } else {
+                    url  = '/AdminFeedback/UpdateReply';
+                    body = { feedbackId, replyContent: content };
+                }
+
+                const res  = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    closeModal('modalReply');
+                    showToast(json.message || 'Thành công!', 'success');
+                    loadFeedbacks(currentPage);
+                } else {
+                    showToast(json.message || 'Có lỗi xảy ra.', 'error');
+                }
+            } catch {
+                showToast('Lỗi kết nối server.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = mode === 'new'
+                    ? `<i class="bi bi-send"></i> Gửi phản hồi`
+                    : `<i class="bi bi-check-lg"></i> Cập nhật`;
+            }
+        }
+
+        // ── DELETE REPLY ──────────────────────────────────────────────
+        function openDeleteReply(feedbackId) {
+            document.getElementById('deleteFeedbackId').value = feedbackId;
+            openModal('modalDelete');
+        }
+
+        async function confirmDeleteReply() {
+            const feedbackId = document.getElementById('deleteFeedbackId').value;
+            try {
+                const res  = await fetch('/AdminFeedback/DeleteReply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(feedbackId)
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    closeModal('modalDelete');
+                    showToast(json.message || 'Đã xóa phản hồi.', 'success');
+                    loadFeedbacks(currentPage);
+                } else {
+                    showToast(json.message || 'Có lỗi xảy ra.', 'error');
+                }
+            } catch {
+                showToast('Lỗi kết nối server.', 'error');
+            }
+        }
+
+        // ── TOGGLE VISIBILITY ─────────────────────────────────────────
+        async function toggleVisibility(feedbackId, isVisible) {
+            try {
+                const res  = await fetch('/AdminFeedback/ToggleVisibility', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ feedbackId, isVisible })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    showToast(json.message || 'Đã cập nhật.', 'success');
+                    loadFeedbacks(currentPage);
+                } else {
+                    showToast(json.message || 'Có lỗi xảy ra.', 'error');
+                }
+            } catch {
+                showToast('Lỗi kết nối server.', 'error');
+            }
+        }
+
+        // ── RESET FILTER ──────────────────────────────────────────────
+        function resetFilter() {
+            document.getElementById('fKeyword').value  = '';
+            document.getElementById('fHasReply').value = '';
+            document.getElementById('fRating').value   = '';
+            document.getElementById('fSortBy').value   = 'newest';
+            document.getElementById('fPageSize').value = '10';
+            loadFeedbacks(1);
+        }
+
+        // ── MODAL HELPERS ─────────────────────────────────────────────
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        // Close on overlay click
+        document.querySelectorAll('.fb-overlay').forEach(overlay => {
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) overlay.classList.remove('open');
+            });
+        });
+
+        // ── TABLE STATE HELPERS ───────────────────────────────────────
+        function showTableLoading() {
+            document.getElementById('fbTableBody').innerHTML = `
+                <div class="fb-loading">
+                    <i class="bi bi-arrow-repeat"
+                       style="font-size:22px;display:block;margin-bottom:8px;
+                              animation:spin 1s linear infinite"></i>
+                    Đang tải dữ liệu...
+                </div>`;
+            document.getElementById('fbPagination').style.display = 'none';
+        }
+
+        function showTableEmpty(msg) {
+            document.getElementById('fbTableBody').innerHTML = `
+                <div class="fb-empty">
+                    <div class="fb-empty-icon">💬</div>
+                    <div class="fb-empty-text">${msg}</div>
+                </div>`;
+            document.getElementById('fbPagination').style.display = 'none';
+            document.getElementById('totalBadge').textContent = '0 kết quả';
+        }
+
+        // ── TOAST ─────────────────────────────────────────────────────
+        function showToast(msg, type = 'success') {
+            const wrap = document.getElementById('fbToastWrap');
+            const icon = type === 'success' ? '✓' : '✕';
+            const el   = document.createElement('div');
+            el.className = `fb-toast ${type}`;
+            el.innerHTML = `<span>${icon}</span> ${msg}`;
+            wrap.appendChild(el);
+            setTimeout(() => el.remove(), 3500);
+        }
+
+        // ── UTILS ─────────────────────────────────────────────────────
+        function updateCharCount(el, countId, max) {
+            document.getElementById(countId).textContent = el.value.length;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '–';
+            const d = new Date(dateStr);
+            if (isNaN(d)) return '–';
+            return d.toLocaleDateString('vi-VN', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g,'&amp;')
+                .replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;')
+                .replace(/'/g,'&#39;');
+        }
+    </script>
+
+    <style>
+        @@keyframes spin {
+            from { transform: rotate(0deg);   }
+            to   { transform: rotate(360deg); }
+        }
+    </style>
+}

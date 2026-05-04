@@ -72,5 +72,16 @@ namespace CustomerAPI.Service
             customer.UpdatedAt = DateTime.UtcNow;
             return await _customerRepository.UpdateAsync(customer);
         }
+
+        public async Task<CustomerInternalDto?> GetInternalAsync(Guid customerId)
+        {
+            var customer = await _customerRepository.GetByIdInternalAsync(customerId);
+            if (customer == null) return null;
+            return new CustomerInternalDto
+            {
+                FullName = customer.FullName,
+                Email = customer.Email
+            };
+        }
     }
 }

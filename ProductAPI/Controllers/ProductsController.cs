@@ -220,5 +220,15 @@ namespace ProductAPI.Controllers
 
         //    return product;
         //}
+
+        //Code Hồ mới thêm
+        [HttpGet("internal/{id:guid}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetInternal(Guid id)
+        {
+            var result = await _productService.GetInternalAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
     }
 }
