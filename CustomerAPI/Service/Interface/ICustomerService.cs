@@ -14,5 +14,7 @@ namespace CustomerAPI.Service.Interface
         Task<List<CustomerResponseDto>> GetAllCustomersAsync();
         Task<CustomerResponseDto?> GetCustomerByIdAsync(Guid customerId);
         Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive);
+
+        Task<CustomerInternalDto?> GetInternalAsync(Guid customerId);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using InventoryAPI.Models;
 using InventoryAPI.Profiles;
+using InventoryAPI.Odata;
 using InventoryAPI.Repository;
 using InventoryAPI.Repository.Interface;
 using InventoryAPI.Service;
@@ -9,17 +10,29 @@ using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region CONFIG
+
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
                  optional: true,
                  reloadOnChange: true);
 
+#endregion
 
-// Add services to the container.
+#region DB
+
+builder.Services.AddDbContext<PetCenterInventoryServiceContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
+
+#endregion
+
+#region AUTH JWT
 
 builder.Services.AddAuthentication(options =>
 {
@@ -45,7 +58,6 @@ builder.Services.AddAuthentication(options =>
         )
     };
 
-    // Giống JwtEntryPoint + AccessDenied
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
@@ -61,13 +73,35 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+#endregion
 
+#region CONTROLLERS + ODATA
+
+builder.Services.AddControllers()
+    .AddOData(opt =>
+        opt.AddRouteComponents("odata", IEdmModelBuilder.GetEdmModel())
+           .Select()
+           .Filter()
+           .OrderBy()
+           .Expand()
+           .Count()
+           .SetMaxTop(100));
+
+#endregion
+
+#region SWAGGER (CHỈ 1 LẦN DUY NHẤT)
+
+builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProductAPI", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "InventoryAPI",
+        Version = "v1"
+    });
 
-    // Cấu hình hỗ trợ Bearer token
+    // JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -75,7 +109,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Nhập token theo dạng: Bearer {your JWT token}"
+        Description = "Bearer {token}"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -89,33 +123,23 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            Array.Empty<string>()
+            new string[] {}
         }
     });
+
+    // 🔥 OData 1 input
+    c.OperationFilter<ODataSingleQueryOperationFilter>();
 });
 
+#endregion
 
-builder.Services.AddControllers();
-builder.Services.AddAuthorization();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+#region AUTOMAPPER
 
-
-builder.Services.AddDbContext<PetCenterInventoryServiceContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
-builder.Services.AddControllers()
-    .AddOData(opt => opt
-        .Select()
-        .Filter()
-        .OrderBy()
-        .Expand()
-        .Count()
-        .SetMaxTop(100));
-
-// Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<InventoryProfile>());
 
+#endregion
+
+#region CORS
 
 builder.Services.AddCors(options =>
 {
@@ -128,8 +152,10 @@ builder.Services.AddCors(options =>
         });
 });
 
+#endregion
 
-// Đăng ký Service và Repository
+#region DI
+
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IInventoryTransactionRepository, InventoryTransactionRepository>();
@@ -137,23 +163,43 @@ builder.Services.AddScoped<IInventoryTransactionService, InventoryTransactionSer
 
 builder.Services.AddHttpClient();
 
+#endregion
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+#region PIPELINE
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
+if (!app.Environment.IsEnvironment("Docker"))
+{
+    app.UseHttpsRedirection();
+}
+
+// 🔥 convert queryOptions → OData
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/odata") &&
+        context.Request.Query.ContainsKey("queryOptions"))
+    {
+        var raw = context.Request.Query["queryOptions"].ToString();
+        context.Request.QueryString = new QueryString("?" + raw);
+    }
+
+    await next();
+});
 
 app.UseCors("AllowClient");
-
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+#endregion
 
 app.Run();

@@ -16,6 +16,15 @@ namespace CustomerAPI.Controllers
             _customerService = customerService;
         }
 
+        [HttpGet("internal/{id:guid}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetInternal(Guid id)
+        {
+            var result = await _customerService.GetInternalAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
         // GET: api/customers
         // ✅ JWT của StaffAPI dùng key khác → cần cấu hình thêm (xem phần JWT bên dưới)
         [HttpGet]
@@ -66,6 +75,25 @@ namespace CustomerAPI.Controllers
                 status = 200,
                 message = $"Customer status changed to {(request.IsActive ? "Active" : "Inactive")} successfully"
             });
+        }
+
+        // GET: api/customers/{id}/display-name
+        // Public endpoint - chỉ trả về tên hiển thị, không cần Authorize
+        [HttpGet("{id:guid}/display-name")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetDisplayName(Guid id)
+        {
+            try
+            {
+                var customer = await _customerService.GetCustomerByIdAsync(id);
+                if (customer == null)
+                    return Ok(new { success = true, displayName = "Anonymous" });
+                return Ok(new { success = true, displayName = customer.FullName });
+            }
+            catch
+            {
+                return Ok(new { success = true, displayName = "Anonymous" });
+            }
         }
     }
 }

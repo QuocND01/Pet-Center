@@ -11,5 +11,6 @@ namespace PetCenterClient.Services.Interface
         Task<CustomerDetailDto?> GetCustomerByIdAsync(Guid id);
 
         Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive);
+        Task<string> GetDisplayNameAsync(Guid customerId);
     }
 }

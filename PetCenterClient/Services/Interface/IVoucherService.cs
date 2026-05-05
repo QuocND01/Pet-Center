@@ -4,13 +4,10 @@ namespace PetCenterClient.Services.Interface
 {
     public interface IVoucherService
     {
-        Task<List<VoucherDTO>> GetAllAsync();
-        Task<VoucherDTO?> GetByIdAsync(Guid id);
-        Task CreateAsync(CreateVoucherDTO dto);
-        Task DeleteAsync(Guid id);
-
-        Task<object> ApplyVoucherAsync(ApplyVoucherDTO dto);
-        Task UpdateAsync(Guid id, CreateVoucherDTO dto);
-        Task<List<VoucherDTO>> SearchAsync(string code);
+        Task<List<VoucherDto>> GetAllAsync();
+        Task<VoucherDto?> GetByIdAsync(Guid id);
+        Task<(bool Success, string Message, VoucherDto? Data)> CreateAsync(CreateVoucherDto dto);
+        Task<(bool Success, string Message, VoucherDto? Data)> UpdateAsync(Guid id, UpdateVoucherDto dto);
+        Task<(bool Success, string Message)> ToggleStatusAsync(Guid id, bool isActive);
     }
 }
