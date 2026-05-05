@@ -17,17 +17,17 @@ builder.Services.AddHttpClient<IStaffService, StaffService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IProductService, ProductService>(client =>
+builder.Services.AddHttpClient<IProductAPIClient, ProductAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IBrandService, BrandService>(client =>
+builder.Services.AddHttpClient<IBrandAPIClient, BrandAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<ICategoryService, CategoryService>(client =>
+builder.Services.AddHttpClient<ICategoryAPIClient, CategoryAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });

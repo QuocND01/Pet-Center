@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface ICategoryService
+    public interface ICategoryAPIClient
     {
       //  Task<IEnumerable<ReadCategoryDTOs>> GetAllCategoryAsync();
         Task<OdataResponse<ReadCategoryDTOs>> GetAllCategoryAsync(string? search, int page = 1);

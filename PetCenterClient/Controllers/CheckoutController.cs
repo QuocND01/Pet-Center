@@ -7,13 +7,13 @@ namespace PetCenterClient.Controllers
     public class CheckoutController : Controller
     {
         private readonly ICheckoutService _checkoutService;
-        private readonly IProductService _productService;
+        private readonly IProductAPIClient _productService;
         private readonly IAddressServiceClient _addressService;
         private readonly ILogger<CheckoutController> _logger;
 
         public CheckoutController(
             ICheckoutService checkoutService,
-            IProductService productService,
+            IProductAPIClient productService,
             IAddressServiceClient addressService,
             ILogger<CheckoutController> logger)
         {

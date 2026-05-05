@@ -7,12 +7,12 @@ using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
-    public class ProductService : IProductService
+    public class ProductAPIClient : IProductAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProductService(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public ProductAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;

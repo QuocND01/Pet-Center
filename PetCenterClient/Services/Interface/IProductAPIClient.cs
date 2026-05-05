@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IProductService
+    public interface IProductAPIClient
     {
         Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
                 string? search,
