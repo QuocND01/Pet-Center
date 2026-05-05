@@ -7,12 +7,12 @@ using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
-    public class BrandService : IBrandService
+    public class BrandAPIClient : IBrandAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BrandService(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public BrandAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;

@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IBrandService
+    public interface IBrandAPIClient
     {
         Task<OdataResponse<ReadBrandDTOs>> GetAllBrandAsync(string? search, int page = 1);
 

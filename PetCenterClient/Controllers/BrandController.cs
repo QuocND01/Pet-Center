@@ -10,9 +10,9 @@ namespace PetCenterClient.Controllers
 {
     public class BrandController : Controller
     {
-        private readonly IBrandService _brandService;
+        private readonly IBrandAPIClient _brandService;
 
-        public BrandController(IBrandService brandService)
+        public BrandController(IBrandAPIClient brandService)
         {
             _brandService = brandService;
         }

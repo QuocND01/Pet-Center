@@ -4,12 +4,12 @@ using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
-    public class CategoryService : ICategoryService
+    public class CategoryAPIClient : ICategoryAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CategoryService(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public CategoryAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
