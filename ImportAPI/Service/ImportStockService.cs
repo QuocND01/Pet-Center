@@ -12,32 +12,114 @@ namespace ImportAPI.Service
         private readonly IImportStockRepository _repo;
         private readonly PetCenterImportServiceContext _context;
         private readonly IMapper _mapper;
-
+        private readonly IHttpClientFactory _httpClientFactory;
         public ImportStockService(
             IImportStockRepository repo,
             PetCenterImportServiceContext context,
-            IMapper mapper)
+            IMapper mapper,
+            IHttpClientFactory httpClientFactory)
         {
             _repo = repo;
             _context = context;
             _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<Guid> CreateAsync(CreateImportStockDto dto, Guid staffGuid)
+        public async Task<Guid> CreateAsync(
+    CreateImportStockDto dto,
+    Guid staffGuid)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var transaction =
+                await _context.Database.BeginTransactionAsync();
 
-            var importStock = _mapper.Map<ImportStock>(dto);
+            // ============================================
+            // MAP IMPORT
+            // ============================================
+
+            var importStock =
+                _mapper.Map<ImportStock>(dto);
 
             importStock.ImportId = Guid.NewGuid();
+
             importStock.ImportDate = DateTime.UtcNow;
+
             importStock.Status = ImportStatus.Pending;
+
             importStock.StaffId = staffGuid;
 
-            importStock.TotalAmount = importStock.ImportStockDetails
-                .Sum(x => x.Quantity * x.ImportPrice);
+            importStock.TotalAmount =
+                importStock.ImportStockDetails
+                    .Sum(x => x.Quantity * x.ImportPrice);
+
+            // ============================================
+            // GET PRODUCT IDS
+            // ============================================
+
+            var productIds =
+                importStock.ImportStockDetails
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .ToList();
+
+            // ============================================
+            // CALL PRODUCT API
+            // ============================================
+
+            var client =
+                _httpClientFactory.CreateClient("ProductAPI");
+
+            var response =
+                await client.PostAsJsonAsync(
+                    "api/products/snapshot",
+                    new
+                    {
+                        productIds
+                    });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(
+                    "Cannot get product snapshots");
+            }
+
+            var snapshots = 
+                await response.Content.
+                    ReadFromJsonAsync<
+                        List<ProductSnapshotResponseDto>>();
+
+            if (snapshots == null || !snapshots.Any())
+            {
+                throw new Exception(
+                    "Product snapshots not found");
+            }
+
+            var snapshotDict =
+                snapshots.ToDictionary(x => x.ProductId);
+
+            foreach (var detail in importStock.ImportStockDetails)
+            {
+                if (!snapshotDict.TryGetValue(
+                    detail.ProductId,
+                    out var snapshotDto))
+                {
+                    throw new Exception(
+                        $"Product {detail.ProductId} not found");
+                }
+
+                var snapshot =
+                    _mapper.Map<ImportProductSnapshot>(
+                        snapshotDto);
+
+                snapshot.ProductSnapshotId =
+                    Guid.NewGuid();
+
+                detail.ImportProductSnapshot =
+                    snapshot;
+            }
+            //save
 
             await _repo.AddAsync(importStock);
+
             await _repo.SaveChangesAsync();
 
             await transaction.CommitAsync();

@@ -22,7 +22,7 @@ namespace ImportAPI.Profiles
 
             // Detail read
             CreateMap<ImportStockDetail, ImportStockDetailDto>();
-                
+
 
             // Create import
             CreateMap<CreateImportStockDto, ImportStock>()
@@ -39,6 +39,21 @@ namespace ImportAPI.Profiles
                     opt => opt.MapFrom(_ => Guid.NewGuid()))
                 .ForMember(dest => dest.StockLeft,
                     opt => opt.MapFrom(src => src.Quantity));
+
+            CreateMap<ProductSnapshotResponseDto, ImportProductSnapshot>()
+                .ForMember(dest => dest.ProductSnapshotId,
+                    opt => opt.Ignore())
+
+                .ForMember(dest => dest.ImportStockDetailsId,
+                    opt => opt.Ignore())
+
+                .ForMember(dest => dest.ProductCategory,
+                    opt => opt.MapFrom(src => src.CategoryName))
+
+                .ForMember(dest => dest.ProductBrand,
+                    opt => opt.MapFrom(src => src.BrandName));
+
+
         }
     }
 }
