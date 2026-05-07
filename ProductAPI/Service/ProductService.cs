@@ -395,5 +395,11 @@ namespace ProductAPI.Service
                 ImageUrl = product.Images.FirstOrDefault()?.ImageUrl
             };
         }
+        public async Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds)
+        {
+            var products = await _productRepository.GetProductsForSnapshotAsync(productIds);
+
+            return _mapper.Map<List<ProductSnapshotResponseDto>>(products);
+        }
     }
 }

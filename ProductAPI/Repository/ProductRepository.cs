@@ -199,5 +199,15 @@ namespace ProductAPI.Repository
         .Include(p => p.Images.Where(i => i.IsActive))
         .AsNoTracking()
         .FirstOrDefaultAsync(p => p.ProductId == productId && p.IsActive);
+
+        public async Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds)
+        {
+            return await _db.Products
+                .AsNoTracking()
+                .Include(x => x.Brand)
+                .Include(x => x.Category)
+                .Where(x => productIds.Contains(x.ProductId))
+                .ToListAsync();
+        }
     }
 }

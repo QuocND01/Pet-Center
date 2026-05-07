@@ -41,6 +41,6 @@ namespace ImportAPI.DTOs
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
 
-        public ImportStock.ImportStatus Status { get; set; }
+        public ImportStatus Status { get; set; }
     }
 }

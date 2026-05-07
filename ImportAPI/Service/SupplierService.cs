@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using ImportAPI.DTOs;
 using ImportAPI.Repository.Interface;
 using ImportAPI.Service.Interface;
 using ImportAPI.Models;
+using ImportAPI.DTOs;
 
 
 namespace ImportAPI.Service
