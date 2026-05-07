@@ -4,7 +4,7 @@ using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Services
 {
-    public class AuthAPIClient : IAuthService
+    public class AuthAPIClient : IAuthAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;

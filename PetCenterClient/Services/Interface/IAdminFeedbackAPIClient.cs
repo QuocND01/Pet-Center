@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IAdminFeedbackService
+    public interface IAdminFeedbackAPIClient
     {
         Task<FeedbackPagedResult?> GetAllAsync(
             int page = 1,

@@ -8,9 +8,9 @@ namespace PetCenterClient.Controllers
     public class AddressController : Controller
     {
         private readonly IAddressServiceClient _addressService;
-        private readonly ICustomerService _customerService;
+        private readonly ICustomerAPIClient _customerService;
 
-        public AddressController(IAddressServiceClient addressService, ICustomerService customerService)
+        public AddressController(IAddressServiceClient addressService, ICustomerAPIClient customerService)
         {
             _addressService = addressService;
             _customerService = customerService;

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace PetCenterClient.Services
 {
-    public class FeedbackAPIClient : IFeedbackService
+    public class FeedbackAPIClient : IFeedbackAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;

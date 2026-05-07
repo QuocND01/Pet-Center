@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IFeedbackService
+    public interface IFeedbackAPIClient
     {
         Task<bool> HasFeedbackForOrderAsync(Guid orderId);
         Task<List<ProductFeedbackResponseDto>> GetFeedbacksByOrderIdAsync(Guid orderId);

@@ -10,14 +10,14 @@ namespace PetCenterClient.Controllers
     {
         private readonly IOrderServiceClient _orderService;
         private readonly IAddressServiceClient _addressService;
-        private readonly ICustomerService _customerService;
+        private readonly ICustomerAPIClient _customerService;
         private readonly IOrderDetailServiceClient _detailService;
         private readonly IProductAPIClient _productService;
         private readonly IImportStockService _importStockService;
 
         public OrdersController(IOrderServiceClient orderService,
                                IAddressServiceClient addressService,
-                               ICustomerService customerService,
+                               ICustomerAPIClient customerService,
                                IOrderDetailServiceClient detailService,
                                IProductAPIClient productService,
                                IImportStockService importStockService)

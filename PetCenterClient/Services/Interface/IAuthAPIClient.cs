@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IAuthService
+    public interface IAuthAPIClient
     {
         Task<LoginResponseDto?> LoginAsync(LoginDto dto);
 

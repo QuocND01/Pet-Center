@@ -6,11 +6,11 @@ namespace PetCenterClient.Controllers
 {
     public class FeedbackController : Controller
     {
-        private readonly IFeedbackService _feedbackService;
+        private readonly IFeedbackAPIClient _feedbackService;
         private readonly IProductAPIClient _productService;
 
         public FeedbackController(
-            IFeedbackService feedbackService,
+            IFeedbackAPIClient feedbackService,
             IProductAPIClient productService)
         {
             _feedbackService = feedbackService;

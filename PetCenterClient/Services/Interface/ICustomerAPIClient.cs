@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface ICustomerService
+    public interface ICustomerAPIClient
     {
         Task<CustomerProfileResponseDto?> GetProfileAsync();
         Task<(bool Success, string Message)> UpdateProfileAsync(UpdateCustomerProfileRequestDto dto);
