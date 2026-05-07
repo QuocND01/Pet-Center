@@ -9,11 +9,11 @@ namespace CustomerAPI.Controllers
     [ApiController]
     [Route("api/customer")]
     [Authorize(Roles = "Customer")]
-    public class CustomerProfileController : ControllerBase
+    public class CustomersProfileController : ControllerBase
     {
         private readonly ICustomerService _customerService;
 
-        public CustomerProfileController(ICustomerService customerService)
+        public CustomersProfileController(ICustomerService customerService)
         {
             _customerService = customerService;
         }

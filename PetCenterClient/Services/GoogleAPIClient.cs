@@ -4,11 +4,11 @@ using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Services
 {
-    public class GoogleClientService : IGoogleClientService
+    public class GoogleAPIClient : IGoogleClientService
     {
         private readonly GoogleClientDto _googleClientDto;
 
-        public GoogleClientService(IOptions<GoogleClientDto> googleClientDto)
+        public GoogleAPIClient(IOptions<GoogleClientDto> googleClientDto)
         {
             _googleClientDto = googleClientDto.Value;
         }

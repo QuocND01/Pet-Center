@@ -32,12 +32,12 @@ builder.Services.AddHttpClient<ICategoryAPIClient, CategoryAPIClient>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
+builder.Services.AddHttpClient<IAuthService, AuthAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<ICustomerService, CustomerService>(client =>
+builder.Services.AddHttpClient<ICustomerService, CustomerAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
@@ -72,17 +72,17 @@ builder.Services.AddHttpClient<ICartService, CartService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IFeedbackService, FeedbackService>(client =>
+builder.Services.AddHttpClient<IFeedbackService, FeedbackAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IVoucherService, VoucherService>(client =>
+builder.Services.AddHttpClient<IVoucherService, VoucherAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IFeedbackService, FeedbackService>(client =>
+builder.Services.AddHttpClient<IFeedbackService, FeedbackAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
@@ -96,7 +96,7 @@ builder.Services.AddHttpClient<IStatisticsServiceClient, StatisticsServiceClient
 {
     client.BaseAddress = new Uri(apiUrl);
 });
-builder.Services.AddHttpClient<IAdminFeedbackService, AdminFeedbackService>(client =>
+builder.Services.AddHttpClient<IAdminFeedbackService, AdminFeedbackAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
@@ -107,7 +107,7 @@ builder.Services.AddScoped<ExcelService>();
 builder.Services.Configure<GoogleClientDto>(
     builder.Configuration.GetSection("Authentication:Google"));
 
-builder.Services.AddScoped<IGoogleClientService, GoogleClientService>();
+builder.Services.AddScoped<IGoogleClientService, GoogleAPIClient>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

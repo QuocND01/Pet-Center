@@ -7,11 +7,11 @@ namespace CustomerAPI.Controllers
 {
     [Route("api/customers")]
     [ApiController]
-    public class CustomerManagementController : ControllerBase
+    public class CustomersManagementController : ControllerBase
     {
         private readonly ICustomerService _customerService;
 
-        public CustomerManagementController(ICustomerService customerService)
+        public CustomersManagementController(ICustomerService customerService)
         {
             _customerService = customerService;
         }

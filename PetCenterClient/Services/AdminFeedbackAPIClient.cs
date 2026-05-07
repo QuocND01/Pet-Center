@@ -6,12 +6,12 @@ using System.Text;
 
 namespace PetCenterClient.Services
 {
-    public class AdminFeedbackService : IAdminFeedbackService
+    public class AdminFeedbackAPIClient : IAdminFeedbackService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AdminFeedbackService(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public AdminFeedbackAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;

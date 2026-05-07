@@ -14,7 +14,7 @@ namespace PetCenterClient.Controllers
         private readonly IFeedbackService _feedbackService;
         private readonly ICustomerService _customerService;
 
-        public ProductsController(IProductService productService, IBrandService brandService, ICategoryService categoryService, IFeedbackService feedbackService, ICustomerService customerService)
+        public ProductsController(IProductAPIClient productService, IBrandAPIClient brandService, ICategoryAPIClient categoryService, IFeedbackService feedbackService, ICustomerService customerService)
             
         {
             _productService = productService;
