@@ -16,14 +16,7 @@ namespace ProductAPI.Service.Interface
 
         Task<List<SelectProductDto>> GetProductSelectListToViewAsync();
 
-        Task<IEnumerable<ReadProductDTO>> GetNewProducts();
-        Task<IEnumerable<ReadProductDTO>> GetHotProducts();
-
-        //Task IncreaseStockBulk(List<IncreaseStockItemDto> items);
-        //Task<bool> DecreaseStockAsync(Guid productId, int quantity);
-
-        //Task<bool> IncreaseStockAsync(Guid productId, int quantity);
-
-        //Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid id);
+        Task<IEnumerable<ReadProductDTO>> GetNewProductsAsync();
+        Task<IEnumerable<ReadProductDTO>> GetHotProductsAsync();
     }
 }

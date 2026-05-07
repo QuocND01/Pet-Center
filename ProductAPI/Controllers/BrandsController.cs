@@ -25,14 +25,6 @@ namespace ProductAPI.Controllers
             _brandService = context;
         }
 
-        // GET: api/Brands
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<Brand>>> GetBrands()
-        //{
-        //    var brands = await _brandService.GetAllBrandAsync();
-        //    return Ok(brands);
-        //}
-
         [HttpGet]
         [EnableQuery(PageSize = 10)]
         public IQueryable<ReadBrandDTOs> Get()
@@ -42,7 +34,7 @@ namespace ProductAPI.Controllers
 
       
         [HttpGet("{id}")]
-        public async Task<ActionResult<ReadBrandDTOs>> GetBrandByID(Guid id)
+        public async Task<ActionResult<ReadBrandDTOs>> DetailsBrandAsync(Guid id)
         {
             var brand = await _brandService.GetBrandByIdAsync(id);
 
@@ -56,7 +48,7 @@ namespace ProductAPI.Controllers
 
         //[Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBrand(
+        public async Task<IActionResult> PutBrandAsync(
             Guid id,
             [FromForm] UpdateBrandDTOs updateBrand)
         {
@@ -112,7 +104,7 @@ namespace ProductAPI.Controllers
 
         //[Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostBrand([FromForm] CreateBrandDTOs createBrand)
+        public async Task<IActionResult> PostBrandAsync([FromForm] CreateBrandDTOs createBrand)
         {
             if (!ModelState.IsValid)
             {
@@ -154,7 +146,7 @@ namespace ProductAPI.Controllers
 
         //[Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBrand(Guid id)
+        public async Task<IActionResult> DeleteBrandAsync(Guid id)
         {
             var brand = await _brandService.GetBrandByIdAsync(id);
             if (brand == null)

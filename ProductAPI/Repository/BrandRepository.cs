@@ -19,7 +19,7 @@ namespace ProductAPI.Repository
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> CheckBrandExist(string brandName)
+        public async Task<bool> CheckBrandExistAsync(string brandName)
         {
             return await _db.Brands.AnyAsync(b => b.BrandName == brandName && b.IsActive == true);
         }

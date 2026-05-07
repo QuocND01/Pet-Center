@@ -17,7 +17,7 @@ namespace PetCenterClient.Controllers
             _brandService = brandService;
         }
         // GET: BrandController
-        public async Task<ActionResult> Index(string? search, int page = 1)
+        public async Task<ActionResult> IndexAsync(string? search, int page = 1)
         {
             var result = await _brandService.GetAllBrandAsync(search, page);
 
@@ -28,7 +28,7 @@ namespace PetCenterClient.Controllers
         }
 
 
-        public async Task<ActionResult> Indexadmin(string? search, int page = 1)
+        public async Task<ActionResult> IndexAdminAsync(string? search, int page = 1)
         {
             var result = await _brandService.GetAllBrandAsync(search, page);
 
@@ -47,7 +47,7 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var readBrand = await _brandService.GetBrandByIdAsync(id);
+            var readBrand = await _brandService.DetailsBrandAsync(id);
             if (readBrand == null)
             {
                 return NotFound();
@@ -55,14 +55,14 @@ namespace PetCenterClient.Controllers
             return PartialView("~/Views/CustomerView/Brand/_Details.cshtml", readBrand);
         }
 
-        public async Task<ActionResult> DetailsAsyncAdmin(Guid id)
+        public async Task<ActionResult> DetailsAdminAsync(Guid id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var readBrand = await _brandService.GetBrandByIdAsync(id);
+            var readBrand = await _brandService.DetailsBrandAsync(id);
             if (readBrand == null)
             {
                 return NotFound();
@@ -72,7 +72,7 @@ namespace PetCenterClient.Controllers
 
 
         // GET: BrandController/Create
-        public ActionResult Create()
+        public ActionResult CreateAsync()
         {
             return PartialView("~/Views/AdminViews/Brand/_Create.cshtml");
         }
@@ -80,7 +80,7 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateBrandDTOs model)
+        public async Task<IActionResult> CreateAsync(CreateBrandDTOs model)
         {
             if (!ModelState.IsValid)
             {
@@ -105,14 +105,14 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: BrandController/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
+        public async Task<IActionResult> EditAsync(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var updateBrand = await _brandService.GetBrandByIdAsync(id);
+            var updateBrand = await _brandService.DetailsBrandAsync(id);
             if (updateBrand == null)
             {
                 return NotFound();
@@ -123,7 +123,7 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid BrandId, UpdateBrandDTOs model)
+        public async Task<IActionResult> EditAsync(Guid BrandId, UpdateBrandDTOs model)
         {
             Console.WriteLine("ĐÃ VÀO EDIT");
             Console.WriteLine($"ID: {BrandId}");
@@ -136,14 +136,14 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Delete/5
-        public async Task<IActionResult> Delete(Guid? id)
+        public async Task<IActionResult> DeleteAsync(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var model = await _brandService.GetBrandByIdAsync(id);
+            var model = await _brandService.DetailsBrandAsync(id);
             if (model == null)
             {
                 return NotFound();
@@ -154,9 +154,9 @@ namespace PetCenterClient.Controllers
         // GET: BrandController/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmedAsync(Guid id)
         {
-            var brand = await _brandService.GetBrandByIdAsync(id);
+            var brand = await _brandService.DetailsBrandAsync(id);
 
             if (brand != null)
             {

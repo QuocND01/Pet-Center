@@ -102,7 +102,7 @@ namespace PetCenterClient.Services
             return response;
         }
 
-        public async Task<ReadCategoryDTOs> GetCategoryByIdAsync(Guid? id)
+        public async Task<ReadCategoryDTOs> DetailsCategoryAsync(Guid? id)
         {
             return await _http.GetFromJsonAsync<ReadCategoryDTOs>($"product-service/Categories/{id}");
         }

@@ -13,7 +13,7 @@ namespace ProductAPI.Repository.Interface
         Task UpdateBrandAsync(Brand brand);
         Task DeleteBrandAsync(Guid id);
 
-        Task<bool> CheckBrandExist(string brandName);
+        Task<bool> CheckBrandExistAsync(string brandName);
 
     }
 }

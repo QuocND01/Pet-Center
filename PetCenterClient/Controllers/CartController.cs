@@ -36,7 +36,7 @@ namespace PetCenterClient.Controllers
             {
                 foreach (var detail in cart.CartDetails)
                 {
-                    var product = await _productService.GetProductByIdAsync(detail.ProductId);
+                    var product = await _productService.DetailsProductAsync(detail.ProductId);
                     enrichedDetails.Add(new CartDetailResponseDTO
                     {
                         CartDetailId = detail.CartDetailId,

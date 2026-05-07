@@ -34,7 +34,7 @@ namespace ProductAPI.Controllers
         }
 
         [HttpGet("{id}/attributes")]
-        public async Task<IActionResult> GetAttributes(Guid id)
+        public async Task<IActionResult> GetAttributesAsync(Guid id)
         {
             var attributes = await _categoryService.GetAllCategoryAttributeByCategoryIDAsync(id);
             return Ok(attributes);
@@ -42,7 +42,7 @@ namespace ProductAPI.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ReadCategoryDTOs>> GetCategoryId(Guid id)
+        public async Task<ActionResult<ReadCategoryDTOs>> DetailsCategoryAsync(Guid id)
         {
             var category = await _categoryService.GetCategoryByIdAsync(id);
 
@@ -114,7 +114,7 @@ namespace ProductAPI.Controllers
 
         //[Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostCategory([FromForm] CreateCategoryDTOs categoryDTOs)
+        public async Task<IActionResult> PostCategoryAsync([FromForm] CreateCategoryDTOs categoryDTOs)
         {
             if (!ModelState.IsValid)
             {

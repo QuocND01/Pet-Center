@@ -51,7 +51,7 @@ namespace ProductAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         // [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(
+        public async Task<IActionResult> PutProductAsync(
             Guid id,
             [FromForm] UpdateProductDTO product)
         {
@@ -89,7 +89,7 @@ namespace ProductAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         //[Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> PostProduct([FromForm] CreateProductDTO product)
+        public async Task<IActionResult> PostProductAsync([FromForm] CreateProductDTO product)
         {
             if (!ModelState.IsValid)
             {
@@ -136,7 +136,7 @@ namespace ProductAPI.Controllers
         // DELETE: api/Products/5
         // [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(Guid id)
+        public async Task<IActionResult> DeleteProductAsync(Guid id)
         {
             await _productService.DeleteProductAsync(id);
 
@@ -144,14 +144,14 @@ namespace ProductAPI.Controllers
         }
 
         [HttpGet("select")]
-        public async Task<IActionResult> GetProductSelect()
+        public async Task<IActionResult> GetProductSelectAsync()
         {
             var result = await _productService.GetProductSelectListAsync();
             return Ok(result);
         }
 
         [HttpGet("selecttoview")]
-        public async Task<IActionResult> GetProductSelectToView()
+        public async Task<IActionResult> GetProductSelectToViewAsync()
         {
             var result = await _productService.GetProductSelectListToViewAsync();
             return Ok(result);
@@ -160,17 +160,17 @@ namespace ProductAPI.Controllers
 
         // Lấy sản phẩm mới
         [HttpGet("new-products")]
-        public async Task<IActionResult> GetNewProducts()
+        public async Task<IActionResult> GetNewProductsAsync()
         {
-            var products = await _productService.GetNewProducts();
+            var products = await _productService.GetNewProductsAsync();
             return Ok(products);
         }
 
         // Lấy sản phẩm hot (bán chạy)
         [HttpGet("hot-products")]
-        public async Task<IActionResult> GetHotProducts()
+        public async Task<IActionResult> GetHotProductsAsync()
         {
-            var products = await _productService.GetHotProducts();
+            var products = await _productService.GetHotProductsAsync();
             return Ok(products);
         }
 

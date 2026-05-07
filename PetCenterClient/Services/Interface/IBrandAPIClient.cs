@@ -6,7 +6,7 @@ namespace PetCenterClient.Services.Interface
     {
         Task<OdataResponse<ReadBrandDTOs>> GetAllBrandAsync(string? search, int page = 1);
 
-        Task<ReadBrandDTOs> GetBrandByIdAsync(Guid? id);
+        Task<ReadBrandDTOs> DetailsBrandAsync(Guid? id);
         Task AddBrandAsync(CreateBrandDTOs createBrand);
         Task UpdateBrandAsync(Guid? id, UpdateBrandDTOs updateBrand);
         Task DeleteBrandAsync(Guid? id);

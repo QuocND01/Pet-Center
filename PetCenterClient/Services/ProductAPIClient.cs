@@ -94,7 +94,7 @@ namespace PetCenterClient.Services
             return response;
         }
 
-        public async Task<ReadProductDTO> GetProductByIdAsync(Guid? id)
+        public async Task<ReadProductDTO> DetailsProductAsync(Guid? id)
         {
             return await _http.GetFromJsonAsync<ReadProductDTO>($"product-service/Products/{id}");
         }
@@ -235,7 +235,7 @@ namespace PetCenterClient.Services
                 ?? new List<ProductSelectDto>();
         }
 
-        public async Task<List<ProductSelectDto>> GetProductSelectAsyncToView()
+        public async Task<List<ProductSelectDto>> GetProductSelectToViewAsync()
         {
             AddAuthorizationHeader();
 
@@ -279,7 +279,7 @@ namespace PetCenterClient.Services
                     new AuthenticationHeaderValue("Bearer", token);
             }
         }
-        public async Task IncreaseStockBulk(List<IncreaseStockItemDto> items)
+        public async Task IncreaseStockBulkAsync(List<IncreaseStockItemDto> items)
         {
             AddAuthorizationHeader();
             var res = await _http.PostAsJsonAsync("product-service/Products/increase-stock-bulk", items);

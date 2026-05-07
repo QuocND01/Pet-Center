@@ -17,7 +17,7 @@ namespace PetCenterClient.Services.Interface
                 string sortOrder = "asc",
                 int page = 1);
 
-        Task<ReadProductDTO> GetProductByIdAsync(Guid? id);
+        Task<ReadProductDTO> DetailsProductAsync(Guid? id);
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct);
         Task DeleteProductAsync(Guid? id);
@@ -25,8 +25,8 @@ namespace PetCenterClient.Services.Interface
         Task<List<ReadProductDTO>> GetHotProductsAsync();
         Task<List<ReadProductDTO>> GetNewProductsAsync();
         Task<List<ProductSelectDto>> GetProductSelectAsync();
-        Task<List<ProductSelectDto>> GetProductSelectAsyncToView();
-        Task IncreaseStockBulk(List<IncreaseStockItemDto> items);
+        Task<List<ProductSelectDto>> GetProductSelectToViewAsync();
+        Task IncreaseStockBulkAsync(List<IncreaseStockItemDto> items);
         Task<bool> DecreaseStockAsync(Guid productId, int quantity);
         Task<bool> IncreaseStockAsync(Guid productId, int quantity);
         Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid? id);

@@ -76,7 +76,7 @@ namespace PetCenterClient.Controllers
             if (import == null)
                 return NotFound();
             var selectSuppliers = await _suppService.GetSupplierSelectAsync();
-            var selectProducts = await _productService.GetProductSelectAsyncToView();
+            var selectProducts = await _productService.GetProductSelectToViewAsync();
             var staffName = await _staffService.GetStaffNameListAsync();
             var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
             ViewBag.StaffDict = staffDict;
