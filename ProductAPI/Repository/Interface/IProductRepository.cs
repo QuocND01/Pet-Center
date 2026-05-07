@@ -21,6 +21,19 @@ namespace ProductAPI.Repository.Interface
 
         Task<IEnumerable<Product?>> GetNewProductAsync();
 
-        Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids);
+
+         Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids);
+        //get by list
+        //Task<List<Product>> GetByIds(List<Guid> ids);
+        //Task SaveChangesAsync();
+
+        //Task<bool> DecreaseStockAsync(Guid productId, int quantity);
+        //Task<bool> IncreaseStockAsync(Guid productId, int quantity);
+
+        //Task<Product?> GetProductByIdIncludeDeletedAsync(Guid id);
+
+        Task<Product?> GetByIdInternalAsync(Guid productId);
+
+        Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds);
     }
 }

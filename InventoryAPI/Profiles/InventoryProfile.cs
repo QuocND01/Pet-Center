@@ -10,10 +10,8 @@ namespace InventoryAPI.Profiles
         {
             CreateMap<Inventory, ProductQuantityDTO>();
 
-            CreateMap<Inventory, ReadInventoryDto>().ReverseMap();
-
-            CreateMap<InventoryTransaction, ReadTransactionDto>()
-                .ReverseMap();
+            CreateMap<Inventory, ReadInventoryDto>();
+            CreateMap<InventoryTransaction, ReadTransactionDto>();
         }
     }
 }

@@ -22,4 +22,6 @@ public interface IStaffRepository
     Task<bool> ExistsAsync(Guid id);
 
     Task<List<Models.Role>> GetRolesByIdsAsync(List<Guid> roleIds);
+
+    Task<Staff?> GetByIdInternalAsync(Guid staffId);
 }

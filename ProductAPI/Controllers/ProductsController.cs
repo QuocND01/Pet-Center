@@ -173,6 +173,76 @@ namespace ProductAPI.Controllers
             var products = await _productService.GetHotProductsAsync();
             return Ok(products);
         }
+        //[Authorize]
+        //[HttpPost("increase-stock-bulk")]
+        //public async Task<IActionResult> IncreaseStockBulk([FromBody] List<IncreaseStockItemDto> items)
+        //{
+        //    await _productService.IncreaseStockBulk(items);
+        //    return Ok();
+        //}
+        //[Authorize]
+        //[HttpPut("decrease-stock/{id}")]
+        //public async Task<IActionResult> DecreaseStock(Guid id, [FromBody] int quantity)
+        //{
+        //    var success = await _productService.DecreaseStockAsync(id, quantity);
 
+        //    if (!success)
+        //    {
+        //        return BadRequest(new { message = "Sản phẩm không tồn tại hoặc số lượng tồn kho không đủ để xử lý." });
+        //    }
+
+        //    return Ok(true);
+        //}
+        //[Authorize]
+        //[HttpPut("increase-stock/{id}")]
+        //public async Task<IActionResult> IncreaseStock(Guid id, [FromBody] int quantity)
+        //{
+        //    var success = await _productService.IncreaseStockAsync(id, quantity);
+
+        //    if (!success)
+        //    {
+        //        return BadRequest(new { message = "Sản phẩm không tồn tại để cộng lại kho." });
+        //    }
+
+        //    return Ok(true);
+        //}
+
+        //// GET: api/Products/{id}/include-deleted
+        //[HttpGet("{id}/include-deleted")]
+        //public async Task<ActionResult<ReadProductDTO>> GetProductIncludeDeleted(Guid id)
+        //{
+        //    var product = await _productService.GetProductByIdIncludeDeletedAsync(id);
+
+        //    if (product == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return product;
+        //}
+
+        //Code Hồ mới thêm
+        [HttpGet("internal/{id:guid}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetInternal(Guid id)
+        {
+            var result = await _productService.GetInternalAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+        [HttpPost("snapshot")]
+        public async Task<IActionResult> GetSnapshots(
+            [FromBody] ProductSnapshotRequestDto dto)
+        {
+            if (dto.ProductIds == null || !dto.ProductIds.Any())
+            {
+                return BadRequest("ProductIds is required");
+            }
+
+            var result = await _productService
+                .GetProductSnapshotsAsync(dto.ProductIds);
+
+            return Ok(result);
+        }
     }
 }

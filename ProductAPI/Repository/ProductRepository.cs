@@ -192,5 +192,22 @@ namespace ProductAPI.Repository
         //        // Bỏ filter IsActive để lấy được cả sản phẩm đã xóa mềm
         //        .FirstOrDefaultAsync(x => x.ProductId == id);
         //}
+
+        // Hàm sử dụng lấy hình ảnh và tên sản phẩm của Hồ mới thêm
+        public async Task<Product?> GetByIdInternalAsync(Guid productId)
+    => await _db.Products
+        .Include(p => p.Images.Where(i => i.IsActive))
+        .AsNoTracking()
+        .FirstOrDefaultAsync(p => p.ProductId == productId && p.IsActive);
+
+        public async Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds)
+        {
+            return await _db.Products
+                .AsNoTracking()
+                .Include(x => x.Brand)
+                .Include(x => x.Category)
+                .Where(x => productIds.Contains(x.ProductId))
+                .ToListAsync();
+        }
     }
 }

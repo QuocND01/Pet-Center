@@ -9,71 +9,84 @@ namespace PetCenterClient.Controllers
 {
     public class VoucherController : Controller
     {
-        private readonly IVoucherService _service;
+        private readonly IVoucherAPIClient _voucherService;
 
-        public VoucherController(IVoucherService service)
+        public VoucherController(IVoucherAPIClient voucherService)
         {
-            _service = service;
-        }
-        public async Task<IActionResult> Index(string? code)
-        {
-            var vouchers = string.IsNullOrEmpty(code)
-                ? await _service.GetAllAsync()
-                : await _service.SearchAsync(code);
-
-            return View("~/Views/AdminViews/Voucher/Index.cshtml", vouchers);
+            _voucherService = voucherService;
         }
 
-        public async Task<IActionResult> Detail(Guid id)
+        private bool IsAuthorized(out IActionResult? redirect)
         {
-            var v = await _service.GetByIdAsync(id);
-            if (v == null) return NotFound();
-
-            return View("~/Views/AdminViews/Voucher/Detail.cshtml", v);
+            var role = HttpContext.Session.GetString("Role");
+            if (string.IsNullOrEmpty(role) || (role != "Admin" && role != "Sale Staff"))
+            {
+                redirect = RedirectToAction("Login", "Auth");
+                return false;
+            }
+            redirect = null;
+            return true;
         }
 
-        public IActionResult Create()
+        public IActionResult Index()
         {
-            return View("~/Views/AdminViews/Voucher/Create.cshtml");
+            if (!IsAuthorized(out var redirect)) return redirect!;
+            return View("~/Views/AdminViews/Voucher/Index.cshtml");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateVoucherDTO dto)
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            if (!ModelState.IsValid)
-                return View("~/Views/AdminViews/Voucher/Create.cshtml", dto);
-
-            await _service.CreateAsync(dto);
-            return RedirectToAction(nameof(Index));
+            if (!IsAuthorized(out var redirect)) return redirect!;
+            var vouchers = await _voucherService.GetAllAsync();
+            return Json(vouchers);
         }
 
-        public async Task<IActionResult> Edit(Guid id)
+        [HttpGet]
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var v = await _service.GetByIdAsync(id);
-            if (v == null) return NotFound();
-
-            return View("~/Views/AdminViews/Voucher/Edit.cshtml", v);
+            if (!IsAuthorized(out var redirect)) return redirect!;
+            var voucher = await _voucherService.GetByIdAsync(id);
+            if (voucher == null)
+                return Json(new { success = false, message = "Voucher not found." });
+            return Json(voucher);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Guid id, CreateVoucherDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateVoucherDto dto)
         {
-            await _service.UpdateAsync(id, dto);
-            return RedirectToAction(nameof(Index));
+            if (!IsAuthorized(out var redirect)) return redirect!;
+            if (dto == null)
+                return Json(new { success = false, message = "Invalid data." });
+
+            var (success, message, data) = await _voucherService.CreateAsync(dto);
+            if (!success)
+                return BadRequest(new { message });
+            return Ok(new { message, data });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVoucherDto dto)
         {
-            await _service.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
+            if (!IsAuthorized(out var redirect)) return redirect!;
+            if (dto == null || id == Guid.Empty)
+                return Json(new { success = false, message = "Invalid data." });
+
+            var (success, message, data) = await _voucherService.UpdateAsync(id, dto);
+            if (!success)
+                return BadRequest(new { message });
+            return Ok(new { message, data });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Apply([FromBody] ApplyVoucherDTO dto)
+        public async Task<IActionResult> Toggle(Guid id, bool isActive)
         {
-            var result = await _service.ApplyVoucherAsync(dto);
-            return Json(result);
+            if (!IsAuthorized(out var redirect)) return redirect!;
+
+            var (success, message) = await _voucherService.ToggleStatusAsync(id, isActive);
+            if (!success)
+                return BadRequest(new { message });
+            return Ok(new { message });
         }
     }
 }
