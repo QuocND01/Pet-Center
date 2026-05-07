@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
-    public class VoucherAPIClient : IVoucherService
+    public class VoucherAPIClient : IVoucherAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;

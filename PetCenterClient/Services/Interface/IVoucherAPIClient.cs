@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IVoucherService
+    public interface IVoucherAPIClient
     {
         Task<List<VoucherDto>> GetAllAsync();
         Task<VoucherDto?> GetByIdAsync(Guid id);

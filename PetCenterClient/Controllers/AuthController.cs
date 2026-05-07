@@ -6,10 +6,10 @@ namespace PetCenterClient.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IAuthService _authService;
-        private readonly IGoogleClientService _googleClientService;
+        private readonly IAuthAPIClient _authService;
+        private readonly IGoogleAPIClient _googleClientService;
 
-        public AuthController(IAuthService authService, IGoogleClientService googleClientService)
+        public AuthController(IAuthAPIClient authService, IGoogleAPIClient googleClientService)
         {
             _authService = authService;
             _googleClientService = googleClientService;

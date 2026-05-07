@@ -6,9 +6,9 @@ namespace PetCenterClient.Controllers
 {
     public class AdminFeedbackController : Controller
     {
-        private readonly IAdminFeedbackService _feedbackService;
+        private readonly IAdminFeedbackAPIClient _feedbackService;
 
-        public AdminFeedbackController(IAdminFeedbackService feedbackService)
+        public AdminFeedbackController(IAdminFeedbackAPIClient feedbackService)
         {
             _feedbackService = feedbackService;
         }

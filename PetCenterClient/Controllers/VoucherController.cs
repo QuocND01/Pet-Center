@@ -9,9 +9,9 @@ namespace PetCenterClient.Controllers
 {
     public class VoucherController : Controller
     {
-        private readonly IVoucherService _voucherService;
+        private readonly IVoucherAPIClient _voucherService;
 
-        public VoucherController(IVoucherService voucherService)
+        public VoucherController(IVoucherAPIClient voucherService)
         {
             _voucherService = voucherService;
         }

@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IGoogleClientService  // ← thêm public
+    public interface IGoogleAPIClient  // ← thêm public
     {
         GoogleClientDto GetGoogleClientId();
     }
