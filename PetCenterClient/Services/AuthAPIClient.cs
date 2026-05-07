@@ -4,12 +4,12 @@ using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Services
 {
-    public class AuthService : IAuthService
+    public class AuthAPIClient : IAuthService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public AuthAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;

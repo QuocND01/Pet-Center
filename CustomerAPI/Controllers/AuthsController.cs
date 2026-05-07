@@ -11,14 +11,14 @@ namespace CustomerAPI.Controllers
 {
     [ApiController]
     [Route("api/auth")]
-    public class AuthController : ControllerBase
+    public class AuthsController : ControllerBase
     {
         private readonly ICustomerAuthService _customerAuthService;
         private readonly IGoogleAuthService _googleAuthService;
         private readonly IJwtService _jwtService;
         private readonly IForgotPasswordService _forgotPasswordService;
 
-        public AuthController(ICustomerAuthService customerAuthService, IGoogleAuthService googleAuthService, IJwtService jwtService, IForgotPasswordService forgotPasswordService)
+        public AuthsController(ICustomerAuthService customerAuthService, IGoogleAuthService googleAuthService, IJwtService jwtService, IForgotPasswordService forgotPasswordService)
         {
             _customerAuthService = customerAuthService;
             _googleAuthService = googleAuthService;

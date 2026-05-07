@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
-    public class VoucherService : IVoucherService
+    public class VoucherAPIClient : IVoucherService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -16,7 +16,7 @@ namespace PetCenterClient.Services
         // Ocelot gateway: /voucher-service/{everything} → downstream /api/{everything}
         private const string PREFIX = "voucher-service/voucher";
 
-        public VoucherService(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public VoucherAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
