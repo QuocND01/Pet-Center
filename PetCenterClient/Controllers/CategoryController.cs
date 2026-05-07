@@ -16,7 +16,7 @@ namespace PetCenterClient.Controllers
             _categoryService = categoryService;
         }
         // GET: BrandController
-        public async Task<ActionResult> Index(string? search, int page = 1)
+        public async Task<ActionResult> IndexAsync(string? search, int page = 1)
         {
             var result = await _categoryService.GetAllCategoryAsync(search, page);
 
@@ -26,7 +26,7 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
 
-        public async Task<ActionResult> Indexadmin(string? search, int page = 1)
+        public async Task<ActionResult> IndexAdminAsync(string? search, int page = 1)
         {
             var result = await _categoryService.GetAllCategoryAsync(search, page);
 
@@ -37,14 +37,14 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: CategoryController/Details/5
-        public async Task<ActionResult> Details(Guid id)
+        public async Task<ActionResult> DetailsAsync(Guid id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var readCategory = await _categoryService.GetCategoryByIdAsync(id);
+            var readCategory = await _categoryService.DetailsCategoryAsync(id);
             if (readCategory == null)
             {
                 return NotFound();
@@ -54,14 +54,14 @@ namespace PetCenterClient.Controllers
 
 
 
-        public async Task<ActionResult> DetailsAsyncAdmin(Guid id)
+        public async Task<ActionResult> DetailsAdminAsync(Guid id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var readCategory = await _categoryService.GetCategoryByIdAsync(id);
+            var readCategory = await _categoryService.DetailsCategoryAsync(id);
             if (readCategory == null)
             {
                 return NotFound();
@@ -70,7 +70,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: CategoryController/Create
-        public ActionResult Create()
+        public ActionResult CreateAsync()
         {
             return PartialView("~/Views/AdminViews/Category/_Create.cshtml");
         }
@@ -78,7 +78,7 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(CreateCategoryDTOs model)
+        public async Task<ActionResult> CreateAsync(CreateCategoryDTOs model)
         {
             if (!ModelState.IsValid)
             {
@@ -101,14 +101,14 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: CategoryController/Edit/5
-        public async Task<ActionResult> Edit(Guid id)
+        public async Task<ActionResult> EditAsync(Guid id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var updateCategory = await _categoryService.GetCategoryByIdAsync(id);
+            var updateCategory = await _categoryService.DetailsCategoryAsync(id);
             if (updateCategory == null)
             {
                 return NotFound();
@@ -119,7 +119,7 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, UpdateCategoryDTOs model)
+        public async Task<IActionResult> EditAsync(Guid id, UpdateCategoryDTOs model)
         {
             if (!ModelState.IsValid)
             {
@@ -136,14 +136,14 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: CategoryController/Delete/5
-        public async Task<ActionResult> Delete(Guid id)
+        public async Task<ActionResult> DeleteAsync(Guid id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var model = await _categoryService.GetCategoryByIdAsync(id);
+            var model = await _categoryService.DetailsCategoryAsync(id);
             if (model == null)
             {
                 return NotFound();
@@ -155,7 +155,7 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirm(Guid id)
+        public async Task<IActionResult> DeleteConfirmAsync(Guid id)
         {
             try
             {

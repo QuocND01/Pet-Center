@@ -15,15 +15,14 @@ namespace ProductAPI.Repository.Interface
 
         Task DeleteProductAttributesByProductIdAsync(Guid productId);
 
-        Task<bool> CheckProductExist(string productName, Guid brandId, Guid categoryId);
+        Task<bool> CheckProductExistAsync(string productName, Guid brandId, Guid categoryId);
 
         Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null);
 
-        Task<IEnumerable<Product?>> GetNewProduct();
-
-        Task<IEnumerable<Product?>> GetProductsByIds(List<Guid> ids);
+        Task<IEnumerable<Product?>> GetNewProductAsync();
 
 
+         Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids);
         //get by list
         //Task<List<Product>> GetByIds(List<Guid> ids);
         //Task SaveChangesAsync();

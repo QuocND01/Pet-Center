@@ -22,10 +22,10 @@ namespace ProductAPI.Service
             _cloudinaryService = cloudinaryService;
         }
 
-        public async Task AddAttribute(CreateCategoryAttributeDTOs attributeValue)
+        public async Task AddAttributeAsync(CreateCategoryAttributeDTOs attributeValue)
         {
             var addtribute = _mapper.Map<CategoryAttribute>(attributeValue);
-            await _categoryRepository.AddAttribute(addtribute);
+            await _categoryRepository.AddAttributeAsync(addtribute);
         }
 
         public async Task AddCategoryAsync(CreateCategoryDTOs createCategory)
@@ -53,7 +53,7 @@ namespace ProductAPI.Service
             }
 
             bool hasExist = await _categoryRepository
-                .CheckCategoryExist(createCategory.CategoryName);
+                .CheckCategoryExistAsync(createCategory.CategoryName);
 
             if (hasExist)
             {
@@ -138,7 +138,7 @@ namespace ProductAPI.Service
             }
 
             bool hasExist = await _categoryRepository
-                .CheckCategoryExist(category.CategoryName);
+                .CheckCategoryExistAsync(category.CategoryName);
 
             if (hasExist &&
                 !string.Equals(existingCategory.CategoryName, category.CategoryName, StringComparison.OrdinalIgnoreCase))

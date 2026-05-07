@@ -13,7 +13,7 @@ namespace ProductAPI.Repository
             _db = petCenterContext;
         }
 
-        public async Task AddAttribute(CategoryAttribute attributeValue)
+        public async Task AddAttributeAsync(CategoryAttribute attributeValue)
         {
             _db.CategoryAttributes.Add(attributeValue);
             await _db.SaveChangesAsync();
@@ -25,12 +25,12 @@ namespace ProductAPI.Repository
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> CheckCategoryExist(string categoryName)
+        public async Task<bool> CheckCategoryExistAsync(string categoryName)
         {
             return await _db.Categories.AnyAsync(c => c.CategoryName == categoryName && c.IsActive == true);
         }
 
-        public async Task DeleteAttributeByCategoryID(Guid id)
+        public async Task DeleteAttributeByCategoryIDAsync(Guid id)
         {
             var attributes = await _db.CategoryAttributes
              .Where(a => a.CategoryId == id && a.IsActive == true)

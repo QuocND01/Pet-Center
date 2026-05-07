@@ -41,7 +41,7 @@ namespace ProductAPI.Service
         public async Task AddBrandAsync(CreateBrandDTOs createBrand)
         {
             bool brandHasExist = await _brandRepository
-                .CheckBrandExist(createBrand.BrandName);
+                .CheckBrandExistAsync(createBrand.BrandName);
 
             if (brandHasExist)
             {
@@ -81,7 +81,7 @@ namespace ProductAPI.Service
                 throw new KeyNotFoundException("Brand not found");
 
             bool brandHasExist = await _brandRepository
-                .CheckBrandExist(updateBrand.BrandName);
+                .CheckBrandExistAsync(updateBrand.BrandName);
 
             if (brandHasExist &&
                 !string.Equals(brand.BrandName, updateBrand.BrandName, StringComparison.OrdinalIgnoreCase))

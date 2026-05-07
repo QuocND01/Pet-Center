@@ -4,9 +4,9 @@ using ProductAPI.Models;
 
 namespace ProductAPI.Profiles
 {
-    public class Brandprofile : Profile
+    public class BrandProfile : Profile
     {
-        public Brandprofile()
+        public BrandProfile()
         {
             CreateMap<Brand, ReadBrandDTOs>();
 

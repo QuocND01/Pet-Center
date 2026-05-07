@@ -13,10 +13,10 @@ namespace ProductAPI.Repository.Interface
         Task UpdateCategoryAsync(Category category);
         Task DeleteCategoryAsync(Guid id);
 
-        Task<bool> CheckCategoryExist(string categoryName);
+        Task<bool> CheckCategoryExistAsync(string categoryName);
 
-        Task AddAttribute(CategoryAttribute attributeValue);
-        Task DeleteAttributeByCategoryID(Guid id);
+        Task AddAttributeAsync(CategoryAttribute attributeValue);
+        Task DeleteAttributeByCategoryIDAsync(Guid id);
         Task<IEnumerable<CategoryAttribute>> GetAllCategoryAttributeByCategoryIDAsync(Guid id);
     }
 }

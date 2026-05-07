@@ -65,7 +65,7 @@ namespace ProductAPI.Repository
             }
         }
 
-        public async Task<IEnumerable<Product>> GetNewProduct()
+        public async Task<IEnumerable<Product>> GetNewProductAsync()
         {
             var threeMonthsAgo = DateTime.Now.AddMonths(-3);
 
@@ -80,7 +80,7 @@ namespace ProductAPI.Repository
         }
 
 
-        public async Task<IEnumerable<Product?>> GetProductsByIds(List<Guid> ids)
+        public async Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids)
         {
             return await _db.Products
                 .Where(p => p.IsActive && ids.Contains(p.ProductId))
@@ -113,7 +113,7 @@ namespace ProductAPI.Repository
         }
 
 
-        public async Task<bool> CheckProductExist(string productName, Guid brandId, Guid categoryId)
+        public async Task<bool> CheckProductExistAsync(string productName, Guid brandId, Guid categoryId)
         {
             return await _db.Products.AnyAsync(p =>
         p.ProductName == productName &&

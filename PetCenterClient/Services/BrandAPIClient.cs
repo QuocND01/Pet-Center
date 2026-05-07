@@ -93,7 +93,7 @@ namespace PetCenterClient.Services
             return response;
         }
 
-        public async Task<ReadBrandDTOs> GetBrandByIdAsync(Guid? id)
+        public async Task<ReadBrandDTOs> DetailsBrandAsync(Guid? id)
         {
             return await _http.GetFromJsonAsync<ReadBrandDTOs>($"product-service/Brands/{id}");
         }

@@ -4,9 +4,9 @@ using ProductAPI.Models;
 
 namespace ProductAPI.Profiles
 {
-    public class Categoryprofile : Profile
+    public class CategoryProfile : Profile
     {
-        public Categoryprofile()
+        public CategoryProfile()
         {
             // Entity -> DTO
             CreateMap<Category, ReadCategoryDTOs>()

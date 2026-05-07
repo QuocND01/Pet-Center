@@ -30,7 +30,7 @@ namespace ProductAPI.Service
         public async Task AddProductAsync(CreateProductDTO createProduct)
         {
             bool productHasExist = false;
-            productHasExist = await _productRepository.CheckProductExist(createProduct.ProductName, createProduct.BrandId, createProduct.CategoryId);
+            productHasExist = await _productRepository.CheckProductExistAsync(createProduct.ProductName, createProduct.BrandId, createProduct.CategoryId);
             if (productHasExist)
             {
                 throw new InvalidOperationException("Product already exists");
@@ -162,7 +162,7 @@ namespace ProductAPI.Service
 
             if (updateproduct.BrandId == null || updateproduct.CategoryId == null)
                 throw new Exception("BrandId and CategoryId are required");
-            bool productHasExist = await _productRepository.CheckProductExist(updateproduct.ProductName, updateproduct.BrandId.Value, updateproduct.CategoryId.Value);
+            bool productHasExist = await _productRepository.CheckProductExistAsync(updateproduct.ProductName, updateproduct.BrandId.Value, updateproduct.CategoryId.Value);
 
             if (productHasExist &&
                (product.ProductName != updateproduct.ProductName ||
@@ -255,13 +255,13 @@ namespace ProductAPI.Service
             await _productRepository.UpdateProductAsync(product);
         }
 
-        public async Task<IEnumerable<ReadProductDTO>> GetNewProducts()
+        public async Task<IEnumerable<ReadProductDTO>> GetNewProductsAsync()
         {
-            var products = await _productRepository.GetNewProduct();
+            var products = await _productRepository.GetNewProductAsync();
             return _mapper.Map<List<ReadProductDTO>>(products);
         }
 
-        public async Task<IEnumerable<ReadProductDTO>> GetHotProducts()
+        public async Task<IEnumerable<ReadProductDTO>> GetHotProductsAsync()
         {
             List<Guid>? productIds;
 
@@ -277,7 +277,7 @@ namespace ProductAPI.Service
             if (productIds == null || !productIds.Any())
                 return new List<ReadProductDTO>();
 
-            var products = await _productRepository.GetProductsByIds(productIds);
+            var products = await _productRepository.GetProductsByIdsAsync(productIds);
 
             return _mapper.Map<List<ReadProductDTO>>(products);
         }

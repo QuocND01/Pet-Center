@@ -54,7 +54,7 @@ namespace PetCenterClient.Controllers
                         out var price)) continue;
 
                 ReadProductDTO? product = null;
-                try { product = await _productService.GetProductByIdAsync(productId); }
+                try { product = await _productService.DetailsProductAsync(productId); }
                 catch { }
 
                 selectedItems.Add(new CheckoutCartItemVM

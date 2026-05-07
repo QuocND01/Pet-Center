@@ -132,8 +132,8 @@ builder.Services
 
 // Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<Brandprofile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<Categoryprofile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<BrandProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductAttributeProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>());
 

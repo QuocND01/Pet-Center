@@ -5,7 +5,6 @@ namespace ProductAPI.Service.Interface
 {
     public interface IBrandService
     {
-       // Task<IEnumerable<ReadBrandDTOs>> GetAllBrandAsync();
 
         IQueryable<ReadBrandDTOs> GetAllBrand();
 

@@ -25,7 +25,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs
-        public async Task<IActionResult> Index(
+        public async Task<IActionResult> IndexAsync(
           string? search,
              bool? isActive,
              decimal? minPrice,
@@ -57,7 +57,7 @@ namespace PetCenterClient.Controllers
 
 
 
-        public async Task<IActionResult> Indexadmin(
+        public async Task<IActionResult> IndexAdminAsync(
           string? search,
              bool? isActive,
              decimal? minPrice,
@@ -83,14 +83,14 @@ namespace PetCenterClient.Controllers
 
 
         // GET: ReadProdutDTOs/Details/5
-        public async Task<IActionResult> Details(Guid? id)
+        public async Task<IActionResult> DetailsAsync(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var readProdutDTOs = await _productService.GetProductByIdAsync(id);
+            var readProdutDTOs = await _productService.DetailsProductAsync(id);
             if (readProdutDTOs == null)
             {
                 return NotFound();
@@ -98,14 +98,14 @@ namespace PetCenterClient.Controllers
             return PartialView("~/Views/AdminViews/Product/_Details.cshtml", readProdutDTOs);
         }
 
-        public async Task<IActionResult> DetailsForcustomer(Guid? id)
+        public async Task<IActionResult> DetailsForcustomerAsync(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var readProdutDTOs = await _productService.GetProductByIdAsync(id);
+            var readProdutDTOs = await _productService.DetailsProductAsync(id);
             if (readProdutDTOs == null)
             {
                 return NotFound();
@@ -154,7 +154,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> CreateAsync()
         {
             var brands = await _brandService.GetAllBrandAsync("", 1) ?? new OdataResponse<ReadBrandDTOs>();
             var categories = await _categoryService.GetAllCategoryAsync("", 1) ?? new OdataResponse<ReadCategoryDTOs>();
@@ -169,7 +169,7 @@ namespace PetCenterClient.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateProductDTO model)
+        public async Task<IActionResult> CreateAsync(CreateProductDTO model)
         {
 
             if (!ModelState.IsValid)
@@ -180,7 +180,7 @@ namespace PetCenterClient.Controllers
        .ToList();
 
                 Console.WriteLine(string.Join(",", errors));
-                var category = await _categoryService.GetCategoryByIdAsync(model.CategoryId);
+                var category = await _categoryService.DetailsCategoryAsync(model.CategoryId);
 
                 model.Attributes = category.Attributes
                     .Select(a => new CreateProductAttributeDTO
@@ -218,14 +218,14 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
+        public async Task<IActionResult> EditAsync(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var updateProduct = await _productService.GetProductByIdAsync(id);
+            var updateProduct = await _productService.DetailsProductAsync(id);
             if (updateProduct == null)
             {
                 return NotFound();
@@ -238,7 +238,7 @@ namespace PetCenterClient.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid ProductId, UpdateProductDTO model)
+        public async Task<IActionResult> EditAsync(Guid ProductId, UpdateProductDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -269,14 +269,14 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Delete/5
-        public async Task<IActionResult> Delete(Guid? id)
+        public async Task<IActionResult> DeleteAsync(Guid? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var model = await _productService.GetProductByIdAsync(id);
+            var model = await _productService.DetailsProductAsync(id);
             if (model == null)
             {
                 return NotFound();
@@ -288,9 +288,9 @@ namespace PetCenterClient.Controllers
         // POST: ReadProdutDTOs/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmedAsync(Guid id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
+            var product = await _productService.DetailsProductAsync(id);
 
             if (product != null)
             {

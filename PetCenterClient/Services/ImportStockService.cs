@@ -82,7 +82,7 @@ namespace PetCenterClient.Services
             res.EnsureSuccessStatusCode();
             var items = await res.Content.ReadFromJsonAsync<List<IncreaseStockItemDto>>();
 
-            await _productService.IncreaseStockBulk(items);
+            await _productService.IncreaseStockBulkAsync(items);
         }
 
         public async Task CancelAsync(Guid id)
