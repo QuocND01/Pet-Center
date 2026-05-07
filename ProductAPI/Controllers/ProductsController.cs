@@ -230,5 +230,19 @@ namespace ProductAPI.Controllers
             if (result == null) return NotFound();
             return Ok(result);
         }
+        [HttpPost("snapshot")]
+        public async Task<IActionResult> GetSnapshots(
+            [FromBody] ProductSnapshotRequestDto dto)
+        {
+            if (dto.ProductIds == null || !dto.ProductIds.Any())
+            {
+                return BadRequest("ProductIds is required");
+            }
+
+            var result = await _productService
+                .GetProductSnapshotsAsync(dto.ProductIds);
+
+            return Ok(result);
+        }
     }
 }

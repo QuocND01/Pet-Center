@@ -34,5 +34,7 @@ namespace ProductAPI.Repository.Interface
         //Task<Product?> GetProductByIdIncludeDeletedAsync(Guid id);
 
         Task<Product?> GetByIdInternalAsync(Guid productId);
+
+        Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds);
     }
 }
