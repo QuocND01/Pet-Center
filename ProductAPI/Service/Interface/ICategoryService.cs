@@ -11,8 +11,6 @@ namespace ProductAPI.Service.Interface
         Task AddCategoryAsync(CreateCategoryDTOs category);
         Task UpdateCategoryAsync(Guid id, UpdateCategoryDTOs category);
         Task DeleteCategoryAsync(Guid id);
-
-        Task AddAttributeAsync(CreateCategoryAttributeDTOs attributeValue);
         Task<IEnumerable<ReadCategoryAttributeDTOs>> GetAllCategoryAttributeByCategoryIDAsync(Guid id);
     }
 }

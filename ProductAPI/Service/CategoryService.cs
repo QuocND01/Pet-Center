@@ -22,11 +22,6 @@ namespace ProductAPI.Service
             _cloudinaryService = cloudinaryService;
         }
 
-        public async Task AddAttributeAsync(CreateCategoryAttributeDTOs attributeValue)
-        {
-            var addtribute = _mapper.Map<CategoryAttribute>(attributeValue);
-            await _categoryRepository.AddAttributeAsync(addtribute);
-        }
 
         public async Task AddCategoryAsync(CreateCategoryDTOs createCategory)
         {

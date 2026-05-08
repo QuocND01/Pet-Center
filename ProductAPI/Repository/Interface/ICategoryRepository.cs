@@ -15,8 +15,6 @@ namespace ProductAPI.Repository.Interface
 
         Task<bool> CheckCategoryExistAsync(string categoryName);
 
-        Task AddAttributeAsync(CategoryAttribute attributeValue);
-        Task DeleteAttributeByCategoryIDAsync(Guid id);
         Task<IEnumerable<CategoryAttribute>> GetAllCategoryAttributeByCategoryIDAsync(Guid id);
     }
 }

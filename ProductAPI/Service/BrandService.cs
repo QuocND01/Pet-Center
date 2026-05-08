@@ -21,12 +21,6 @@ namespace ProductAPI.Service
             _cloudinaryService = cloudinaryService;
         }
 
-        //public async Task<IEnumerable<ReadBrandDTOs>> GetAllBrandAsync()
-        //{
-        //    var Brands = await _brandRepository.GetAllBrandAsync();
-        // return _mapper.Map<IEnumerable<ReadBrandDTOs>>(Brands);
-        //}
-
         public IQueryable<ReadBrandDTOs> GetAllBrand()
         {
             return _brandRepository.GetAllBrand().ProjectTo<ReadBrandDTOs>(_mapper.ConfigurationProvider);
