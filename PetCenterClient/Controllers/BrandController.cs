@@ -17,7 +17,7 @@ namespace PetCenterClient.Controllers
             _brandService = brandService;
         }
         // GET: BrandController
-        public async Task<ActionResult> IndexAsync(string? search, int page = 1)
+        public async Task<IActionResult> IndexAsync(string? search, int page = 1)
         {
             var result = await _brandService.GetAllBrandAsync(search, page);
 
@@ -28,7 +28,7 @@ namespace PetCenterClient.Controllers
         }
 
 
-        public async Task<ActionResult> IndexAdminAsync(string? search, int page = 1)
+        public async Task<IActionResult> IndexAdminAsync(string? search, int page = 1)
         {
             var result = await _brandService.GetAllBrandAsync(search, page);
 
@@ -40,7 +40,7 @@ namespace PetCenterClient.Controllers
 
 
         // GET: BrandController/Details/5
-        public async Task<ActionResult> DetailsAsync(Guid id)
+        public async Task<IActionResult> DetailsAsync(Guid id)
         {
             if (id == null)
             {
@@ -55,7 +55,7 @@ namespace PetCenterClient.Controllers
             return PartialView("~/Views/CustomerView/Brand/_Details.cshtml", readBrand);
         }
 
-        public async Task<ActionResult> DetailsAdminAsync(Guid id)
+        public async Task<IActionResult> DetailsAdminAsync(Guid id)
         {
             if (id == null)
             {
@@ -72,7 +72,7 @@ namespace PetCenterClient.Controllers
 
 
         // GET: BrandController/Create
-        public ActionResult CreateAsync()
+        public IActionResult CreateAsync()
         {
             return PartialView("~/Views/AdminViews/Brand/_Create.cshtml");
         }

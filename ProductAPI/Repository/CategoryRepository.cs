@@ -13,11 +13,6 @@ namespace ProductAPI.Repository
             _db = petCenterContext;
         }
 
-        public async Task AddAttributeAsync(CategoryAttribute attributeValue)
-        {
-            _db.CategoryAttributes.Add(attributeValue);
-            await _db.SaveChangesAsync();
-        }
 
         public async Task AddCategoryAsync(Category category)
         {
@@ -30,19 +25,6 @@ namespace ProductAPI.Repository
             return await _db.Categories.AnyAsync(c => c.CategoryName == categoryName && c.IsActive == true);
         }
 
-        public async Task DeleteAttributeByCategoryIDAsync(Guid id)
-        {
-            var attributes = await _db.CategoryAttributes
-             .Where(a => a.CategoryId == id && a.IsActive == true)
-             .ToListAsync();
-
-            foreach (var attr in attributes)
-            {
-                attr.IsActive = false;
-            }
-
-            await _db.SaveChangesAsync();
-        }
 
         public async Task DeleteCategoryAsync(Guid id)
         {
@@ -54,23 +36,6 @@ namespace ProductAPI.Repository
                 .Where(a => a.CategoryId == id)
                 .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsActive, false));
         }
-
-        //public IQueryable<Category> GetAllCategory()
-        //{
-        //    return _db.Categories
-        //        .Where(c => c.IsActive == true)
-        //        .Select(c => new Category
-        //        {
-        //            CategoryId = c.CategoryId,
-        //            CategoryName = c.CategoryName,
-        //            CategoryLogo = c.CategoryLogo,
-
-        //            CategoryAttributes = c.CategoryAttributes
-        //                .Where(a => a.IsActive == true)
-        //                .ToList()
-        //        });
-        //}
-
 
         public IQueryable<Category> GetAllCategory()
         {

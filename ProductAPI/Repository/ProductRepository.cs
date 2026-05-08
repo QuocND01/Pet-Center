@@ -34,20 +34,6 @@ namespace ProductAPI.Repository
         }
 
 
-        public async Task DeleteProductAttributesByProductIdAsync(Guid productId)
-        {
-            var attributes = await _db.ProductAttributes
-                .Where(x => x.ProductId == productId)
-                .ToListAsync();
-
-            if (attributes.Any())
-            {
-                _db.ProductAttributes.RemoveRange(attributes);
-               await _db.SaveChangesAsync();
-            }
-        }
-
-
         public IQueryable<Product> GetAllProduct()
         {
             try
@@ -133,64 +119,6 @@ namespace ProductAPI.Repository
             return await query.ProjectTo<T>(_mapper.ConfigurationProvider)
                               .ToListAsync();
         }
-        public async Task<List<Product>> GetByIds(List<Guid> ids)
-        {
-            return await _db.Products
-                .Where(x => ids.Contains(x.ProductId))
-                .ToListAsync();
-        }
 
-        public async Task SaveChangesAsync()
-        {
-            await _db.SaveChangesAsync();
-        }
-
-        //public async Task<bool> DecreaseStockAsync(Guid productId, int quantity)
-        //{
-        //    // Tìm sản phẩm
-        //    var product = await _db.Products.FindAsync(productId);
-
-        //    // Kiểm tra xem sản phẩm có tồn tại và kho có đủ hàng không
-        //    if (product == null)
-        //    {
-        //        return false;
-        //    }
-
-        //    // Trừ kho và lưu lại
-        //    product.StockQuantity -= quantity;
-        //    _db.Products.Update(product);
-        //    await _db.SaveChangesAsync();
-
-        //    return true;
-        //}
-        //public async Task<bool> IncreaseStockAsync(Guid productId, int quantity)
-        //{
-        //    var product = await _db.Products.FindAsync(productId);
-
-        //    if (product == null)
-        //    {
-        //        return false;
-        //    }
-
-        //    // Cộng trả lại kho
-        //    product.StockQuantity += quantity;
-
-        //    _db.Products.Update(product);
-        //    await _db.SaveChangesAsync();
-
-        //    return true;
-        //}
-
-        //public Task<Product?> GetProductByIdIncludeDeletedAsync(Guid id)
-        //{
-        //    return _db.Products
-        //        .Include(p => p.Brand)
-        //        .Include(p => p.Category)
-        //        .Include(p => p.Images)
-        //        .Include(p => p.ProductAttributes)
-        //            .ThenInclude(pa => pa.CategoryAttribute)
-        //        // Bỏ filter IsActive để lấy được cả sản phẩm đã xóa mềm
-        //        .FirstOrDefaultAsync(x => x.ProductId == id);
-        //}
     }
 }

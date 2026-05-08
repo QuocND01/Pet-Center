@@ -13,8 +13,6 @@ namespace ProductAPI.Repository.Interface
         Task UpdateProductAsync(Product product);
         Task DeleteProductAsync(Guid id);
 
-        Task DeleteProductAttributesByProductIdAsync(Guid productId);
-
         Task<bool> CheckProductExistAsync(string productName, Guid brandId, Guid categoryId);
 
         Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null);
