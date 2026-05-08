@@ -15,4 +15,6 @@ public interface IStaffService
     Task<StaffReadDto> UpdateAsync(Guid id, StaffUpdateDto dto);
 
     Task SoftDeleteAsync(Guid id);
+
+    Task<StaffInternalDto?> GetInternalAsync(Guid staffId);
 }

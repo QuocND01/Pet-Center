@@ -65,4 +65,9 @@ public class StaffRepository : IStaffRepository
         => await _context.Roles
             .Where(r => roleIds.Contains(r.RoleId) && r.IsActive)
             .ToListAsync();
+
+    public async Task<Staff?> GetByIdInternalAsync(Guid staffId)
+    => await _context.Staffs
+        .AsNoTracking()
+        .FirstOrDefaultAsync(s => s.StaffId == staffId && s.IsActive);
 }

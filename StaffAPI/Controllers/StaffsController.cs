@@ -173,4 +173,13 @@ public class StaffsController : ODataController
             return StatusCode(500, Wrap(false, ex.Message));
         }
     }
+
+    [HttpGet("internal/{id:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetInternal(Guid id)
+    {
+        var result = await _staffService.GetInternalAsync(id);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
 }

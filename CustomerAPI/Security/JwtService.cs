@@ -14,13 +14,14 @@ namespace CustomerAPI.Security
             _config = config;
         }
 
-        public string GenerateToken(Guid userId, string email, List<string> roles)
+        public string GenerateToken(Guid userId, string email, List<string> roles, string fullName = "")
         {
             var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim("fullName", fullName)
         };
 
             foreach (var role in roles)

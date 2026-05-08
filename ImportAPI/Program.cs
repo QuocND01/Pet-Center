@@ -20,6 +20,11 @@ builder.Configuration
 builder.Services.AddDbContext<PetCenterImportServiceContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 // Add services to the container.
+builder.Services.AddHttpClient("ProductAPI", client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["Services:ProductAPI"]!);
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -110,6 +115,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

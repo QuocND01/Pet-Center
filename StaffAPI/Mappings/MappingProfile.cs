@@ -17,5 +17,6 @@ public class MappingProfile : Profile
 
         CreateMap<Role, RoleReadDto>();
         CreateMap<VetProfile, VetProfileReadDto>();
+        CreateMap<Staff, StaffInternalDto>();
     }
 }

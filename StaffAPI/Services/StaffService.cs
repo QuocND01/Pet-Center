@@ -138,4 +138,11 @@ public class StaffService : IStaffService
             ?? throw new KeyNotFoundException($"Staff {id} not found.");
         await _staffRepo.SoftDeleteAsync(staff);
     }
+
+    public async Task<StaffInternalDto?> GetInternalAsync(Guid staffId)
+    {
+        var staff = await _staffRepo.GetByIdInternalAsync(staffId);
+        if (staff == null) return null;
+        return new StaffInternalDto { FullName = staff.FullName };
+    }
 }

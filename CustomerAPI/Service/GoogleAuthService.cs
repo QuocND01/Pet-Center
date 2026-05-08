@@ -67,7 +67,7 @@ namespace CustomerAPI.Service
         public async Task<Customer> GetOrCreateUserFromGoogleAsync(string email, string name)
         {
             // GetByEmailAsync chỉ lấy active customer
-            var existing = await _customerRepository.GetByEmailAsync(email);
+            var existing = await _customerRepository.GetByEmailAsyncWithoutActiveCheck(email);
             if (existing != null)
                 return existing;
 

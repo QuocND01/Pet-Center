@@ -572,26 +572,442 @@
 </script>
 
 
-<hr style="margin:40px 0;" />
+<hr style="margin: 48px 0 0 0; border: none; border-top: 2px solid var(--border);" />
 
-<h3>Customer Feedback</h3>
+<!-- ═══════════════════════════════════════════════════
+     CUSTOMER FEEDBACK SECTION
+════════════════════════════════════════════════════ -->
+<style>
+    /* ── Section wrapper ── */
+    .fb-section {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 40px 16px 64px;
+        font-family: var(--font);
+    }
 
-@if (ViewBag.Feedbacks != null)
-{
-    foreach (var item in ViewBag.Feedbacks)
+    .fb-section-title {
+        font-family: var(--font-head);
+        font-size: 26px;
+        font-weight: 900;
+        color: var(--ink);
+        margin-bottom: 32px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .fb-section-title span.fb-count-badge {
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 800;
+            background: var(--g1);
+            color: var(--g5);
+            padding: 4px 12px;
+            border-radius: 100px;
+        }
+
+    /* ── Summary box ── */
+    .fb-summary {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 32px;
+        align-items: center;
+        background: var(--g0);
+        border: 1.5px solid var(--g1);
+        border-radius: var(--radius);
+        padding: 28px 32px;
+        margin-bottom: 36px;
+    }
+
+    @@media(max-width: 600px) {
+        .fb-summary {
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+    }
+
+    .fb-avg-block {
+        text-align: center;
+        min-width: 120px;
+    }
+
+    .fb-avg-number {
+        font-family: var(--font-head);
+        font-size: 64px;
+        font-weight: 900;
+        color: var(--g4);
+        line-height: 1;
+    }
+
+    .fb-avg-stars {
+        display: flex;
+        justify-content: center;
+        gap: 3px;
+        margin: 8px 0 6px;
+    }
+
+        .fb-avg-stars .star {
+            font-size: 20px;
+        }
+
+    .fb-avg-total {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+    }
+
+    /* ── Bar chart ── */
+    .fb-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .fb-bar-row {
+        display: grid;
+        grid-template-columns: 60px 1fr 40px;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .fb-bar-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--ink2);
+        text-align: right;
+        white-space: nowrap;
+    }
+
+        .fb-bar-label .star-sm {
+            color: #f59e0b;
+        }
+
+    .fb-bar-track {
+        height: 10px;
+        background: var(--border);
+        border-radius: 100px;
+        overflow: hidden;
+    }
+
+    .fb-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2ecc71, #27ae60);
+        border-radius: 100px;
+        transition: width .6s cubic-bezier(.22,1,.36,1);
+    }
+
+    .fb-bar-pct {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--muted);
+        text-align: right;
+    }
+
+    /* ── Empty state ── */
+    .fb-empty {
+        text-align: center;
+        padding: 56px 24px;
+        color: var(--muted);
+        background: var(--g0);
+        border: 1.5px dashed var(--border);
+        border-radius: var(--radius);
+    }
+
+    .fb-empty-icon {
+        font-size: 52px;
+        margin-bottom: 12px;
+    }
+
+    .fb-empty-text {
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .fb-empty-sub {
+        font-size: 13px;
+        margin-top: 6px;
+        color: #9ca3af;
+    }
+
+    /* ── Feedback list ── */
+    .fb-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .fb-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        transition: box-shadow .2s;
+    }
+
+        .fb-card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,.07);
+        }
+
+    .fb-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .fb-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--g3), #27ae60);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 900;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .fb-meta {
+        flex: 1;
+    }
+
+    .fb-meta-name {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--ink);
+    }
+
+    .fb-meta-date {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    .fb-stars {
+        display: flex;
+        gap: 2px;
+    }
+
+        .fb-stars .star {
+            font-size: 15px;
+        }
+
+    .fb-comment {
+        font-size: 14px;
+        color: var(--ink2);
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    /* ── Shop reply ── */
+    .fb-reply {
+        margin-top: 14px;
+        background: var(--g0);
+        border-left: 3px solid var(--g3);
+        border-radius: 0 10px 10px 0;
+        padding: 12px 16px;
+    }
+
+    .fb-reply-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .fb-reply-badge {
+        font-size: 11px;
+        font-weight: 800;
+        background: var(--g3);
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 100px;
+        letter-spacing: .04em;
+    }
+
+    .fb-reply-date {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .fb-reply-text {
+        font-size: 13px;
+        color: var(--ink2);
+        line-height: 1.6;
+    }
+
+    /* ── Updated badge ── */
+    .fb-updated-badge {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        background: #f3f4f6;
+        padding: 2px 8px;
+        border-radius: 100px;
+        margin-left: auto;
+    }
+</style>
+
+<div class="fb-section">
+    <h2 class="fb-section-title">
+        ⭐ Customer Reviews
+        @if (ViewBag.TotalCount != null && ViewBag.TotalCount > 0)
+        {
+            <span class="fb-count-badge">@ViewBag.TotalCount reviews</span>
+        }
+    </h2>
+
+    @if (ViewBag.TotalCount != null && ViewBag.TotalCount > 0)
     {
-        <div class="border p-2 mb-2">
-            <b>User: @item.CustomerId</b> ⭐ @item.Rating
-            <p>@item.Comment</p>
-            <small>@item.CreatedDate</small>
+        <!-- Summary -->
+        <div class="fb-summary">
+            <!-- Average score -->
+            <div class="fb-avg-block">
+                <div class="fb-avg-number">@ViewBag.AvgRating</div>
+                <div class="fb-avg-stars">
+                    @for (int s = 1; s <= 5; s++)
+                    {
+                        double avg = (double)ViewBag.AvgRating;
+                        if (s <= Math.Floor(avg))
+                        {
+                            <span class="star" style="color:#f59e0b;">★</span>
+                        }
+                        else if (s - avg < 1 && s - avg > 0)
+                        {
+                            <span class="star" style="color:#f59e0b; opacity:.45;">★</span>
+                        }
+                        else
+                        {
+                            <span class="star" style="color:#e5e7eb;">★</span>
+                        }
+                    }
+                </div>
+                <div class="fb-avg-total">out of 5 · @ViewBag.TotalCount reviews</div>
+            </div>
 
-            @if (item.Reply != null)
+            <!-- Bar chart -->
+            <div class="fb-bars">
+                @{
+                    var ratingCounts = ViewBag.RatingCounts as Dictionary<int, int>;
+                    int total = (int)ViewBag.TotalCount;
+                }
+                @for (int star = 5; star >= 1; star--)
+                {
+                    int count = ratingCounts != null && ratingCounts.ContainsKey(star)
+                    ? ratingCounts[star] : 0;
+                    double pct = total > 0 ? Math.Round((double)count / total * 100, 0) : 0;
+
+                    <div class="fb-bar-row">
+                        <div class="fb-bar-label">
+                            @star <span class="star-sm">★</span>
+                        </div>
+                        <div class="fb-bar-track">
+                            <div class="fb-bar-fill" style="width: @pct%"></div>
+                        </div>
+                        <div class="fb-bar-pct">@pct%</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Feedback list -->
+        <div class="fb-list">
+            @foreach (var item in ViewBag.Feedbacks)
             {
-                <div class="bg-light p-2 mt-2">
-                    <b>Shop reply:</b>
-                    <p>@item.Reply</p>
+                int rating = item.Rating ?? 0;
+
+                // Lấy tên trước để dùng cho avatar
+                var customerNames = ViewBag.CustomerNames as Dictionary<Guid, string>;
+                var displayName = customerNames != null && customerNames.ContainsKey((Guid)item.CustomerId)
+                ? customerNames[(Guid)item.CustomerId]
+                : "Anonymous";
+
+                // Avatar initials lấy từ tên thật
+                string initials = displayName != "Anonymous" && displayName.Length > 0
+                ? string.Join("", displayName.Split(' ')
+                .Where(w => w.Length > 0)
+                .Take(2)
+                .Select(w => w[0].ToString().ToUpper()))
+                : "?";
+
+                // Ngày giờ đầy đủ
+                string createdDateStr = item.CreatedDate != null
+                ? ((DateTime)item.CreatedDate).ToString("dd/MM/yyyy HH:mm")
+                : "";
+
+                <div class="fb-card">
+                    <div class="fb-card-header">
+                        <!-- Avatar -->
+                        <div class="fb-avatar">@initials</div>
+
+                        <!-- Meta -->
+                        <div class="fb-meta">
+                            <div class="fb-meta-name">@displayName</div>
+                            <div class="fb-meta-date">@createdDateStr</div>
+                        </div>
+
+                        <!-- Stars -->
+                        <div class="fb-stars">
+                            @for (int s = 1; s <= 5; s++)
+                            {
+                                <span class="star" style="color: @(s <= rating ? "#f59e0b" : "#e5e7eb")">★</span>
+                            }
+                        </div>
+
+                        <!-- Updated badge -->
+                        @if (item.UpdatedAt != null)
+                        {
+                            <span class="fb-updated-badge">Edited</span>
+                        }
+                    </div>
+
+                    <!-- Comment -->
+                    @if (!string.IsNullOrEmpty(item.Comment))
+                    {
+                        <p class="fb-comment">@item.Comment</p>
+                    }
+                    else
+                    {
+                        <p class="fb-comment" style="color:#9ca3af; font-style:italic;">
+                            No comment left.
+                        </p>
+                    }
+
+                    <!-- Shop reply -->
+                    @if (!string.IsNullOrEmpty(item.Reply))
+                    {
+                        <div class="fb-reply">
+                            <div class="fb-reply-header">
+                                <span class="fb-reply-badge">🏪 Shop Reply</span>
+                                @if (item.ReplyDate != null)
+                                {
+                                    <span class="fb-reply-date">
+                                        @((DateTime)item.ReplyDate).ToString("MMM dd, yyyy")
+                                    </span>
+                                }
+                            </div>
+                            <div class="fb-reply-text">@item.Reply</div>
+                        </div>
+                    }
                 </div>
             }
         </div>
     }
-}
+    else
+    {
+        <!-- Empty state -->
+        <div class="fb-empty">
+            <div class="fb-empty-icon">🐾</div>
+            <div class="fb-empty-text">No reviews yet</div>
+            <div class="fb-empty-sub">Be the first to share your experience with this product!</div>
+        </div>
+    }
+</div>

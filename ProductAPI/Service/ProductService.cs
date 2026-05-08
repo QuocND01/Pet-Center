@@ -293,5 +293,22 @@ namespace ProductAPI.Service
             return await _productRepository.GetActiveProductsAsync<SelectProductDto>();
         }
 
+        //Code Hồ mới thêm
+        public async Task<ProductInternalDto?> GetInternalAsync(Guid productId)
+        {
+            var product = await _productRepository.GetByIdInternalAsync(productId);
+            if (product == null) return null;
+            return new ProductInternalDto
+            {
+                ProductName = product.ProductName,
+                ImageUrl = product.Images.FirstOrDefault()?.ImageUrl
+            };
+        }
+        public async Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds)
+        {
+            var products = await _productRepository.GetProductsForSnapshotAsync(productIds);
+
+            return _mapper.Map<List<ProductSnapshotResponseDto>>(products);
+        }
     }
 }
