@@ -497,7 +497,7 @@
         <div class="hero-banner-content">
             <h1>Pet Center Shop</h1>
             <p>Best products for your lovely pets</p>
-            <a asp-controller="Products" asp-action="Index" class="btn-banner">
+            <a asp-controller="Products" asp-action="IndexAsync" class="btn-banner">
                 Shop Now →
             </a>
         </div>
@@ -697,7 +697,7 @@
 
                 @if (!string.IsNullOrEmpty(currentSearch) || !string.IsNullOrEmpty(currentCat) || !string.IsNullOrEmpty(currentBrand) || !string.IsNullOrEmpty(currentMin) || !string.IsNullOrEmpty(currentMax))
                 {
-                    <a asp-action="Index" asp-controller="Products" class="btn-reset">✕ Xoá lọc</a>
+                    <a asp-action="IndexAsync" asp-controller="Products" class="btn-reset">✕ Xoá lọc</a>
                 }
             </div>
         </form>
@@ -811,7 +811,7 @@
     @if (currentPage > 1)
     {
         <a class="page-btn"
-           href="@Url.Action("Index", new {
+           href="@Url.Action("IndexAsync", new {
                 page = currentPage - 1,
                 search = currentSearch,
                 sortBy = currentSortBy,
@@ -829,7 +829,7 @@
     @for (int i = 1; i <= totalPages; i++)
     {
         <a class="page-btn @(i == currentPage ? "active" : "")"
-           href="@Url.Action("Index", new {
+           href="@Url.Action("IndexAsync", new {
                 page = i,
                 search = currentSearch,
                 sortBy = currentSortBy,
@@ -847,7 +847,7 @@
     @if (currentPage < totalPages)
     {
         <a class="page-btn"
-           href="@Url.Action("Index", new {
+           href="@Url.Action("IndexAsync", new {
                 page = currentPage + 1,
                 search = currentSearch,
                 sortBy = currentSortBy,
