@@ -1,14 +1,11 @@
 ﻿using ImportAPI.DTOs;
 using ImportAPI.Service.Interface;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ImportAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
-
     public class SuppliersController : ControllerBase
     {
         private readonly ISupplierService _service;
@@ -20,64 +17,120 @@ namespace ImportAPI.Controllers
 
         // GET: api/suppliers
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetSuppliers()
         {
             var result = await _service.GetAllAsync();
-            return Ok(result);
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Get suppliers successfully",
+                Data = result
+            });
         }
 
         // GET: api/suppliers/{id}
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetSupplierById(Guid id)
         {
             var result = await _service.GetByIdAsync(id);
 
             if (result == null)
-                return NotFound(new { message = "Supplier not found" });
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Supplier not found"
+                });
+            }
 
-            return Ok(result);
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Get supplier successfully",
+                Data = result
+            });
         }
 
         // POST: api/suppliers
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateSupplierDto dto)
+        public async Task<IActionResult> CreateSupplier([FromBody] CreateSupplierDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = ModelState
+                });
+            }
 
             var createdSupplier = await _service.CreateAsync(dto);
 
             return CreatedAtAction(
-                nameof(GetById),
+                nameof(GetSupplierById),
                 new { id = createdSupplier.SupplierId },
-                createdSupplier);
+                new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Create supplier successfully",
+                    Data = createdSupplier
+                });
         }
 
         // PUT: api/suppliers/{id}
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSupplierDto dto)
+        public async Task<IActionResult> UpdateSupplier(Guid id, [FromBody] UpdateSupplierDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Validation failed",
+                    Errors = ModelState
+                });
+            }
 
             var success = await _service.UpdateAsync(id, dto);
 
             if (!success)
-                return NotFound(new { message = "Supplier not found" });
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Supplier not found"
+                });
+            }
 
-            return NoContent();
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Update supplier successfully"
+            });
         }
 
-        // DELETE (Soft delete): api/suppliers/{id}
+        // DELETE: api/suppliers/{id}
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> DeleteSupplier(Guid id)
         {
             var success = await _service.DeleteAsync(id);
 
             if (!success)
-                return NotFound(new { message = "Supplier not found" });
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Supplier not found"
+                });
+            }
 
-            return NoContent();
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Delete supplier successfully"
+            });
         }
     }
 }
