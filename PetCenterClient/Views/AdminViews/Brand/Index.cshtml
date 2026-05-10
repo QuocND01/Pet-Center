@@ -117,7 +117,7 @@
                                 <button class="btn-detail"
                                         data-bs-toggle="modal"
                                         data-bs-target="#brandModal"
-                                        data-url="@Url.Action("DetailsAsyncAdmin", "Brand", new { id = b.BrandId })">
+                                        data-url="@Url.Action("DetailsAdmin", "Brand", new { id = b.BrandId })">
 
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -190,7 +190,7 @@
         @if (currentPage > 1)
         {
             <a class="page-btn"
-               href="@Url.Action("Indexadmin", new { page = currentPage - 1, search = ViewBag.Search })">
+               href="@Url.Action("IndexAdmin", new { page = currentPage - 1, search = ViewBag.Search })">
                 Prev
             </a>
         }
@@ -199,7 +199,7 @@
         @for (int i = 1; i <= totalPages; i++)
         {
             <a class="page-btn @(i == currentPage ? "active" : "")"
-               href="@Url.Action("Indexadmin", new { page = i, search = ViewBag.Search })">
+               href="@Url.Action("IndexAdmin", new { page = i, search = ViewBag.Search })">
                 @i
             </a>
         }
@@ -208,7 +208,7 @@
         @if (currentPage < totalPages)
         {
             <a class="page-btn"
-               href="@Url.Action("Indexadmin", new { page = currentPage + 1, search = ViewBag.Search })">
+               href="@Url.Action("IndexAdmin", new { page = currentPage + 1, search = ViewBag.Search })">
                 Next
             </a>
         }

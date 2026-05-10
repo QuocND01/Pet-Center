@@ -50,7 +50,7 @@
 
 
     <!-- TOOLBAR -->
-    <form asp-action="Indexadmin" asp-controller="Products" method="get" class="toolbar">
+    <form asp-action="IndexAdmin" asp-controller="Products" method="get" class="toolbar">
 
         <!-- Search -->
         <div class="search-wrap">
@@ -250,7 +250,7 @@
 
             <!-- Prev -->
            <a class="page-btn"
-   href="@Url.Action("Indexadmin", new {
+   href="@Url.Action("IndexAdmin", new {
         page = currentPage - 1,
         search = routeValues.search,
         minPrice = routeValues.minPrice,
@@ -266,7 +266,7 @@
             @for (int i = 1; i <= totalPages; i++)
             {
                 <a class="page-btn @(i == currentPage ? "active" : "")"
-                  href="@Url.Action("Indexadmin", new {
+                  href="@Url.Action("IndexAdmin", new {
                     page = i,
                     search = routeValues.search,
                     minPrice = routeValues.minPrice,
@@ -280,7 +280,7 @@
 
             <!-- Next -->
             <a class="page-btn"
-   href="@Url.Action("Indexadmin", new {
+   href="@Url.Action("IndexAdmin", new {
         page = currentPage + 1,
         search = routeValues.search,
         minPrice = routeValues.minPrice,
