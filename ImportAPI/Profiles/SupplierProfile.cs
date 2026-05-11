@@ -10,7 +10,6 @@ namespace ImportAPI.Profiles
         {
             CreateMap<Supplier, ReadSupplierDto>();
             CreateMap<WriteSupplierDto, Supplier>();
-            CreateMap<UpdateSupplierDto, Supplier>();
         }
     }
 }
