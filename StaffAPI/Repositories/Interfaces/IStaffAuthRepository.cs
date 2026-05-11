@@ -4,6 +4,7 @@ namespace StaffAPI.Repositories.Interfaces
 {
     public interface IStaffAuthRepository
     {
+        // ── Login ──────────────────────────────────────────────
         Task<Staff?> GetByEmailAsync(string email);
         Task<Staff?> GetByIdAsync(Guid staffId);
         Task<List<Staff>> GetAllAsync();

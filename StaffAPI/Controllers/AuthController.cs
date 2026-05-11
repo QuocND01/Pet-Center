@@ -30,7 +30,13 @@ namespace StaffAPI.Controllers
             if (!success)
                 return Unauthorized(new { success = false, message, errorType });
 
-            return Ok(new { success = true, message, token, roles });
+            var primaryRole = roles.Contains("Admin") ? "Admin"
+        : roles.Contains("Sale Staff") ? "Sale Staff"
+        : roles.Contains("Inventory Staff") ? "Inventory Staff"
+        : roles.Contains("Vet") ? "Vet"
+        : null;
+
+            return Ok(new { success = true, message, token, roles, primaryRole });
         }
     }
 }

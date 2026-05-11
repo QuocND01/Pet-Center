@@ -484,7 +484,7 @@
 <div class="fb-header">
     <div class="fb-header-left">
         <h1><i class="bi bi-chat-left-text me-2" style="color:var(--g3)"></i>Feedback Management</h1>
-        <p>Quản lý và phản hồi đánh giá sản phẩm từ khách hàng</p>
+        <p>Manage and respond to customer product reviews and feedback.</p>
     </div>
 </div>
 
@@ -494,28 +494,28 @@
         <div class="fb-stat-icon green"><i class="bi bi-chat-square-text"></i></div>
         <div>
             <div class="fb-stat-val" id="statTotal">–</div>
-            <div class="fb-stat-lbl">Tổng Feedback</div>
+            <div class="fb-stat-lbl">Total Feedback</div>
         </div>
     </div>
     <div class="fb-stat">
         <div class="fb-stat-icon yellow"><i class="bi bi-clock-history"></i></div>
         <div>
             <div class="fb-stat-val" id="statPending">–</div>
-            <div class="fb-stat-lbl">Chưa Reply</div>
+            <div class="fb-stat-lbl">No reply yet</div>
         </div>
     </div>
     <div class="fb-stat">
         <div class="fb-stat-icon blue"><i class="bi bi-check2-circle"></i></div>
         <div>
             <div class="fb-stat-val" id="statReplied">–</div>
-            <div class="fb-stat-lbl">Đã Reply</div>
+            <div class="fb-stat-lbl">Replied</div>
         </div>
     </div>
     <div class="fb-stat">
         <div class="fb-stat-icon purple"><i class="bi bi-star-half"></i></div>
         <div>
             <div class="fb-stat-val" id="statAvgRating">–</div>
-            <div class="fb-stat-lbl">Điểm TB</div>
+            <div class="fb-stat-lbl">stars average</div>
         </div>
     </div>
 </div>
@@ -523,47 +523,47 @@
 <!-- ══ FILTER BAR ════════════════════════════════════════════ -->
 <div class="fb-filter-card">
     <div class="fb-filter-group search">
-        <label>Tìm kiếm</label>
-        <input type="text" id="fKeyword" placeholder="🔍  Tìm trong nội dung feedback..." />
+        <label>Search</label>
+        <input type="text" id="fKeyword" placeholder="Search within the feedback content...." />
     </div>
     <div class="fb-filter-group">
-        <label>Trạng thái</label>
+        <label>Status</label>
         <select id="fHasReply">
-            <option value="">Tất cả</option>
-            <option value="false">Chưa reply</option>
-            <option value="true">Đã reply</option>
+            <option value="">All</option>
+            <option value="false">No reply</option>
+            <option value="true">Replied</option>
         </select>
     </div>
     <div class="fb-filter-group">
-        <label>Đánh giá</label>
+        <label>Stars</label>
         <select id="fRating">
-            <option value="">Tất cả</option>
-            <option value="5">⭐⭐⭐⭐⭐  5 sao</option>
-            <option value="4">⭐⭐⭐⭐  4 sao</option>
-            <option value="3">⭐⭐⭐  3 sao</option>
-            <option value="2">⭐⭐  2 sao</option>
-            <option value="1">⭐  1 sao</option>
+            <option value="">All</option>
+            <option value="5">⭐⭐⭐⭐⭐  5 stars</option>
+            <option value="4">⭐⭐⭐⭐  4 stars</option>
+            <option value="3">⭐⭐⭐  3 stars</option>
+            <option value="2">⭐⭐  2 stars</option>
+            <option value="1">⭐  1 stars</option>
         </select>
     </div>
     <div class="fb-filter-group">
-        <label>Sắp xếp</label>
+        <label>Sort</label>
         <select id="fSortBy">
-            <option value="newest">Mới nhất</option>
-            <option value="oldest">Cũ nhất</option>
-            <option value="rating_desc">Điểm cao nhất</option>
-            <option value="rating_asc">Điểm thấp nhất</option>
+            <option value="newest">Latest</option>
+            <option value="oldest">Oldest</option>
+            <option value="rating_desc">Highest number of stars</option>
+            <option value="rating_asc">Smallest number of stars</option>
         </select>
     </div>
     <div class="fb-filter-group">
-        <label>Hiển thị</label>
+        <label>View Page</label>
         <select id="fPageSize">
-            <option value="10">10 / trang</option>
-            <option value="20">20 / trang</option>
-            <option value="50">50 / trang</option>
+            <option value="10">10 / page</option>
+            <option value="20">20 / page</option>
+            <option value="50">50 / page</option>
         </select>
     </div>
     <button class="fb-btn fb-btn-primary" onclick="loadFeedbacks(1)">
-        <i class="bi bi-search"></i> Lọc
+        <i class="bi bi-search"></i> Filter
     </button>
     <button class="fb-btn fb-btn-ghost" onclick="resetFilter()">
         <i class="bi bi-arrow-counterclockwise"></i> Reset
@@ -574,15 +574,15 @@
 <div class="fb-table-card">
     <div class="fb-table-head">
         <div style="display:flex;align-items:center;gap:10px">
-            <span class="fb-table-title">Danh sách Feedback</span>
-            <span class="fb-count-badge" id="totalBadge">0 kết quả</span>
+            <span class="fb-table-title">Feedback List</span>
+            <span class="fb-count-badge" id="totalBadge">No Result</span>
         </div>
     </div>
 
     <div id="fbTableBody">
         <div class="fb-loading">
             <i class="bi bi-arrow-repeat" style="font-size:22px;display:block;margin-bottom:8px"></i>
-            Đang tải dữ liệu...
+            loading data...
         </div>
     </div>
 
@@ -596,7 +596,7 @@
 <div class="fb-overlay" id="modalDetail">
     <div class="fb-modal wide">
         <div class="fb-modal-header">
-            <h3><i class="bi bi-info-circle" style="color:var(--fb-purple)"></i> Chi tiết Feedback</h3>
+            <h3><i class="bi bi-info-circle" style="color:var(--fb-purple)"></i>Feedback Detail</h3>
             <button class="fb-modal-close" onclick="closeModal('modalDetail')">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -605,7 +605,7 @@
             <!-- dynamic -->
         </div>
         <div class="fb-modal-footer">
-            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalDetail')">Đóng</button>
+            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalDetail')">Close</button>
         </div>
     </div>
 </div>
@@ -615,7 +615,7 @@
     <div class="fb-modal">
         <div class="fb-modal-header">
             <h3 id="replyModalTitle">
-                <i class="bi bi-reply" style="color:var(--fb-green2)"></i> Phản hồi Feedback
+                <i class="bi bi-reply" style="color:var(--fb-green2)"></i> Reply Feedback
             </h3>
             <button class="fb-modal-close" onclick="closeModal('modalReply')">
                 <i class="bi bi-x-lg"></i>
@@ -623,7 +623,7 @@
         </div>
         <div class="fb-modal-body">
             <div class="fb-context-box">
-                <div class="fb-context-box-lbl">Nội dung feedback của khách</div>
+                <div class="fb-context-box-lbl">Customer Feedback Content</div>
                 <div class="fb-context-comment" id="replyContextComment">–</div>
                 <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
                     <div id="replyContextStars" class="fb-stars"></div>
@@ -632,25 +632,25 @@
             </div>
             <div class="fb-form-group">
                 <label class="fb-form-label">
-                    Nội dung phản hồi <span>*</span>
+                    Feedback Content <span>*</span>
                 </label>
                 <textarea class="fb-form-textarea" id="replyContent"
-                          placeholder="Cảm ơn bạn đã phản hồi! Chúng tôi..."
+                          placeholder="Thank you for your feedback! We..."
                           maxlength="1000"
                           oninput="updateCharCount(this,'replyCharCount',1000)"></textarea>
-                <div class="fb-char-count"><span id="replyCharCount">0</span> / 1000 ký tự</div>
+                <div class="fb-char-count"><span id="replyCharCount">0</span> / 1000 characters</div>
                 <div class="fb-form-hint">
                     <i class="bi bi-lightbulb"></i>
-                    Phản hồi chuyên nghiệp, lịch sự sẽ tạo ấn tượng tốt với khách hàng.
+                    A professional and courteous response will make a good impression on customers..
                 </div>
             </div>
             <input type="hidden" id="replyFeedbackId" />
             <input type="hidden" id="replyMode" value="new" /> <!-- new | edit -->
         </div>
         <div class="fb-modal-footer">
-            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalReply')">Hủy</button>
+            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalReply')">Cancel</button>
             <button class="fb-btn fb-btn-primary" onclick="submitReply()" id="replySubmitBtn">
-                <i class="bi bi-send"></i> Gửi phản hồi
+                <i class="bi bi-send"></i> Send Reply
             </button>
         </div>
     </div>
@@ -661,17 +661,17 @@
     <div class="fb-modal" style="max-width:420px">
         <div class="fb-modal-body" style="padding:28px 24px">
             <div class="fb-confirm-icon">🗑️</div>
-            <div class="fb-confirm-title">Xóa phản hồi?</div>
+            <div class="fb-confirm-title">Delete Reply?</div>
             <div class="fb-confirm-desc">
-                Hành động này sẽ xóa toàn bộ nội dung phản hồi đã gửi.<br>
-                Bạn có thể reply lại sau khi xóa.
+                This action will delete all submitted Reply.<br>
+                You can Reply after deleting.
             </div>
             <input type="hidden" id="deleteFeedbackId" />
         </div>
         <div class="fb-modal-footer">
-            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalDelete')">Hủy</button>
+            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalDelete')">Cancel</button>
             <button class="fb-btn fb-btn-danger" onclick="confirmDeleteReply()">
-                <i class="bi bi-trash3"></i> Xóa phản hồi
+                <i class="bi bi-trash3"></i> Delete Reply
             </button>
         </div>
     </div>
@@ -705,7 +705,7 @@
                 const json = await res.json();
 
                 if (!json.success || !json.data) {
-                    showTableEmpty('Không thể tải dữ liệu. Vui lòng thử lại.');
+                    showTableEmpty('Unable to load data. Please try again.');
                     return;
                 }
 
@@ -715,7 +715,7 @@
                 updateStats(data.items, data.totalCount);
 
             } catch (err) {
-                showTableEmpty('Có lỗi xảy ra khi kết nối server.');
+                showTableEmpty('An error occurred while connecting to the server.');
             }
         }
 
@@ -740,7 +740,7 @@
         // ── RENDER TABLE ─────────────────────────────────────────────
                 function renderTable(items) {
             if (!items || items.length === 0) {
-                showTableEmpty('Không có feedback nào phù hợp với bộ lọc.');
+                showTableEmpty('No feedback matches the filter.');
                 return;
             }
 
@@ -773,7 +773,7 @@
                     </td>
                     <td>
                         <span style="font-size:13px;font-weight:700;color:var(--fb-ink2)">
-                            ${escHtml(f.customerName || 'Khách hàng')}
+                            ${escHtml(f.customerName || 'Customer')}
                         </span>
                     </td>
                     <td>${productCell}</td>
@@ -790,13 +790,13 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Khách hàng</th>
-                            <th>Sản phẩm</th>
-                            <th>Đánh giá</th>
-                            <th>Nội dung</th>
-                            <th>Trạng thái</th>
-                            <th>Ngày tạo</th>
-                            <th>Thao tác</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Stars</th>
+                            <th>Content</th>
+                            <th>Status</th>
+                            <th>Creation date</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
@@ -812,10 +812,10 @@
 
         function renderReplyBadge(hasReply, isVisible) {
             if (!isVisible)
-                return `<span class="fb-badge fb-badge-hidden"><i class="bi bi-eye-slash"></i> Đã ẩn</span>`;
+                return `<span class="fb-badge fb-badge-hidden"><i class="bi bi-eye-slash"></i> Hidden</span>`;
             if (hasReply)
-                return `<span class="fb-badge fb-badge-replied"><i class="bi bi-check-circle"></i> Đã reply</span>`;
-            return `<span class="fb-badge fb-badge-pending"><i class="bi bi-clock"></i> Chờ reply</span>`;
+                return `<span class="fb-badge fb-badge-replied"><i class="bi bi-check-circle"></i>Replied</span>`;
+            return `<span class="fb-badge fb-badge-pending"><i class="bi bi-clock"></i> Waiting for a reply</span>`;
         }
 
         function renderActions(f) {
@@ -867,7 +867,7 @@
             const to   = Math.min(page * pageSize, total);
 
             document.getElementById('pageInfo').textContent =
-                `Hiển thị ${from}–${to} trong ${total} kết quả`;
+                `View ${from}–${to} trong ${total} Result`;
 
             const btns = [];
             btns.push(`<button class="fb-page-btn" onclick="loadFeedbacks(${page-1})"
@@ -915,7 +915,7 @@
             document.getElementById('statPending').textContent   = pending;
             document.getElementById('statReplied').textContent   = replied;
             document.getElementById('statAvgRating').textContent = avg === '–' ? '–' : avg + ' ★';
-            document.getElementById('totalBadge').textContent    = `${total} kết quả`;
+            document.getElementById('totalBadge').textContent    = `${total} Result`;
         }
 
         // ── DETAIL MODAL ─────────────────────────────────────────────
@@ -923,13 +923,13 @@
             try {
                 const res  = await fetch(`/AdminFeedback/GetDetail?feedbackId=${feedbackId}`);
                 const json = await res.json();
-                if (!json.success) { showToast('Không thể tải chi tiết.', 'error'); return; }
+                if (!json.success) { showToast('Details cannot be loaded.', 'error'); return; }
 
                 const f = json.data;
                 document.getElementById('detailBody').innerHTML = buildDetailHtml(f);
                 openModal('modalDetail');
             } catch {
-                showToast('Lỗi kết nối.', 'error');
+                showToast('Connection error.', 'error');
             }
         }
 
@@ -954,26 +954,26 @@
             const replySection = f.hasReply ? `
                 <div class="fb-reply-box">
                     <div class="fb-reply-box-title">
-                        <i class="bi bi-reply-fill"></i> Phản hồi từ nhân viên
+                        <i class="bi bi-reply-fill"></i> Feedback from staff
                     </div>
                     <div class="fb-reply-box-content">${escHtml(f.replyContent || '')}</div>
                     <div class="fb-reply-box-meta">
                         <i class="bi bi-clock"></i> ${formatDate(f.replyDate)}
                         &nbsp;·&nbsp;
                         <i class="bi bi-person-badge"></i>
-                        ${escHtml(f.staffName || 'Nhân viên')}
+                        ${escHtml(f.staffName || 'Staff')}
                     </div>
                 </div>` : `
                 <div style="background:#fef3c7;border:1.5px solid #fcd34d;border-radius:10px;
                             padding:12px 14px;margin-top:14px;font-size:13px;
                             color:#92400e;font-weight:700;display:flex;gap:8px;align-items:center">
                     <i class="bi bi-clock-history"></i>
-                    Feedback này chưa có phản hồi.
+                    This feedback has not yet received a reply.
                 </div>`;
 
             return `
                 <div class="fb-detail-section">
-                    <div class="fb-detail-section-title">Thông tin Feedback</div>
+                    <div class="fb-detail-section-title">Feedback Information</div>
                     <div class="fb-detail-row">
                         <span class="fb-detail-lbl">Feedback ID</span>
                         <span class="fb-detail-val" style="font-family:monospace;font-size:12px">
@@ -981,27 +981,27 @@
                         </span>
                     </div>
                     <div class="fb-detail-row">
-                        <span class="fb-detail-lbl">Đánh giá</span>
+                        <span class="fb-detail-lbl">Stars</span>
                         <span class="fb-detail-val">${stars} (${f.rating}/5)</span>
                     </div>
                     <div class="fb-detail-row">
-                        <span class="fb-detail-lbl">Ngày tạo</span>
+                        <span class="fb-detail-lbl">Creation Date</span>
                         <span class="fb-detail-val">${formatDate(f.createdDate)}</span>
                     </div>
                     <div class="fb-detail-row">
-                        <span class="fb-detail-lbl">Hiển thị</span>
+                        <span class="fb-detail-lbl">Display</span>
                         <span class="fb-detail-val">
                             ${f.isVisible
-                                ? '<span class="fb-badge fb-badge-replied">Hiển thị</span>'
-                                : '<span class="fb-badge fb-badge-hidden">Đã ẩn</span>'}
+                                ? '<span class="fb-badge fb-badge-replied">Display</span>'
+                                : '<span class="fb-badge fb-badge-hidden">Hidden</span>'}
                         </span>
                     </div>
                 </div>
 
                 <div class="fb-detail-section">
-                    <div class="fb-detail-section-title">Khách hàng</div>
+                    <div class="fb-detail-section-title">Customer</div>
                     <div class="fb-detail-row">
-                        <span class="fb-detail-lbl">Họ tên</span>
+                        <span class="fb-detail-lbl">Full Name</span>
                         <span class="fb-detail-val" style="font-weight:700">
                             ${escHtml(f.customerName || '–')}
                         </span>
@@ -1015,9 +1015,9 @@
                 </div>
 
                 <div class="fb-detail-section">
-                    <div class="fb-detail-section-title">Sản phẩm</div>
+                    <div class="fb-detail-section-title">Product</div>
                     <div class="fb-detail-row">
-                        <span class="fb-detail-lbl">Thông tin</span>
+                        <span class="fb-detail-lbl">Information</span>
                         <span class="fb-detail-val">${productBlock}</span>
                     </div>
                     <div class="fb-detail-row">
@@ -1029,9 +1029,9 @@
                 </div>
 
                 <div class="fb-detail-section">
-                    <div class="fb-detail-section-title">Nội dung đánh giá</div>
+                    <div class="fb-detail-section-title">Feedback Content</div>
                     <div style="font-size:13px;color:var(--fb-ink2);line-height:1.7;font-style:italic">
-                        "${escHtml(f.comment || 'Không có nội dung')}"
+                        "${escHtml(f.comment || 'No Content')}"
                     </div>
                 </div>
 
@@ -1041,13 +1041,13 @@
         // ── REPLY MODAL ───────────────────────────────────────────────
         function openReply(feedbackId, comment, rating, createdDate) {
             document.getElementById('replyModalTitle').innerHTML =
-                `<i class="bi bi-reply" style="color:var(--fb-green2)"></i> Phản hồi Feedback`;
+                `<i class="bi bi-reply" style="color:var(--fb-green2)"></i> Feedback Reply`;
             document.getElementById('replySubmitBtn').innerHTML =
-                `<i class="bi bi-send"></i> Gửi phản hồi`;
+                `<i class="bi bi-send"></i> Send Reply`;
             document.getElementById('replyContent').value    = '';
             document.getElementById('replyFeedbackId').value = feedbackId;
             document.getElementById('replyMode').value       = 'new';
-            document.getElementById('replyContextComment').textContent = comment || 'Không có nội dung';
+            document.getElementById('replyContextComment').textContent = comment || 'No Content';
             document.getElementById('replyContextStars').innerHTML     = renderStars(rating);
             document.getElementById('replyContextDate').textContent    = formatDate(createdDate);
             document.getElementById('replyCharCount').textContent      = '0';
@@ -1057,13 +1057,13 @@
 
         function openEditReply(feedbackId, comment, rating, createdDate, existingReply) {
             document.getElementById('replyModalTitle').innerHTML =
-                `<i class="bi bi-pencil-square" style="color:var(--fb-blue)"></i> Chỉnh sửa phản hồi`;
+                `<i class="bi bi-pencil-square" style="color:var(--fb-blue)"></i> Edit Reply`;
             document.getElementById('replySubmitBtn').innerHTML =
-                `<i class="bi bi-check-lg"></i> Cập nhật`;
+                `<i class="bi bi-check-lg"></i> Edit`;
             document.getElementById('replyContent').value    = existingReply || '';
             document.getElementById('replyFeedbackId').value = feedbackId;
             document.getElementById('replyMode').value       = 'edit';
-            document.getElementById('replyContextComment').textContent = comment || 'Không có nội dung';
+            document.getElementById('replyContextComment').textContent = comment || 'No Content';
             document.getElementById('replyContextStars').innerHTML     = renderStars(rating);
             document.getElementById('replyContextDate').textContent    = formatDate(createdDate);
             document.getElementById('replyCharCount').textContent      = (existingReply||'').length;
@@ -1077,14 +1077,14 @@
             const mode       = document.getElementById('replyMode').value;
 
             if (!content) {
-                showToast('Vui lòng nhập nội dung phản hồi.', 'error');
+                showToast('Please enter your Reply.', 'error');
                 document.getElementById('replyContent').focus();
                 return;
             }
 
             const btn = document.getElementById('replySubmitBtn');
             btn.disabled = true;
-            btn.innerHTML = `<i class="bi bi-arrow-repeat"></i> Đang gửi...`;
+            btn.innerHTML = `<i class="bi bi-arrow-repeat"></i> Sending...`;
 
             try {
                 let url, body;
@@ -1105,18 +1105,18 @@
 
                 if (json.success) {
                     closeModal('modalReply');
-                    showToast(json.message || 'Thành công!', 'success');
+                    showToast(json.message || 'Complete!', 'success');
                     loadFeedbacks(currentPage);
                 } else {
-                    showToast(json.message || 'Có lỗi xảy ra.', 'error');
+                    showToast(json.message || 'An error occurred.', 'error');
                 }
             } catch {
-                showToast('Lỗi kết nối server.', 'error');
+                showToast('Server connection error.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = mode === 'new'
-                    ? `<i class="bi bi-send"></i> Gửi phản hồi`
-                    : `<i class="bi bi-check-lg"></i> Cập nhật`;
+                    ? `<i class="bi bi-send"></i> Send Reply`
+                    : `<i class="bi bi-check-lg"></i> Edit`;
             }
         }
 
@@ -1138,13 +1138,13 @@
 
                 if (json.success) {
                     closeModal('modalDelete');
-                    showToast(json.message || 'Đã xóa phản hồi.', 'success');
+                    showToast(json.message || 'Reply has been deleted..', 'success');
                     loadFeedbacks(currentPage);
                 } else {
-                    showToast(json.message || 'Có lỗi xảy ra.', 'error');
+                    showToast(json.message || 'An error occurred.', 'error');
                 }
             } catch {
-                showToast('Lỗi kết nối server.', 'error');
+                showToast('Server connection error.', 'error');
             }
         }
 
@@ -1158,13 +1158,13 @@
                 });
                 const json = await res.json();
                 if (json.success) {
-                    showToast(json.message || 'Đã cập nhật.', 'success');
+                    showToast(json.message || 'Updated.', 'success');
                     loadFeedbacks(currentPage);
                 } else {
-                    showToast(json.message || 'Có lỗi xảy ra.', 'error');
+                    showToast(json.message || 'An error occurred.', 'error');
                 }
             } catch {
-                showToast('Lỗi kết nối server.', 'error');
+                showToast('Server connection error.', 'error');
             }
         }
 
@@ -1196,7 +1196,7 @@
                     <i class="bi bi-arrow-repeat"
                        style="font-size:22px;display:block;margin-bottom:8px;
                               animation:spin 1s linear infinite"></i>
-                    Đang tải dữ liệu...
+                    Loading data...
                 </div>`;
             document.getElementById('fbPagination').style.display = 'none';
         }
@@ -1208,7 +1208,7 @@
                     <div class="fb-empty-text">${msg}</div>
                 </div>`;
             document.getElementById('fbPagination').style.display = 'none';
-            document.getElementById('totalBadge').textContent = '0 kết quả';
+            document.getElementById('totalBadge').textContent = '0 Result';
         }
 
         // ── TOAST ─────────────────────────────────────────────────────
