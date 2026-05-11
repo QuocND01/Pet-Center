@@ -49,11 +49,40 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<LoginResponseDto?> StaffLoginAsync(LoginDto dto)
+        public async Task<LoginStaffResponseDto?> StaffLoginAsync(LoginDto dto)
         {
-            var response = await _http.PostAsJsonAsync("api/staff/auth/staff-login", dto);
-            if (!response.IsSuccessStatusCode) return null;
-            return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+            try
+            {
+                var response = await _http.PostAsJsonAsync("api/staff/auth/staff-login", dto);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    var errorData = JsonDocument.Parse(errorContent).RootElement;
+
+                    return new LoginStaffResponseDto
+                    {
+                        Success = false,
+                        message = errorData.TryGetProperty("message", out var msg)
+                            ? msg.GetString() : "Email or password incorrect",
+                        ErrorType = errorData.TryGetProperty("errorType", out var eType)
+                            ? eType.GetString() : "InvalidCredentials",
+                        token = null
+                    };
+                }
+
+                return await response.Content.ReadFromJsonAsync<LoginStaffResponseDto>();
+            }
+            catch
+            {
+                return new LoginStaffResponseDto
+                {
+                    Success = false,
+                    message = "An error occurred. Please try again.",
+                    ErrorType = "Exception",
+                    token = null
+                };
+            }
         }
 
         // STEP 1: Gửi toàn bộ form → api/auth/register

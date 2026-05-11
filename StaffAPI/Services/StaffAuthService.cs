@@ -20,6 +20,7 @@ namespace StaffAPI.Services
             _jwtService = jwtService;
         }
 
+        // ── Login ──────────────────────────────────────────────
         public async Task<(bool Success, string? Token, string? ErrorType, string Message, List<string> Roles)> LoginAsync(
     string email, string password)
         {
@@ -41,9 +42,10 @@ namespace StaffAPI.Services
                 .ToList();
 
             if (!roles.Any())
-                roles.Add("Staff");
+                return (false, null, "NoPermission",
+                    "This account does not have permission to access the system.", new());
 
-            var token = _jwtService.GenerateToken(staff.StaffId, staff.Email, roles);
+            var token = _jwtService.GenerateToken(staff.StaffId, staff.Email, staff.FullName, roles);
 
             return (true, token, null, "Login success", roles); 
         }

@@ -97,22 +97,24 @@ namespace PetCenterClient.Controllers
         {
             var result = await _authService.StaffLoginAsync(dto);
 
-            if (result == null || string.IsNullOrEmpty(result.token))
+            // Xử lý lỗi từ API
+            if (result == null || !result.Success || string.IsNullOrEmpty(result.token))
             {
-                ViewBag.Error = "Email or password incorrect";
+                ViewBag.Error = result?.ErrorType switch
+                {
+                    "AccountInactive" => "Your account has been deactivated. Please contact admin.",
+                    "NoPermission" => "This account does not have permission to access the system.",
+                    _ => result?.message ?? "Email or password incorrect"
+                };
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
-
             var roles = result.roles ?? new List<string>();
+            var primaryRole = result.primaryRole ?? "";
 
+            // Decode JWT lấy thông tin
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.token);
-
-            var name = jwt.Claims
-                .FirstOrDefault(c => c.Type ==
-                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
-                ?.Value ?? "";
 
             var staffId = jwt.Claims
                 .FirstOrDefault(c =>
@@ -121,35 +123,41 @@ namespace PetCenterClient.Controllers
                     c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
                 ?.Value ?? "";
 
-            var allowedRoles = new[] { "Admin", "Staff", "Inventory Staff", "Sale Staff", "Vet" };
+            var fullName = jwt.Claims
+                .FirstOrDefault(c => c.Type == "fullName")
+                ?.Value ?? "";
 
-            if (!roles.Any(r => allowedRoles.Contains(r)))
+            // ── Kiểm tra tab Admin ──────────────────────────────
+            if (selectedRole == "Admin")
             {
-                ViewBag.Error = "You do not have permission to access this area";
-                return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
+                if (!roles.Contains("Admin"))
+                {
+                    ViewBag.Error = "This account does not have Admin privileges.";
+                    return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
+                }
+            }
+            // ── Kiểm tra tab Staff ──────────────────────────────
+            else if (selectedRole == "Staff")
+            {
+                var staffRoles = new[] { "Sale Staff", "Inventory Staff", "Vet" };
+                if (!roles.Any(r => staffRoles.Contains(r)))
+                {
+                    ViewBag.Error = "This account does not have Staff privileges.";
+                    return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
+                }
+
+                // Admin không được login qua tab Staff
+                if (roles.Contains("Admin") && !roles.Any(r => staffRoles.Contains(r)))
+                {
+                    ViewBag.Error = "Please use the Admin tab to sign in.";
+                    return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
+                }
             }
 
-            if (selectedRole == "Admin" && !roles.Contains("Admin"))
-            {
-                ViewBag.Error = "This account does not have Admin privileges";
-                return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
-            }
-
-            if (selectedRole == "Staff" && roles.Contains("Admin"))
-            {
-                // Admin có thể login vào Staff tab
-            }
-            else if (selectedRole == "Staff" && !roles.Any(r => allowedRoles.Contains(r)))
-            {
-                ViewBag.Error = "This account does not have Staff privileges";
-                return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
-            }
-
-            var primaryRole = roles.Contains("Admin") ? "Admin" : roles.FirstOrDefault() ?? "Staff";
-
+            // Lưu session
             HttpContext.Session.SetString("JWT", result.token);
             HttpContext.Session.SetString("Role", primaryRole);
-            HttpContext.Session.SetString("Name", name);
+            HttpContext.Session.SetString("Name", fullName);
 
             if (!string.IsNullOrEmpty(staffId))
                 HttpContext.Session.SetString("StaffId", staffId);

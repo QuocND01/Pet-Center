@@ -13,7 +13,7 @@ namespace StaffAPI.Repositories
             _context = context;
         }
 
-        // Include Roles để JWT generate đúng roles
+        // ── Login ──────────────────────────────────────────────
         public async Task<Staff?> GetByEmailAsync(string email)
             => await _context.Staffs
                 .Include(s => s.Roles)

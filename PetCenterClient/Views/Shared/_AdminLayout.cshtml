@@ -244,6 +244,21 @@
             color: #1e40af;
         }
 
+        .role-sale {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .role-inventory {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .role-vet {
+            background: #fce7f3;
+            color: #9d174d;
+        }
+
         .topbar-logout {
             font-family: var(--font);
             font-size: 12px;
@@ -446,8 +461,12 @@
             @{
                 var currentRole = Context.Session.GetString("Role");
                 bool isAdmin = currentRole == "Admin";
+                bool isSaleStaff = currentRole == "Sale Staff";
+                bool isInventory = currentRole == "Inventory Staff";
+                bool isVet = currentRole == "Vet";
             }
 
+            @* ── ADMIN ─────────────────────────────────────── *@
             @if (isAdmin)
             {
                 <div class="sb-section-label">Overview</div>
@@ -533,13 +552,28 @@
                     @{
                         var role = Context.Session.GetString("Role");
                     }
-                    @if (role == "Admin")
+                    @switch (role)
                     {
-                        <span class="topbar-role role-admin"><i class="bi bi-shield-fill me-1"></i>Admin</span>
-                    }
-                    else if (role == "Staff")
-                    {
-                        <span class="topbar-role role-staff"><i class="bi bi-person-badge-fill me-1"></i>Staff</span>
+                        case "Admin":
+                            <span class="topbar-role role-admin">
+                                <i class="bi bi-shield-fill me-1"></i>Admin
+                            </span>
+                            break;
+                        case "Sale Staff":
+                            <span class="topbar-role role-sale">
+                                <i class="bi bi-bag-fill me-1"></i>Sale Staff
+                            </span>
+                            break;
+                        case "Inventory Staff":
+                            <span class="topbar-role role-inventory">
+                                <i class="bi bi-archive-fill me-1"></i>Inventory Staff
+                            </span>
+                            break;
+                        case "Vet":
+                            <span class="topbar-role role-vet">
+                                <i class="bi bi-heart-pulse-fill me-1"></i>Vet
+                            </span>
+                            break;
                     }
                 </div>
                 <a asp-controller="Auth" asp-action="AdminLogout" class="topbar-logout">

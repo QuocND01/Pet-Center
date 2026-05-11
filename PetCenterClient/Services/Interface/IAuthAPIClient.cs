@@ -6,7 +6,7 @@ namespace PetCenterClient.Services.Interface
     {
         Task<LoginResponseDto?> LoginAsync(LoginDto dto);
 
-        Task<LoginResponseDto?> StaffLoginAsync(LoginDto dto);
+        Task<LoginStaffResponseDto?> StaffLoginAsync(LoginDto dto);
 
         
         Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto);
