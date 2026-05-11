@@ -32,7 +32,7 @@ namespace ImportAPI.Service
             return _mapper.Map<ReadSupplierDto>(supplier);
         }
 
-        public async Task<ReadSupplierDto> CreateAsync(CreateSupplierDto dto)
+        public async Task<ReadSupplierDto> CreateAsync(WriteSupplierDto dto)
         {
             var supplier = _mapper.Map<Supplier>(dto);
 
@@ -45,7 +45,7 @@ namespace ImportAPI.Service
             return _mapper.Map<ReadSupplierDto>(supplier);
         }
 
-        public async Task<bool> UpdateAsync(Guid id, UpdateSupplierDto dto)
+        public async Task<bool> UpdateAsync(Guid id, WriteSupplierDto dto)
         {
             var supplier = await _repository.GetByIdAsync(id);
             if (supplier == null) return false;

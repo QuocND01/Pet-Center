@@ -54,7 +54,7 @@ namespace ImportAPI.Controllers
 
         // POST: api/suppliers
         [HttpPost]
-        public async Task<IActionResult> CreateSupplier([FromBody] CreateSupplierDto dto)
+        public async Task<IActionResult> CreateSupplier([FromBody] WriteSupplierDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -81,7 +81,7 @@ namespace ImportAPI.Controllers
 
         // PUT: api/suppliers/{id}
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateSupplier(Guid id, [FromBody] UpdateSupplierDto dto)
+        public async Task<IActionResult> UpdateSupplier(Guid id, [FromBody] WriteSupplierDto dto)
         {
             if (!ModelState.IsValid)
             {
