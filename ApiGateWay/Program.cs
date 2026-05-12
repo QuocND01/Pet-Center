@@ -186,7 +186,7 @@ var rolePermissions =
     new Dictionary<string, string[]>
 {
 
-    //{ "/inventory", new[] { "Admin", "Staff" } },
+    { "/suppliers", new[] { "Admin", "Inventory Staff" } },
     //{ "/voucher-service/{everything}", new[] { "Admin" } },
     
 

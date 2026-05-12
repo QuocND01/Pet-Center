@@ -23,12 +23,7 @@ namespace ImportAPI.Controllers
         {
             var imports = await _service.GetAllImportsAsync();
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Get import stocks successfully",
-                Data = imports
-            });
+            return Ok(imports);
         }
 
         // POST: api/importstock
@@ -39,11 +34,7 @@ namespace ImportAPI.Controllers
 
             // if (string.IsNullOrEmpty(staffClaim))
             // {
-            //     return Unauthorized(new ApiResponse<object>
-            //     {
-            //         Success = false,
-            //         Message = "StaffId missing in token"
-            //     });
+            //     return Unauthorized("StaffId missing in token");
             // }
 
             // var staffId = Guid.Parse(staffClaim);
@@ -54,12 +45,7 @@ namespace ImportAPI.Controllers
 
             var id = await _service.CreateAsync(dto, staffId);
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Create import stock successfully",
-                Data = id
-            });
+            return Ok(id);
         }
 
         // GET: api/importstock/{id}
@@ -70,19 +56,10 @@ namespace ImportAPI.Controllers
 
             if (result == null)
             {
-                return NotFound(new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "Import stock not found"
-                });
+                return NotFound("Import stock not found");
             }
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Get import stock successfully",
-                Data = result
-            });
+            return Ok(result);
         }
 
         // PUT: api/importstock/{id}/confirm
@@ -91,12 +68,7 @@ namespace ImportAPI.Controllers
         {
             var items = await _service.ConfirmAsync(id);
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Confirm import stock successfully",
-                Data = items
-            });
+            return Ok(items);
         }
 
         // PUT: api/importstock/{id}/cancel
@@ -105,41 +77,31 @@ namespace ImportAPI.Controllers
         {
             await _service.CancelAsync(id);
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Cancel import stock successfully"
-            });
+            return NoContent();
         }
 
         // GET: api/importstock/export
         [HttpGet("export")]
-        public async Task<IActionResult> Export(DateTime? fromDate, DateTime? toDate)
+        public async Task<IActionResult> Export(
+            DateTime? fromDate,
+            DateTime? toDate)
         {
             var result = await _service.Export(fromDate, toDate);
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Export import stock successfully",
-                Data = result
-            });
+            return Ok(result);
         }
 
         // POST: api/importstock/deduct
         [HttpPost("deduct")]
         public async Task<IActionResult> Deduct(DeductStockRequest req)
         {
-            var mapping = await _service.DeductFIFO(req.ProductId, req.Quantity);
+            var mapping = await _service.DeductFIFO(
+                req.ProductId,
+                req.Quantity);
 
-            return Ok(new ApiResponse<object>
+            return Ok(new DeductStockResponse
             {
-                Success = true,
-                Message = "Deduct stock successfully",
-                Data = new DeductStockResponse
-                {
-                    Mapping = mapping
-                }
+                Mapping = mapping
             });
         }
 
@@ -149,11 +111,7 @@ namespace ImportAPI.Controllers
         {
             await _service.ReturnStock(req.Mapping);
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Return stock successfully"
-            });
+            return NoContent();
         }
     }
 }
