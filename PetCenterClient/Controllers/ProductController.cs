@@ -58,27 +58,36 @@ namespace PetCenterClient.Controllers
 
 
         public async Task<IActionResult> IndexAdminAsync(
-          string? search,
-             bool? isActive,
-             decimal? minPrice,
-             decimal? maxPrice,
-             DateTime? fromDate,
-             DateTime? toDate,
-             string? sortBy,
-             Guid? categoryid,
-             Guid? brandid,
-             string sortOrder = "asc",
-             int page = 1)
+     string? search,
+     bool? isActive,
+     decimal? minPrice,
+     decimal? maxPrice,
+     Guid? categoryId,
+     Guid? brandId,
+     string? sortBy,
+     DateTime? fromDate,
+     DateTime? toDate,
+     string sortOrder = "asc",
+     int page = 1)
         {
-            int pagesize = 24;
-            var result = await _productService.GetAllProductAsync(
-               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
-            int totalItems = result?.Count ?? 0;
-            var totalPages = (int)Math.Ceiling((decimal)(totalItems / (decimal)pagesize));
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.PageSize = pagesize;
-            return View("~/Views/AdminViews/Product/Index.cshtml", result);
+            var result = await _productService.GetAllProductAdminAsync(
+                search, isActive, minPrice, maxPrice, categoryId, brandId,
+                sortBy, fromDate, toDate, sortOrder, page);
+
+            ViewBag.CurrentPage = result.CurrentPage;
+            ViewBag.TotalPages = result.TotalPages;
+            ViewBag.Search = search;
+            ViewBag.IsActive = isActive;
+            ViewBag.MinPrice = minPrice;
+            ViewBag.MaxPrice = maxPrice;
+            ViewBag.CategoryId = categoryId;
+            ViewBag.BrandId = brandId;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortOrder = sortOrder;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+
+            return View("~/Views/AdminViews/Product/Index.cshtml", result.Data);
         }
 
 
@@ -225,12 +234,41 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var updateProduct = await _productService.DetailsProductAsync(id);
-            if (updateProduct == null)
+            var product = await _productService.DetailsProductAsync(id);
+
+            if (product == null)
             {
                 return NotFound();
             }
-            return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", updateProduct);
+
+            var model = new UpdateProductDTO
+            {
+                ProductId = product.ProductId,
+                ProductName = product.ProductName,
+                ProductPrice = product.ProductPrice,
+                ProductDescription = product.ProductDescription,
+                BrandId = product.BrandId,
+                BrandName = product.BrandName,
+                CategoryId = product.CategoryId,
+                CategoryName = product.CategoryName,
+                IsActive = product.IsActive,
+                ExistingImages = product.Images,
+                Attributes = product.Attributes?
+                    .Select(a => new UpdateProductAttributeDTO
+                    {
+                        CategoryAttributeId = a.CategoryAttributeId,
+                        AttributeName = a.AttributeName,
+                        AttributeValue = a.AttributeValue
+                    }).ToList()
+            };
+
+            var brands = await _brandService.GetAllBrandAsync("", 1);
+            var categories = await _categoryService.GetAllCategoryAsync("", 1);
+
+            ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
+            ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+
+            return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
         }
 
         // POST: ReadProdutDTOs/Edit/5
@@ -246,6 +284,14 @@ namespace PetCenterClient.Controllers
                 var categories = await _categoryService.GetAllCategoryAsync("", 1);
                 ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+                foreach (var item in ModelState)
+                {
+                    foreach (var error in item.Value.Errors)
+                    {
+                        Console.WriteLine($"KEY: {item.Key}");
+                        Console.WriteLine($"ERROR: {error.ErrorMessage}");
+                    }
+                }
                 return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
             }
 

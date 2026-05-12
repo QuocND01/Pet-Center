@@ -1,4 +1,5 @@
-﻿using ProductAPI.DTOs;
+﻿using ProductAPI.Common;
+using ProductAPI.DTOs;
 using ProductAPI.Models;
 
 namespace ProductAPI.Service.Interface
@@ -6,6 +7,9 @@ namespace ProductAPI.Service.Interface
     public interface ICategoryService
     {
         IQueryable<ReadCategoryDTOs> GetAllCategory();
+
+        Task<PagedResult<ReadCategoryDTOs>> GetAllCategoryAdminAsync(
+    CategorySpecification spec);
 
         Task<ReadCategoryDTOs?> GetCategoryByIdAsync(Guid id);
         Task AddCategoryAsync(CreateCategoryDTOs category);

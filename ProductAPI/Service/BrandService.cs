@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Repository;
@@ -25,6 +26,19 @@ namespace ProductAPI.Service
         {
             return _brandRepository.GetAllBrand().ProjectTo<ReadBrandDTOs>(_mapper.ConfigurationProvider);
         }
+
+        public async Task<PagedResult<ReadBrandDTOs>> GetAllBrandAdminAsync(
+     BrandSpecification spec)
+        {
+            var (items, total) = await _brandRepository.GetAllBrandAdminAsync(spec);
+
+            return new PagedResult<ReadBrandDTOs>(
+                _mapper.Map<IEnumerable<ReadBrandDTOs>>(items),
+                total,
+                spec.Page,
+                spec.PageSize);
+        }
+
 
         public async Task<ReadBrandDTOs?> GetBrandByIdAsync(Guid id)
         {
@@ -111,5 +125,7 @@ namespace ProductAPI.Service
         {
             await _brandRepository.DeleteBrandAsync(id);
         }
+
+       
     }
 }

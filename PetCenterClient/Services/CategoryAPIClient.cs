@@ -102,6 +102,32 @@ namespace PetCenterClient.Services
             return response;
         }
 
+
+        public async Task<PagedResponse<ReadCategoryDTOs>> GetAllCategoryAdminAsync(
+      string? search, bool? isActive, int page = 1, int pageSize = 10)
+        {
+            if (page < 1)
+                page = 1;
+
+            var query = new List<string>();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Replace("'", "''");
+                query.Add($"search={search}");
+            }
+
+            if (isActive.HasValue)
+                query.Add($"isActive={isActive}");
+
+            query.Add($"page={page}");
+            query.Add($"pageSize={pageSize}");
+
+            var url = "product-service/Categories/admin?" + string.Join("&", query);
+
+            return await _http.GetFromJsonAsync<PagedResponse<ReadCategoryDTOs>>(url);
+        }
+
         public async Task<ReadCategoryDTOs> DetailsCategoryAsync(Guid? id)
         {
             return await _http.GetFromJsonAsync<ReadCategoryDTOs>($"product-service/Categories/{id}");

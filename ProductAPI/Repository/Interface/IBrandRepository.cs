@@ -1,4 +1,5 @@
-﻿using ProductAPI.Models;
+﻿using ProductAPI.Common;
+using ProductAPI.Models;
 
 namespace ProductAPI.Repository.Interface
 {
@@ -7,6 +8,8 @@ namespace ProductAPI.Repository.Interface
        // Task<IEnumerable<Brand>> GetAllBrandAsync();
 
         IQueryable<Brand> GetAllBrand();
+        Task<(IEnumerable<Brand> Items, int Total)> GetAllBrandAdminAsync(
+      BrandSpecification spec);
 
         Task<Brand?> GetBrandByIdAsync(Guid id);
         Task AddBrandAsync(Brand brand);

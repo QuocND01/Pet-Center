@@ -1,4 +1,5 @@
-﻿using ProductAPI.Models;
+﻿using ProductAPI.Common;
+using ProductAPI.Models;
 
 namespace ProductAPI.Repository.Interface
 {
@@ -7,6 +8,9 @@ namespace ProductAPI.Repository.Interface
        // Task<IEnumerable<Category>> GetAllCategoryAsync();
 
         IQueryable<Category> GetAllCategory();
+
+        Task<(IEnumerable<Category> Items, int Total)> GetAllCategoryAdminAsync(
+      CategorySpecification spec);
 
         Task<Category?> GetCategoryByIdAsync(Guid id);
         Task AddCategoryAsync(Category category);

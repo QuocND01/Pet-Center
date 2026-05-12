@@ -1,5 +1,5 @@
 ﻿@using PetCenterClient.DTOs
-@model OdataResponse<ReadProductDTO>
+@model IEnumerable<ReadProductDTO>
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -42,7 +42,7 @@
         </div>
 
         <div class="header-stat">
-           <span class="num">@Model?.Count</span>
+          <span class="num">@Model.Count()</span>
             <span class="label">Products</span>
         </div>
 
@@ -130,17 +130,18 @@
                     <th>Stock</th>
                     <th>Brand</th>
                     <th>Category</th>
+                    <th>Status</th>
                     <th style="width:180px">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
 
-                @if (Model?.Values != null && Model.Values.Any())
+             @if (Model != null && Model.Any())
                 {
                     int i = 1;
 
-                    foreach (var p in Model.Values)
+                    foreach (var p in Model)
                     {
                         <tr>
 
@@ -175,6 +176,10 @@
                                 @p.CategoryName
                             </td>
 
+                             <td class="email-cell">
+                                @p.IsActive
+                            </td>
+
                             <td>
                                 @if (isAdmin){
                                 <!-- VIEW -->
@@ -196,13 +201,22 @@
                                 </button>
 
                                 <!-- DELETE -->
-                                <button class="btn-toggle-status active"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#productModal"
-                                        data-url="@Url.Action("Delete", "Products", new { id = p.ProductId })">
+                              <button class="btn-detail @(p.IsActive ? "text-warning" : "text-success")"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#productModal"
+                                    data-url="@Url.Action("Delete", "Products", new { id = p.ProductId })">
 
-                                    <i class="bi bi-trash"></i>
-                                </button>}
+                                @if (p.IsActive)
+                                {
+                                    <i class="bi bi-slash-circle">Deactive</i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-circle">Active</i>
+                                }
+
+                            </button>
+                                }
 
                             </td>
 

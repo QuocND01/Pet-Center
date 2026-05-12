@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Repository;
@@ -88,6 +89,19 @@ namespace ProductAPI.Service
         {
             return _categoryRepository.GetAllCategory().ProjectTo<ReadCategoryDTOs>(_mapper.ConfigurationProvider);
         }
+
+        public async Task<PagedResult<ReadCategoryDTOs>> GetAllCategoryAdminAsync(
+    CategorySpecification spec)
+        {
+            var (items, total) = await _categoryRepository.GetAllCategoryAdminAsync(spec);
+
+            return new PagedResult<ReadCategoryDTOs>(
+                _mapper.Map<IEnumerable<ReadCategoryDTOs>>(items),
+                total,
+                spec.Page,
+                spec.PageSize);
+        }
+
 
         public async Task<IEnumerable<ReadCategoryAttributeDTOs>> GetAllCategoryAttributeByCategoryIDAsync(Guid id)
         {

@@ -26,14 +26,17 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
 
-        public async Task<IActionResult> IndexAdminAsync(string? search, int page = 1)
+        public async Task<IActionResult> IndexAdminAsync(
+            string? search, bool? isActive, int page = 1)
         {
-            var result = await _categoryService.GetAllCategoryAsync(search, page);
+            var result = await _categoryService.GetAllCategoryAdminAsync(search, isActive, page);
 
-            ViewBag.CurrentPage = page;
+            ViewBag.CurrentPage = result.CurrentPage;
+            ViewBag.TotalPages = result.TotalPages;
             ViewBag.Search = search;
+            ViewBag.IsActive = isActive;
 
-            return View("~/Views/AdminViews/Category/Index.cshtml", result);
+            return View("~/Views/AdminViews/Category/Index.cshtml", result.Data);
         }
 
         // GET: CategoryController/Details/5
@@ -103,17 +106,29 @@ namespace PetCenterClient.Controllers
         // GET: CategoryController/Edit/5
         public async Task<IActionResult> EditAsync(Guid id)
         {
-            if (id == null)
+            var category = await _categoryService.DetailsCategoryAsync(id);
+
+            if (category == null)
             {
                 return NotFound();
             }
 
-            var updateCategory = await _categoryService.DetailsCategoryAsync(id);
-            if (updateCategory == null)
+            var model = new UpdateCategoryDTOs
             {
-                return NotFound();
-            }
-            return PartialView("~/Views/AdminViews/Category/_Edit.cshtml", updateCategory);
+                CategoryId = category.CategoryId,
+                CategoryName = category.CategoryName,
+                CategoryDescription = category.CategoryDescription,
+                ExistingCategoryLogo = category.CategoryLogo,
+                IsActive = category.IsActive,
+
+                Attributes = category.Attributes?
+                    .Select(a => new UpdateCategoryAttributeDTOs
+                    {
+                        AttributeName = a.AttributeName
+                    }).ToList()
+            };
+
+            return PartialView("~/Views/AdminViews/Category/_Edit.cshtml", model);
         }
 
         // POST: CategoryController/Edit/5

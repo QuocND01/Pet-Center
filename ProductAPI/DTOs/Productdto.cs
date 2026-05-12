@@ -13,6 +13,7 @@ namespace ProductAPI.DTOs
 
         public DateTime? AddedAt { get; set; }
         public DateTime? UpdateAt { get; set; }
+        public bool? IsActive { get; set; }
 
         // Brand
         public Guid BrandId { get; set; }
@@ -33,6 +34,7 @@ namespace ProductAPI.DTOs
 
     public class UpdateProductDTO
     {
+        public Guid ProductId { get; set; }
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
@@ -46,7 +48,7 @@ namespace ProductAPI.DTOs
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? ProductDescription { get; set; }
 
-
+        public bool? IsActive { get; set; }
         public Guid? BrandId { get; set; }
 
         public Guid? CategoryId { get; set; }

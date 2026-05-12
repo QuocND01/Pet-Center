@@ -1,4 +1,5 @@
-﻿using ProductAPI.DTOs;
+﻿using ProductAPI.Common;
+using ProductAPI.DTOs;
 using ProductAPI.Models;
 using System.Linq.Expressions;
 
@@ -7,7 +8,10 @@ namespace ProductAPI.Repository.Interface
     public interface IProductRepository
     {
         IQueryable<Product> GetAllProduct();
-       
+
+        Task<(IEnumerable<Product> Items, int Total)> GetAllProductAdminAsync(
+    ProductSpecification spec);
+
         Task<Product?> GetProductByIdAsync(Guid id);
         Task AddProductAsync(Product product);
         Task UpdateProductAsync(Product product);

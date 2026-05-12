@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using ProductAPI.Common;
 using ProductAPI.Models;
 using ProductAPI.Repository.Interface;
 using System.Collections;
@@ -28,8 +29,10 @@ namespace ProductAPI.Repository
 
         public async Task DeleteProductAsync(Guid id)
         {
-            Product p = _db.Products.Find(id);
-            p.IsActive = false;
+            var product = await _db.Products.FindAsync(id);
+            if (product == null) return;
+
+            product.IsActive = !product.IsActive;
             await _db.SaveChangesAsync();
         }
 
@@ -50,6 +53,27 @@ namespace ProductAPI.Repository
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<(IEnumerable<Product> Items, int Total)> GetAllProductAdminAsync(
+    ProductSpecification spec)
+        {
+            var query = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                .Where(spec.ToExpression());
+
+            var total = await query.CountAsync();
+            var items = await query
+                .Skip((spec.Page - 1) * spec.PageSize)
+                .Take(spec.PageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
+
 
         public async Task<IEnumerable<Product>> GetNewProductAsync()
         {
@@ -86,7 +110,7 @@ namespace ProductAPI.Repository
                 .Include(p => p.Category)
                 .Include(p => p.Images)
                 .Include(p => p.ProductAttributes)
-                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.IsActive == true)
+                    .ThenInclude(pa => pa.CategoryAttribute)
                 .FirstOrDefaultAsync(x => x.ProductId == id);
         }
 

@@ -21,6 +21,7 @@ namespace PetCenterClient.DTOs
 
     public class UpdateCategoryAttributeDTOs
     {
+        public Guid CategoryAttributeId { get; set; }
         [Required(ErrorMessage = "Category Attribute name is required")]
         [MaxLength(200, ErrorMessage = "Category Attribute name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",

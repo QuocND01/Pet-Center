@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
+using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Service.Interface;
@@ -30,6 +31,15 @@ namespace ProductAPI.Controllers
         public async Task<IActionResult> Get(ODataQueryOptions<ReadProductDTO> queryOptions)
         {
             var result = await _productService.GetAllProductAsync(queryOptions);
+            return Ok(result);
+        }
+
+
+        [HttpGet("admin")]
+        public async Task<ActionResult<PagedResult<ReadProductDTO>>> GetAllProductAdmin(
+    [FromQuery] ProductSpecification spec)
+        {
+            var result = await _productService.GetAllProductAdminAsync(spec);
             return Ok(result);
         }
 

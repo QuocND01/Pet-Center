@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.OData.Query;
+using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 
@@ -8,6 +9,8 @@ namespace ProductAPI.Service.Interface
     {
         Task<List<ReadProductDTO>> GetAllProductAsync(ODataQueryOptions<ReadProductDTO> queryOptions);
 
+        Task<PagedResult<ReadProductDTO>> GetAllProductAdminAsync(
+    ProductSpecification spec);
         Task<ReadProductDTO> GetProductByIdAsync(Guid id);
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid id, UpdateProductDTO updateproduct);

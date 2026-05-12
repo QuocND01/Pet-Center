@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using Humanizer;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
+using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Repository.Interface;
@@ -109,6 +110,39 @@ namespace ProductAPI.Service
             }
 
             return products;
+        }
+
+
+        public async Task<PagedResult<ReadProductDTO>> GetAllProductAdminAsync(
+    ProductSpecification spec)
+        {
+            var (items, total) = await _productRepository.GetAllProductAdminAsync(spec);
+
+            var productDTOs = _mapper.Map<IEnumerable<ReadProductDTO>>(items).ToList();
+
+            if (productDTOs.Any())
+            {
+                var productIds = productDTOs.Select(p => p.ProductId).ToList();
+
+                var stocks = await GetStocksFromInventory(productIds);
+
+                var stockDict = stocks
+                    .GroupBy(x => x.ProductId)
+                    .ToDictionary(g => g.Key, g => g.First());
+
+                foreach (var p in productDTOs)
+                {
+                    p.StockQuantity = stockDict.TryGetValue(p.ProductId, out var s)
+                        ? s.QuantityAvailable
+                        : 0;
+                }
+            }
+
+            return new PagedResult<ReadProductDTO>(
+                productDTOs,
+                total,
+                spec.Page,
+                spec.PageSize);
         }
 
         private async Task<List<StockDto>> GetStocksFromInventory(List<Guid> productIds)

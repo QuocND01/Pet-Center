@@ -10,12 +10,13 @@ namespace ProductAPI.DTOs
 
         public string? CategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
-
+        public bool? IsActive { get; set; }
         public List<ReadCategoryAttributeDTOs>? Attributes { get; set; }
     }
 
     public class CreateCategoryDTOs
     {
+        public Guid CategoryId { get; set; }
         [Required(ErrorMessage = "Category name is required")]
         [MaxLength(200, ErrorMessage = "Category name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
@@ -24,7 +25,7 @@ namespace ProductAPI.DTOs
 
         public IFormFile? CategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
-
+        public bool? IsActive { get; set; }
         public List<CreateCategoryAttributeDTOs>? Attributes { get; set; }
     }
 
