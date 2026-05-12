@@ -27,15 +27,17 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
         }
 
-
-        public async Task<IActionResult> IndexAdminAsync(string? search, int page = 1)
+        public async Task<IActionResult> IndexAdminAsync(
+            string? search, bool? isActive, int page = 1)
         {
-            var result = await _brandService.GetAllBrandAsync(search, page);
+            var result = await _brandService.GetAllBrandAdminAsync(search, isActive, page);
 
-            ViewBag.CurrentPage = page;
+            ViewBag.CurrentPage = result.CurrentPage;
+            ViewBag.TotalPages = result.TotalPages;
             ViewBag.Search = search;
+            ViewBag.IsActive = isActive;
 
-            return View("~/Views/AdminViews/Brand/Index.cshtml", result);
+            return View("~/Views/AdminViews/Brand/Index.cshtml", result.Data);
         }
 
 
@@ -112,12 +114,23 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var updateBrand = await _brandService.DetailsBrandAsync(id);
-            if (updateBrand == null)
+            var brand = await _brandService.DetailsBrandAsync(id);
+
+            if (brand == null)
             {
                 return NotFound();
             }
-            return PartialView("~/Views/AdminViews/Brand/_Edit.cshtml", updateBrand);
+
+            var model = new UpdateBrandDTOs
+            {
+                BrandId = brand.BrandId,
+                BrandName = brand.BrandName,
+                BrandDescription = brand.BrandDescription,
+                ExistingBrandLogo = brand.BrandLogo,
+                IsActive = brand.IsActive
+            };
+
+            return PartialView("~/Views/AdminViews/Brand/_Edit.cshtml", model);
         }
 
         // POST: BrandController/Edit/5

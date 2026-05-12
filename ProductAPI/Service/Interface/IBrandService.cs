@@ -1,4 +1,5 @@
-﻿using ProductAPI.DTOs;
+﻿using ProductAPI.Common;
+using ProductAPI.DTOs;
 using ProductAPI.Models;
 
 namespace ProductAPI.Service.Interface
@@ -7,6 +8,9 @@ namespace ProductAPI.Service.Interface
     {
 
         IQueryable<ReadBrandDTOs> GetAllBrand();
+
+        Task<PagedResult<ReadBrandDTOs>> GetAllBrandAdminAsync(
+       BrandSpecification spec);
 
         Task<ReadBrandDTOs?> GetBrandByIdAsync(Guid id);
         Task AddBrandAsync(CreateBrandDTOs brand);

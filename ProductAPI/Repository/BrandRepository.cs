@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductAPI.Common;
 using ProductAPI.Models;
 using ProductAPI.Repository.Interface;
 
@@ -27,7 +28,7 @@ namespace ProductAPI.Repository
         public async Task DeleteBrandAsync(Guid id)
         {
             Brand p = _db.Brands.Find(id);
-            p.IsActive = false;
+            p.IsActive = !p.IsActive;
             await _db.SaveChangesAsync();
         }
 
@@ -43,15 +44,23 @@ namespace ProductAPI.Repository
             }
         }
 
-        //public async Task<IEnumerable<Brand>> GetAllBrandAsync()
-        //{
-        //    return await _db.Brands.Where(b => b.IsActive == true).ToListAsync();
-        //}
+        public async Task<(IEnumerable<Brand> Items, int Total)> GetAllBrandAdminAsync(
+     BrandSpecification spec)
+        {
+            var query = _db.Brands.Where(spec.ToExpression());
+
+            var total = await query.CountAsync();
+            var items = await query
+                .Skip((spec.Page - 1) * spec.PageSize)
+                .Take(spec.PageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
 
         public Task<Brand?> GetBrandByIdAsync(Guid id)
         {
-            return _db.Brands.Where(p => p.IsActive == true)
-                .FirstOrDefaultAsync(x => x.BrandId == id);
+            return _db.Brands.FirstOrDefaultAsync(x => x.BrandId == id);
         }
 
         public async Task UpdateBrandAsync(Brand brand)

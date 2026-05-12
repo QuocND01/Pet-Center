@@ -1,5 +1,5 @@
 ﻿@using PetCenterClient.DTOs
-@model OdataResponse<ReadBrandDTOs>
+@model IEnumerable<ReadBrandDTOs>
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -40,7 +40,7 @@
         </div>
 
         <div class="header-stat">
-            <span class="num">@Model?.Values?.Count()</span>
+            <span class="num">@Model.Count()</span>
             <span class="label">Brands</span>
         </div>
 
@@ -86,17 +86,18 @@
                     <th>#</th>
                     <th>Logo</th>
                     <th>Brand Name</th>
+                    <th>Status</th>
                     <th style="width:180px">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
 
-                @if (Model?.Values != null && Model.Values.Any())
+                @if (Model != null && Model.Any())
                 {
                     int i = 1;
 
-                    foreach (var b in Model.Values)
+                    foreach (var b in Model)
                     {
                         <tr>
 
@@ -109,6 +110,11 @@
 
                             <td class="customer-name">
                                 @b.BrandName
+                            </td>
+
+
+                            <td class="customer-name">
+                                @b.IsActive
                             </td>
 
                             <td>
@@ -132,12 +138,20 @@
                                 </button>
 
                                 <!-- DELETE -->
-                                <button class="btn-toggle-status active"
+                                <button class="btn-detail @(b.IsActive ? "text-warning" : "text-success")"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#brandModal"
-                                        data-url="@Url.Action("Delete", "Brand", new { id = b.BrandId })">
+                                        data-bs-target="#productModal"
+                                        data-url="@Url.Action("Delete", "Products", new { id = b.BrandId })">
 
-                                    <i class="bi bi-trash"></i>
+                                    @if (b.IsActive)
+                                    {
+                                        <i class="bi bi-slash-circle">Deactive</i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-check-circle">Active</i>
+                                    }
+
                                 </button>
 
                             </td>
@@ -176,10 +190,8 @@
 </div>
 
 @{
-    int pageSize = 10;
-    int totalItems = Model?.Count ?? 0;
-    int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
     int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
 }
 
 @if (totalPages > 1)

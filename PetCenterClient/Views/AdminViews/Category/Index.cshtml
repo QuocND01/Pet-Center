@@ -1,5 +1,5 @@
 ﻿@using PetCenterClient.DTOs
-@model OdataResponse<ReadCategoryDTOs>
+@model IEnumerable<ReadCategoryDTOs>
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -40,7 +40,7 @@
         </div>
 
         <div class="header-stat">
-            <span class="num">@Model?.Values?.Count()</span>
+            <span class="num">@Model.Count()</span>
             <span class="label">Categories</span>
         </div>
 
@@ -87,17 +87,18 @@
                     <th>Logo</th>
                     <th>Category Name</th>
                     <th>Attributes</th>
+                    <th>Status</th>
                     <th style="width:180px">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
 
-                @if (Model?.Values != null && Model.Values.Any())
+                @if (Model != null && Model.Any())
                 {
                     int i = 1;
 
-                    foreach (var c in Model.Values)
+                    foreach (var c in Model)
                     {
                         <tr>
 
@@ -130,6 +131,10 @@
 
                             </td>
 
+                            <td class="customer-name">
+                                @c.IsActive
+                            </td>
+
                             <td>
 
                                 <!-- VIEW -->
@@ -151,12 +156,20 @@
                                 </button>
 
                                 <!-- DELETE -->
-                                <button class="btn-toggle-status active"
+                                <button class="btn-detail @(c.IsActive ? "text-warning" : "text-success")"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#categoryModal"
+                                        data-bs-target="#productModal"
                                         data-url="@Url.Action("Delete", "Category", new { id = c.CategoryId })">
 
-                                    <i class="bi bi-trash"></i>
+                                    @if (c.IsActive)
+                                    {
+                                        <i class="bi bi-slash-circle">Deactive</i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-check-circle">Active</i>
+                                    }
+
                                 </button>
 
                             </td>
@@ -217,10 +230,8 @@
 </div>
 
 @{
-    int pageSize = 10;
-    int totalItems = Model?.Count ?? 0;
-    int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
     int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
 }
 
 @if (totalPages > 1)

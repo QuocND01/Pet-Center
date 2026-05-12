@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
+using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Service;
@@ -32,7 +33,15 @@ namespace ProductAPI.Controllers
             return _brandService.GetAllBrand();
         }
 
-      
+        [HttpGet("admin")]
+        public async Task<ActionResult<PagedResult<ReadBrandDTOs>>> GetAllBrandAdmin(
+    [FromQuery] BrandSpecification spec)
+        {
+            var result = await _brandService.GetAllBrandAdminAsync(spec);
+            return Ok(result);
+        }
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ReadBrandDTOs>> DetailsBrandAsync(Guid id)
         {

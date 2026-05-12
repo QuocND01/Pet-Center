@@ -17,6 +17,20 @@ namespace PetCenterClient.Services.Interface
                 string sortOrder = "asc",
                 int page = 1);
 
+        Task<PagedResponse<ReadProductDTO>> GetAllProductAdminAsync(
+       string? search,
+       bool? isActive,
+       decimal? minPrice,
+       decimal? maxPrice,
+       Guid? categoryId,
+       Guid? brandId,
+       string? sortBy,
+       DateTime? fromDate,
+       DateTime? toDate,
+       string sortOrder = "asc",
+       int page = 1,
+       int pageSize = 10);
+
         Task<ReadProductDTO> DetailsProductAsync(Guid? id);
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct);

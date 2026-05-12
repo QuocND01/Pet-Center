@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.DTOs.ReadProductDTO
+﻿@model PetCenterClient.DTOs.UpdateProductDTO
 
 <style>
 
@@ -96,9 +96,9 @@
 
         <div class="d-flex flex-wrap gap-2">
 
-            @if (Model.Images != null)
+            @if (Model.ExistingImages != null)
             {
-                foreach (var img in Model.Images)
+                foreach (var img in Model.ExistingImages)
                 {
                     <div class="image-wrapper">
 
@@ -154,15 +154,16 @@
             {
 
                 <div class="row mb-2">
-
                     <div class="col-md-5">
 
                         <input class="form-control"
                                value="@Model.Attributes[i].AttributeName"
                                readonly />
 
-                    </div>
+                        <input asp-for="Attributes[i].AttributeName"
+                               type="hidden" />
 
+                    </div>
                     <div class="col-md-7">
 
                         <input asp-for="Attributes[i].AttributeValue"

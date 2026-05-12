@@ -93,6 +93,36 @@ namespace PetCenterClient.Services
             return response;
         }
 
+
+        public async Task<PagedResponse<ReadBrandDTOs>> GetAllBrandAdminAsync(
+      string? search, bool? isActive, int page = 1, int pageSize = 10)
+        {
+            if (page < 1)
+                page = 1;
+
+            var query = new List<string>();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Replace("'", "''");
+                query.Add($"search={search}");
+            }
+
+            if (isActive.HasValue)
+                query.Add($"isActive={isActive}");
+
+            query.Add($"page={page}");
+            query.Add($"pageSize={pageSize}");
+
+            var url = "product-service/Brands/admin?" + string.Join("&", query);
+
+            var response = await _http.GetFromJsonAsync<PagedResponse<ReadBrandDTOs>>(url);
+
+            return response;
+        }
+
+
+
         public async Task<ReadBrandDTOs> DetailsBrandAsync(Guid? id)
         {
             return await _http.GetFromJsonAsync<ReadBrandDTOs>($"product-service/Brands/{id}");

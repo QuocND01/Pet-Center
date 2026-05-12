@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
+using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
 using ProductAPI.Service;
@@ -31,6 +32,14 @@ namespace ProductAPI.Controllers
         public IQueryable<ReadCategoryDTOs> Get()
         {
             return _categoryService.GetAllCategory();
+        }
+
+        [HttpGet("admin")]
+        public async Task<ActionResult<PagedResult<ReadCategoryDTOs>>> GetAllCategoryAdmin(
+    [FromQuery] CategorySpecification spec)
+        {
+            var result = await _categoryService.GetAllCategoryAdminAsync(spec);
+            return Ok(result);
         }
 
         [HttpGet("{id}/attributes")]

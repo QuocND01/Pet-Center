@@ -11,12 +11,12 @@ namespace PetCenterClient.DTOs
         public string? BrandDescription { get; set; }
 
         public string? BrandLogo { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class UpdateBrandDTOs
     {
-
-
+        public Guid BrandId { get; set; }
         [Required(ErrorMessage = "Brand name is required")]
         [MaxLength(200, ErrorMessage = "Brand name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
@@ -24,6 +24,8 @@ namespace PetCenterClient.DTOs
         public string BrandName { get; set; } = null!;
         public string? BrandDescription { get; set; }
         public IFormFile? BrandLogo { get; set; }
+        public string? ExistingBrandLogo { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class CreateBrandDTOs

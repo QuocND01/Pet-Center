@@ -94,6 +94,68 @@ namespace PetCenterClient.Services
             return response;
         }
 
+
+        public async Task<PagedResponse<ReadProductDTO>> GetAllProductAdminAsync(
+       string? search,
+       bool? isActive,
+       decimal? minPrice,
+       decimal? maxPrice,
+       Guid? categoryId,
+       Guid? brandId,
+       string? sortBy,
+       DateTime? fromDate,
+       DateTime? toDate,
+       string sortOrder = "asc",
+       int page = 1,
+       int pageSize = 10)
+        {
+            if (page < 1)
+                page = 1;
+
+            var query = new List<string>();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Replace("'", "''");
+                query.Add($"search={search}");
+            }
+
+            if (isActive.HasValue)
+                query.Add($"isActive={isActive}");
+
+            if (minPrice.HasValue)
+                query.Add($"minPrice={minPrice}");
+
+            if (maxPrice.HasValue)
+                query.Add($"maxPrice={maxPrice}");
+
+            if (categoryId.HasValue)
+                query.Add($"categoryId={categoryId}");
+
+            if (brandId.HasValue)
+                query.Add($"brandId={brandId}");
+
+            if (fromDate.HasValue)
+                query.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+
+            if (toDate.HasValue)
+                query.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                query.Add($"sortBy={sortBy}");
+                query.Add($"sortOrder={sortOrder}");
+            }
+
+            query.Add($"page={page}");
+            query.Add($"pageSize={pageSize}");
+
+            var url = "product-service/Products/admin?" + string.Join("&", query);
+
+            return await _http.GetFromJsonAsync<PagedResponse<ReadProductDTO>>(url);
+        }
+
+
         public async Task<ReadProductDTO> DetailsProductAsync(Guid? id)
         {
             return await _http.GetFromJsonAsync<ReadProductDTO>($"product-service/Products/{id}");

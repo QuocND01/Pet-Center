@@ -14,7 +14,7 @@ namespace PetCenterClient.DTOs
 
         public DateTime? AddedAt { get; set; }
         public DateTime? UpdateAt { get; set; }
-
+        public bool IsActive { get; set; }
         // Brand
         public Guid BrandId { get; set; }
         public string? BrandName { get; set; }
@@ -34,6 +34,7 @@ namespace PetCenterClient.DTOs
 
     public class UpdateProductDTO
     {
+        public Guid ProductId { get; set; }
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
@@ -48,14 +49,18 @@ namespace PetCenterClient.DTOs
         public string? ProductDescription { get; set; }
 
 
-        public Guid? BrandId { get; set; }
+        public Guid BrandId { get; set; }
+        public string? BrandName { get; set; }
+        public string? BrandLogo { get; set; }
 
-        public Guid? CategoryId { get; set; }
+        // Category
+        public Guid CategoryId { get; set; }
+        public string? CategoryName { get; set; }
 
         public List<IFormFile>? ImageFiles { get; set; }
 
         public List<string>? ExistingImages { get; set; }
-
+        public bool IsActive { get; set; }
         public List<UpdateProductAttributeDTO>? Attributes { get; set; }
     }
 

@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.DTOs.ReadBrandDTOs
+﻿@model PetCenterClient.DTOs.UpdateBrandDTOs
 
 <style>
     .logo-preview {
@@ -69,7 +69,9 @@
         <div class="logo-wrapper">
 
             <img id="logoPreview"
-                 src="@(string.IsNullOrEmpty(Model.BrandLogo) ? "https://via.placeholder.com/140" : Model.BrandLogo)"
+                 src="@(string.IsNullOrEmpty(Model.ExistingBrandLogo)
+                     ? "https://via.placeholder.com/140"
+                     : Model.ExistingBrandLogo)"
                  class="logo-preview"
                  onclick="document.getElementById('logoInput').click()" />
 

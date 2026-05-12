@@ -12,6 +12,7 @@ namespace PetCenterClient.DTOs
     public class UpdateProductAttributeDTO
     {
         public Guid CategoryAttributeId { get; set; }
+        public string AttributeName { get; set; } = null!;
 
         [Required(ErrorMessage = "Attribute value is required")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
