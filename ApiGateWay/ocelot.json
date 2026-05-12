@@ -1,7 +1,7 @@
 {
 
   // priority 1->5
-  // 
+  //
   "Routes": [
 
     // =========================================================
@@ -145,6 +145,42 @@
       ],
 
       "Priority": 5
+    },
+    // =========================================================
+    // IMPORT SERVICE
+    // =========================================================
+
+    {
+      "UpstreamPathTemplate": "/suppliers",
+      "UpstreamHttpMethod": [ "GET", "POST" ],
+
+      "DownstreamPathTemplate": "/api/suppliers",
+      "DownstreamScheme": "https",
+
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7029
+        }
+      ],
+
+      "Priority": 5
+    },
+    {
+      "UpstreamPathTemplate": "/suppliers/{id}",
+      "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ],
+
+      "DownstreamPathTemplate": "/api/suppliers/{id}",
+      "DownstreamScheme": "https",
+
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7029
+        }
+      ],
+
+      "Priority": 0
     },
 
 
