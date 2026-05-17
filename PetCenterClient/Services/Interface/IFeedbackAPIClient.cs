@@ -6,9 +6,10 @@ namespace PetCenterClient.Services.Interface
     {
         Task<bool> HasFeedbackForOrderAsync(Guid orderId);
         Task<List<ProductFeedbackResponseDto>> GetFeedbacksByOrderIdAsync(Guid orderId);
-        Task<bool> CreateBulkFeedbackAsync(CreateBulkFeedbackDto dto);
-        Task<bool> UpdateFeedbackAsync(UpdateProductFeedbackDto dto);
 
         Task<List<ProductFeedbackResponseDto>> GetFeedbacksByProductIdAsync(Guid productId);
+
+        Task<bool> CreateBulkFeedbackAsync(MultipartFormDataContent formData);
+        Task<bool> UpdateFeedbackAsync(MultipartFormDataContent formData);
     }
 }

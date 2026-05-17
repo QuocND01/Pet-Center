@@ -16,6 +16,7 @@ namespace FeedbackAPI.Repository
         public async Task<List<ProductFeedback>> GetFeedbacksByProductIdAsync(Guid productId)
         {
             return await _context.ProductFeedbacks
+                .Include(f => f.MediaFiles.Where(m => m.IsActive == true))
                 .Where(f => f.ProductId == productId
                          && f.IsActive == true
                          && f.IsVisible == true)
@@ -26,6 +27,7 @@ namespace FeedbackAPI.Repository
         public async Task<List<ProductFeedback>> GetFeedbacksByOrderIdAsync(Guid orderId)
         {
             return await _context.ProductFeedbacks
+                .Include(f => f.MediaFiles.Where(m => m.IsActive == true))
                 .Where(f => f.OrderId == orderId
                          && f.IsActive == true
                          && f.IsVisible == true)
@@ -36,6 +38,7 @@ namespace FeedbackAPI.Repository
         public async Task<ProductFeedback?> GetFeedbackByIdAsync(Guid feedbackId)
         {
             return await _context.ProductFeedbacks
+                .Include(f => f.MediaFiles.Where(m => m.IsActive == true))
                 .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId
                                        && f.IsActive == true);
         }
@@ -69,6 +72,34 @@ namespace FeedbackAPI.Repository
 
             await _context.SaveChangesAsync();
             return existing;
+        }
+
+        // =================== MEDIA ===================
+
+        public async Task AddMediaRangeAsync(List<FeedbackMedia> mediaList)
+        {
+            await _context.FeedbackMedias.AddRangeAsync(mediaList);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<FeedbackMedia>> GetMediaByFeedbackIdAsync(Guid feedbackId)
+        {
+            return await _context.FeedbackMedias
+                .Where(m => m.FeedbackId == feedbackId && m.IsActive == true)
+                .ToListAsync();
+        }
+
+        public async Task DeleteMediaByPublicIdsAsync(List<string> publicIds)
+        {
+            var mediaToDelete = await _context.FeedbackMedias
+                .Where(m => publicIds.Contains(m.PublicId!) && m.IsActive == true)
+                .ToListAsync();
+
+            // Soft delete
+            foreach (var media in mediaToDelete)
+                media.IsActive = false;
+
+            await _context.SaveChangesAsync();
         }
     }
 }

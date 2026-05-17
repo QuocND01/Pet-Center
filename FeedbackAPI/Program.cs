@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace FeedbackAPI
 {
@@ -70,6 +71,7 @@ namespace FeedbackAPI
             builder.Services.AddScoped<IProductFeedbackService, ProductFeedbackService>();
             builder.Services.AddScoped<IAdminFeedbackService, AdminFeedbackService>();
             builder.Services.AddScoped<IEnrichmentService, EnrichmentService>();
+            builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
             // ── 4. AutoMapper ─────────────────────────────────────────────────────────────
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -81,6 +83,20 @@ namespace FeedbackAPI
                 c.BaseAddress = new Uri(builder.Configuration["InternalServices:ProductAPI"]!));
             builder.Services.AddHttpClient("StaffAPI", c =>
                 c.BaseAddress = new Uri(builder.Configuration["InternalServices:StaffAPI"]!));
+            
+            // ── 6. Cloudinary ─────────────────────────────────────────────────────────────
+            builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // 100MB
+            });
+
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // 100MB
+            });
+
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
