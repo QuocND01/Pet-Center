@@ -21,5 +21,10 @@ namespace FeedbackAPI.Repository.Interface
 
         // Cập nhật feedback
         Task<ProductFeedback?> UpdateFeedbackAsync(ProductFeedback feedback);
+
+        // Feedback hình ảnh và video
+        Task AddMediaRangeAsync(List<FeedbackMedia> mediaList);
+        Task<List<FeedbackMedia>> GetMediaByFeedbackIdAsync(Guid feedbackId);
+        Task DeleteMediaByPublicIdsAsync(List<string> publicIds);
     }
 }

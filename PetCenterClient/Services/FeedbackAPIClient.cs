@@ -59,33 +59,25 @@ namespace PetCenterClient.Services
             catch { return new List<ProductFeedbackResponseDto>(); }
         }
 
-        public async Task<bool> CreateBulkFeedbackAsync(CreateBulkFeedbackDto dto)
+        public async Task<bool> CreateBulkFeedbackAsync(MultipartFormDataContent formData)
         {
             try
             {
                 AttachToken();
-                var json = JsonConvert.SerializeObject(dto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
                 var response = await _http.PostAsync(
-                    "feedback-service/ProductFeedback/bulk", content);
-
+                   "feedback-service/ProductFeedback/bulk", formData);
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
         }
 
-        public async Task<bool> UpdateFeedbackAsync(UpdateProductFeedbackDto dto)
+        public async Task<bool> UpdateFeedbackAsync(MultipartFormDataContent formData)
         {
             try
             {
                 AttachToken();
-                var json = JsonConvert.SerializeObject(dto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
                 var response = await _http.PutAsync(
-                    "feedback-service/ProductFeedback/update", content);
-
+                    "feedback-service/ProductFeedback/update", formData);
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }

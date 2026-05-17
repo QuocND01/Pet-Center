@@ -18,6 +18,7 @@ public partial class PetCenterFeedbackServiceContext : DbContext
     public virtual DbSet<ProductFeedback> ProductFeedbacks { get; set; }
 
     public virtual DbSet<VetFeedback> VetFeedbacks { get; set; }
+    public virtual DbSet<FeedbackMedia> FeedbackMedias { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -43,6 +44,41 @@ public partial class PetCenterFeedbackServiceContext : DbContext
             entity.Property(e => e.ReplyDate).HasColumnType("datetime");
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<FeedbackMedia>(entity =>
+        {
+            entity.HasKey(e => e.MediaId);
+
+            entity.ToTable("FeedbackMedia");
+
+            entity.Property(e => e.MediaId)
+                .HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.MediaUrl)
+                .IsRequired();
+
+            entity.Property(e => e.PublicId)
+                .HasMaxLength(255);
+
+            entity.Property(e => e.MediaType)
+                .HasMaxLength(20)
+                .HasDefaultValue("image")
+                .IsUnicode(false);
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            // Quan hệ FK với ProductFeedback
+            entity.HasOne(e => e.Feedback)
+                .WithMany(f => f.MediaFiles)
+                .HasForeignKey(e => e.FeedbackId)
+                .HasConstraintName("FK_FeedbackMedia_ProductFeedbacks")
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<VetFeedback>(entity =>
