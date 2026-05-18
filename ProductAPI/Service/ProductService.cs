@@ -18,6 +18,7 @@ namespace ProductAPI.Service
         private readonly ICloudinaryService _cloudinaryService;
         private readonly HttpClient _inventoryClient;
         private readonly HttpClient _orderClient;
+        private readonly HttpClient _importClient;
         private readonly IMapper _mapper;
         public ProductService(IProductRepository productRepository, IMapper mapper, ICloudinaryService service, IHttpClientFactory httpClientFactory)
         {
@@ -26,6 +27,7 @@ namespace ProductAPI.Service
             _cloudinaryService = service;
             _inventoryClient = httpClientFactory.CreateClient("InventoryAPI");
             _orderClient = httpClientFactory.CreateClient("OrdersAPI");
+            _importClient = httpClientFactory.CreateClient("ImportStockAPI");
         }
 
 
@@ -147,7 +149,7 @@ namespace ProductAPI.Service
             try
             {
                 var response = await _orderClient
-                    .GetAsync($"/orders/OrderDetails/check-product/{productId}");
+            .GetAsync($"api/OrderDetails/check-product/{productId}");
 
                 var content = await response.Content.ReadAsStringAsync();
 
@@ -171,8 +173,8 @@ namespace ProductAPI.Service
         {
             try
             {
-                var response = await _inventoryClient
-                    .GetAsync($"/import-service/ImportStock/check-product/{productId}");
+                var response = await _importClient
+            .GetAsync($"api/ImportStock/check-product/{productId}");
 
                 var content = await response.Content.ReadAsStringAsync();
 
@@ -261,8 +263,8 @@ namespace ProductAPI.Service
             try
             {
                 var response = await _inventoryClient.PostAsJsonAsync(
-                "/inventory/stocks",
-                productIds);
+            "api/Inventory/stocks",
+            productIds);
 
                 var content = await response.Content.ReadAsStringAsync();
 
