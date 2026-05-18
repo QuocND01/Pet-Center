@@ -19,7 +19,6 @@ namespace InventoryAPI.Controllers
             _inventoryService = context;
         }
 
-        [AllowAnonymous]
         [HttpPost("stocks")]
         public async Task<ActionResult<IEnumerable<ProductQuantityDTO>>> GetProductStocks([FromBody] List<Guid> productIds)
         {

@@ -165,9 +165,9 @@ builder.Services.AddHttpClient("OrdersAPI", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Services:OrdersAPI"]);
 });
-builder.Services.AddHttpClient("ImportAPI", client =>
+builder.Services.AddHttpClient("ImportStockAPI", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Services:ImportAPI"]);
+    client.BaseAddress = new Uri(builder.Configuration["Services:ImportStockAPI"]);
 });
 
 builder.Services.Configure<CloudinarySettings>(

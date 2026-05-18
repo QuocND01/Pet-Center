@@ -154,10 +154,6 @@ app.Use(async (context, next) =>
         "/product-service",
         "/api/",
         "/api/auth/register",
-        "/inventory/stocks",
-
-        "/orders/OrderDetails/check-product",
-        "/import-service/ImportStock/check-product"
 
     };
 
