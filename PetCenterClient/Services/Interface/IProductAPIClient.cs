@@ -1,10 +1,11 @@
-﻿using PetCenterClient.DTOs;
+﻿using PetCenterClient.Common;
+using PetCenterClient.DTOs;
 
 namespace PetCenterClient.Services.Interface
 {
     public interface IProductAPIClient
     {
-        Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
+        Task<OdataResponse<ReadProductDTOForCustomer>> GetAllProductAsync(
                 string? search,
                 bool? isActive,
                 decimal? minPrice,
@@ -34,10 +35,12 @@ namespace PetCenterClient.Services.Interface
         Task<ReadProductDTO> DetailsProductAsync(Guid? id);
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct);
-        Task DeleteProductAsync(Guid? id);
+        Task ChangeProductStatusAsync(
+      Guid id,
+      Status status);
 
-        Task<List<ReadProductDTO>> GetHotProductsAsync();
-        Task<List<ReadProductDTO>> GetNewProductsAsync();
+        Task<List<ReadProductDTOForCustomer>> GetHotProductsAsync();
+        Task<List<ReadProductDTOForCustomer>> GetNewProductsAsync();
         Task<List<ProductSelectDto>> GetProductSelectAsync();
         Task<List<ProductSelectDto>> GetProductSelectToViewAsync();
         Task IncreaseStockBulkAsync(List<IncreaseStockItemDto> items);

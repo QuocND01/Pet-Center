@@ -10,5 +10,6 @@ namespace OrdersAPI.Service.Interface
         Task<bool> DeleteDetailAsync(Guid id);
 
         Task<List<Guid?>> GetHotProducts(int months = 3, int top = 10);
+        Task<bool> HasProductInOrdersAsync(Guid productId);
     }
 }

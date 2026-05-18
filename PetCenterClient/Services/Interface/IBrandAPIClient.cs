@@ -1,15 +1,16 @@
-﻿using PetCenterClient.DTOs;
+﻿using PetCenterClient.Common;
+using PetCenterClient.DTOs;
 
 namespace PetCenterClient.Services.Interface
 {
     public interface IBrandAPIClient
     {
-        Task<OdataResponse<ReadBrandDTOs>> GetAllBrandAsync(string? search, int page = 1);
-        Task<PagedResponse<ReadBrandDTOs>> GetAllBrandAdminAsync(
+        Task<OdataResponse<ReadBrandDTOForCustomer>> GetAllBrandAsync(string? search, int page = 1);
+        Task<PagedResponse<ReadBrandDTO>> GetAllBrandAdminAsync(
        string? search, bool? isActive, int page = 1, int pageSize = 10);
-        Task<ReadBrandDTOs> DetailsBrandAsync(Guid? id);
-        Task AddBrandAsync(CreateBrandDTOs createBrand);
-        Task UpdateBrandAsync(Guid? id, UpdateBrandDTOs updateBrand);
-        Task DeleteBrandAsync(Guid? id);
+        Task<ReadBrandDTO> DetailsBrandAsync(Guid? id);
+        Task AddBrandAsync(CreateBrandDTO createBrand);
+        Task UpdateBrandAsync(Guid? id, UpdateBrandDTO updateBrand);
+        Task ChangeBrandStatusAsync(Guid id, Status status);
     }
 }

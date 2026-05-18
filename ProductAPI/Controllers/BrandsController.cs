@@ -28,13 +28,13 @@ namespace ProductAPI.Controllers
 
         [HttpGet]
         [EnableQuery(PageSize = 10)]
-        public IQueryable<ReadBrandDTOs> Get()
+        public IQueryable<ReadBrandDTOForCustomer> Get()
         {
             return _brandService.GetAllBrand();
         }
 
         [HttpGet("admin")]
-        public async Task<ActionResult<PagedResult<ReadBrandDTOs>>> GetAllBrandAdmin(
+        public async Task<ActionResult<PagedResult<ReadBrandDTO>>> GetAllBrandAdmin(
     [FromQuery] BrandSpecification spec)
         {
             var result = await _brandService.GetAllBrandAdminAsync(spec);
@@ -43,7 +43,7 @@ namespace ProductAPI.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ReadBrandDTOs>> DetailsBrandAsync(Guid id)
+        public async Task<ActionResult<ReadBrandDTO>> DetailsBrandAsync(Guid id)
         {
             var brand = await _brandService.GetBrandByIdAsync(id);
 
@@ -59,7 +59,7 @@ namespace ProductAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrandAsync(
             Guid id,
-            [FromForm] UpdateBrandDTOs updateBrand)
+            [FromForm] UpdateBrandDTO updateBrand)
         {
             if (!ModelState.IsValid)
             {
@@ -113,7 +113,7 @@ namespace ProductAPI.Controllers
 
         //[Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostBrandAsync([FromForm] CreateBrandDTOs createBrand)
+        public async Task<IActionResult> PostBrandAsync([FromForm] CreateBrandDTO createBrand)
         {
             if (!ModelState.IsValid)
             {
@@ -154,18 +154,17 @@ namespace ProductAPI.Controllers
         }
 
         //[Authorize]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBrandAsync(Guid id)
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> ChangeStatus(
+    Guid id,
+    [FromBody] Status status)
         {
-            var brand = await _brandService.GetBrandByIdAsync(id);
-            if (brand == null)
+            await _brandService.ChangeBrandStatusAsync(id, status);
+
+            return Ok(new
             {
-                return NotFound();
-            }
-
-            await _brandService.DeleteBrandAsync(id);
-
-            return Ok();
+                success = true
+            });
         }
     }
 }

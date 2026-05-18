@@ -15,8 +15,10 @@ namespace ProductAPI.Repository.Interface
         Task<Product?> GetProductByIdAsync(Guid id);
         Task AddProductAsync(Product product);
         Task UpdateProductAsync(Product product);
-        Task DeleteProductAsync(Guid id);
-
+        Task ChangeProductStatusAsync(
+     Guid id,
+     Status status,
+     bool hardDeleteImages = false);
         Task<bool> CheckProductExistAsync(string productName, Guid brandId, Guid categoryId);
 
         Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null);
@@ -25,14 +27,6 @@ namespace ProductAPI.Repository.Interface
 
 
          Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids);
-        //get by list
-        //Task<List<Product>> GetByIds(List<Guid> ids);
-        //Task SaveChangesAsync();
-
-        //Task<bool> DecreaseStockAsync(Guid productId, int quantity);
-        //Task<bool> IncreaseStockAsync(Guid productId, int quantity);
-
-        //Task<Product?> GetProductByIdIncludeDeletedAsync(Guid id);
 
         Task<Product?> GetByIdInternalAsync(Guid productId);
 

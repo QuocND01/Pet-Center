@@ -11,19 +11,19 @@ namespace ProductAPI.Odata
             var builder = new ODataConventionModelBuilder();
 
             // EntitySet = endpoint chính
-            builder.EntitySet<ReadProductDTO>("Products");
+            builder.EntitySet<ReadProductDTOForCustomer>("Products");
 
-            builder.EntitySet<ReadBrandDTOs>("Brands");
+            builder.EntitySet<ReadBrandDTOForCustomer>("Brands");
 
-            builder.EntitySet<ReadCategoryDTOs>("Categories");
+            builder.EntitySet<ReadCategoryDTOForCustomer>("Categories");
 
-            builder.EntityType<ReadProductDTO>()
+            builder.EntityType<ReadProductDTOForCustomer>()
                .HasKey(p => p.ProductId);
 
-            builder.EntityType<ReadBrandDTOs>()
+            builder.EntityType<ReadBrandDTOForCustomer>()
                .HasKey(p => p.BrandId);
 
-            builder.EntityType<ReadCategoryDTOs>()
+            builder.EntityType<ReadCategoryDTOForCustomer>()
               .HasKey(p => p.CategoryId);
 
             return builder.GetEdmModel();

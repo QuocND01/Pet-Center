@@ -8,11 +8,12 @@ namespace ProductAPI.Profiles
     {
         public BrandProfile()
         {
-            CreateMap<Brand, ReadBrandDTOs>();
+            CreateMap<Brand, ReadBrandDTO>();
+            CreateMap<Brand, ReadBrandDTOForCustomer>();
 
-            CreateMap<CreateBrandDTOs, Brand>();
+            CreateMap<CreateBrandDTO, Brand>();
 
-            CreateMap<UpdateBrandDTOs, Brand>()
+            CreateMap<UpdateBrandDTO, Brand>()
                 .ForMember(dest => dest.BrandLogo,
                     opt => opt.Ignore())
                 .ForMember(dest => dest.PublicId,

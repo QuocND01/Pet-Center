@@ -1,4 +1,5 @@
-﻿@using PetCenterClient.DTOs
+﻿@using PetCenterClient.Common
+@using PetCenterClient.DTOs
 @model IEnumerable<ReadProductDTO>
 
 @{
@@ -130,6 +131,8 @@
                     <th>Stock</th>
                     <th>Brand</th>
                     <th>Category</th>
+                    <th>Added Date</th>
+                    <th>Updated Date</th>
                     <th>Status</th>
                     <th style="width:180px">Actions</th>
                 </tr>
@@ -176,8 +179,16 @@
                                 @p.CategoryName
                             </td>
 
+                            <td class="email-cell">
+                                @p.AddedAt
+                            </td>
+
+                            <td class="email-cell">
+                                @p.UpdateAt
+                            </td>
+
                              <td class="email-cell">
-                                @p.IsActive
+                                @p.Status
                             </td>
 
                             <td>
@@ -201,20 +212,42 @@
                                 </button>
 
                                 <!-- DELETE -->
-                              <button class="btn-detail @(p.IsActive ? "text-warning" : "text-success")"
+                             <!-- Active / Inactive -->
+                           <!-- Toggle Active / Inactive -->
+                          <!-- Toggle Active / Inactive -->
+                            <button class="btn-detail @(p.Status == Status.Active ? "text-warning" : "text-success")"
                                     data-bs-toggle="modal"
                                     data-bs-target="#productModal"
-                                    data-url="@Url.Action("Delete", "Products", new { id = p.ProductId })">
+                                    data-url="@Url.Action("ChangeStatus", "Products", new {
+                                        id = p.ProductId,
+                                        status = p.Status == Status.Active
+                                            ? Status.Inactive
+                                            : Status.Active
+                                    })">
 
-                                @if (p.IsActive)
+                                @if (p.Status == Status.Active)
                                 {
-                                    <i class="bi bi-slash-circle">Deactive</i>
+                                    <i class="bi bi-slash-circle"></i>
+                                    <span>Deactivate</span>
                                 }
                                 else
                                 {
-                                    <i class="bi bi-check-circle">Active</i>
+                                    <i class="bi bi-check-circle"></i>
+                                    <span>Activate</span>
                                 }
+                            </button>
 
+                            <!-- Delete -->
+                            <button class="btn-detail text-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#productModal"
+                                    data-url="@Url.Action("ChangeStatus", "Products", new {
+                                        id = p.ProductId,
+                                        status = Status.Deleted
+                                    })">
+
+                                <i class="bi bi-trash"></i>
+                                <span>Delete</span>
                             </button>
                                 }
 
@@ -441,11 +474,13 @@
                     }
 
                 },
-                error: function () {
+                error: function (xhr) {
 
                     $("#pageLoadingOverlay").hide();
 
-                    showToast("Error");
+                    console.log(xhr.responseText);
+                     showToast("Error");
+
 
                 }
 

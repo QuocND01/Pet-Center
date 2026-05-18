@@ -15,7 +15,9 @@ namespace ProductAPI.Repository.Interface
         Task<Category?> GetCategoryByIdAsync(Guid id);
         Task AddCategoryAsync(Category category);
         Task UpdateCategoryAsync(Category category);
-        Task DeleteCategoryAsync(Guid id);
+        Task ChangeCategoryStatusAsync(
+       Guid id,
+       Status status);
 
         Task<bool> CheckCategoryExistAsync(string categoryName);
 

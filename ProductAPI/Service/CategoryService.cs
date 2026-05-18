@@ -24,7 +24,7 @@ namespace ProductAPI.Service
         }
 
 
-        public async Task AddCategoryAsync(CreateCategoryDTOs createCategory)
+        public async Task AddCategoryAsync(CreateCategoryDTO createCategory)
         {
 
             if (createCategory.Attributes != null && createCategory.Attributes.Any())
@@ -80,23 +80,30 @@ namespace ProductAPI.Service
         }
 
 
-        public async Task DeleteCategoryAsync(Guid id)
+        public async Task ChangeCategoryStatusAsync(
+      Guid id,
+      Status status)
         {
-            await _categoryRepository.DeleteCategoryAsync(id);
+            var category = await _categoryRepository.GetCategoryByIdAsync(id);
+
+            if (category == null)
+                throw new Exception("Category not found");
+
+            await _categoryRepository.ChangeCategoryStatusAsync(id, status);
         }
 
-        public IQueryable<ReadCategoryDTOs> GetAllCategory()
+        public IQueryable<ReadCategoryDTOForCustomer> GetAllCategory()
         {
-            return _categoryRepository.GetAllCategory().ProjectTo<ReadCategoryDTOs>(_mapper.ConfigurationProvider);
+            return _categoryRepository.GetAllCategory().ProjectTo<ReadCategoryDTOForCustomer>(_mapper.ConfigurationProvider);
         }
 
-        public async Task<PagedResult<ReadCategoryDTOs>> GetAllCategoryAdminAsync(
+        public async Task<PagedResult<ReadCategoryDTO>> GetAllCategoryAdminAsync(
     CategorySpecification spec)
         {
             var (items, total) = await _categoryRepository.GetAllCategoryAdminAsync(spec);
 
-            return new PagedResult<ReadCategoryDTOs>(
-                _mapper.Map<IEnumerable<ReadCategoryDTOs>>(items),
+            return new PagedResult<ReadCategoryDTO>(
+                _mapper.Map<IEnumerable<ReadCategoryDTO>>(items),
                 total,
                 spec.Page,
                 spec.PageSize);
@@ -112,14 +119,14 @@ namespace ProductAPI.Service
             return readattribute;
         }
 
-        public async Task<ReadCategoryDTOs?> GetCategoryByIdAsync(Guid id)
+        public async Task<ReadCategoryDTO?> GetCategoryByIdAsync(Guid id)
         {
             var category = await _categoryRepository.GetCategoryByIdAsync(id);
 
-            return _mapper.Map<ReadCategoryDTOs>(category);
+            return _mapper.Map<ReadCategoryDTO>(category);
         }
 
-        public async Task UpdateCategoryAsync(Guid id, UpdateCategoryDTOs category)
+        public async Task UpdateCategoryAsync(Guid id, UpdateCategoryDTO category)
         {
             var existingCategory = await _categoryRepository.GetCategoryByIdAsync(id);
 

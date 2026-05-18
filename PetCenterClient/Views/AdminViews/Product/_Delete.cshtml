@@ -1,7 +1,7 @@
 ﻿@model PetCenterClient.DTOs.ReadProductDTO
+@using PetCenterClient.Common
 
 <style>
-
     .product-image {
         width: 100px;
         height: 100px;
@@ -10,14 +10,21 @@
         border: 1px solid #ddd;
         margin-right: 8px;
     }
-
 </style>
 
-<form asp-action="Delete"
+<form asp-action="ChangeStatusConfirmed"
       asp-controller="Products"
       method="post">
 
-    <input type="hidden" name="id" value="@Model.ProductId" />
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           name="id"
+           value="@Model.ProductId" />
+
+    <input type="hidden"
+           name="status"
+           value="@((int)ViewBag.Status)" />
 
     <div class="text-center">
 
@@ -30,46 +37,6 @@
         </h4>
 
     </div>
-
-    <!-- Images -->
-
-    <div class="d-flex justify-content-center flex-wrap mt-3">
-
-        @if (Model.Images != null && Model.Images.Any())
-        {
-            foreach (var img in Model.Images)
-            {
-                <img src="@img" class="product-image" />
-            }
-        }
-
-    </div>
-
-    <!-- Info -->
-
-    <div class="row mt-4">
-
-        <div class="col-md-6">
-            <strong>Price:</strong> @Model.ProductPrice
-        </div>
-
-        <div class="col-md-6">
-            <strong>Stock:</strong> @Model.StockQuantity
-        </div>
-
-        <div class="col-md-6">
-            <strong>Brand:</strong> @Model.BrandName
-        </div>
-
-        <div class="col-md-6">
-            <strong>Category:</strong> @Model.CategoryName
-        </div>
-
-    </div>
-
-    @* <div class="alert alert-warning mt-4 text-center">
-        This action cannot be undone.
-    </div> *@
 
     <div class="d-flex justify-content-end gap-2 mt-3">
 

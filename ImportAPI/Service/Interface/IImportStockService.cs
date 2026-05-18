@@ -13,5 +13,6 @@ namespace ImportAPI.Service.Interface
         Task<ImportExportResponseDto> Export(DateTime? fromDate, DateTime? toDate);
         Task<string> DeductFIFO(Guid productId, int quantity);
         Task ReturnStock(string mapping);
+        Task<bool> HasProductInImportsAsync(Guid productId);
     }
 }

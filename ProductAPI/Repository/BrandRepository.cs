@@ -22,21 +22,24 @@ namespace ProductAPI.Repository
 
         public async Task<bool> CheckBrandExistAsync(string brandName)
         {
-            return await _db.Brands.AnyAsync(b => b.BrandName == brandName && b.IsActive == true);
+            return await _db.Brands.AnyAsync(b => b.BrandName == brandName && b.Status == Status.Active);
         }
 
-        public async Task DeleteBrandAsync(Guid id)
+        public async Task ChangeBrandStatusAsync(
+     Guid id,
+     Status status)
         {
-            Brand p = _db.Brands.Find(id);
-            p.IsActive = !p.IsActive;
-            await _db.SaveChangesAsync();
+            await _db.Brands
+                .Where(b => b.BrandId == id)
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(b => b.Status, status));
         }
 
         public IQueryable<Brand> GetAllBrand()
         {
             try
             {
-                return _db.Brands.Where(b => b.IsActive == true).AsQueryable();
+                return _db.Brands.Where(b => b.Status == Status.Active).AsQueryable();
             }
             catch (Exception ex)
             {

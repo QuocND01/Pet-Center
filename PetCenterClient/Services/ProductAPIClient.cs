@@ -1,4 +1,5 @@
-﻿using PetCenterClient.DTOs;
+﻿using PetCenterClient.Common;
+using PetCenterClient.DTOs;
 
 using PetCenterClient.Services.Interface;
 using System.Net.Http;
@@ -18,7 +19,7 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<OdataResponse<ReadProductDTO>> GetAllProductAsync(
+        public async Task<OdataResponse<ReadProductDTOForCustomer>> GetAllProductAsync(
      string? search,
      bool? isActive,
      decimal? minPrice,
@@ -87,7 +88,7 @@ namespace PetCenterClient.Services
 
             var url = "?" + string.Join("&", query);
 
-            var response = await _http.GetFromJsonAsync<OdataResponse<ReadProductDTO>>(
+            var response = await _http.GetFromJsonAsync<OdataResponse<ReadProductDTOForCustomer>>(
                 "product-service/odata/Products" + url
             );
 
@@ -275,12 +276,19 @@ namespace PetCenterClient.Services
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task DeleteProductAsync(Guid? id)
+        public async Task ChangeProductStatusAsync(
+     Guid id,
+     Status status)
         {
             AddAuthorizationHeader();
-            await _http.DeleteAsync($"product-service/Products/{id}");
-        }
 
+            var response = await _http.PatchAsJsonAsync(
+                $"product-service/Products/{id}/status",
+                status
+            );
+
+            response.EnsureSuccessStatusCode();
+        }
         public async Task<List<ProductSelectDto>> GetProductSelectAsync()
         {
             AddAuthorizationHeader();
@@ -314,20 +322,20 @@ namespace PetCenterClient.Services
         }
 
 
-        public async Task<List<ReadProductDTO>> GetHotProductsAsync()
+        public async Task<List<ReadProductDTOForCustomer>> GetHotProductsAsync()
         {
-            var result = await _http.GetFromJsonAsync<List<ReadProductDTO>>(
+            var result = await _http.GetFromJsonAsync<List<ReadProductDTOForCustomer>>(
                 "product-service/Products/hot-products");
 
-            return result ?? new List<ReadProductDTO>();
+            return result ?? new List<ReadProductDTOForCustomer>();
         }
 
-        public async Task<List<ReadProductDTO>> GetNewProductsAsync()
+        public async Task<List<ReadProductDTOForCustomer>> GetNewProductsAsync()
         {
-            var result = await _http.GetFromJsonAsync<List<ReadProductDTO>>(
+            var result = await _http.GetFromJsonAsync<List<ReadProductDTOForCustomer>>(
                 "product-service/Products/new-products");
 
-            return result ?? new List<ReadProductDTO>();
+            return result ?? new List<ReadProductDTOForCustomer>();
         }
         private void AddAuthorizationHeader()
         {

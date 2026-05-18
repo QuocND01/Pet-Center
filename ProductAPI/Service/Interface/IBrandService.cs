@@ -7,14 +7,16 @@ namespace ProductAPI.Service.Interface
     public interface IBrandService
     {
 
-        IQueryable<ReadBrandDTOs> GetAllBrand();
+        IQueryable<ReadBrandDTOForCustomer> GetAllBrand();
 
-        Task<PagedResult<ReadBrandDTOs>> GetAllBrandAdminAsync(
+        Task<PagedResult<ReadBrandDTO>> GetAllBrandAdminAsync(
        BrandSpecification spec);
 
-        Task<ReadBrandDTOs?> GetBrandByIdAsync(Guid id);
-        Task AddBrandAsync(CreateBrandDTOs brand);
-        Task UpdateBrandAsync(Guid id , UpdateBrandDTOs brand);
-        Task DeleteBrandAsync(Guid id);
+        Task<ReadBrandDTO?> GetBrandByIdAsync(Guid id);
+        Task AddBrandAsync(CreateBrandDTO brand);
+        Task UpdateBrandAsync(Guid id , UpdateBrandDTO brand);
+        Task ChangeBrandStatusAsync(
+     Guid id,
+     Status status);
     }
 }

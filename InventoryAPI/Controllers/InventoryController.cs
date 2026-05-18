@@ -1,6 +1,7 @@
 ﻿using InventoryAPI.DTOs;
 using InventoryAPI.Models;
 using InventoryAPI.Service.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -18,6 +19,7 @@ namespace InventoryAPI.Controllers
             _inventoryService = context;
         }
 
+        [AllowAnonymous]
         [HttpPost("stocks")]
         public async Task<ActionResult<IEnumerable<ProductQuantityDTO>>> GetProductStocks([FromBody] List<Guid> productIds)
         {

@@ -14,7 +14,9 @@ namespace ProductAPI.Repository.Interface
         Task<Brand?> GetBrandByIdAsync(Guid id);
         Task AddBrandAsync(Brand brand);
         Task UpdateBrandAsync(Brand brand);
-        Task DeleteBrandAsync(Guid id);
+        Task ChangeBrandStatusAsync(
+      Guid id,
+      Status status);
 
         Task<bool> CheckBrandExistAsync(string brandName);
 

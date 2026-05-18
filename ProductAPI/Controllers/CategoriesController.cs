@@ -29,13 +29,13 @@ namespace ProductAPI.Controllers
         // GET: api/Categories
         [HttpGet]
         [EnableQuery(PageSize = 10)]
-        public IQueryable<ReadCategoryDTOs> Get()
+        public IQueryable<ReadCategoryDTOForCustomer> Get()
         {
             return _categoryService.GetAllCategory();
         }
 
         [HttpGet("admin")]
-        public async Task<ActionResult<PagedResult<ReadCategoryDTOs>>> GetAllCategoryAdmin(
+        public async Task<ActionResult<PagedResult<ReadCategoryDTO>>> GetAllCategoryAdmin(
     [FromQuery] CategorySpecification spec)
         {
             var result = await _categoryService.GetAllCategoryAdminAsync(spec);
@@ -51,7 +51,7 @@ namespace ProductAPI.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ReadCategoryDTOs>> DetailsCategoryAsync(Guid id)
+        public async Task<ActionResult<ReadCategoryDTO>> DetailsCategoryAsync(Guid id)
         {
             var category = await _categoryService.GetCategoryByIdAsync(id);
 
@@ -68,7 +68,7 @@ namespace ProductAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(
       Guid id,
-      [FromForm] UpdateCategoryDTOs updateCategoryDTOs)
+      [FromForm] UpdateCategoryDTO updateCategoryDTOs)
         {
             if (!ModelState.IsValid)
             {
@@ -123,7 +123,7 @@ namespace ProductAPI.Controllers
 
         //[Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostCategoryAsync([FromForm] CreateCategoryDTOs categoryDTOs)
+        public async Task<IActionResult> PostCategoryAsync([FromForm] CreateCategoryDTO categoryDTOs)
         {
             if (!ModelState.IsValid)
             {
@@ -169,18 +169,17 @@ namespace ProductAPI.Controllers
 
 
         //[Authorize]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(Guid id)
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> ChangeStatus(
+     Guid id,
+     [FromBody] Status status)
         {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-            if (category == null)
+            await _categoryService.ChangeCategoryStatusAsync(id, status);
+
+            return Ok(new
             {
-                return NotFound();
-            }
-
-            await _categoryService.DeleteCategoryAsync(id);
-
-            return NoContent();
+                success = true
+            });
         }
 
     }

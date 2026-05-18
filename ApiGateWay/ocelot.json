@@ -134,7 +134,7 @@
       "UpstreamPathTemplate": "/inventory/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
 
-      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamPathTemplate": "/api/Inventory/{everything}",
       "DownstreamScheme": "https",
 
       "DownstreamHostAndPorts": [
@@ -277,15 +277,42 @@
 
 
 
-    // =========================================================
-    // PRODUCT SERVICE
-    // =========================================================
+    // =========================
+    // PRODUCT SERVICE (ALL IN ONE)
+    // =========================
 
     {
-      // 1. Dành riêng cho OData (Lấy danh sách sản phẩm có Filter/Sort)
       "UpstreamPathTemplate": "/product-service/odata/Products/{everything}",
-      "DownstreamPathTemplate": "/odata/Products/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/odata/Products/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7004
+        }
+      ],
+      "Priority": 10
+    },
+
+    {
+      "UpstreamPathTemplate": "/product-service/odata/Brands/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/odata/Brands/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7004
+        }
+      ],
+      "Priority": 10
+    },
+
+    {
+      "UpstreamPathTemplate": "/product-service/odata/Categories/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/odata/Categories/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -298,18 +325,15 @@
 
     {
       "UpstreamPathTemplate": "/product-service/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "PATCH" ],
       "DownstreamPathTemplate": "/api/{everything}",
       "DownstreamScheme": "https",
-
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
           "Port": 7004
         }
       ],
-
       "Priority": 5
     },
 
@@ -399,6 +423,24 @@
       "Priority": 5
     },
 
+    // =========================================================
+    // Import SERVICE
+    // =========================================================
+
+    {
+      "UpstreamPathTemplate": "/import-service/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7029
+        }
+      ],
+      "Priority": 10
+    },
+
 
 
     // =========================================================
@@ -445,7 +487,7 @@
       "ExceptionsAllowedBeforeBreaking": 3,
       "DurationOfBreak": 5000,
       "TimeoutValue": 10000
-    },
+    }
 
 
   }

@@ -27,15 +27,47 @@ namespace ProductAPI.Repository
             await _db.SaveChangesAsync();
         }
 
-        public async Task DeleteProductAsync(Guid id)
+        public async Task ChangeProductStatusAsync(
+     Guid id,
+     Status status,
+     bool hardDeleteImages = false)
         {
-            var product = await _db.Products.FindAsync(id);
-            if (product == null) return;
+            var product = await _db.Products
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(x => x.ProductId == id);
 
-            product.IsActive = !product.IsActive;
-            await _db.SaveChangesAsync();
+            if (product == null)
+                throw new Exception("Product not found");
+
+            await _db.Products
+                .Where(p => p.ProductId == id)
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(p => p.Status, status));
+
+            if (status == Status.Deleted)
+            {
+                var imageIds = product.Images
+                    .Select(i => i.ImageId)
+                    .ToList();
+
+                if (!imageIds.Any())
+                    return;
+
+                if (hardDeleteImages)
+                {
+                    await _db.Images
+                        .Where(i => imageIds.Contains(i.ImageId))
+                        .ExecuteDeleteAsync();
+                }
+                else
+                {
+                    await _db.Images
+                        .Where(i => imageIds.Contains(i.ImageId))
+                        .ExecuteUpdateAsync(s =>
+                            s.SetProperty(i => i.IsActive, false));
+                }
+            }
         }
-
 
         public IQueryable<Product> GetAllProduct()
         {
@@ -46,7 +78,7 @@ namespace ProductAPI.Repository
                 .Include(p => p.Category)
                 .Include(p => p.Images)
                 .Include(p => p.ProductAttributes)
-                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.IsActive == true)
+                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status == Status.Active)
                 .AsQueryable();
             }
             catch (Exception ex) {
@@ -62,7 +94,7 @@ namespace ProductAPI.Repository
                 .Include(p => p.Category)
                 .Include(p => p.Images)
                 .Include(p => p.ProductAttributes)
-                    .ThenInclude(pa => pa.CategoryAttribute)
+                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status != Status.Deleted)
                 .Where(spec.ToExpression());
 
             var total = await query.CountAsync();
@@ -80,7 +112,7 @@ namespace ProductAPI.Repository
             var threeMonthsAgo = DateTime.Now.AddMonths(-3);
 
             return await _db.Products
-                .Where(p => p.IsActive && p.AddedAt >= threeMonthsAgo)
+                .Where(p => p.AddedAt >= threeMonthsAgo)
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .Include(p => p.Images)
@@ -93,7 +125,7 @@ namespace ProductAPI.Repository
         public async Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids)
         {
             return await _db.Products
-                .Where(p => p.IsActive && ids.Contains(p.ProductId))
+                .Where(p => p.Status == Status.Active && ids.Contains(p.ProductId))
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .Include(p => p.Images)
@@ -129,7 +161,7 @@ namespace ProductAPI.Repository
         p.ProductName == productName &&
         p.BrandId == brandId &&
         p.CategoryId == categoryId &&
-        p.IsActive);
+        p.Status == Status.Active);
         }
 
         public async Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null)
@@ -149,7 +181,7 @@ namespace ProductAPI.Repository
     => await _db.Products
         .Include(p => p.Images.Where(i => i.IsActive))
         .AsNoTracking()
-        .FirstOrDefaultAsync(p => p.ProductId == productId && p.IsActive);
+        .FirstOrDefaultAsync(p => p.ProductId == productId && p.Status == Status.Active);
 
         public async Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds)
         {

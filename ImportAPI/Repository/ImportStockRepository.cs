@@ -84,5 +84,11 @@ namespace ImportAPI.Repository
         {
             return await _context.ImportStockDetails.FindAsync(id);
         }
+
+        public async Task<bool> CheckProductInImportsAsync(Guid productId)
+        {
+            return await _context.ImportStockDetails
+                .AnyAsync(x => x.ProductId == productId);
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.DTOs.ReadCategoryDTOs
+﻿@model PetCenterClient.DTOs.ReadCategoryDTO
 
 <style>
 
@@ -12,11 +12,17 @@
 
 </style>
 
-<form asp-action="DeleteConfirm"
+<form asp-action="ChangeStatusConfirmed"
       asp-controller="Category"
       method="post">
 
-    <input type="hidden" name="id" value="@Model.CategoryId" />
+    <input type="hidden"
+           name="id"
+           value="@Model.CategoryId" />
+
+    <input type="hidden"
+           name="status"
+           value="@((int)ViewBag.Status)" />
 
     <div class="text-center">
 
@@ -36,15 +42,16 @@
 
         @if (!string.IsNullOrEmpty(Model.CategoryLogo))
         {
-            <img src="@Model.CategoryLogo" class="category-logo" />
+            <img src="@Model.CategoryLogo"
+                 class="category-logo" />
         }
         else
         {
-            <img src="https://via.placeholder.com/120" class="category-logo" />
+            <img src="https://via.placeholder.com/120"
+                 class="category-logo" />
         }
 
     </div>
-
 
     <!-- Attributes -->
     @if (Model.Attributes != null && Model.Attributes.Any())
@@ -66,14 +73,6 @@
 
         </div>
     }
-
-
-    @* <!-- Warning -->
-
-    <div class="alert alert-warning mt-4 text-center">
-        This action cannot be undone.
-    </div> *@
-
 
     <!-- Buttons -->
 

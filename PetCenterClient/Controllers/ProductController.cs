@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using PetCenterClient.Common;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 
@@ -165,8 +166,8 @@ namespace PetCenterClient.Controllers
         // GET: ReadProdutDTOs/Create
         public async Task<IActionResult> CreateAsync()
         {
-            var brands = await _brandService.GetAllBrandAsync("", 1) ?? new OdataResponse<ReadBrandDTOs>();
-            var categories = await _categoryService.GetAllCategoryAsync("", 1) ?? new OdataResponse<ReadCategoryDTOs>();
+            var brands = await _brandService.GetAllBrandAsync("", 1) ?? new OdataResponse<ReadBrandDTOForCustomer>();
+            var categories = await _categoryService.GetAllCategoryAsync("", 1) ?? new OdataResponse<ReadCategoryDTOForCustomer>();
             ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
             ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
 
@@ -251,7 +252,7 @@ namespace PetCenterClient.Controllers
                 BrandName = product.BrandName,
                 CategoryId = product.CategoryId,
                 CategoryName = product.CategoryName,
-                IsActive = product.IsActive,
+                Status = product.Status,
                 ExistingImages = product.Images,
                 Attributes = product.Attributes?
                     .Select(a => new UpdateProductAttributeDTO
@@ -315,7 +316,9 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Delete/5
-        public async Task<IActionResult> DeleteAsync(Guid? id)
+        public async Task<IActionResult> ChangeStatusAsync(
+      Guid? id,
+      Status status)
         {
             if (id == null)
             {
@@ -323,29 +326,34 @@ namespace PetCenterClient.Controllers
             }
 
             var model = await _productService.DetailsProductAsync(id);
+
             if (model == null)
             {
                 return NotFound();
             }
 
-            return PartialView("~/Views/AdminViews/Product/_Delete.cshtml", model);
+            ViewBag.Status = status;
+
+            return PartialView(
+                "~/Views/AdminViews/Product/_Delete.cshtml",
+                model);
         }
 
-        // POST: ReadProdutDTOs/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmedAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusConfirmedAsync(
+            Guid id,
+            Status status)
         {
-            var product = await _productService.DetailsProductAsync(id);
+            await _productService.ChangeProductStatusAsync(
+                id,
+                status);
 
-            if (product != null)
+            return Json(new
             {
-                await _productService.DeleteProductAsync(id);
-            }
-
-            return Json(new { success = true });
+                success = true
+            });
         }
-
 
     }
 

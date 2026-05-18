@@ -1,4 +1,5 @@
-﻿using PetCenterClient.DTOs;
+﻿using PetCenterClient.Common;
+using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using System.Net.Http.Headers;
 
@@ -15,7 +16,7 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task AddCategoryAsync(CreateCategoryDTOs createCategory)
+        public async Task AddCategoryAsync(CreateCategoryDTO createCategory)
         {
             AddAuthorizationHeader();
 
@@ -56,18 +57,17 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task DeleteCategoryAsync(Guid? id)
+        public async Task ChangeCategoryStatusAsync(Guid id, Status status)
         {
             AddAuthorizationHeader();
-            await _http.DeleteAsync($"product-service/Categories/{id}");
+
+            var response = await _http.PatchAsJsonAsync(
+                $"product-service/Categories/{id}/status",
+                status);
+
+            response.EnsureSuccessStatusCode();
         }
-
-        //public async Task<IEnumerable<ReadCategoryDTOs>> GetAllCategoryAsync()
-        //{
-        //    return await _http.GetFromJsonAsync<IEnumerable<ReadCategoryDTOs>>("product-service/Categories");
-        //}
-
-        public async Task<OdataResponse<ReadCategoryDTOs>> GetAllCategoryAsync(string? search, int page = 1)
+        public async Task<OdataResponse<ReadCategoryDTOForCustomer>> GetAllCategoryAsync(string? search, int page = 1)
         {
             int pageSize = 10;
 
@@ -95,7 +95,7 @@ namespace PetCenterClient.Services
 
             var url = "?" + string.Join("&", query);
 
-            var response = await _http.GetFromJsonAsync<OdataResponse<ReadCategoryDTOs>>(
+            var response = await _http.GetFromJsonAsync<OdataResponse<ReadCategoryDTOForCustomer>>(
                 "product-service/odata/Categories" + url
             );
 
@@ -103,7 +103,7 @@ namespace PetCenterClient.Services
         }
 
 
-        public async Task<PagedResponse<ReadCategoryDTOs>> GetAllCategoryAdminAsync(
+        public async Task<PagedResponse<ReadCategoryDTO>> GetAllCategoryAdminAsync(
       string? search, bool? isActive, int page = 1, int pageSize = 10)
         {
             if (page < 1)
@@ -125,15 +125,15 @@ namespace PetCenterClient.Services
 
             var url = "product-service/Categories/admin?" + string.Join("&", query);
 
-            return await _http.GetFromJsonAsync<PagedResponse<ReadCategoryDTOs>>(url);
+            return await _http.GetFromJsonAsync<PagedResponse<ReadCategoryDTO>>(url);
         }
 
-        public async Task<ReadCategoryDTOs> DetailsCategoryAsync(Guid? id)
+        public async Task<ReadCategoryDTO> DetailsCategoryAsync(Guid? id)
         {
-            return await _http.GetFromJsonAsync<ReadCategoryDTOs>($"product-service/Categories/{id}");
+            return await _http.GetFromJsonAsync<ReadCategoryDTO>($"product-service/Categories/{id}");
         }
 
-        public async Task UpdateCategoryAsync(Guid? id, UpdateCategoryDTOs updateCategory)
+        public async Task UpdateCategoryAsync(Guid? id, UpdateCategoryDTO updateCategory)
         {
             AddAuthorizationHeader();
 

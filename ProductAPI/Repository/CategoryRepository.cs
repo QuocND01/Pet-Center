@@ -23,30 +23,33 @@ namespace ProductAPI.Repository
 
         public async Task<bool> CheckCategoryExistAsync(string categoryName)
         {
-            return await _db.Categories.AnyAsync(c => c.CategoryName == categoryName && c.IsActive == true);
+            return await _db.Categories.AnyAsync(c => c.CategoryName == categoryName && c.Status == Status.Active);
         }
 
 
-        public async Task DeleteCategoryAsync(Guid id)
+        public async Task ChangeCategoryStatusAsync(
+      Guid id,
+      Status status)
         {
-            var category = await _db.Categories.FindAsync(id);
-            if (category == null) return;
-
-            var newStatus = !category.IsActive;
-
             await _db.Categories
                 .Where(c => c.CategoryId == id)
-                .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsActive, newStatus));
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(c => c.Status, status));
 
-            await _db.CategoryAttributes
-                .Where(a => a.CategoryId == id)
-                .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsActive, newStatus));
+            // inactive/deleted => disable attributes
+            if (status != Status.Active)
+            {
+                await _db.CategoryAttributes
+                    .Where(a => a.CategoryId == id)
+                    .ExecuteUpdateAsync(s =>
+                        s.SetProperty(a => a.IsActive, false));
+            }
         }
 
         public IQueryable<Category> GetAllCategory()
         {
             return _db.Categories
-                .Where(c => c.IsActive)
+                .Where(c => c.Status == Status.Active)
                 .Select(c => new Category
                 {
                     CategoryId = c.CategoryId,

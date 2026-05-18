@@ -22,31 +22,31 @@ namespace ProductAPI.Service
             _cloudinaryService = cloudinaryService;
         }
 
-        public IQueryable<ReadBrandDTOs> GetAllBrand()
+        public IQueryable<ReadBrandDTOForCustomer> GetAllBrand()
         {
-            return _brandRepository.GetAllBrand().ProjectTo<ReadBrandDTOs>(_mapper.ConfigurationProvider);
+            return _brandRepository.GetAllBrand().ProjectTo<ReadBrandDTOForCustomer>(_mapper.ConfigurationProvider);
         }
 
-        public async Task<PagedResult<ReadBrandDTOs>> GetAllBrandAdminAsync(
+        public async Task<PagedResult<ReadBrandDTO>> GetAllBrandAdminAsync(
      BrandSpecification spec)
         {
             var (items, total) = await _brandRepository.GetAllBrandAdminAsync(spec);
 
-            return new PagedResult<ReadBrandDTOs>(
-                _mapper.Map<IEnumerable<ReadBrandDTOs>>(items),
+            return new PagedResult<ReadBrandDTO>(
+                _mapper.Map<IEnumerable<ReadBrandDTO>>(items),
                 total,
                 spec.Page,
                 spec.PageSize);
         }
 
 
-        public async Task<ReadBrandDTOs?> GetBrandByIdAsync(Guid id)
+        public async Task<ReadBrandDTO?> GetBrandByIdAsync(Guid id)
         {
             var brand = await _brandRepository.GetBrandByIdAsync(id);
-            return _mapper.Map<ReadBrandDTOs>(brand);
+            return _mapper.Map<ReadBrandDTO>(brand);
         }
 
-        public async Task AddBrandAsync(CreateBrandDTOs createBrand)
+        public async Task AddBrandAsync(CreateBrandDTO createBrand)
         {
             bool brandHasExist = await _brandRepository
                 .CheckBrandExistAsync(createBrand.BrandName);
@@ -81,7 +81,7 @@ namespace ProductAPI.Service
             await _brandRepository.AddBrandAsync(brand);
         }
 
-        public async Task UpdateBrandAsync(Guid id, UpdateBrandDTOs updateBrand)
+        public async Task UpdateBrandAsync(Guid id, UpdateBrandDTO updateBrand)
         {
             var brand = await _brandRepository.GetBrandByIdAsync(id);
 
@@ -121,11 +121,18 @@ namespace ProductAPI.Service
             await _brandRepository.UpdateBrandAsync(brand);
         }
 
-        public async Task DeleteBrandAsync(Guid id)
+        public async Task ChangeBrandStatusAsync(
+     Guid id,
+     Status status)
         {
-            await _brandRepository.DeleteBrandAsync(id);
+            var brand = await _brandRepository.GetBrandByIdAsync(id);
+
+            if (brand == null)
+                throw new Exception("Brand not found");
+
+            await _brandRepository.ChangeBrandStatusAsync(id, status);
         }
 
-       
+
     }
 }

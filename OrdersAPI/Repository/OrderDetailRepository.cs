@@ -27,5 +27,11 @@ namespace OrdersAPI.Repository
 
             return new();
         }
+
+        public async Task<bool> CheckProductInOrdersAsync(Guid productId)
+        {
+            return await _context.OrderDetails
+                .AnyAsync(x => x.ProductId == productId);
+        }
     }
 }

@@ -65,5 +65,11 @@ namespace OrdersAPI.Service
         {
             return await _repo.GetTopSellingProductIds(months, top);
         }
+
+        public async Task<bool> HasProductInOrdersAsync(Guid productId)
+        {
+            return await _repo
+                .CheckProductInOrdersAsync(productId);
+        }
     }
 }

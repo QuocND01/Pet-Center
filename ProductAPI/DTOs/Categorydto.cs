@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ProductAPI.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProductAPI.DTOs
 {
-    public class ReadCategoryDTOs
+    public class ReadCategoryDTO
     {
         public Guid CategoryId { get; set; }
 
@@ -10,11 +11,22 @@ namespace ProductAPI.DTOs
 
         public string? CategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
-        public bool? IsActive { get; set; }
+        public Status Status { get; set; }
         public List<ReadCategoryAttributeDTOs>? Attributes { get; set; }
     }
 
-    public class CreateCategoryDTOs
+    public class ReadCategoryDTOForCustomer
+    {
+        public Guid CategoryId { get; set; }
+
+        public string CategoryName { get; set; } = null!;
+
+        public string? CategoryLogo { get; set; }
+        public string? CategoryDescription { get; set; }
+        public List<ReadCategoryAttributeDTOs>? Attributes { get; set; }
+    }
+
+    public class CreateCategoryDTO
     {
         public Guid CategoryId { get; set; }
         [Required(ErrorMessage = "Category name is required")]
@@ -25,11 +37,11 @@ namespace ProductAPI.DTOs
 
         public IFormFile? CategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
-        public bool? IsActive { get; set; }
+        public Status Status { get; set; }
         public List<CreateCategoryAttributeDTOs>? Attributes { get; set; }
     }
 
-    public class UpdateCategoryDTOs
+    public class UpdateCategoryDTO
     {
         [Required(ErrorMessage = "Category name is required")]
         [MaxLength(200, ErrorMessage = "Category name cannot exceed 200 characters")]
