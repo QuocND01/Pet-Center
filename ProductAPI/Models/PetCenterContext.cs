@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using ProductAPI.Common;
+using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 
 namespace ProductAPI.Models;
 
@@ -45,7 +46,7 @@ public partial class PetCenterContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.BrandLogo).HasMaxLength(255);
             entity.Property(e => e.BrandName).HasMaxLength(150);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Status).HasDefaultValue(Status.Active);
         });
 
         modelBuilder.Entity<Category>(entity =>
@@ -60,7 +61,7 @@ public partial class PetCenterContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CategoryLogo).HasMaxLength(255);
             entity.Property(e => e.CategoryName).HasMaxLength(150);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Status).HasDefaultValue(Status.Active);
         });
 
         modelBuilder.Entity<CategoryAttribute>(entity =>
@@ -110,7 +111,7 @@ public partial class PetCenterContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.BrandId).HasColumnName("BrandID");
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Status).HasDefaultValue(Status.Active);
             entity.Property(e => e.ProductName).HasMaxLength(200);
             entity.Property(e => e.ProductPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdateAt).HasColumnType("datetime");

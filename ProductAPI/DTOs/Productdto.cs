@@ -1,4 +1,5 @@
-﻿using ProductAPI.Models;
+﻿using ProductAPI.Common;
+using ProductAPI.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace ProductAPI.DTOs
@@ -13,7 +14,33 @@ namespace ProductAPI.DTOs
 
         public DateTime? AddedAt { get; set; }
         public DateTime? UpdateAt { get; set; }
-        public bool? IsActive { get; set; }
+        public Status Status { get; set; }
+
+        // Brand
+        public Guid BrandId { get; set; }
+        public string? BrandName { get; set; }
+        public string? BrandLogo { get; set; }
+
+        // Category
+        public Guid CategoryId { get; set; }
+        public string? CategoryName { get; set; }
+
+
+        // Images
+        public List<string>? Images { get; set; }
+
+        // Attributes
+        public List<ProductAttributedto>? Attributes { get; set; }
+    }
+
+    public class ReadProductDTOForCustomer
+    {
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; } = null!;
+        public decimal ProductPrice { get; set; }
+        public string? ProductDescription { get; set; }
+        public int StockQuantity { get; set; } = 0;
+        public DateTime? AddedAt { get; set; }
 
         // Brand
         public Guid BrandId { get; set; }
@@ -48,7 +75,7 @@ namespace ProductAPI.DTOs
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? ProductDescription { get; set; }
 
-        public bool? IsActive { get; set; }
+        public Status Status { get; set; }
         public Guid? BrandId { get; set; }
 
         public Guid? CategoryId { get; set; }

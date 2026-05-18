@@ -1,5 +1,6 @@
-﻿@using PetCenterClient.DTOs
-@model IEnumerable<ReadBrandDTOs>
+﻿@using PetCenterClient.Common
+@using PetCenterClient.DTOs
+@model IEnumerable<ReadBrandDTO>
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -114,7 +115,7 @@
 
 
                             <td class="customer-name">
-                                @b.IsActive
+                                @b.Status
                             </td>
 
                             <td>
@@ -138,22 +139,38 @@
                                 </button>
 
                                 <!-- DELETE -->
-                                <button class="btn-detail @(b.IsActive ? "text-warning" : "text-success")"
+                               <button class="btn-detail @(b.Status == Status.Active ? "text-warning" : "text-success")"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#productModal"
-                                        data-url="@Url.Action("Delete", "Products", new { id = b.BrandId })">
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("ChangeStatus", "Brand", new
+                                        {
+                                            id = b.BrandId,
+                                            status = b.Status == Status.Active ? Status.Inactive : Status.Active
+                                        })">
 
-                                    @if (b.IsActive)
+                                    @if (b.Status == Status.Active)
                                     {
-                                        <i class="bi bi-slash-circle">Deactive</i>
+                                        <i class="bi bi-slash-circle"></i> <span>Deactivate</span>
                                     }
                                     else
                                     {
-                                        <i class="bi bi-check-circle">Active</i>
+                                        <i class="bi bi-check-circle"></i> <span>Activate</span>
                                     }
 
                                 </button>
 
+                                    <!-- Delete -->
+                                   <button class="btn-detail text-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#brandModal"
+                                        data-url="@Url.Action("ChangeStatus", "Brand", new
+                                        {
+                                            id = b.BrandId,
+                                            status = Status.Deleted
+                                        })">
+
+                                    <i class="bi bi-trash"></i> <span>Delete</span>
+                                </button>
                             </td>
 
                         </tr>

@@ -21,6 +21,19 @@ namespace ProductAPI.Profiles
                 .ForMember(dest => dest.Attributes,
                     opt => opt.MapFrom(src => src.ProductAttributes));
 
+
+            CreateMap<Product, ReadProductDTOForCustomer>()
+             .ForMember(dest => dest.BrandName,
+                 opt => opt.MapFrom(src => src.Brand.BrandName))
+             .ForMember(dest => dest.BrandLogo,
+                 opt => opt.MapFrom(src => src.Brand.BrandLogo))
+             .ForMember(dest => dest.CategoryName,
+                 opt => opt.MapFrom(src => src.Category.CategoryName))
+             .ForMember(dest => dest.Images,
+                 opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl)))
+             .ForMember(dest => dest.Attributes,
+                 opt => opt.MapFrom(src => src.ProductAttributes));
+
             // Create Product
             CreateMap<CreateProductDTO, Product>()
                 .ForMember(dest => dest.ProductId, opt => opt.Ignore())

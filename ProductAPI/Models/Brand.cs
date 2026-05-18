@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProductAPI.Common;
+using System;
 using System.Collections.Generic;
 
 namespace ProductAPI.Models;
@@ -11,7 +12,7 @@ public partial class Brand
 
     public string? BrandLogo { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public Status Status { get; set; } = Status.Active;
 
 
     public string? BrandDescription { get; set; }

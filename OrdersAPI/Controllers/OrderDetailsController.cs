@@ -72,5 +72,15 @@ namespace OrdersAPI.Controllers
 
             return Ok(productIds);
         }
+
+
+        [HttpGet("check-product/{productId}")]
+        public async Task<IActionResult> CheckProduct(Guid productId)
+        {
+            var exists = await _service
+                .HasProductInOrdersAsync(productId);
+
+            return Ok(exists);
+        }
     }
 }

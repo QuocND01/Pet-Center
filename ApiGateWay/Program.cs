@@ -154,13 +154,17 @@ app.Use(async (context, next) =>
         "/product-service",
         "/api/",
         "/api/auth/register",
-        
+        "/inventory/stocks",
+
+        "/orders/OrderDetails/check-product",
+        "/import-service/ImportStock/check-product"
+
     };
 
-    var isPublic =
-        publicRoutes.Any(x =>
-            path != null &&
-            path.StartsWith(x));
+    var isPublic = publicRoutes.Any(route =>
+      path != null &&
+      (path.Equals(route, StringComparison.OrdinalIgnoreCase)
+       || path.StartsWith(route + "/", StringComparison.OrdinalIgnoreCase)));
 
     if (!isPublic)
     {

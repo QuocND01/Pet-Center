@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductAPI.Common;
 using ProductAPI.DTOs;
 using ProductAPI.Models;
+using ProductAPI.Repository;
 using ProductAPI.Repository.Interface;
 using ProductAPI.Service.Interface;
 
@@ -78,18 +79,125 @@ namespace ProductAPI.Service
 
 
 
-        public async Task DeleteProductAsync(Guid id)
+        public async Task ChangeProductStatusAsync(Guid id, Status status)
         {
-            await _productRepository.DeleteProductAsync(id);
+            var product = await _productRepository.GetProductByIdAsync(id);
+
+            if (product == null)
+                throw new Exception("Product not found");
+
+            switch (status)
+            {
+                case Status.Active:
+                case Status.Inactive:
+                    {
+                        await _productRepository.ChangeProductStatusAsync(id, status);
+                        break;
+                    }
+
+                case Status.Deleted:
+                    {
+                        bool hasOrder = await HasProductInOrdersAsync(id);
+                        bool hasImport = await HasProductInImportsAsync(id);
+
+                        bool canHardDelete = !hasOrder && !hasImport;
+
+                        if (canHardDelete)
+                        {
+                            foreach (var image in product.Images)
+                            {
+                                if (!string.IsNullOrEmpty(image.PublicId))
+                                {
+                                    try
+                                    {
+                                        await _cloudinaryService.DeleteImageAsync(image.PublicId);
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                            }
+
+                            await _productRepository.ChangeProductStatusAsync(
+                                id,
+                                Status.Deleted,
+                                true
+                            );
+                        }
+                        else
+                        {
+                            await _productRepository.ChangeProductStatusAsync(
+                                id,
+                                Status.Deleted,
+                                false
+                            );
+                        }
+
+                        break;
+                    }
+
+                default:
+                    throw new Exception("Invalid status");
+            }
         }
 
-        public async Task<List<ReadProductDTO>> GetAllProductAsync(ODataQueryOptions<ReadProductDTO> queryOptions)
+
+        private async Task<bool> HasProductInOrdersAsync(Guid productId)
+        {
+            try
+            {
+                var response = await _orderClient
+                    .GetAsync($"/orders/OrderDetails/check-product/{productId}");
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"[ORDER API] Status: {response.StatusCode}");
+                Console.WriteLine($"[ORDER API] Body: {content}");
+
+                if (!response.IsSuccessStatusCode)
+                    return true;
+
+                return bool.Parse(content);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[ORDER API ERROR] " + ex.Message);
+                return true;
+            }
+        }
+
+
+        private async Task<bool> HasProductInImportsAsync(Guid productId)
+        {
+            try
+            {
+                var response = await _inventoryClient
+                    .GetAsync($"/import-service/ImportStock/check-product/{productId}");
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"[IMPORT API] Status: {response.StatusCode}");
+                Console.WriteLine($"[IMPORT API] Body: {content}");
+
+                if (!response.IsSuccessStatusCode)
+                    return true;
+
+                return bool.Parse(content);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[IMPORT API ERROR] " + ex.Message);
+                return true;
+            }
+        }
+
+        public async Task<List<ReadProductDTOForCustomer>> GetAllProductAsync(ODataQueryOptions<ReadProductDTOForCustomer> queryOptions)
         {
             var query = _productRepository
                 .GetAllProduct()
-                .ProjectTo<ReadProductDTO>(_mapper.ConfigurationProvider);
+                .ProjectTo<ReadProductDTOForCustomer>(_mapper.ConfigurationProvider);
 
-            var filtered = (IQueryable<ReadProductDTO>)queryOptions.ApplyTo(query);
+            var filtered = (IQueryable<ReadProductDTOForCustomer>)queryOptions.ApplyTo(query);
 
             var products = await filtered.ToListAsync();
 
@@ -153,19 +261,23 @@ namespace ProductAPI.Service
             try
             {
                 var response = await _inventoryClient.PostAsJsonAsync(
-                    "api/Inventory/stocks", productIds);
+                "/inventory/stocks",
+                productIds);
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"[INVENTORY STOCK] Status: {response.StatusCode}");
+                Console.WriteLine($"[INVENTORY STOCK] Body: {content}");
 
                 if (!response.IsSuccessStatusCode)
-                {
                     return new List<StockDto>();
-                }
 
                 return await response.Content.ReadFromJsonAsync<List<StockDto>>()
                        ?? new List<StockDto>();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("[INVENTORY STOCK ERROR] " + ex.Message);
                 return new List<StockDto>();
             }
         }
@@ -216,15 +328,39 @@ namespace ProductAPI.Service
             // 1️⃣ xử lý ảnh bị xoá
             var existingImages = updateproduct.ExistingImages ?? new List<string>();
 
-            var currentImages = product.Images.ToList();
+            var currentImages = product.Images
+     .Where(x => x.IsActive)
+     .ToList();
+
+            bool hasOrder = await HasProductInOrdersAsync(product.ProductId);
+            bool hasImport = await HasProductInImportsAsync(product.ProductId);
+
+            bool canReplaceOldImages = !hasOrder && !hasImport;
 
             foreach (var img in currentImages)
             {
-                if (!existingImages.Any(x => string.Equals(x, img.ImageUrl, StringComparison.OrdinalIgnoreCase)))
-                {
-                    await _cloudinaryService.DeleteImageAsync(img.PublicId);
+                bool imageStillExists = existingImages.Any(x =>
+                    string.Equals(x, img.ImageUrl, StringComparison.OrdinalIgnoreCase));
 
-                    product.Images.Remove(img);
+                if (!imageStillExists)
+                {
+                    // product chưa từng xuất hiện trong order/import
+                    // => cho phép xoá thật
+                    if (canReplaceOldImages)
+                    {
+                        if (!string.IsNullOrEmpty(img.PublicId))
+                        {
+                            await _cloudinaryService.DeleteImageAsync(img.PublicId);
+                        }
+
+                        product.Images.Remove(img);
+                    }
+                    else
+                    {
+                        // đã từng nằm trong order/import
+                        // => giữ ảnh để history không mất
+                        img.IsActive = false;
+                    }
                 }
             }
 
@@ -289,13 +425,13 @@ namespace ProductAPI.Service
             await _productRepository.UpdateProductAsync(product);
         }
 
-        public async Task<IEnumerable<ReadProductDTO>> GetNewProductsAsync()
+        public async Task<IEnumerable<ReadProductDTOForCustomer>> GetNewProductsAsync()
         {
             var products = await _productRepository.GetNewProductAsync();
-            return _mapper.Map<List<ReadProductDTO>>(products);
+            return _mapper.Map<List<ReadProductDTOForCustomer>>(products);
         }
 
-        public async Task<IEnumerable<ReadProductDTO>> GetHotProductsAsync()
+        public async Task<IEnumerable<ReadProductDTOForCustomer>> GetHotProductsAsync()
         {
             List<Guid>? productIds;
 
@@ -305,21 +441,21 @@ namespace ProductAPI.Service
             }
             catch (Exception ex)
             {
-                return new List<ReadProductDTO>();
+                return new List<ReadProductDTOForCustomer>();
             }
 
             if (productIds == null || !productIds.Any())
-                return new List<ReadProductDTO>();
+                return new List<ReadProductDTOForCustomer>();
 
             var products = await _productRepository.GetProductsByIdsAsync(productIds);
 
-            return _mapper.Map<List<ReadProductDTO>>(products);
+            return _mapper.Map<List<ReadProductDTOForCustomer>>(products);
         }
 
         public async Task<List<SelectProductDto>> GetProductSelectListAsync()
         {
             // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
-            return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.IsActive);
+            return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.Status == Status.Active);
         }
 
         public async Task<List<SelectProductDto>> GetProductSelectListToViewAsync()

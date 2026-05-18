@@ -1,7 +1,6 @@
-﻿@model PetCenterClient.DTOs.ReadBrandDTOs
+﻿@model PetCenterClient.DTOs.ReadBrandDTO
 
 <style>
-
     .brand-logo {
         width: 120px;
         height: 120px;
@@ -9,14 +8,14 @@
         border-radius: 8px;
         border: 1px solid #ddd;
     }
-
 </style>
 
-<form asp-action="Delete"
+<form asp-action="ChangeStatusConfirmed"
       asp-controller="Brand"
       method="post">
 
     <input type="hidden" name="id" value="@Model.BrandId" />
+    <input type="hidden" name="status" value="@ViewBag.Status" />
 
     <div class="text-center">
 
@@ -31,7 +30,6 @@
     </div>
 
     <!-- Logo -->
-
     <div class="d-flex justify-content-center mt-3">
 
         @if (!string.IsNullOrEmpty(Model.BrandLogo))
@@ -45,14 +43,7 @@
 
     </div>
 
-    @* <!-- Warning -->
-
-    <div class="alert alert-warning mt-4 text-center">
-        This action cannot be undone.
-    </div> *@
-
     <!-- Buttons -->
-
     <div class="d-flex justify-content-end gap-2 mt-3">
 
         <button type="button"
@@ -63,10 +54,8 @@
 
         <button type="submit"
                 class="btn btn-danger">
-
             <i class="bi bi-trash"></i>
             Confirm
-
         </button>
 
     </div>

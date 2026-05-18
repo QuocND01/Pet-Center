@@ -1,5 +1,5 @@
 @using PetCenterClient.DTOs
-@model OdataResponse<ReadProductDTO>
+@model OdataResponse<ReadProductDTOForCustomer>
 
 @{
 
@@ -596,7 +596,7 @@
             <div class="filter-row">
                 <!-- Category -->
                 @{
-                    var cats = (ViewBag.Categories as OdataResponse<ReadCategoryDTOs>)?.Values;
+                    var cats = (ViewBag.Categories as OdataResponse<ReadCategoryDTO>)?.Values;
                     var catClass = !string.IsNullOrEmpty(currentCat) ? "filter-select active" : "filter-select";
                 }
                 <select name="categoryid" class="@catClass">
@@ -619,7 +619,7 @@
 
                 <!-- Brand -->
                 @{
-                    var brands = (ViewBag.Brands as OdataResponse<ReadBrandDTOs>)?.Values;
+                    var brands = (ViewBag.Brands as OdataResponse<ReadBrandDTO>)?.Values;
                     var brandClass = !string.IsNullOrEmpty(currentBrand) ? "filter-select active" : "filter-select";
                 }
                 <select name="brandid" class="@brandClass">
@@ -713,12 +713,12 @@
             }
             @if (!string.IsNullOrEmpty(currentCat))
             {
-                var catName = (ViewBag.Categories as OdataResponse<ReadCategoryDTOs>)?.Values?.FirstOrDefault(c => c.CategoryId.ToString() == currentCat)?.CategoryName;
+                var catName = (ViewBag.Categories as OdataResponse<ReadCategoryDTO>)?.Values?.FirstOrDefault(c => c.CategoryId.ToString() == currentCat)?.CategoryName;
                 <span class="filter-chip">🏷 @catName</span>
             }
             @if (!string.IsNullOrEmpty(currentBrand))
             {
-                var bName = (ViewBag.Brands as OdataResponse<ReadBrandDTOs>)?.Values?.FirstOrDefault(b => b.BrandId.ToString() == currentBrand)?.BrandName;
+                var bName = (ViewBag.Brands as OdataResponse<ReadBrandDTO>)?.Values?.FirstOrDefault(b => b.BrandId.ToString() == currentBrand)?.BrandName;
                 <span class="filter-chip">🏪 @bName</span>
             }
             @if (!string.IsNullOrEmpty(currentMin) || !string.IsNullOrEmpty(currentMax))

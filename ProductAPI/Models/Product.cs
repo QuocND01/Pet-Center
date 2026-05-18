@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProductAPI.Common;
+using System;
 using System.Collections.Generic;
 
 namespace ProductAPI.Models;
@@ -21,7 +22,7 @@ public partial class Product
 
     public DateTime? UpdateAt { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public Status Status { get; set; } = Status.Active;
 
 
     public virtual Brand? Brand { get; set; }

@@ -1,5 +1,6 @@
 ﻿using Humanizer;
 using Microsoft.Data.SqlClient;
+using PetCenterClient.Common;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using System.Globalization;
@@ -18,7 +19,7 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task AddBrandAsync(CreateBrandDTOs createBrand)
+        public async Task AddBrandAsync(CreateBrandDTO createBrand)
         {
             AddAuthorizationHeader();
 
@@ -52,13 +53,18 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task DeleteBrandAsync(Guid? id)
+        public async Task ChangeBrandStatusAsync(Guid id, Status status)
         {
             AddAuthorizationHeader();
-            await _http.DeleteAsync($"product-service/Brands/{id}");
+
+            var response = await _http.PatchAsJsonAsync(
+                $"product-service/Brands/{id}/status",
+                status);
+
+            response.EnsureSuccessStatusCode();
         }
 
-        public async Task<OdataResponse<ReadBrandDTOs>> GetAllBrandAsync(string? search, int page = 1)
+        public async Task<OdataResponse<ReadBrandDTOForCustomer>> GetAllBrandAsync(string? search, int page = 1)
         {
             int pageSize = 10;
 
@@ -86,7 +92,7 @@ namespace PetCenterClient.Services
 
             var url = "?" + string.Join("&", query);
 
-            var response = await _http.GetFromJsonAsync<OdataResponse<ReadBrandDTOs>>(
+            var response = await _http.GetFromJsonAsync<OdataResponse<ReadBrandDTOForCustomer>>(
                 "product-service/odata/Brands" + url
             );
 
@@ -94,7 +100,7 @@ namespace PetCenterClient.Services
         }
 
 
-        public async Task<PagedResponse<ReadBrandDTOs>> GetAllBrandAdminAsync(
+        public async Task<PagedResponse<ReadBrandDTO>> GetAllBrandAdminAsync(
       string? search, bool? isActive, int page = 1, int pageSize = 10)
         {
             if (page < 1)
@@ -116,20 +122,20 @@ namespace PetCenterClient.Services
 
             var url = "product-service/Brands/admin?" + string.Join("&", query);
 
-            var response = await _http.GetFromJsonAsync<PagedResponse<ReadBrandDTOs>>(url);
+            var response = await _http.GetFromJsonAsync<PagedResponse<ReadBrandDTO>>(url);
 
             return response;
         }
 
 
 
-        public async Task<ReadBrandDTOs> DetailsBrandAsync(Guid? id)
+        public async Task<ReadBrandDTO> DetailsBrandAsync(Guid? id)
         {
-            return await _http.GetFromJsonAsync<ReadBrandDTOs>($"product-service/Brands/{id}");
+            return await _http.GetFromJsonAsync<ReadBrandDTO>($"product-service/Brands/{id}");
         }
 
 
-        public async Task UpdateBrandAsync(Guid? id, UpdateBrandDTOs updateBrand)
+        public async Task UpdateBrandAsync(Guid? id, UpdateBrandDTO updateBrand)
         {
             AddAuthorizationHeader();
 

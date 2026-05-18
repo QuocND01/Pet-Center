@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using PetCenterClient.Common;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
@@ -82,7 +83,7 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAsync(CreateBrandDTOs model)
+        public async Task<IActionResult> CreateAsync(CreateBrandDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -121,13 +122,13 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var model = new UpdateBrandDTOs
+            var model = new UpdateBrandDTO
             {
                 BrandId = brand.BrandId,
                 BrandName = brand.BrandName,
                 BrandDescription = brand.BrandDescription,
                 ExistingBrandLogo = brand.BrandLogo,
-                IsActive = brand.IsActive
+                Status = brand.Status
             };
 
             return PartialView("~/Views/AdminViews/Brand/_Edit.cshtml", model);
@@ -136,7 +137,7 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(Guid BrandId, UpdateBrandDTOs model)
+        public async Task<IActionResult> EditAsync(Guid BrandId, UpdateBrandDTO model)
         {
             Console.WriteLine("ĐÃ VÀO EDIT");
             Console.WriteLine($"ID: {BrandId}");
@@ -149,34 +150,34 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Delete/5
-        public async Task<IActionResult> DeleteAsync(Guid? id)
+        public async Task<IActionResult> ChangeStatusAsync(Guid id, Status status)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var model = await _brandService.DetailsBrandAsync(id);
+
             if (model == null)
-            {
                 return NotFound();
-            }
+
+            ViewBag.Status = status;
 
             return PartialView("~/Views/AdminViews/Brand/_Delete.cshtml", model);
         }
-        // GET: BrandController/Delete/5
-        [HttpPost, ActionName("Delete")]
+
+        [HttpPost]
+        [ActionName("ChangeStatusConfirmed")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmedAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusConfirmedAsync(Guid id, Status status)
         {
             var brand = await _brandService.DetailsBrandAsync(id);
 
-            if (brand != null)
-            {
-                await _brandService.DeleteBrandAsync(id);
-            }
+            if (brand == null)
+                return NotFound();
 
-            return Json(new { success = true });
+            await _brandService.ChangeBrandStatusAsync(id, status);
+
+            return Json(new
+            {
+                success = true
+            });
         }
     }
 }

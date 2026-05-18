@@ -258,5 +258,12 @@ namespace ImportAPI.Service
             await _repo.SaveChangesAsync();
             await tran.CommitAsync();
         }
+
+
+        public async Task<bool> HasProductInImportsAsync(Guid productId)
+        {
+            return await _repo
+                .CheckProductInImportsAsync(productId);
+        }
     }
 }

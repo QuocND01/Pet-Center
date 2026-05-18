@@ -28,7 +28,7 @@ namespace ProductAPI.Controllers
 
         // GET: api/
         [HttpGet]
-        public async Task<IActionResult> Get(ODataQueryOptions<ReadProductDTO> queryOptions)
+        public async Task<IActionResult> Get(ODataQueryOptions<ReadProductDTOForCustomer> queryOptions)
         {
             var result = await _productService.GetAllProductAsync(queryOptions);
             return Ok(result);
@@ -145,12 +145,33 @@ namespace ProductAPI.Controllers
 
         // DELETE: api/Products/5
         // [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProductAsync(Guid id)
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> ChangeStatus(
+      Guid id,
+      [FromBody] Status status)
         {
-            await _productService.DeleteProductAsync(id);
+            Console.WriteLine(status);
+            try
+            {
+                await _productService.ChangeProductStatusAsync(id, status);
 
-            return NoContent();
+                return Ok(new
+                {
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===== ERROR =====");
+                Console.WriteLine(ex.ToString());
+
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    inner = ex.InnerException?.Message,
+                    stack = ex.StackTrace
+                });
+            }
         }
 
         [HttpGet("select")]
@@ -183,53 +204,7 @@ namespace ProductAPI.Controllers
             var products = await _productService.GetHotProductsAsync();
             return Ok(products);
         }
-        //[Authorize]
-        //[HttpPost("increase-stock-bulk")]
-        //public async Task<IActionResult> IncreaseStockBulk([FromBody] List<IncreaseStockItemDto> items)
-        //{
-        //    await _productService.IncreaseStockBulk(items);
-        //    return Ok();
-        //}
-        //[Authorize]
-        //[HttpPut("decrease-stock/{id}")]
-        //public async Task<IActionResult> DecreaseStock(Guid id, [FromBody] int quantity)
-        //{
-        //    var success = await _productService.DecreaseStockAsync(id, quantity);
 
-        //    if (!success)
-        //    {
-        //        return BadRequest(new { message = "Sản phẩm không tồn tại hoặc số lượng tồn kho không đủ để xử lý." });
-        //    }
-
-        //    return Ok(true);
-        //}
-        //[Authorize]
-        //[HttpPut("increase-stock/{id}")]
-        //public async Task<IActionResult> IncreaseStock(Guid id, [FromBody] int quantity)
-        //{
-        //    var success = await _productService.IncreaseStockAsync(id, quantity);
-
-        //    if (!success)
-        //    {
-        //        return BadRequest(new { message = "Sản phẩm không tồn tại để cộng lại kho." });
-        //    }
-
-        //    return Ok(true);
-        //}
-
-        //// GET: api/Products/{id}/include-deleted
-        //[HttpGet("{id}/include-deleted")]
-        //public async Task<ActionResult<ReadProductDTO>> GetProductIncludeDeleted(Guid id)
-        //{
-        //    var product = await _productService.GetProductByIdIncludeDeletedAsync(id);
-
-        //    if (product == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return product;
-        //}
 
         //Code Hồ mới thêm
         [HttpGet("internal/{id:guid}")]

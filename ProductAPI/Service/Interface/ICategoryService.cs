@@ -6,15 +6,17 @@ namespace ProductAPI.Service.Interface
 {
     public interface ICategoryService
     {
-        IQueryable<ReadCategoryDTOs> GetAllCategory();
+        IQueryable<ReadCategoryDTOForCustomer> GetAllCategory();
 
-        Task<PagedResult<ReadCategoryDTOs>> GetAllCategoryAdminAsync(
+        Task<PagedResult<ReadCategoryDTO>> GetAllCategoryAdminAsync(
     CategorySpecification spec);
 
-        Task<ReadCategoryDTOs?> GetCategoryByIdAsync(Guid id);
-        Task AddCategoryAsync(CreateCategoryDTOs category);
-        Task UpdateCategoryAsync(Guid id, UpdateCategoryDTOs category);
-        Task DeleteCategoryAsync(Guid id);
+        Task<ReadCategoryDTO?> GetCategoryByIdAsync(Guid id);
+        Task AddCategoryAsync(CreateCategoryDTO category);
+        Task UpdateCategoryAsync(Guid id, UpdateCategoryDTO category);
+        Task ChangeCategoryStatusAsync(
+       Guid id,
+       Status status);
         Task<IEnumerable<ReadCategoryAttributeDTOs>> GetAllCategoryAttributeByCategoryIDAsync(Guid id);
     }
 }

@@ -113,5 +113,14 @@ namespace ImportAPI.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("check-product/{productId}")]
+        public async Task<IActionResult> CheckProduct(Guid productId)
+        {
+            var exists = await _service
+                .HasProductInImportsAsync(productId);
+
+            return Ok(exists);
+        }
     }
 }

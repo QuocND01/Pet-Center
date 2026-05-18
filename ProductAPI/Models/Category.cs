@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProductAPI.Common;
+using System;
 using System.Collections.Generic;
 
 namespace ProductAPI.Models;
@@ -11,7 +12,7 @@ public partial class Category
 
     public string? CategoryLogo { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public Status Status { get; set; } = Status.Active;
 
     public string? CategoryDescription { get; set; }
     public string? PublicId { get; set; }

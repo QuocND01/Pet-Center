@@ -1,9 +1,10 @@
-﻿using ProductAPI.Models;
+﻿using ProductAPI.Common;
+using ProductAPI.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace ProductAPI.DTOs
 {
-    public class ReadBrandDTOs
+    public class ReadBrandDTO
     {
         public Guid BrandId { get; set; }
         public string BrandName { get; set; } = null!;
@@ -11,10 +12,20 @@ namespace ProductAPI.DTOs
 
         public string? BrandLogo { get; set; }
 
-        public bool? IsActive { get; set; }
+        public Status Status { get; set; }
     }
 
-    public class UpdateBrandDTOs
+
+    public class ReadBrandDTOForCustomer
+    {
+        public Guid BrandId { get; set; }
+        public string BrandName { get; set; } = null!;
+        public string? BrandDescription { get; set; }
+
+        public string? BrandLogo { get; set; }
+    }
+
+    public class UpdateBrandDTO
     {
         public Guid BrandId { get; set; }
         [Required(ErrorMessage = "Brand name is required")]
@@ -24,10 +35,10 @@ namespace ProductAPI.DTOs
         public string BrandName { get; set; } = null!;
         public string? BrandDescription { get; set; }
         public IFormFile? BrandLogo { get; set; }
-        public bool? IsActive { get; set; }
+        public Status Status { get; set; }
     }
 
-    public class CreateBrandDTOs
+    public class CreateBrandDTO
     {
         [Required(ErrorMessage = "Brand name is required")]
         [MaxLength(200, ErrorMessage = "Brand name cannot exceed 200 characters")]

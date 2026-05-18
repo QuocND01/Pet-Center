@@ -7,29 +7,22 @@ namespace ProductAPI.Service.Interface
 {
     public interface IProductService
     {
-        Task<List<ReadProductDTO>> GetAllProductAsync(ODataQueryOptions<ReadProductDTO> queryOptions);
+        Task<List<ReadProductDTOForCustomer>> GetAllProductAsync(ODataQueryOptions<ReadProductDTOForCustomer> queryOptions);
 
         Task<PagedResult<ReadProductDTO>> GetAllProductAdminAsync(
     ProductSpecification spec);
         Task<ReadProductDTO> GetProductByIdAsync(Guid id);
         Task AddProductAsync(CreateProductDTO createproduct);
         Task UpdateProductAsync(Guid id, UpdateProductDTO updateproduct);
-        Task DeleteProductAsync(Guid id);
+        Task ChangeProductStatusAsync(Guid id, Status status);
         Task<List<SelectProductDto>> GetProductSelectListAsync();
 
         Task<List<SelectProductDto>> GetProductSelectListToViewAsync();
 
-        Task<IEnumerable<ReadProductDTO>> GetNewProductsAsync();
-        Task<IEnumerable<ReadProductDTO>> GetHotProductsAsync();
+        Task<IEnumerable<ReadProductDTOForCustomer>> GetNewProductsAsync();
+        Task<IEnumerable<ReadProductDTOForCustomer>> GetHotProductsAsync();
 
-        //Task IncreaseStockBulk(List<IncreaseStockItemDto> items);
-        //Task<bool> DecreaseStockAsync(Guid productId, int quantity);
-
-        //Task<bool> IncreaseStockAsync(Guid productId, int quantity);
-        //Task<bool> IncreaseStockAsync(Guid productId, int quantity);
-
-        //Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid id);
-
+       
         // Code mới Hồ mới thêm
         Task<ProductInternalDto?> GetInternalAsync(Guid productId);
         Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds);

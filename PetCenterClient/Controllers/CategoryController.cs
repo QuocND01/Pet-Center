@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
+using PetCenterClient.Common;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
@@ -81,7 +82,7 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAsync(CreateCategoryDTOs model)
+        public async Task<IActionResult> CreateAsync(CreateCategoryDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -113,13 +114,13 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var model = new UpdateCategoryDTOs
+            var model = new UpdateCategoryDTO
             {
                 CategoryId = category.CategoryId,
                 CategoryName = category.CategoryName,
                 CategoryDescription = category.CategoryDescription,
                 ExistingCategoryLogo = category.CategoryLogo,
-                IsActive = category.IsActive,
+                Status = category.Status,
 
                 Attributes = category.Attributes?
                     .Select(a => new UpdateCategoryAttributeDTOs
@@ -134,7 +135,7 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(Guid id, UpdateCategoryDTOs model)
+        public async Task<IActionResult> EditAsync(Guid id, UpdateCategoryDTO model)
         {
             if (!ModelState.IsValid)
             {
@@ -150,33 +151,42 @@ namespace PetCenterClient.Controllers
             return Json(new { success = true });
         }
 
-        // GET: CategoryController/Delete/5
-        public async Task<IActionResult> DeleteAsync(Guid id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
+        public async Task<IActionResult> ChangeStatusAsync(
+     Guid id,
+     Status status)
+        {
             var model = await _categoryService.DetailsCategoryAsync(id);
+
             if (model == null)
             {
                 return NotFound();
             }
 
-            return PartialView("~/Views/AdminViews/Category/_Delete.cshtml", model);
+            ViewBag.Status = status;
+
+            return PartialView(
+                "~/Views/AdminViews/Category/_Delete.cshtml",
+                model);
         }
 
-        // POST: CategoryController/Delete/5
         [HttpPost]
+        [ActionName("ChangeStatusConfirmed")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmAsync(Guid id)
+        public async Task<IActionResult> ChangeStatusConfirmAsync(
+            Guid id,
+            Status status)
         {
             try
             {
-                await _categoryService.DeleteCategoryAsync(id);
+                await _categoryService.ChangeCategoryStatusAsync(
+                    id,
+                    status);
 
-                return Json(new { success = true });
+                return Json(new
+                {
+                    success = true
+                });
             }
             catch (Exception ex)
             {

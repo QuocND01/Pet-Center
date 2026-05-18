@@ -14,6 +14,8 @@ namespace ImportAPI.Repository.Interface
 
         //for deduce
         Task<ImportStockDetail?> GetById(Guid id);
-        
+        Task<bool> CheckProductInImportsAsync(Guid productId);
+
+
     }
 }

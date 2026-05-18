@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PetCenterClient.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterClient.DTOs
 {
-    public class ReadCategoryDTOs
+    public class ReadCategoryDTO
     {
         public Guid CategoryId { get; set; }
 
@@ -10,11 +11,22 @@ namespace PetCenterClient.DTOs
 
         public string? CategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
-        public bool IsActive { get; set; }
+        public Status Status { get; set; }
         public List<ReadCategoryAttributeDTO>? Attributes { get; set; }
     }
 
-    public class CreateCategoryDTOs
+    public class ReadCategoryDTOForCustomer
+    {
+        public Guid CategoryId { get; set; }
+
+        public string CategoryName { get; set; } = null!;
+
+        public string? CategoryLogo { get; set; }
+        public string? CategoryDescription { get; set; }
+        public List<ReadCategoryAttributeDTO>? Attributes { get; set; }
+    }
+
+    public class CreateCategoryDTO
     {
         [Required(ErrorMessage = "Category name is required")]
         [MaxLength(200, ErrorMessage = "Category name cannot exceed 200 characters")]
@@ -27,7 +39,7 @@ namespace PetCenterClient.DTOs
         public List<CreateCategoryAttributeDTOs>? Attributes { get; set; }
     }
 
-    public class UpdateCategoryDTOs
+    public class UpdateCategoryDTO
     {
         public Guid CategoryId { get; set; }
         [Required(ErrorMessage = "Category name is required")]
@@ -39,7 +51,7 @@ namespace PetCenterClient.DTOs
         public IFormFile? CategoryLogo { get; set; }
         public string? ExistingCategoryLogo { get; set; }
         public string? CategoryDescription { get; set; }
-        public bool IsActive { get; set; }
+        public Status Status { get; set; }
         public List<UpdateCategoryAttributeDTOs>? Attributes { get; set; }
     }
 }
