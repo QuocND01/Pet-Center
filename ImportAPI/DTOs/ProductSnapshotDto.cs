@@ -1,8 +1,9 @@
 ﻿namespace ImportAPI.DTOs
-{
+{   
+    //Dto for view snahot
     public class ProductSnapshotDto
     {
-        public Guid ProductSnapshotId { get; set; }
+        
 
         public Guid ImportStockDetailsId { get; set; }
 
@@ -12,6 +13,7 @@
 
         public string ProductBrand { get; set; } = null!;
     }
+    //Dto for retrieve snapshot from productApi
     public class ProductSnapshotResponseDto
     {
         public Guid ProductId { get; set; }

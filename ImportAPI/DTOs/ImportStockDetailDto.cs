@@ -14,7 +14,7 @@
 
         public int StockLeft { get; set; }
 
-        public ProductSnapshotDto? Snapshot { get; set; }
+        public ProductSnapshotDto? ImportProductSnapshot { get; set; }
     }
 
     public class CreateImportStockDetailDto
