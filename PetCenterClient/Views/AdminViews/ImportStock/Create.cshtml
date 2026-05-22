@@ -31,6 +31,16 @@
                     <option value="">-- Choose a supplier --</option>
                 </select>
             </div>
+            <div class="form-group mb-3">
+                <label class="form-label-custom" asp-for="InvoiceNumber">Invoice Number</label>
+                <input class="form-input-custom" asp-for="InvoiceNumber" placeholder="Import invoice number" />
+                <span asp-validation-for="InvoiceNumber" class="validation-message"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label-custom" asp-for="Note">Note</label>
+                <input class="form-input-custom" asp-for="Note" placeholder="Note " />
+                <span asp-validation-for="Note" class="validation-message"></span>
+            </div>
         </div>
         
         <div class="table-card mb-4">

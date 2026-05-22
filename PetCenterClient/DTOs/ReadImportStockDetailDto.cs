@@ -12,7 +12,9 @@ namespace PetCenterClient.DTOs
         public Guid StaffId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
-        public int Status { get; set; } 
+        public int Status { get; set; }
+        public string InvoiceNumber { get; set; } = null!;
+        public string? Note { get; set; }
 
         public List<ImportStockDetailDto> Details { get; set; } = new();
     }
@@ -21,8 +23,9 @@ namespace PetCenterClient.DTOs
     public class CreateImportStockDto
     {
         public Guid SupplierId { get; set; }
+        public string InvoiceNumber { get; set; } = null!;
+        public string? Note { get; set; }
 
-        
         public List<CreateImportStockDetailDto> Details { get; set; } = new();
     }
 
