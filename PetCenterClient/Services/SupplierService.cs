@@ -36,7 +36,7 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
 
-            var res = await _httpClient.GetAsync("/suppliers");
+            var res = await _httpClient.GetAsync("/import-service/suppliers");
 
             res.EnsureSuccessStatusCode();
 
@@ -50,7 +50,7 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
 
-            var res = await _httpClient.GetAsync($"/suppliers/{id}");
+            var res = await _httpClient.GetAsync($"/import-service/suppliers/{id}");
 
             if (!res.IsSuccessStatusCode)
                 return null;
@@ -81,7 +81,7 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
 
             var res = await _httpClient
-                .PutAsJsonAsync($"/suppliers/{id}", dto);
+                .PutAsJsonAsync($"/import-service/suppliers/{id}", dto);
 
             return res.IsSuccessStatusCode;
         }
@@ -91,7 +91,7 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
 
             var res = await _httpClient
-                .DeleteAsync($"/suppliers/{id}");
+                .DeleteAsync($"/import-service/suppliers/{id}");
 
             return res.IsSuccessStatusCode;
         }

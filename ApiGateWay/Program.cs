@@ -187,6 +187,7 @@ var rolePermissions =
 {
 
     { "/suppliers", new[] { "Admin", "Inventory Staff" } },
+    
     //{ "/voucher-service/{everything}", new[] { "Admin" } },
     
 

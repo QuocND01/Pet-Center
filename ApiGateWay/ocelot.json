@@ -151,7 +151,7 @@
     // =========================================================
 
     {
-      "UpstreamPathTemplate": "/suppliers",
+      "UpstreamPathTemplate": "/import-service/suppliers",
       "UpstreamHttpMethod": [ "GET", "POST" ],
 
       "DownstreamPathTemplate": "/api/suppliers",
@@ -167,7 +167,7 @@
       "Priority": 5
     },
     {
-      "UpstreamPathTemplate": "/suppliers/{id}",
+      "UpstreamPathTemplate": "/import-service/suppliers/{id}",
       "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ],
 
       "DownstreamPathTemplate": "/api/suppliers/{id}",
@@ -180,9 +180,21 @@
         }
       ],
 
-      "Priority": 0
+      "Priority": 10
     },
-
+    {
+      "UpstreamPathTemplate": "/import-service/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7029
+        }
+      ],
+      "Priority": 1
+    },
 
 
     // =========================================================
@@ -424,22 +436,10 @@
     },
 
     // =========================================================
-    // Import SERVICE
+    // INVENTORY SERVICE
     // =========================================================
 
-    {
-      "UpstreamPathTemplate": "/import-service/{everything}",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamPathTemplate": "/api/{everything}",
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7029
-        }
-      ],
-      "Priority": 10
-    },
+
 
 
 

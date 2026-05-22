@@ -35,12 +35,12 @@ namespace PetCenterClient.Controllers
             
             var selectProducts = await _productService.GetProductSelectAsync();
 
-            var staffName = await _staffService.GetStaffNameListAsync();
+            //var staffName = await _staffService.GetStaffNameListAsync();
 
             
 
-            var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
-            ViewBag.StaffDict = staffDict;
+            //var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
+            //ViewBag.StaffDict = staffDict;
 
             ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
             //
@@ -73,16 +73,16 @@ namespace PetCenterClient.Controllers
         {
             var import = await _service.GetByIdAsync(id);
 
-            if (import == null)
-                return NotFound();
-            var selectSuppliers = await _suppService.GetSupplierSelectAsync();
-            var selectProducts = await _productService.GetProductSelectToViewAsync();
-            var staffName = await _staffService.GetStaffNameListAsync();
-            var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
-            ViewBag.StaffDict = staffDict;
+            //if (import == null)
+            //    return NotFound();
+            //var selectSuppliers = await _suppService.GetSupplierSelectAsync();
+            //var selectProducts = await _productService.GetProductSelectToViewAsync();
+            //var staffName = await _staffService.GetStaffNameListAsync();
+            //var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
+            //ViewBag.StaffDict = staffDict;
 
-            ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
-            ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
+            //ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
+            //ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
             return View("~/Views/AdminViews/ImportStock/Details.cshtml",import);
         }
 
