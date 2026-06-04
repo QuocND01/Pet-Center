@@ -177,6 +177,8 @@ namespace PetCenterClient.Controllers
             Guid id,
             Status status)
         {
+            Console.WriteLine($"Category ID = {id}");
+            Console.WriteLine($"Status = {status}");
             try
             {
                 await _categoryService.ChangeCategoryStatusAsync(
