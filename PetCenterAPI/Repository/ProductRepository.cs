@@ -1,0 +1,196 @@
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using PetCenterAPI.Common;
+using PetCenterAPI.Models;
+using PetCenterAPI.Repository.Interface;
+using System.Collections;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace PetCenterAPI.Repository
+{
+    public class ProductRepository : IProductRepository
+    {
+        private readonly PetCenterContext _db;
+        private readonly IMapper _mapper;
+        public ProductRepository(PetCenterContext db, IMapper mapper)
+        {
+            _db = db;
+            _mapper = mapper;
+        }
+
+
+        public async Task AddProductAsync(Product product)
+        {
+            _db.Products.Add(product);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task ChangeProductStatusAsync(
+     Guid id,
+     Status status,
+     bool hardDeleteImages = false)
+        {
+            var product = await _db.Products
+                .Include(p => p.ProductImages)
+                .FirstOrDefaultAsync(x => x.ProductId == id);
+
+            if (product == null)
+                throw new Exception("Product not found");
+
+            await _db.Products
+                .Where(p => p.ProductId == id)
+                .ExecuteUpdateAsync(s =>
+                    s.SetProperty(p => p.Status, status));
+
+            if (status == Status.Deleted)
+            {
+                var imageIds = product.ProductImages
+                    .Select(i => i.ImageId)
+                    .ToList();
+
+                if (!imageIds.Any())
+                    return;
+
+                if (hardDeleteImages)
+                {
+                    await _db.ProductImages
+                        .Where(i => imageIds.Contains(i.ImageId))
+                        .ExecuteDeleteAsync();
+                }
+                else
+                {
+                    await _db.ProductImages
+                        .Where(i => imageIds.Contains(i.ImageId))
+                        .ExecuteUpdateAsync(s =>
+                            s.SetProperty(i => i.IsActive, false));
+                }
+            }
+        }
+
+        public IQueryable<Product> GetAllProduct()
+        {
+            try
+            {
+                return _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status == Status.Active)
+                .AsQueryable();
+            }
+            catch (Exception ex) {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<(IEnumerable<Product> Items, int Total)> GetAllProductAdminAsync(
+    ProductSpecification spec)
+        {
+            var query = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status != Status.Deleted)
+                .Where(spec.ToExpression());
+
+            var total = await query.CountAsync();
+            var items = await query
+                .Skip((spec.Page - 1) * spec.PageSize)
+                .Take(spec.PageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
+
+
+        public async Task<IEnumerable<Product>> GetNewProductAsync()
+        {
+            var threeMonthsAgo = DateTime.Now.AddMonths(-3);
+
+            return await _db.Products
+                .Where(p => p.AddedAt >= threeMonthsAgo)
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                .ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids)
+        {
+            return await _db.Products
+                .Where(p => p.Status == Status.Active && ids.Contains(p.ProductId))
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                .ToListAsync();
+        }
+
+
+
+        public Task<Product?> GetProductByIdAsync(Guid id)
+        {
+            return _db.Products.Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductAttributes)
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                .FirstOrDefaultAsync(x => x.ProductId == id);
+        }
+
+
+
+        public async Task UpdateProductAsync(Product product)
+        {
+            _db.Products.Update(product);
+            await _db.SaveChangesAsync();
+        }
+
+
+        public async Task<bool> CheckProductExistAsync(string productName, Guid brandId, Guid categoryId)
+        {
+            return await _db.Products.AnyAsync(p =>
+        p.ProductName == productName &&
+        p.BrandId == brandId &&
+        p.CategoryId == categoryId &&
+        p.Status == Status.Active);
+        }
+
+        public async Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null)
+        {
+            IQueryable<Product> query = _db.Products.AsNoTracking();
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            // Sử dụng ProjectTo để SQL chỉ chọn đúng các cột có trong DTO
+            return await query.ProjectTo<T>(_mapper.ConfigurationProvider)
+                              .ToListAsync();
+        }
+
+        // Hàm sử dụng lấy hình ảnh và tên sản phẩm của Hồ mới thêm
+        public async Task<Product?> GetByIdInternalAsync(Guid productId)
+    => await _db.Products
+        .Include(p => p.ProductImages.Where(i => i.IsActive == true))
+        .AsNoTracking()
+        .FirstOrDefaultAsync(p => p.ProductId == productId && p.Status == Status.Active);
+
+        public async Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds)
+        {
+            return await _db.Products
+                .AsNoTracking()
+                .Include(x => x.Brand)
+                .Include(x => x.Category)
+                .Where(x => productIds.Contains(x.ProductId))
+                .ToListAsync();
+        }
+    }
+}
