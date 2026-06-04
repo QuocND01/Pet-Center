@@ -16,6 +16,7 @@ namespace PetCenterClient.DTOs
         public Guid CategoryAttributeId { get; set; }
 
         public string AttributeName { get; set; } = null!;
+
     }
 
 

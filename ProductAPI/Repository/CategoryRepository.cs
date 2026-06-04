@@ -73,6 +73,7 @@ namespace ProductAPI.Repository
                     CategoryName = c.CategoryName,
                     CategoryLogo = c.CategoryLogo,
                     CategoryDescription = c.CategoryDescription,
+                    Status = c.Status,
                     CategoryAttributes = c.CategoryAttributes
                         .Where(a => a.IsActive)
                         .ToList()

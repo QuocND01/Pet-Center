@@ -117,7 +117,7 @@ namespace ProductAPI.Service
                 brand.BrandLogo = uploadResult.SecureUrl.ToString();
                 brand.PublicId = uploadResult.PublicId;
             }
-
+            Console.WriteLine($"Status: {(int)brand.Status}");
             await _brandRepository.UpdateBrandAsync(brand);
         }
 
