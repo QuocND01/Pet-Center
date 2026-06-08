@@ -23,6 +23,8 @@ namespace PetCenterAPI.Profiles
             // Detail read
             CreateMap<ImportStockDetail, ImportStockDetailDto>();
 
+            // Map snapshot to dto 
+            CreateMap<ImportProductSnapshot, ProductSnapshotDto>();
 
             // Create import
             CreateMap<CreateImportStockDto, ImportStock>()
@@ -53,7 +55,8 @@ namespace PetCenterAPI.Profiles
                 .ForMember(dest => dest.ProductBrand,
                     opt => opt.MapFrom(src => src.BrandName));
 
-
+            
+            
         }
     }
 }

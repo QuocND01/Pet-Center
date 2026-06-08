@@ -38,33 +38,103 @@ namespace PetCenterClient.Controllers
         // POST: Feedback/CreateBulk
         // AJAX endpoint để submit feedback nhiều sản phẩm
         [HttpPost]
-        public async Task<IActionResult> CreateBulk([FromBody] CreateBulkFeedbackDto dto)
+        public async Task<IActionResult> CreateBulk()
         {
-            if (dto?.Feedbacks == null || dto.Feedbacks.Count == 0)
-                return Json(new { success = false, message = "Vui lòng nhập đánh giá." });
+            try
+            {
+                var form = Request.Form;
 
-            var success = await _feedbackService.CreateBulkFeedbackAsync(dto);
+                if (!form.ContainsKey("Feedbacks[0].ProductId"))
+                    return Json(new { success = false, message = "Vui lòng nhập đánh giá." });
 
-            if (success)
-                return Json(new { success = true, message = "Đánh giá của bạn đã được gửi thành công!" });
+                // Build lại MultipartFormDataContent để forward sang FeedbackAPI
+                var forwardContent = new MultipartFormDataContent();
 
-            return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
+                // Forward tất cả text fields (ProductId, OrderId, Rating, Comment)
+                foreach (var key in form.Keys)
+                {
+                    foreach (var val in form[key])
+                    {
+                        forwardContent.Add(new StringContent(val ?? ""), key);
+                    }
+                }
+
+                // Forward tất cả files
+                foreach (var file in form.Files)
+                {
+                    var stream = file.OpenReadStream();
+                    var fileContent = new StreamContent(stream);
+                    fileContent.Headers.ContentType =
+                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                    forwardContent.Add(fileContent, file.Name, file.FileName);
+                }
+
+                var success = await _feedbackService.CreateBulkFeedbackAsync(forwardContent);
+
+                if (success)
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Đánh giá của bạn đã được gửi thành công!"
+                    });
+
+                return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         // POST: Feedback/Update
         // AJAX endpoint để cập nhật feedback
         [HttpPost]
-        public async Task<IActionResult> Update([FromBody] UpdateProductFeedbackDto dto)
+        public async Task<IActionResult> Update()
         {
-            if (dto == null || dto.Rating < 1 || dto.Rating > 5)
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+            try
+            {
+                var form = Request.Form;
 
-            var success = await _feedbackService.UpdateFeedbackAsync(dto);
+                if (!form.ContainsKey("FeedbackId"))
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
 
-            if (success)
-                return Json(new { success = true, message = "Cập nhật đánh giá thành công!" });
+                // Build lại MultipartFormDataContent để forward sang FeedbackAPI
+                var forwardContent = new MultipartFormDataContent();
 
-            return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
+                // Forward text fields (FeedbackId, Rating, Comment, RemovedPublicIds)
+                foreach (var key in form.Keys)
+                {
+                    foreach (var val in form[key])
+                    {
+                        forwardContent.Add(new StringContent(val ?? ""), key);
+                    }
+                }
+
+                // Forward file mới nếu có
+                foreach (var file in form.Files)
+                {
+                    var stream = file.OpenReadStream();
+                    var fileContent = new StreamContent(stream);
+                    fileContent.Headers.ContentType =
+                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                    forwardContent.Add(fileContent, file.Name, file.FileName);
+                }
+
+                var success = await _feedbackService.UpdateFeedbackAsync(forwardContent);
+
+                if (success)
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Cập nhật đánh giá thành công!"
+                    });
+
+                return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

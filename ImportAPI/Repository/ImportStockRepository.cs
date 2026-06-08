@@ -33,6 +33,7 @@ namespace PetCenterAPI.Repository
             return await _context.ImportStocks
                 .Include(x => x.Supplier)
                 .Include(x => x.ImportStockDetails)
+                    .ThenInclude(d => d.ImportProductSnapshot)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
         }
 

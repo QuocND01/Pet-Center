@@ -41,7 +41,7 @@ namespace PetCenterClient.Services
         public async Task<List<ReadImportHeaderDto>> GetAllAsync()
         {
             AddAuthorizationHeader(); // Phải gọi trước khi Send/Get
-            var res = await _httpClient.GetAsync("inventory/importstock");
+            var res = await _httpClient.GetAsync("import-service/importstock");
 
             if (!res.IsSuccessStatusCode) return new List<ReadImportHeaderDto>();
 
@@ -53,7 +53,7 @@ namespace PetCenterClient.Services
         public async Task<ReadImportStockDetailDto?> GetByIdAsync(Guid id)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.GetAsync($"inventory/importstock/{id}");
+            var res = await _httpClient.GetAsync($"import-service/importstock/{id}");
 
             if (!res.IsSuccessStatusCode) return null;
 
@@ -65,7 +65,7 @@ namespace PetCenterClient.Services
         public async Task<Guid> CreateAsync(CreateImportStockDto dto)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PostAsJsonAsync("inventory/importstock", dto);
+            var res = await _httpClient.PostAsJsonAsync("import-service/importstock", dto);
 
             res.EnsureSuccessStatusCode();
             var result = await res.Content.ReadAsStringAsync();
@@ -77,7 +77,7 @@ namespace PetCenterClient.Services
         public async Task ConfirmAsync(Guid id)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PutAsync($"inventory/importstock/{id}/confirm", null);
+            var res = await _httpClient.PutAsync($"import-service/importstock/{id}/confirm", null);
 
             res.EnsureSuccessStatusCode();
             var items = await res.Content.ReadFromJsonAsync<List<IncreaseStockItemDto>>();
@@ -88,14 +88,14 @@ namespace PetCenterClient.Services
         public async Task CancelAsync(Guid id)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PutAsync($"inventory/importstock/{id}/cancel", null);
+            var res = await _httpClient.PutAsync($"import-service/importstock/{id}/cancel", null);
             res.EnsureSuccessStatusCode();
         }
         public async Task<List<ImportDto>> GetAllByTimeAsync()
         {
             AddAuthorizationHeader();
 
-            var res = await _httpClient.GetAsync("inventory/importstock/export");
+            var res = await _httpClient.GetAsync("import-service/importstock/export");
 
             if (!res.IsSuccessStatusCode)
                 return new List<ImportDto>();
@@ -124,7 +124,7 @@ namespace PetCenterClient.Services
         public async Task<string?> DeductFIFO(Guid productId, int quantity)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PostAsJsonAsync($"inventory/importstock/deduct", new { productId, quantity });
+            var res = await _httpClient.PostAsJsonAsync($"import-service/importstock/deduct", new { productId, quantity });
             if (!res.IsSuccessStatusCode) return null;
 
             // Đọc JSON và chỉ lấy giá trị của trường "mapping"
@@ -136,7 +136,7 @@ namespace PetCenterClient.Services
         public async Task<bool> ReturnStock(string mapping)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PostAsJsonAsync($"inventory/importstock/return", new
+            var res = await _httpClient.PostAsJsonAsync($"import-service/importstock/return", new
             {
                 mapping
             });

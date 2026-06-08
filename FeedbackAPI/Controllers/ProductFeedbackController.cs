@@ -75,13 +75,15 @@ namespace FeedbackAPI.Controllers
         // Tạo feedback cho nhiều sản phẩm trong 1 order cùng lúc
         [HttpPost("bulk")]
         [Authorize]
-        public async Task<IActionResult> CreateBulkFeedback([FromBody] CreateBulkFeedbackDto dto)
+        public async Task<IActionResult> CreateBulkFeedback([FromForm] BulkFeedbackFormDto form)
         {
             try
             {
                 var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (customerIdClaim == null || !Guid.TryParse(customerIdClaim, out var customerId))
                     return Unauthorized(new { success = false, message = "Invalid token." });
+
+                var dto = MapFromForm(form, Request.Form.Files);
 
                 var result = await _service.CreateBulkFeedbackAsync(customerId, dto);
                 return Ok(new { success = true, data = result });
@@ -130,6 +132,38 @@ namespace FeedbackAPI.Controllers
             {
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
+        }
+
+        // =================== HELPER ===================
+
+        // Map form data + files sang CreateBulkFeedbackDto
+        // Files được gắn theo index: Feedbacks[0].MediaFiles, Feedbacks[1].MediaFiles, ...
+        private static CreateBulkFeedbackDto MapFromForm(
+            BulkFeedbackFormDto form,
+            IFormFileCollection allFiles)
+        {
+            var dto = new CreateBulkFeedbackDto();
+
+            for (int i = 0; i < form.Feedbacks.Count; i++)
+            {
+                var f = form.Feedbacks[i];
+
+                // Lấy files theo key Feedbacks[i].MediaFiles
+                var fileKey = $"Feedbacks[{i}].MediaFiles";
+                var files = allFiles.GetFiles(fileKey)?.ToList()
+                            ?? new List<IFormFile>();
+
+                dto.Feedbacks.Add(new CreateProductFeedbackDto
+                {
+                    ProductId = f.ProductId,
+                    OrderId = f.OrderId,
+                    Rating = f.Rating,
+                    Comment = f.Comment,
+                    MediaFiles = files
+                });
+            }
+
+            return dto;
         }
     }
 }

@@ -30,4 +30,6 @@ public partial class ProductFeedback
     public bool? IsActive { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public virtual ICollection<FeedbackMedia> MediaFiles { get; set; } = new List<FeedbackMedia>();
 }
