@@ -59,13 +59,6 @@ namespace PetCenterAPI.Repository
                         .Where(i => imageIds.Contains(i.ImageId))
                         .ExecuteDeleteAsync();
                 }
-                else
-                {
-                    await _db.ProductImages
-                        .Where(i => imageIds.Contains(i.ImageId))
-                        .ExecuteUpdateAsync(s =>
-                            s.SetProperty(i => i.IsActive, false));
-                }
             }
         }
 
@@ -76,7 +69,8 @@ namespace PetCenterAPI.Repository
                 return _db.Products
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImages.Where(i => i.IsActive == true))
+                .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status == Status.Active)
                 .AsQueryable();
@@ -92,7 +86,8 @@ namespace PetCenterAPI.Repository
             var query = _db.Products
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImages.Where(i => i.IsActive == true))
+                .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status != Status.Deleted)
                 .Where(spec.ToExpression());
@@ -115,7 +110,8 @@ namespace PetCenterAPI.Repository
                 .Where(p => p.AddedAt >= threeMonthsAgo)
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImages.Where(i => i.IsActive == true))
+                .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute)
                 .ToListAsync();
@@ -128,7 +124,8 @@ namespace PetCenterAPI.Repository
                 .Where(p => p.Status == Status.Active && ids.Contains(p.ProductId))
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImages.Where(i => i.IsActive == true))
+                .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute)
                 .ToListAsync();
@@ -140,7 +137,8 @@ namespace PetCenterAPI.Repository
         {
             return _db.Products.Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages)
+                .Include(p => p.ProductImages.Where(i => i.IsActive == true))
+                .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute)
                 .FirstOrDefaultAsync(x => x.ProductId == id);
@@ -155,13 +153,18 @@ namespace PetCenterAPI.Repository
         }
 
 
-        public async Task<bool> CheckProductExistAsync(string productName, Guid brandId, Guid categoryId)
+        public async Task<bool> CheckProductExistAsync(
+      string productName,
+      Guid brandId,
+      Guid categoryId,
+      Guid? excludeId = null)
         {
             return await _db.Products.AnyAsync(p =>
-        p.ProductName == productName &&
-        p.BrandId == brandId &&
-        p.CategoryId == categoryId &&
-        p.Status == Status.Active);
+                p.ProductName == productName &&
+                p.BrandId == brandId &&
+                p.CategoryId == categoryId &&
+                p.Status == Status.Active &&
+                (!excludeId.HasValue || p.ProductId != excludeId.Value));
         }
 
         public async Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null)
@@ -191,6 +194,11 @@ namespace PetCenterAPI.Repository
                 .Include(x => x.Category)
                 .Where(x => productIds.Contains(x.ProductId))
                 .ToListAsync();
+        }
+
+        public async Task SaveAsync()
+        {
+            await _db.SaveChangesAsync();
         }
     }
 }

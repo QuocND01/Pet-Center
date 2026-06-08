@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OrdersAPI.Service.Interface;
+using PetCenterAPI.Service.Interface;
 
-namespace OrdersAPI.Controllers
+namespace PetCenterAPI.Controllers
 {
     [Route("api/[controller]")]
     public class StatisticsController : ControllerBase

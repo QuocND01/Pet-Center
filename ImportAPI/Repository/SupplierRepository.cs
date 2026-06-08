@@ -1,10 +1,10 @@
-﻿using ImportAPI.Repository.Interface;
+﻿using PetCenterAPI.Repository.Interface;
 
-using ImportAPI.Models;
+using PetCenterAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace ImportAPI.Repository
+namespace PetCenterAPI.Repository
 {
     public class SupplierRepository : ISupplierRepository
     {

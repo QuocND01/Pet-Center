@@ -1,7 +1,7 @@
-﻿using ImportAPI.Models;
-using static ImportAPI.Models.ImportStock;
+﻿using PetCenterAPI.Models;
+using static PetCenterAPI.Models.ImportStock;
 
-namespace ImportAPI.DTOs
+namespace PetCenterAPI.DTOs
 {
     //For get by id
     public class ReadImportStockDto

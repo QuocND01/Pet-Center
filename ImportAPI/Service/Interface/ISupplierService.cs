@@ -1,6 +1,6 @@
-﻿using ImportAPI.DTOs;
+﻿using PetCenterAPI.DTOs;
 
-namespace ImportAPI.Service.Interface
+namespace PetCenterAPI.Service.Interface
 {
     
         public interface ISupplierService

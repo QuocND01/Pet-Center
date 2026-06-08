@@ -1,6 +1,6 @@
-﻿using OrdersAPI.Models;
+﻿using PetCenterAPI.Models;
 
-namespace OrdersAPI.Repository.Interface
+namespace PetCenterAPI.Repository.Interface
 {
     public interface IOrderRepository
     {

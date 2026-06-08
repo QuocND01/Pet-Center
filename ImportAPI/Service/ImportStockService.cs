@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using ImportAPI.Repository.Interface;
-using ImportAPI.Service.Interface;
-using ImportAPI.Models;
-using static ImportAPI.Models.ImportStock;
-using ImportAPI.DTOs;
+using PetCenterAPI.Repository.Interface;
+using PetCenterAPI.Service.Interface;
+using PetCenterAPI.Models;
+using static PetCenterAPI.Models.ImportStock;
+using PetCenterAPI.DTOs;
 
-namespace ImportAPI.Service
+namespace PetCenterAPI.Service
 {
     public class ImportStockService : IImportStockService
     {

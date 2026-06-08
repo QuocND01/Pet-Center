@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using ImportAPI.DTOs;
-using ImportAPI.Models;
+using PetCenterAPI.DTOs;
+using PetCenterAPI.Models;
 
-namespace ImportAPI.Profiles
+namespace PetCenterAPI.Profiles
 {
     public class ImportStockProfile : Profile
     {

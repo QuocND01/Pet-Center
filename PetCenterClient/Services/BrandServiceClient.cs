@@ -8,12 +8,12 @@ using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
-    public class BrandAPIClient : IBrandAPIClient
+    public class BrandServiceClient : IBrandServiceClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BrandAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public BrandServiceClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;

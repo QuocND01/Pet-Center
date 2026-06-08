@@ -14,9 +14,9 @@ namespace PetCenterClient.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IProductAPIClient _productService;
+        private readonly IProductServiceClient _productService;
 
-        public ImportStockService(HttpClient httpClient, IConfiguration config, IHttpContextAccessor httpContextAccessor, IProductAPIClient productService)
+        public ImportStockService(HttpClient httpClient, IConfiguration config, IHttpContextAccessor httpContextAccessor, IProductServiceClient productService)
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(config["Api:Url"] ?? "");

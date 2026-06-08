@@ -88,11 +88,9 @@ namespace PetCenterAPI.Service
             if (brand == null)
                 throw new KeyNotFoundException("Brand not found");
 
-            bool brandHasExist = await _brandRepository
-                .CheckBrandExistAsync(updateBrand.BrandName);
+            bool brandHasExist = await _brandRepository.CheckBrandExistAsync(updateBrand.BrandName, id);
 
-            if (brandHasExist &&
-                !string.Equals(brand.BrandName, updateBrand.BrandName, StringComparison.OrdinalIgnoreCase))
+            if (brandHasExist)
             {
                 throw new InvalidOperationException("Brand already exists");
             }
@@ -122,8 +120,8 @@ namespace PetCenterAPI.Service
         }
 
         public async Task ChangeBrandStatusAsync(
-     Guid id,
-     Status status)
+    Guid id,
+    Status status)
         {
             var brand = await _brandRepository.GetBrandByIdAsync(id);
 

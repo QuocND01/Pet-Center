@@ -1,6 +1,6 @@
-﻿using OrdersAPI.DTOs;
+﻿using PetCenterAPI.DTOs;
 
-namespace OrdersAPI.Service.Interface
+namespace PetCenterAPI.Service.Interface
 {
     public interface ICheckoutService
     {

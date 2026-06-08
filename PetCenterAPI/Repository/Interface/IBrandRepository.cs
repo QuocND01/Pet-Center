@@ -18,7 +18,7 @@ namespace PetCenterAPI.Repository.Interface
       Guid id,
       Status status);
 
-        Task<bool> CheckBrandExistAsync(string brandName);
+        Task<bool> CheckBrandExistAsync(string brandName, Guid? excludeId = null);
 
     }
 }

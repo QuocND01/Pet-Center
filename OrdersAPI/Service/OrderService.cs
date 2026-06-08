@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using OrdersAPI.DTOs;
-using OrdersAPI.Models;
-using OrdersAPI.Repository.Interface;
-using OrdersAPI.Service.Interface;
+using PetCenterAPI.DTOs;
+using PetCenterAPI.Models;
+using PetCenterAPI.Repository.Interface;
+using PetCenterAPI.Service.Interface;
 
-namespace OrdersAPI.Service
+namespace PetCenterAPI.Service
 {
     public class OrderService : IOrderService
     {

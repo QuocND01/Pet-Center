@@ -11,6 +11,7 @@ public partial class ProductImage
 
     public string ImageUrl { get; set; } = null!;
 
+    public DateTime? InactiveAt { get; set; }
     public string? PublicId { get; set; }
 
     public bool? IsActive { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace OrdersAPI.DTOs
+﻿namespace PetCenterAPI.DTOs
 {
     public class OrderDetailRequestDTO
     {

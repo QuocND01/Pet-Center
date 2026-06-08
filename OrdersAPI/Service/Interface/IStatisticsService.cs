@@ -1,4 +1,4 @@
-﻿namespace OrdersAPI.Service.Interface
+﻿namespace PetCenterAPI.Service.Interface
 {
     public interface IStatisticsService
     {

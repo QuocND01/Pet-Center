@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OrdersAPI.DTOs;
-using OrdersAPI.Service.Interface;
+using PetCenterAPI.DTOs;
+using PetCenterAPI.Service.Interface;
 
-namespace OrdersAPI.Controllers
+namespace PetCenterAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

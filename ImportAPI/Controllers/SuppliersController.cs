@@ -1,8 +1,8 @@
-﻿using ImportAPI.DTOs;
-using ImportAPI.Service.Interface;
+﻿using PetCenterAPI.DTOs;
+using PetCenterAPI.Service.Interface;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ImportAPI.Controllers
+namespace PetCenterAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

@@ -1,9 +1,9 @@
-﻿using OrdersAPI.Repository;
-using OrdersAPI.Repository.Interface;
-using OrdersAPI.Service.Interface;
-using OrdersAPI.DTOs;
+﻿using PetCenterAPI.Repository;
+using PetCenterAPI.Repository.Interface;
+using PetCenterAPI.Service.Interface;
+using PetCenterAPI.DTOs;
 
-namespace OrdersAPI.Service
+namespace PetCenterAPI.Service
 {
     public class StatisticsService : IStatisticsService 
 {

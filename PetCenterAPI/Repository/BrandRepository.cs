@@ -20,9 +20,12 @@ namespace PetCenterAPI.Repository
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> CheckBrandExistAsync(string brandName)
+        public async Task<bool> CheckBrandExistAsync(string brandName, Guid? excludeId = null)
         {
-            return await _db.Brands.AnyAsync(b => b.BrandName == brandName && b.Status == Status.Active);
+            return await _db.Brands.AnyAsync(b =>
+                b.BrandName == brandName &&
+                b.Status == Status.Active &&
+                (!excludeId.HasValue || b.BrandId != excludeId.Value));
         }
 
         public async Task ChangeBrandStatusAsync(

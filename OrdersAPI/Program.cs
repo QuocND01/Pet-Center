@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using OrdersAPI.Models;
-using OrdersAPI.Repository;
-using OrdersAPI.Repository.Interface;
-using OrdersAPI.Service;
-using OrdersAPI.Service.Interface;
+using PetCenterAPI.Models;
+using PetCenterAPI.Repository;
+using PetCenterAPI.Repository.Interface;
+using PetCenterAPI.Service;
+using PetCenterAPI.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration

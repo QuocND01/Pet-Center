@@ -99,41 +99,16 @@ namespace PetCenterAPI.Service
 
                 case Status.Deleted:
                     {
-                        bool hasOrder = await HasProductInOrdersAsync(id);
-                        bool hasImport = await HasProductInImportsAsync(id);
+                        // 1️⃣ update product status only
+                        await _productRepository.ChangeProductStatusAsync(id, Status.Deleted);
 
-                        bool canHardDelete = !hasOrder && !hasImport;
-
-                        if (canHardDelete)
+                        // 2️⃣ mark images for cleanup (NO DELETE)
+                        foreach (var image in product.ProductImages)
                         {
-                            foreach (var image in product.ProductImages)
-                            {
-                                if (!string.IsNullOrEmpty(image.PublicId))
-                                {
-                                    try
-                                    {
-                                        await _cloudinaryService.DeleteImageAsync(image.PublicId);
-                                    }
-                                    catch
-                                    {
-                                    }
-                                }
-                            }
-
-                            await _productRepository.ChangeProductStatusAsync(
-                                id,
-                                Status.Deleted,
-                                true
-                            );
+                            image.IsActive = false;
+                            image.InactiveAt = DateTime.UtcNow;
                         }
-                        else
-                        {
-                            await _productRepository.ChangeProductStatusAsync(
-                                id,
-                                Status.Deleted,
-                                false
-                            );
-                        }
+                        await _productRepository.SaveAsync();
 
                         break;
                     }
@@ -144,82 +119,17 @@ namespace PetCenterAPI.Service
         }
 
 
-        private async Task<bool> HasProductInOrdersAsync(Guid productId)
-        {
-            try
-            {
-                var response = await _orderClient
-            .GetAsync($"api/OrderDetails/check-product/{productId}");
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"[ORDER API] Status: {response.StatusCode}");
-                Console.WriteLine($"[ORDER API] Body: {content}");
-
-                if (!response.IsSuccessStatusCode)
-                    return true;
-
-                return bool.Parse(content);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[ORDER API ERROR] " + ex.Message);
-                return true;
-            }
-        }
-
-
-        private async Task<bool> HasProductInImportsAsync(Guid productId)
-        {
-            try
-            {
-                var response = await _importClient
-            .GetAsync($"api/ImportStock/check-product/{productId}");
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"[IMPORT API] Status: {response.StatusCode}");
-                Console.WriteLine($"[IMPORT API] Body: {content}");
-
-                if (!response.IsSuccessStatusCode)
-                    return true;
-
-                return bool.Parse(content);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[IMPORT API ERROR] " + ex.Message);
-                return true;
-            }
-        }
-
-        public async Task<List<ReadProductDTOForCustomer>> GetAllProductAsync(ODataQueryOptions<ReadProductDTOForCustomer> queryOptions)
+        public async Task<List<ReadProductDTOForCustomer>> GetAllProductAsync(
+     ODataQueryOptions<ReadProductDTOForCustomer> queryOptions)
         {
             var query = _productRepository
                 .GetAllProduct()
                 .ProjectTo<ReadProductDTOForCustomer>(_mapper.ConfigurationProvider);
 
-            var filtered = (IQueryable<ReadProductDTOForCustomer>)queryOptions.ApplyTo(query);
+            var filtered = (IQueryable<ReadProductDTOForCustomer>)
+                queryOptions.ApplyTo(query);
 
-            var products = await filtered.ToListAsync();
-
-            if (!products.Any())
-                return products;
-
-            var productIds = products.Select(p => p.ProductId).ToList();
-
-            var stocks = await GetStocksFromInventory(productIds);
-
-            var stockDict = stocks.GroupBy(x => x.ProductId).ToDictionary(g => g.Key, g => g.First());
-
-            foreach (var p in products)
-            {
-                p.StockQuantity = stockDict.TryGetValue(p.ProductId, out var s)
-                    ? s.QuantityAvailable
-                    : 0;
-            }
-
-            return products;
+            return await filtered.ToListAsync();
         }
 
 
@@ -230,24 +140,6 @@ namespace PetCenterAPI.Service
 
             var productDTOs = _mapper.Map<IEnumerable<ReadProductDTO>>(items).ToList();
 
-            if (productDTOs.Any())
-            {
-                var productIds = productDTOs.Select(p => p.ProductId).ToList();
-
-                var stocks = await GetStocksFromInventory(productIds);
-
-                var stockDict = stocks
-                    .GroupBy(x => x.ProductId)
-                    .ToDictionary(g => g.Key, g => g.First());
-
-                foreach (var p in productDTOs)
-                {
-                    p.StockQuantity = stockDict.TryGetValue(p.ProductId, out var s)
-                        ? s.QuantityAvailable
-                        : 0;
-                }
-            }
-
             return new PagedResult<ReadProductDTO>(
                 productDTOs,
                 total,
@@ -255,34 +147,6 @@ namespace PetCenterAPI.Service
                 spec.PageSize);
         }
 
-        private async Task<List<StockDto>> GetStocksFromInventory(List<Guid> productIds)
-        {
-            if (productIds == null || !productIds.Any())
-                return new List<StockDto>();
-
-            try
-            {
-                var response = await _inventoryClient.PostAsJsonAsync(
-            "api/Inventory/stocks",
-            productIds);
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"[INVENTORY STOCK] Status: {response.StatusCode}");
-                Console.WriteLine($"[INVENTORY STOCK] Body: {content}");
-
-                if (!response.IsSuccessStatusCode)
-                    return new List<StockDto>();
-
-                return await response.Content.ReadFromJsonAsync<List<StockDto>>()
-                       ?? new List<StockDto>();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[INVENTORY STOCK ERROR] " + ex.Message);
-                return new List<StockDto>();
-            }
-        }
 
 
         public async Task<ReadProductDTO> GetProductByIdAsync(Guid id)
@@ -293,10 +157,6 @@ namespace PetCenterAPI.Service
                 throw new KeyNotFoundException("Product not found");
 
             var result = _mapper.Map<ReadProductDTO>(product);
-
-            var stocks = await GetStocksFromInventory(new List<Guid> { id });
-
-            result.StockQuantity = stocks.FirstOrDefault()?.QuantityAvailable ?? 0;
 
             return result;
         }
@@ -310,12 +170,13 @@ namespace PetCenterAPI.Service
 
             if (updateproduct.BrandId == null || updateproduct.CategoryId == null)
                 throw new Exception("BrandId and CategoryId are required");
-            bool productHasExist = await _productRepository.CheckProductExistAsync(updateproduct.ProductName, updateproduct.BrandId.Value, updateproduct.CategoryId.Value);
+            Console.WriteLine(updateproduct.ProductName);
+            Console.WriteLine(updateproduct.BrandId);
+            Console.WriteLine(updateproduct.CategoryId);
 
-            if (productHasExist &&
-               (product.ProductName != updateproduct.ProductName ||
-                product.BrandId != updateproduct.BrandId ||
-                product.CategoryId != updateproduct.CategoryId))
+            bool productHasExist = await _productRepository.CheckProductExistAsync(updateproduct.ProductName,updateproduct.BrandId.Value,updateproduct.CategoryId.Value,id);
+            Console.WriteLine(productHasExist);
+            if (productHasExist)
             {
                 throw new InvalidOperationException("Product already exists");
             }
@@ -334,35 +195,15 @@ namespace PetCenterAPI.Service
      .Where(x => x.IsActive == true)
      .ToList();
 
-            bool hasOrder = await HasProductInOrdersAsync(product.ProductId);
-            bool hasImport = await HasProductInImportsAsync(product.ProductId);
-
-            bool canReplaceOldImages = !hasOrder && !hasImport;
-
             foreach (var img in currentImages)
             {
-                bool imageStillExists = existingImages.Any(x =>
+                bool stillExists = existingImages.Any(x =>
                     string.Equals(x, img.ImageUrl, StringComparison.OrdinalIgnoreCase));
 
-                if (!imageStillExists)
+                if (!stillExists)
                 {
-                    // product chưa từng xuất hiện trong order/import
-                    // => cho phép xoá thật
-                    if (canReplaceOldImages)
-                    {
-                        if (!string.IsNullOrEmpty(img.PublicId))
-                        {
-                            await _cloudinaryService.DeleteImageAsync(img.PublicId);
-                        }
-
-                        product.ProductImages.Remove(img);
-                    }
-                    else
-                    {
-                        // đã từng nằm trong order/import
-                        // => giữ ảnh để history không mất
-                        img.IsActive = false;
-                    }
+                    img.IsActive = false;
+                    img.InactiveAt = DateTime.UtcNow;
                 }
             }
 
@@ -371,8 +212,7 @@ namespace PetCenterAPI.Service
             {
                 foreach (var file in updateproduct.ImageFiles)
                 {
-                    var uploadResult = await _cloudinaryService
-                        .UploadImageAsync(file, "products");
+                    var uploadResult = await _cloudinaryService.UploadImageAsync(file, "products");
 
                     if (uploadResult == null ||
                         uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
@@ -395,19 +235,26 @@ namespace PetCenterAPI.Service
             {
                 var existingAttrs = product.ProductAttributes ??= new List<ProductAttribute>();
 
+                var newAttrSet = updateproduct.Attributes
+                    .Select(a => a.AttributeValue.Trim().ToLower())
+                    .ToHashSet();
+
+                // 1️⃣ deactivate missing attributes
                 foreach (var oldAttr in existingAttrs)
                 {
-                    if (!updateproduct.Attributes.Any(a =>
-                        string.Equals(a.AttributeValue, oldAttr.AttributeValue, StringComparison.OrdinalIgnoreCase)))
+                    if (!newAttrSet.Contains(oldAttr.AttributeValue.Trim().ToLower()))
                     {
                         oldAttr.IsActive = false;
                     }
                 }
 
+                // 2️⃣ activate or add new attributes
                 foreach (var newAttr in updateproduct.Attributes)
                 {
+                    var normalized = newAttr.AttributeValue.Trim().ToLower();
+
                     var match = existingAttrs.FirstOrDefault(a =>
-                        string.Equals(a.AttributeValue, newAttr.AttributeValue, StringComparison.OrdinalIgnoreCase));
+                        a.AttributeValue.Trim().ToLower() == normalized);
 
                     if (match == null)
                     {

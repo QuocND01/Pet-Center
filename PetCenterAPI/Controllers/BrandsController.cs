@@ -111,7 +111,7 @@ namespace PetCenterAPI.Controllers
             }
         }
 
-        //[Authorize]
+      //  [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostBrandAsync([FromForm] CreateBrandDTO createBrand)
         {

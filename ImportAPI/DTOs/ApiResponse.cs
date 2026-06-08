@@ -1,4 +1,4 @@
-﻿namespace ImportAPI.DTOs
+﻿namespace PetCenterAPI.DTOs
 {
     public class ApiResponse<T>
     {

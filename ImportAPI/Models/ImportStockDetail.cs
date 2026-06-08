@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ImportAPI.Models;
+namespace PetCenterAPI.Models;
 
 public partial class ImportStockDetail
 {
