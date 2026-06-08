@@ -61,7 +61,7 @@ namespace PetCenterAPI.DTOs
 
     public class UpdateProductDTO
     {
-        public Guid ProductId { get; set; }
+       // public Guid ProductId { get; set; }
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
@@ -75,7 +75,7 @@ namespace PetCenterAPI.DTOs
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? ProductDescription { get; set; }
 
-        public Status Status { get; set; }
+     //   public Status Status { get; set; }
         public Guid? BrandId { get; set; }
 
         public Guid? CategoryId { get; set; }

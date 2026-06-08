@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace OrdersAPI.Models;
+namespace PetCenterAPI.Models;
 
 public partial class PetCenterOrderServiceContext : DbContext
 {

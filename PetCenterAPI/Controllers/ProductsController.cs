@@ -36,7 +36,7 @@ namespace PetCenterAPI.Controllers
 
 
         [HttpGet("admin")]
-        public async Task<ActionResult<PagedResult<ReadProductDTO>>> GetAllProductAdmin(
+        public async Task<ActionResult<PagedResult<ReadProductDTO>>> GetAllProductAdminAsync(
     [FromQuery] ProductSpecification spec)
         {
             var result = await _productService.GetAllProductAdminAsync(spec);
@@ -45,7 +45,7 @@ namespace PetCenterAPI.Controllers
 
         // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ReadProductDTO>> GetProduct(Guid id)
+        public async Task<ActionResult<ReadProductDTO>> DetailsProductAsync(Guid id)
         {
             var product = await _productService.GetProductByIdAsync(id);
 
@@ -65,6 +65,7 @@ namespace PetCenterAPI.Controllers
             Guid id,
             [FromForm] UpdateProductDTO product)
         {
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
@@ -81,17 +82,15 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new { success = true, message = "Product updated successfully" });
             }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(new { success = false, message = ex.Message }); // 409
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message }); // 404
-            }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                Console.WriteLine(ex.ToString());
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.ToString()
+                });
             }
         }
 

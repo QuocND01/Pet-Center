@@ -1,6 +1,6 @@
-﻿using ImportAPI.Models;
+﻿using PetCenterAPI.Models;
 
-namespace ImportAPI.Repository.Interface
+namespace PetCenterAPI.Repository.Interface
 {
     public interface ISupplierRepository
     {

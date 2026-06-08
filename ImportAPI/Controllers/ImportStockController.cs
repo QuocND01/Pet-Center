@@ -1,9 +1,9 @@
-﻿using ImportAPI.DTOs;
-using ImportAPI.Service.Interface;
+﻿using PetCenterAPI.DTOs;
+using PetCenterAPI.Service.Interface;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace ImportAPI.Controllers
+namespace PetCenterAPI.Controllers
 {
     //[Authorize]
     [Route("api/[controller]")]

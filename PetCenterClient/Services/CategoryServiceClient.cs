@@ -5,12 +5,12 @@ using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
-    public class CategoryAPIClient : ICategoryAPIClient
+    public class CategoryServiceClient : ICategoryServiceClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CategoryAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public CategoryServiceClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;

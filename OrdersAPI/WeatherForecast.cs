@@ -1,4 +1,4 @@
-namespace OrdersAPI
+namespace PetCenterAPI
 {
     public class WeatherForecast
     {

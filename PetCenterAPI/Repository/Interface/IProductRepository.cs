@@ -19,7 +19,7 @@ namespace PetCenterAPI.Repository.Interface
      Guid id,
      Status status,
      bool hardDeleteImages = false);
-        Task<bool> CheckProductExistAsync(string productName, Guid brandId, Guid categoryId);
+        Task<bool> CheckProductExistAsync(string productName,Guid brandId,Guid categoryId,Guid? excludeId = null);
 
         Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null);
 
@@ -31,5 +31,7 @@ namespace PetCenterAPI.Repository.Interface
         Task<Product?> GetByIdInternalAsync(Guid productId);
 
         Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds);
+
+        Task SaveAsync();
     }
 }

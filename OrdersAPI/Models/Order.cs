@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OrdersAPI.Models;
+namespace PetCenterAPI.Models;
 
 public partial class Order
 {

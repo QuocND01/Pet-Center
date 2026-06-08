@@ -3,7 +3,7 @@ using PetCenterClient.DTOs;
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IProductAPIClient
+    public interface IProductServiceClient
     {
         Task<OdataResponse<ReadProductDTOForCustomer>> GetAllProductAsync(
                 string? search,

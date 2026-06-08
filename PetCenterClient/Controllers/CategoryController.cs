@@ -10,9 +10,9 @@ namespace PetCenterClient.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ICategoryAPIClient _categoryService;
+        private readonly ICategoryServiceClient _categoryService;
 
-        public CategoryController(ICategoryAPIClient categoryService)
+        public CategoryController(ICategoryServiceClient categoryService)
         {
             _categoryService = categoryService;
         }

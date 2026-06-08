@@ -1,6 +1,5 @@
-﻿namespace ImportAPI.DTOs
-{   
-    //Dto for view snahot
+﻿namespace PetCenterAPI.DTOs
+{
     public class ProductSnapshotDto
     {
         

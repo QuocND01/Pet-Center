@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using OrdersAPI.DTOs;
-using OrdersAPI.Models;
+using PetCenterAPI.DTOs;
+using PetCenterAPI.Models;
 
 public class MappingProfile : Profile
 {

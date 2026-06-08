@@ -75,6 +75,12 @@ namespace PetCenterAPI.Service
                 category.CategoryLogo = uploadResult.SecureUrl.ToString();
                 category.PublicId = uploadResult.PublicId;
             }
+            Console.WriteLine(category.CategoryAttributes?.Count);
+
+            foreach (var attr in category.CategoryAttributes ?? [])
+            {
+                Console.WriteLine(attr.AttributeName);
+            }
 
             await _categoryRepository.AddCategoryAsync(category);
         }
@@ -153,11 +159,9 @@ namespace PetCenterAPI.Service
                 }
             }
 
-            bool hasExist = await _categoryRepository
-                .CheckCategoryExistAsync(category.CategoryName);
+            bool hasExist = await _categoryRepository.CheckCategoryExistAsync(category.CategoryName, id);
 
-            if (hasExist &&
-                !string.Equals(existingCategory.CategoryName, category.CategoryName, StringComparison.OrdinalIgnoreCase))
+            if (hasExist)
             {
                 throw new InvalidOperationException("Category already exists");
             }
@@ -190,28 +194,31 @@ namespace PetCenterAPI.Service
                 foreach (var oldAttr in existingAttrs)
                 {
                     if (!category.Attributes.Any(a =>
-                        string.Equals(a.AttributeName, oldAttr.AttributeName, StringComparison.OrdinalIgnoreCase)))
+                        a.CategoryAttributeId == oldAttr.CategoryAttributeId))
                     {
                         oldAttr.IsActive = false;
                     }
                 }
-                foreach (var newAttr in category.Attributes)
-                {
-                    var match = existingAttrs.FirstOrDefault(a =>
-                        string.Equals(a.AttributeName, newAttr.AttributeName, StringComparison.OrdinalIgnoreCase));
 
-                    if (match == null)
+                foreach (var attrDto in category.Attributes)
+                {
+                    var existingAttr = existingAttrs.FirstOrDefault(a =>
+                        a.CategoryAttributeId == attrDto.CategoryAttributeId);
+
+                    if (existingAttr != null)
                     {
-                        existingAttrs.Add(new CategoryAttribute
-                        {
-                            CategoryId = id,
-                            AttributeName = newAttr.AttributeName,
-                            IsActive = true
-                        });
+                        existingAttr.AttributeName = attrDto.AttributeName;
+                        existingAttr.IsActive = true;
                     }
                     else
                     {
-                        match.IsActive = true;
+                        existingAttrs.Add(new CategoryAttribute
+                        {
+                            CategoryAttributeId = Guid.NewGuid(),
+                            CategoryId = id,
+                            AttributeName = attrDto.AttributeName,
+                            IsActive = true
+                        });
                     }
                 }
             }

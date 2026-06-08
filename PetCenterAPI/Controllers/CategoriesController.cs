@@ -34,7 +34,7 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpGet("admin")]
-        public async Task<ActionResult<PagedResult<ReadCategoryDTO>>> GetAllCategoryAdmin(
+        public async Task<ActionResult<PagedResult<ReadCategoryDTO>>> GetAllCategoryAdminAsync(
     [FromQuery] CategorySpecification spec)
         {
             var result = await _categoryService.GetAllCategoryAdminAsync(spec);
@@ -65,7 +65,7 @@ namespace PetCenterAPI.Controllers
 
         // [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(
+        public async Task<IActionResult> PutCategoryAsync(
       Guid id,
       [FromForm] UpdateCategoryDTO updateCategoryDTOs)
         {
@@ -169,7 +169,7 @@ namespace PetCenterAPI.Controllers
 
         //[Authorize]
         [HttpPatch("{id}/status")]
-        public async Task<IActionResult> ChangeStatus(
+        public async Task<IActionResult> ChangeStatusAsync(
      Guid id,
      [FromBody] Status status)
         {

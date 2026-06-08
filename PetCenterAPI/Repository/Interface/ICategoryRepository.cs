@@ -19,7 +19,7 @@ namespace PetCenterAPI.Repository.Interface
        Guid id,
        Status status);
 
-        Task<bool> CheckCategoryExistAsync(string categoryName);
+        Task<bool> CheckCategoryExistAsync(string categoryName, Guid? excludeId = null);
 
         Task<IEnumerable<CategoryAttribute>> GetAllCategoryAttributeByCategoryIDAsync(Guid id);
     }

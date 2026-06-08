@@ -7,11 +7,11 @@ namespace PetCenterClient.Controllers
     public class CartController : Controller
     {
         private readonly ICartService _cartService;
-        private readonly IProductAPIClient _productService;
+        private readonly IProductServiceClient _productService;
 
         public CartController(
             ICartService cartService,
-            IProductAPIClient productService)
+            IProductServiceClient productService)
         {
             _cartService = cartService;
             _productService = productService;

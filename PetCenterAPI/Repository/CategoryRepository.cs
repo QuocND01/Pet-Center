@@ -21,11 +21,15 @@ namespace PetCenterAPI.Repository
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> CheckCategoryExistAsync(string categoryName)
+        public async Task<bool> CheckCategoryExistAsync(
+    string categoryName,
+    Guid? excludeId = null)
         {
-            return await _db.Categories.AnyAsync(c => c.CategoryName == categoryName && c.Status == Status.Active);
+            return await _db.Categories.AnyAsync(c =>
+                c.CategoryName == categoryName &&
+                c.Status == Status.Active &&
+                (!excludeId.HasValue || c.CategoryId != excludeId.Value));
         }
-
 
         public async Task ChangeCategoryStatusAsync(
       Guid id,
@@ -37,7 +41,7 @@ namespace PetCenterAPI.Repository
                     s.SetProperty(c => c.Status, status));
 
             // inactive/deleted => disable attributes
-            if (status != Status.Active)
+            if (status == Status.Deleted)
             {
                 await _db.CategoryAttributes
                     .Where(a => a.CategoryId == id)

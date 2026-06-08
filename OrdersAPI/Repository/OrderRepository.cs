@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OrdersAPI.Models;
-using OrdersAPI.Repository.Interface;
+using PetCenterAPI.Models;
+using PetCenterAPI.Repository.Interface;
 
-namespace OrdersAPI.Repository
+namespace PetCenterAPI.Repository
 {
     public class OrderRepository : IOrderRepository
     {

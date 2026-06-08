@@ -69,6 +69,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddHostedService<CleanupProductImageJob>();
 
 
 builder.Services.AddSwaggerGen(c =>
@@ -157,18 +158,20 @@ builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddHttpClient("InventoryAPI", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["Services:InventoryAPI"]);
-});
-builder.Services.AddHttpClient("OrdersAPI", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["Services:OrdersAPI"]);
-});
-builder.Services.AddHttpClient("ImportStockAPI", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["Services:ImportStockAPI"]);
-});
+//builder.Services.AddHttpClient("InventoryAPI", client =>
+//{
+//    client.BaseAddress = new Uri(builder.Configuration["Services:InventoryAPI"]);
+//});
+//builder.Services.AddHttpClient("OrdersAPI", client =>
+//{
+//    client.BaseAddress = new Uri(builder.Configuration["Services:OrdersAPI"]);
+//});
+//builder.Services.AddHttpClient("ImportStockAPI", client =>
+//{
+//    client.BaseAddress = new Uri(builder.Configuration["Services:ImportStockAPI"]);
+//});
+
+
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));

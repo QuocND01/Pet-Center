@@ -19,7 +19,12 @@ namespace PetCenterAPI.Profiles
                 .ForMember(dest => dest.Images,
                     opt => opt.MapFrom(src => src.ProductImages.Select(i => i.ImageUrl)))
                 .ForMember(dest => dest.Attributes,
-                    opt => opt.MapFrom(src => src.ProductAttributes));
+                    opt => opt.MapFrom(src => src.ProductAttributes))
+                  .ForMember(dest => dest.StockQuantity,
+                        opt => opt.MapFrom(src =>
+                            src.Inventory != null
+                                ? src.Inventory.QuantityAvailable
+                                : 0));
 
 
             CreateMap<Product, ReadProductDTOForCustomer>()
@@ -32,7 +37,12 @@ namespace PetCenterAPI.Profiles
              .ForMember(dest => dest.Images,
                  opt => opt.MapFrom(src => src.ProductImages.Select(i => i.ImageUrl)))
              .ForMember(dest => dest.Attributes,
-                 opt => opt.MapFrom(src => src.ProductAttributes));
+                 opt => opt.MapFrom(src => src.ProductAttributes))
+                 .ForMember(dest => dest.StockQuantity,
+                        opt => opt.MapFrom(src =>
+                            src.Inventory != null
+                                ? src.Inventory.QuantityAvailable
+                                : 0));
 
             // Create Product
             CreateMap<CreateProductDTO, Product>()
@@ -49,7 +59,8 @@ namespace PetCenterAPI.Profiles
                 .ForMember(dest => dest.AddedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdateAt, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductImages, opt => opt.Ignore())
-                .ForMember(dest => dest.ProductAttributes, opt => opt.Ignore());
+                .ForMember(dest => dest.ProductAttributes, opt => opt.Ignore())
+                 .ForMember(dest => dest.Status, opt => opt.Ignore());
 
             CreateMap<Product, SelectProductDto>();
             CreateMap<IncreaseStockItemDto, Product>();
