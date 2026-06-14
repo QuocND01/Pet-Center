@@ -25,7 +25,7 @@ namespace PetCenterClient.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.Search = search;
 
-            return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
+            return View("~/Views/CustomerViews/Home/ProductPage.cshtml", result);
         }
 
         public async Task<IActionResult> IndexAdminAsync(
