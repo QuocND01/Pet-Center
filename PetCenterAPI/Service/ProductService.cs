@@ -174,7 +174,7 @@ namespace PetCenterAPI.Service
             Console.WriteLine(updateproduct.BrandId);
             Console.WriteLine(updateproduct.CategoryId);
 
-            bool productHasExist = await _productRepository.CheckProductExistAsync(updateproduct.ProductName,updateproduct.BrandId.Value,updateproduct.CategoryId.Value,id);
+            bool productHasExist = await _productRepository.CheckProductExistAsync(updateproduct.ProductName, updateproduct.BrandId.Value, updateproduct.CategoryId.Value, id);
             Console.WriteLine(productHasExist);
             if (productHasExist)
             {
@@ -236,40 +236,39 @@ namespace PetCenterAPI.Service
                 var existingAttrs = product.ProductAttributes ??= new List<ProductAttribute>();
 
                 var newAttrSet = updateproduct.Attributes
-                    .Select(a => a.AttributeValue.Trim().ToLower())
-                    .ToHashSet();
+     .Select(a => a.CategoryAttributeId)
+     .ToHashSet();
 
-                // 1️⃣ deactivate missing attributes
-                foreach (var oldAttr in existingAttrs)
+                foreach (var oldAttr in existingAttrs.Where(x => x.IsActive == true))
                 {
-                    if (!newAttrSet.Contains(oldAttr.AttributeValue.Trim().ToLower()))
+                    if (!newAttrSet.Contains(oldAttr.CategoryAttributeId))
                     {
                         oldAttr.IsActive = false;
                     }
                 }
 
-                // 2️⃣ activate or add new attributes
                 foreach (var newAttr in updateproduct.Attributes)
                 {
-                    var normalized = newAttr.AttributeValue.Trim().ToLower();
-
                     var match = existingAttrs.FirstOrDefault(a =>
-                        a.AttributeValue.Trim().ToLower() == normalized);
+                        a.CategoryAttributeId == newAttr.CategoryAttributeId);
 
                     if (match == null)
                     {
                         existingAttrs.Add(new ProductAttribute
                         {
                             ProductId = product.ProductId,
+                            CategoryAttributeId = newAttr.CategoryAttributeId,
                             AttributeValue = newAttr.AttributeValue,
                             IsActive = true
                         });
                     }
                     else
                     {
+                        match.AttributeValue = newAttr.AttributeValue;
                         match.IsActive = true;
                     }
                 }
+              
             }
             await _productRepository.UpdateProductAsync(product);
         }
