@@ -53,7 +53,7 @@ namespace PetCenterClient.Controllers
             ViewBag.PageSize = pagesize;
             ViewBag.Brands = await _brandService.GetAllBrandAsync("", 1);
             ViewBag.Categories = await _categoryService.GetAllCategoryAsync("", 1);
-            return View("~/Views/CustomerViews/Home/HomePage.cshtml", result);
+            return View("~/Views/CustomerViews/Home/ProductPage.cshtml", result);
         }
 
 

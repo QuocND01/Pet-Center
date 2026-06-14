@@ -15,7 +15,7 @@ namespace PetCenterClient.Controllers
 
         public IActionResult Index()
         {
-            return RedirectToAction("Index", "Products");
+            return View("~/Views/CustomerViews/Home/HomePage.cshtml");
         }
 
         public IActionResult Privacy()
