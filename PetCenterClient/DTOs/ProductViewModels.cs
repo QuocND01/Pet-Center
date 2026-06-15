@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterClient.DTOs
 {
-    public class ReadProductDTO
+    public class ReadProductViewModel
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = null!;
@@ -30,10 +30,10 @@ namespace PetCenterClient.DTOs
         public List<string>? Images { get; set; }
 
         // Attributes
-        public List<ProductAttributedto>? Attributes { get; set; }
+        public List<ProductAttributeViewModels>? Attributes { get; set; }
     }
 
-    public class ReadProductDTOForCustomer
+    public class ReadProductViewModelForCustomer
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = null!;
@@ -56,10 +56,10 @@ namespace PetCenterClient.DTOs
         public List<string>? Images { get; set; }
 
         // Attributes
-        public List<ProductAttributedto>? Attributes { get; set; }
+        public List<ProductAttributeViewModels>? Attributes { get; set; }
     }
 
-    public class UpdateProductDTO
+    public class UpdateProductViewModel
     {
         public Guid ProductId { get; set; }
         [Required(ErrorMessage = "Product name is required")]
@@ -88,11 +88,11 @@ namespace PetCenterClient.DTOs
 
         public List<string>? ExistingImages { get; set; }
         public Status Status { get; set; }
-        public List<UpdateProductAttributeDTO>? Attributes { get; set; }
+        public List<UpdateProductAttributeViewModel>? Attributes { get; set; }
     }
 
 
-    public class CreateProductDTO
+    public class CreateProductViewModel
     {
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
@@ -116,11 +116,11 @@ namespace PetCenterClient.DTOs
 
         public List<IFormFile>? ImageFiles { get; set; }
 
-        public List<CreateProductAttributeDTO>? Attributes { get; set; }
+        public List<CreateProductAttributeViewModel>? Attributes { get; set; }
     }
 
 
-    public class ProductSelectDto
+    public class ProductSelectViewModel
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = null!;

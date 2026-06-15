@@ -1,78 +1,232 @@
-﻿@model PetCenterClient.DTOs.CreateProductDTO
+﻿@model PetCenterClient.DTOs.CreateProductViewModel
 
 <style>
 
+    .page-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 30px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        margin-bottom: 25px;
+    }
+
+    .section-card {
+        background: #f8f9fa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 48px;
+        border-radius: 12px;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
     .image-preview {
-        width: 120px;
-        height: 120px;
+        width: 150px;
+        height: 150px;
         object-fit: cover;
-        border: 2px dashed #ccc;
+        border-radius: 16px;
+        border: 3px solid #fff;
+        box-shadow: 0 5px 20px rgba(0,0,0,.12);
         cursor: pointer;
-        border-radius: 8px;
+        transition: .25s;
+    }
+
+        .image-preview:hover {
+            transform: scale(1.03);
+        }
+
+    .image-item {
+        position: relative;
     }
 
     .remove-image {
         position: absolute;
         top: -8px;
         right: -8px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
         padding: 0;
     }
 
+    .attribute-row {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .btn-create {
+        min-width: 180px;
+        height: 50px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .add-image-btn {
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
 </style>
-<form method="post"
-      enctype="multipart/form-data"
-      asp-action="Create" asp-controller="Products">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <div class="row">
+<div class="page-card">
 
-        <div class="col-md-12 mb-3">
-            <label asp-for="ProductName" class="form-label"></label>
-            <input asp-for="ProductName" class="form-control" />
-            <span asp-validation-for="ProductName" class="text-danger"></span>
+     
+    <h2 class="page-title">
+        Create Product
+    </h2>
+
+    <p class="page-subtitle">
+        Add a new product to your catalog
+    </p>
+
+    <form method="post"
+          enctype="multipart/form-data"
+          asp-action="Create"
+          asp-controller="Products">
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
         </div>
 
-        <div class="col-md-12 mb-3">
-            <label asp-for="ProductDescription"></label>
-<textarea asp-for="ProductDescription"
-          class="form-control"></textarea>
-            <span asp-validation-for="ProductDescription" class="text-danger"></span>
+        <div class="section-card">
+
+            <div class="section-title">
+                Basic Information
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-12 mb-3">
+
+                    <label asp-for="ProductName"
+                           class="form-label"></label>
+
+                    <input asp-for="ProductName"
+                           class="form-control" />
+
+                    <span asp-validation-for="ProductName"
+                          class="text-danger"></span>
+
+                </div>
+
+                <div class="col-md-12 mb-3">
+
+                    <label asp-for="ProductDescription"
+                           class="form-label"></label>
+
+                    <textarea asp-for="ProductDescription"
+                              class="form-control"></textarea>
+
+                    <span asp-validation-for="ProductDescription"
+                          class="text-danger"></span>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label asp-for="ProductPrice"
+                           class="form-label"></label>
+
+                    <input asp-for="ProductPrice"
+                           type="number"
+                           class="form-control" />
+
+                    <span asp-validation-for="ProductPrice"
+                          class="text-danger"></span>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="col-md-6 mb-3">
-            <label asp-for="ProductPrice"></label>
-            <input asp-for="ProductPrice"
-                   type="number"
-                   class="form-control" />
-            <span asp-validation-for="ProductPrice" class="text-danger"></span>
+        <div class="section-card">
+
+            <div class="section-title">
+                Product Classification
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <label asp-for="BrandId"
+                           class="form-label"></label>
+
+                    <select asp-for="BrandId"
+                            asp-items="@(ViewBag.Brands as SelectList)"
+                            class="form-select">
+
+                        <option value="">
+                            -- Select Brand --
+                        </option>
+
+                    </select>
+
+                    <span asp-validation-for="BrandId"
+                          class="text-danger"></span>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label asp-for="CategoryId"
+                           class="form-label"></label>
+
+                    <select asp-for="CategoryId"
+                            asp-items="@(ViewBag.Categories as SelectList)"
+                            class="form-select">
+
+                        <option value="">
+                            -- Select Category --
+                        </option>
+
+                    </select>
+
+                    <span asp-validation-for="CategoryId"
+                          class="text-danger"></span>
+
+                </div>
+
+            </div>
+
         </div>
 
+        <div class="section-card">
 
-        <div class="col-md-6 mb-3">
-            <label asp-for="BrandId"></label>
-            <select asp-for="BrandId"
-                    asp-items="@(ViewBag.Brands as SelectList)"
-                    class="form-control">
-                <option value="">-- Select Brand --</option>
-            </select>
-            <span asp-validation-for="BrandId" class="text-danger"></span>
-        </div>
-
-        <div class="col-md-6 mb-3">
-            <label asp-for="CategoryId"></label>
-            <select asp-for="CategoryId"
-                    asp-items="@(ViewBag.Categories as SelectList)"
-                    class="form-control">
-                <option value="">-- Select Category --</option>
-            </select>
-            <span asp-validation-for="CategoryId" class="text-danger"></span>
-        </div>
-        <div class="col-md-12 mt-3">
-
-            <label class="form-label">Attributes</label>
+            <div class="section-title">
+                Product Attributes
+            </div>
 
             <div id="attributeList">
 
@@ -80,24 +234,30 @@
                 {
                     for (int i = 0; i < Model.Attributes.Count; i++)
                     {
-                        <div class="row mb-2">
+                        <div class="attribute-row">
 
-                            <div class="col-md-5">
-                                <input class="form-control"
-                                       value="@Model.Attributes[i].AttributeName"
-                                       readonly />
-                            </div>
+                            <div class="row">
 
-                            <div class="col-md-7">
+                                <div class="col-md-5">
 
-                                <input name="Attributes[@i].AttributeValue"
-                                       value="@Model.Attributes[i].AttributeValue"
-                                       class="form-control"
-                                       placeholder="Enter value" />
+                                    <input class="form-control"
+                                           value="@Model.Attributes[i].AttributeName"
+                                           readonly />
 
-                                <input type="hidden"
-                                       name="Attributes[@i].CategoryAttributeId"
-                                       value="@Model.Attributes[i].CategoryAttributeId" />
+                                </div>
+
+                                <div class="col-md-7">
+
+                                    <input name="Attributes[@i].AttributeValue"
+                                           value="@Model.Attributes[i].AttributeValue"
+                                           class="form-control"
+                                           placeholder="Enter value" />
+
+                                    <input type="hidden"
+                                           name="Attributes[@i].CategoryAttributeId"
+                                           value="@Model.Attributes[i].CategoryAttributeId" />
+
+                                </div>
 
                             </div>
 
@@ -109,51 +269,67 @@
 
         </div>
 
+        <div class="section-card">
 
-    </div>
+            <div class="section-title">
+                Product Images
+            </div>
 
-    <div class="col-md-12 mb-3">
+            <div id="imageList"
+                 class="d-flex flex-wrap gap-3">
 
-        <label class="form-label">Product Images</label>
+                <div class="image-item">
 
-        <div id="imageList" class="d-flex flex-wrap gap-3">
+                    <input type="file"
+                           name="ImageFiles"
+                           accept="image/*"
+                           hidden
+                           onchange="previewSelectedImage(this,'preview_0')" />
 
-            <div class="image-item position-relative">
+                    <img id="preview_0"
+                         src="https://via.placeholder.com/150"
+                         class="image-preview"
+                         onclick="this.previousElementSibling.click()" />
 
-                <input type="file"
-                       name="ImageFiles"
-                       accept="image/*"
-                       hidden
-                       onchange="previewSelectedImage(this,'preview_0')" />
+                    <button type="button"
+                            class="btn btn-danger remove-image"
+                            onclick="removeImage(this)">
 
-                <img id="preview_0"
-                     src="https://via.placeholder.com/120"
-                     class="image-preview"
-                     onclick="this.previousElementSibling.click()" />
+                        <i class="bi bi-x-lg"></i>
 
-                <button type="button"
-                        class="btn btn-danger btn-sm remove-image"
-                        onclick="removeImage(this)">
-                    ✖
-                </button>
+                    </button>
+
+                </div>
 
             </div>
 
+            <button type="button"
+                    id="addImage"
+                    class="btn btn-success add-image-btn mt-3">
+
+                <i class="bi bi-plus-lg me-1"></i>
+                Add Image
+
+            </button>
+
         </div>
 
-        <button type="button"
-                id="addImage"
-                class="btn btn-success mt-2">
-            + Add Image
-        </button>
+        <div class="text-end">
 
-    </div>
+            <button type="submit"
+                    class="btn btn-success btn-create">
 
-    <button class="btn btn-primary">
-        Create Product
-    </button>
+                <i class="bi bi-check-circle me-1"></i>
+                Create Product
 
-</form>
+            </button>
+
+        </div>
+
+    </form>
+     
+
+</div>
 
 
 <script>

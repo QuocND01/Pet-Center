@@ -1,81 +1,149 @@
-﻿@model PetCenterClient.DTOs.ReadProductDTO
+﻿@model PetCenterClient.DTOs.ReadProductViewModel
 
 <style>
 
+    .detail-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 25px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #212529;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 13px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 15px;
+        color: #212529;
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e9ecef;
+    }
+
     .product-image {
-        width: 120px;
-        height: 120px;
+        width: 130px;
+        height: 130px;
         object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        margin-right: 8px;
+        border-radius: 14px;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,.08);
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+
+    .empty-text {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .table thead th {
+        font-size: 13px;
+        text-transform: uppercase;
+        color: #6c757d;
     }
 
 </style>
 
-<div class="row">
+<div class="detail-card">
 
-    <div class="col-md-12 mb-3">
-        <label class="fw-bold">Product Name</label>
-        <div>@Model.ProductName</div>
+     
+    <!-- PRODUCT BASIC INFO -->
+    <div class="section-title">
+        Product Information
     </div>
 
-    <div class="col-md-12 mb-3">
-        <label class="fw-bold">Description</label>
-        <div>@Model.ProductDescription</div>
-    </div>
+    <div class="row">
 
-    <div class="col-md-6 mb-3">
-        <label class="fw-bold">Price</label>
-        <div>@Model.ProductPrice</div>
-    </div>
+        <div class="col-md-12 mb-3 info-box">
+            <div class="info-label">Product Name</div>
+            <div class="info-value">@Model.ProductName</div>
+        </div>
 
-    <div class="col-md-6 mb-3">
-        <label class="fw-bold">Stock Quantity</label>
-        <div>@Model.StockQuantity</div>
-    </div>
+        <div class="col-md-12 mb-3 info-box">
+            <div class="info-label">Description</div>
+            <div class="info-value">
+                @(string.IsNullOrEmpty(Model.ProductDescription)
+                                ? "No description"
+                                : Model.ProductDescription)
+            </div>
+        </div>
 
-    <div class="col-md-6 mb-3">
-        <label class="fw-bold">Brand</label>
-        <div>@Model.BrandName</div>
-    </div>
+        <div class="col-md-6 mb-3">
+            <div class="info-box">
+                <div class="info-label">Price</div>
+                <div class="info-value">
+                    @Model.ProductPrice.ToString("N0") ₫
+                </div>
+            </div>
+        </div>
 
-    <div class="col-md-6 mb-3">
-        <label class="fw-bold">Category</label>
-        <div>@Model.CategoryName</div>
-    </div>
+        <div class="col-md-6 mb-3">
+            <div class="info-box">
+                <div class="info-label">Stock Quantity</div>
+                <div class="info-value">@Model.StockQuantity</div>
+            </div>
+        </div>
 
-    <!-- Images -->
+        <div class="col-md-6 mb-3">
+            <div class="info-box">
+                <div class="info-label">Brand</div>
+                <div class="info-value">@Model.BrandName</div>
+            </div>
+        </div>
 
-    <div class="col-md-12 mb-3">
-
-        <label class="fw-bold">Product Images</label>
-
-        <div class="d-flex flex-wrap mt-2">
-
-            @if (Model.Images != null && Model.Images.Any())
-            {
-                foreach (var img in Model.Images)
-                {
-                    <img src="@img" class="product-image" />
-                }
-            }
-            else
-            {
-                <span>No images</span>
-            }
-
+        <div class="col-md-6 mb-3">
+            <div class="info-box">
+                <div class="info-label">Category</div>
+                <div class="info-value">@Model.CategoryName</div>
+            </div>
         </div>
 
     </div>
 
-    <!-- Attributes -->
+    <!-- IMAGES -->
+    <div class="section-title mt-3">
+        Product Images
+    </div>
 
-    <div class="col-md-12">
+    <div class="d-flex flex-wrap">
 
-        <label class="fw-bold">Attributes</label>
+        @if (Model.Images != null && Model.Images.Any())
+        {
+            foreach (var img in Model.Images)
+            {
+                <img src="@img" class="product-image" />
+            }
+        }
+        else
+        {
+            <div class="empty-text">No images</div>
+        }
 
-        <table class="table table-bordered mt-2">
+    </div>
+
+    <!-- ATTRIBUTES -->
+    <div class="section-title mt-3">
+        Attributes
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered align-middle">
 
             <thead>
                 <tr>
@@ -99,7 +167,9 @@
                 else
                 {
                     <tr>
-                        <td colspan="2">No attributes</td>
+                        <td colspan="2" class="text-center text-muted">
+                            No attributes
+                        </td>
                     </tr>
                 }
 
@@ -108,5 +178,6 @@
         </table>
 
     </div>
+     
 
 </div>

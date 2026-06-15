@@ -8,18 +8,18 @@ using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
-    public class ProductServiceClient : IProductServiceClient
+    public class ProductAPIClient : IProductAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProductServiceClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public ProductAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<OdataResponse<ReadProductDTOForCustomer>> GetAllProductAsync(
+        public async Task<OdataResponse<ReadProductViewModelForCustomer>> GetAllProductAsync(
      string? search,
      bool? isActive,
      decimal? minPrice,
@@ -88,15 +88,15 @@ namespace PetCenterClient.Services
 
             var url = "?" + string.Join("&", query);
 
-            var response = await _http.GetFromJsonAsync<OdataResponse<ReadProductDTOForCustomer>>(
-                "product-service/odata/Products" + url
+            var response = await _http.GetFromJsonAsync<OdataResponse<ReadProductViewModelForCustomer>>(
+                "odata/Products" + url
             );
 
             return response;
         }
 
 
-        public async Task<PagedResponse<ReadProductDTO>> GetAllProductAdminAsync(
+        public async Task<PagedResponse<ReadProductViewModel>> GetAllProductAdminAsync(
        string? search,
        bool? isActive,
        decimal? minPrice,
@@ -151,18 +151,18 @@ namespace PetCenterClient.Services
             query.Add($"page={page}");
             query.Add($"pageSize={pageSize}");
 
-            var url = "product-service/Products/admin?" + string.Join("&", query);
+            var url = "api/Products/admin?" + string.Join("&", query);
 
-            return await _http.GetFromJsonAsync<PagedResponse<ReadProductDTO>>(url);
+            return await _http.GetFromJsonAsync<PagedResponse<ReadProductViewModel>>(url);
         }
 
 
-        public async Task<ReadProductDTO> DetailsProductAsync(Guid? id)
+        public async Task<ReadProductViewModel> DetailsProductAsync(Guid? id)
         {
-            return await _http.GetFromJsonAsync<ReadProductDTO>($"product-service/Products/{id}");
+            return await _http.GetFromJsonAsync<ReadProductViewModel>($"api/Products/{id}");
         }
 
-        public async Task AddProductAsync(CreateProductDTO model)
+        public async Task AddProductAsync(CreateProductViewModel model)
         {
             AddAuthorizationHeader();
             var content = new MultipartFormDataContent();
@@ -207,7 +207,7 @@ namespace PetCenterClient.Services
                 }
             }
 
-            var response = await _http.PostAsync("product-service/Products", content);
+            var response = await _http.PostAsync("api/Products", content);
 
             var result = await response.Content.ReadAsStringAsync();
 
@@ -217,7 +217,7 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task UpdateProductAsync(Guid? id, UpdateProductDTO model)
+        public async Task UpdateProductAsync(Guid? id, UpdateProductViewModel model)
         {
             AddAuthorizationHeader();
             var form = new MultipartFormDataContent();
@@ -271,7 +271,7 @@ namespace PetCenterClient.Services
                 }
             }
 
-            var response = await _http.PutAsync($"product-service/Products/{id}", form);
+            var response = await _http.PutAsync($"api/Products/{id}", form);
 
             response.EnsureSuccessStatusCode();
         }
@@ -283,59 +283,59 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
 
             var response = await _http.PatchAsJsonAsync(
-                $"product-service/Products/{id}/status",
+                $"api/Products/{id}/status",
                 status
             );
 
             response.EnsureSuccessStatusCode();
         }
-        public async Task<List<ProductSelectDto>> GetProductSelectAsync()
+        public async Task<List<ProductSelectViewModel>> GetProductSelectAsync()
         {
             AddAuthorizationHeader();
 
-            var res = await _http.GetAsync("product-service/products/select");
+            var res = await _http.GetAsync("api/products/select");
 
             if (!res.IsSuccessStatusCode) 
-                return new List<ProductSelectDto>();
+                return new List<ProductSelectViewModel>();
 
             var json = await res.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<List<ProductSelectDto>>(json,
+            return JsonSerializer.Deserialize<List<ProductSelectViewModel>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                ?? new List<ProductSelectDto>();
+                ?? new List<ProductSelectViewModel>();
         }
 
-        public async Task<List<ProductSelectDto>> GetProductSelectToViewAsync()
+        public async Task<List<ProductSelectViewModel>> GetProductSelectToViewAsync()
         {
             AddAuthorizationHeader();
 
-            var res = await _http.GetAsync("product-service/products/selectToView");
+            var res = await _http.GetAsync("api/products/selectToView");
 
             if (!res.IsSuccessStatusCode)
-                return new List<ProductSelectDto>();
+                return new List<ProductSelectViewModel>();
 
             var json = await res.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<List<ProductSelectDto>>(json,
+            return JsonSerializer.Deserialize<List<ProductSelectViewModel>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                ?? new List<ProductSelectDto>();
+                ?? new List<ProductSelectViewModel>();
         }
 
 
-        public async Task<List<ReadProductDTOForCustomer>> GetHotProductsAsync()
+        public async Task<List<ReadProductViewModelForCustomer>> GetHotProductsAsync()
         {
-            var result = await _http.GetFromJsonAsync<List<ReadProductDTOForCustomer>>(
-                "product-service/Products/hot-products");
+            var result = await _http.GetFromJsonAsync<List<ReadProductViewModelForCustomer>>(
+                "api/Products/hot-products");
 
-            return result ?? new List<ReadProductDTOForCustomer>();
+            return result ?? new List<ReadProductViewModelForCustomer>();
         }
 
-        public async Task<List<ReadProductDTOForCustomer>> GetNewProductsAsync()
+        public async Task<List<ReadProductViewModelForCustomer>> GetNewProductsAsync()
         {
-            var result = await _http.GetFromJsonAsync<List<ReadProductDTOForCustomer>>(
-                "product-service/Products/new-products");
+            var result = await _http.GetFromJsonAsync<List<ReadProductViewModelForCustomer>>(
+                "api/Products/new-products");
 
-            return result ?? new List<ReadProductDTOForCustomer>();
+            return result ?? new List<ReadProductViewModelForCustomer>();
         }
         private void AddAuthorizationHeader()
         {
@@ -352,7 +352,7 @@ namespace PetCenterClient.Services
         public async Task IncreaseStockBulkAsync(List<IncreaseStockItemDto> items)
         {
             AddAuthorizationHeader();
-            var res = await _http.PostAsJsonAsync("product-service/Products/increase-stock-bulk", items);
+            var res = await _http.PostAsJsonAsync("api/Products/increase-stock-bulk", items);
 
             var content = await res.Content.ReadAsStringAsync();
 
@@ -370,7 +370,7 @@ namespace PetCenterClient.Services
 
             try
             {
-                var response = await _http.PutAsJsonAsync($"product-service/Products/decrease-stock/{productId}", quantity);
+                var response = await _http.PutAsJsonAsync($"api/Products/decrease-stock/{productId}", quantity);
 
                 return response.IsSuccessStatusCode;
             }
@@ -390,7 +390,7 @@ namespace PetCenterClient.Services
             try
             {
                 // Gọi chuẩn đường dẫn qua API Gateway xuống ProductAPI
-                var response = await _http.PutAsJsonAsync($"product-service/Products/increase-stock/{productId}", quantity);
+                var response = await _http.PutAsJsonAsync($"api/Products/increase-stock/{productId}", quantity);
                 return response.IsSuccessStatusCode;
             }
             catch
@@ -399,16 +399,16 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid? id)
+        public async Task<ReadProductViewModel> GetProductByIdIncludeDeletedAsync(Guid? id)
         {
             try
             {
                 // Gọi tới Endpoint mới vừa tạo bên Backend
-                var response = await _http.GetAsync($"product-service/Products/{id}/include-deleted");
+                var response = await _http.GetAsync($"api/Products/{id}/include-deleted");
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<ReadProductDTO>();
+                    return await response.Content.ReadFromJsonAsync<ReadProductViewModel>();
                 }
                 return null; // Nếu gặp lỗi (ví dụ sản phẩm thật sự không tồn tại trong DB), trả về null
             }

@@ -7,13 +7,13 @@ namespace PetCenterClient.Controllers
     public class CheckoutController : Controller
     {
         private readonly ICheckoutService _checkoutService;
-        private readonly IProductServiceClient _productService;
+        private readonly IProductAPIClient _productService;
         private readonly IAddressServiceClient _addressService;
         private readonly ILogger<CheckoutController> _logger;
 
         public CheckoutController(
             ICheckoutService checkoutService,
-            IProductServiceClient productService,
+            IProductAPIClient productService,
             IAddressServiceClient addressService,
             ILogger<CheckoutController> logger)
         {
@@ -53,7 +53,7 @@ namespace PetCenterClient.Controllers
                         System.Globalization.CultureInfo.InvariantCulture,
                         out var price)) continue;
 
-                ReadProductDTO? product = null;
+                ReadProductViewModel? product = null;
                 try { product = await _productService.DetailsProductAsync(productId); }
                 catch { }
 

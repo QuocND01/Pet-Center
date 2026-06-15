@@ -2,14 +2,14 @@
 
 namespace PetCenterClient.DTOs
 {
-    public class ProductAttributedto
+    public class ProductAttributeViewModels
     {
         public Guid CategoryAttributeId { get; set; }
         public string AttributeName { get; set; } = null!;
         public string? AttributeValue { get; set; }
     }
 
-    public class UpdateProductAttributeDTO
+    public class UpdateProductAttributeViewModel
     {
         public Guid CategoryAttributeId { get; set; }
         public string AttributeName { get; set; } = null!;
@@ -20,7 +20,7 @@ namespace PetCenterClient.DTOs
         public string AttributeValue { get; set; } = null!;
     }
 
-    public class CreateProductAttributeDTO
+    public class CreateProductAttributeViewModel
     {
         public Guid CategoryAttributeId { get; set; }
 

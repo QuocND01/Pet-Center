@@ -1,28 +1,39 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Login;
 
 namespace PetCenterClient.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IAuthAPIClient _authService;
+        private readonly IAuthApiService _authService;
         private readonly IGoogleAPIClient _googleClientService;
 
-        public AuthController(IAuthAPIClient authService, IGoogleAPIClient googleClientService)
+        public AuthController(IAuthApiService authService, IGoogleAPIClient googleClientService)
         {
             _authService = authService;
             _googleClientService = googleClientService;
         }
 
+        // ============================================================
+        // LOGIN
+        // ============================================================
+
+        /// <summary>
+        /// Display the login page with Google client ID pre-loaded
+        /// </summary>
         public IActionResult Login()
         {
             var dto = _googleClientService.GetGoogleClientId();
             return View("~/Views/CustomerViews/Auth/Login.cshtml", dto);
         }
 
+        /// <summary>
+        /// Handle login form submission, store JWT and user info in session on success
+        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Login(LoginDto dto)
+        public async Task<IActionResult> Login(LoginViewModel dto)
         {
             var result = await _authService.LoginAsync(dto);
 
@@ -34,20 +45,19 @@ namespace PetCenterClient.Controllers
                 }
                 else
                 {
-                    ViewBag.Error = result?.message ?? "Email or password incorrect";
+                    ViewBag.Error = result?.Message ?? "Email or password incorrect";
                 }
 
                 var model = _googleClientService.GetGoogleClientId();
                 return View("~/Views/CustomerViews/Auth/Login.cshtml", model);
             }
 
-            HttpContext.Session.SetString("JWT", result.token);
+            HttpContext.Session.SetString("JWT", result.Token);
 
-            // ✅ Decode JWT để lấy CustomerId lưu vào Session
             try
             {
                 var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                var jwt = handler.ReadJwtToken(result.token);
+                var jwt = handler.ReadJwtToken(result.Token);
 
                 // Lấy CustomerId từ claim "sub" hoặc "nameid"
                 var customerId = jwt.Claims
@@ -65,7 +75,6 @@ namespace PetCenterClient.Controllers
             }
             catch
             {
-                // Nếu decode lỗi thì vẫn login bình thường, chỉ không có CustomerId
             }
 
             return RedirectToAction("Index", "Products");

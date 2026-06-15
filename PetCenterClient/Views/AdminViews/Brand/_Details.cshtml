@@ -1,58 +1,145 @@
-﻿@model PetCenterClient.DTOs.ReadBrandDTO
+﻿@model PetCenterClient.DTOs.ReadBrandViewModel
 
 <style>
 
+    .detail-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 18px;
+        padding: 25px;
+    }
+
+    .brand-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
     .brand-logo {
-        width: 120px;
-        height: 120px;
+        width: 150px;
+        height: 150px;
         object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
+        border-radius: 18px;
+        border: 4px solid #fff;
+        box-shadow: 0 6px 25px rgba(0,0,0,.12);
+    }
+
+    .brand-name {
+        margin-top: 15px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .info-item {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 15px 18px;
+        margin-bottom: 15px;
+    }
+
+    .info-label {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #6c757d;
+        margin-bottom: 6px;
+        letter-spacing: .5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #212529;
+        word-break: break-word;
+    }
+
+    .empty-value {
+        color: #6c757d;
+        font-style: italic;
     }
 
 </style>
 
-<div class="row">
+<div class="detail-card">
+    <div class="brand-header">
 
-    <div class="col-md-12 mb-3">
-        <label class="fw-bold">Brand Name</label>
-        <div>@Model.BrandName</div>
+        @if (!string.IsNullOrEmpty(Model.BrandLogo))
+        {
+            <img src="@Model.BrandLogo"
+                 class="brand-logo"
+                 alt="Brand Logo" />
+        }
+        else
+        {
+            <img src="https://via.placeholder.com/150?text=Brand"
+                 class="brand-logo"
+                 alt="No Logo" />
+        }
+
+        <div class="brand-name">
+            @Model.BrandName
+        </div>
+
     </div>
 
+    <div class="info-item">
 
-    <div class="col-md-12 mb-3">
-        <label class="fw-bold">Description</label>
-        <div>
-            @if (!string.IsNullOrEmpty(Model.BrandDescription))
+        <div class="info-label">
+            Brand Name
+        </div>
+
+        <div class="info-value">
+            @Model.BrandName
+        </div>
+
+    </div>
+
+    <div class="info-item">
+
+        <div class="info-label">
+            Description
+        </div>
+
+        <div class="info-value">
+
+            @if (!string.IsNullOrWhiteSpace(Model.BrandDescription))
             {
                 @Model.BrandDescription
             }
             else
             {
-                <span class="text-muted">No description</span>
+                <span class="empty-value">
+                    No description available
+                </span>
             }
+
         </div>
+
     </div>
 
-    <!-- Logo -->
+    <div class="info-item">
 
-    <div class="col-md-12 mb-3">
+        <div class="info-label">
+            Brand Logo
+        </div>
 
-        <label class="fw-bold">Brand Logo</label>
-
-        <div class="mt-2">
+        <div class="info-value">
 
             @if (!string.IsNullOrEmpty(Model.BrandLogo))
             {
-                <img src="@Model.BrandLogo" class="brand-logo" />
+                <span class="text-success">
+                    Logo uploaded
+                </span>
             }
             else
             {
-                <span>No logo</span>
+                <span class="empty-value">
+                    No logo uploaded
+                </span>
             }
 
         </div>
 
     </div>
+
 
 </div>

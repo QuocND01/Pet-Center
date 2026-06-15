@@ -12,27 +12,29 @@ builder.Configuration
 
 var apiUrl = builder.Configuration["Api:url"];
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddHttpClient<IBrandAPIClient, BrandAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<IProductAPIClient, ProductAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<ICategoryAPIClient, CategoryAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+
 builder.Services.AddHttpClient<IStaffService, StaffService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IProductServiceClient, ProductServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(apiUrl);
-});
-
-builder.Services.AddHttpClient<IBrandServiceClient, BrandServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(apiUrl);
-});
-
-builder.Services.AddHttpClient<ICategoryServiceClient, CategoryServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(apiUrl);
-});
-
-builder.Services.AddHttpClient<IAuthAPIClient, AuthAPIClient>(client =>
+builder.Services.AddHttpClient<IAuthApiService, AuthApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
@@ -87,6 +89,7 @@ builder.Services.AddHttpClient<IFeedbackAPIClient, FeedbackAPIClient>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
+// ✅ Register CheckoutService.
 // ✅ Register CheckoutServiceABC
 builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
 {
