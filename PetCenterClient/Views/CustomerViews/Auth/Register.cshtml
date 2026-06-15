@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.DTOs.RegisterDto
+﻿@model PetCenterClient.ViewModels.Register.RegisterViewModel
 @{
     Layout = null;
 }
@@ -84,7 +84,6 @@
             <div class="error">@ViewBag.Error</div>
         }
         <form method="post" id="registerForm">
-            <!-- Thêm id vào các input trong form -->
             <input id="fullName" name="FullName" class="form-control mb-3" placeholder="Full Name" required />
             <input type="email" id="email" name="Email" class="form-control mb-3" placeholder="Email" required />
             <input id="phoneNumber" name="PhoneNumber" pattern="[0-9]{10}"
@@ -307,7 +306,6 @@
         const birthday   = birthdayInput.value;
         const gender     = document.getElementById("gender").value;
 
-        // Client-side validate
         const allErrors = [];
         const nameErr = validateFullName(fullName);
         if (nameErr)   allErrors.push("Full Name: " + nameErr);
@@ -332,7 +330,6 @@
             return;
         }
 
-        // Disable button
         registerBtn.disabled     = true;
         registerBtn.textContent  = "Registering...";
 
@@ -349,7 +346,6 @@
             if (result.success) {
                 window.location.href = result.redirectUrl;
             } else {
-                // Hiện lỗi nhưng GIỮ NGUYÊN data người dùng đã nhập
                 showError(result.message || "Registration failed. Please try again.");
                 registerBtn.disabled    = false;
                 registerBtn.textContent = "Register";

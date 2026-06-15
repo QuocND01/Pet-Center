@@ -2,6 +2,7 @@
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.Login;
+using PetCenterClient.ViewModels.Register;
 
 namespace PetCenterClient.Services
 {
@@ -19,10 +20,6 @@ namespace PetCenterClient.Services
         // ============================================================
         // LOGIN — CUSTOMER
         // ============================================================
-
-        /// <summary>
-        /// Post customer credentials to backend, parse token or error response
-        /// </summary>
         public async Task<LoginResponseViewModel?> LoginAsync(LoginViewModel dto)
         {
             try
@@ -63,10 +60,6 @@ namespace PetCenterClient.Services
         // ============================================================
         // LOGIN — STAFF / ADMIN
         // ============================================================
-
-        /// <summary>
-        /// Post staff credentials to backend, parse token, roles or error response
-        /// </summary>
         public async Task<StaffLoginResponseViewModel?> StaffLoginAsync(StaffLoginViewModel dto)
         {
             try
@@ -103,12 +96,14 @@ namespace PetCenterClient.Services
             }
         }
 
-        // STEP 1: Gửi toàn bộ form → api/auth/register
-        public async Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto)
+        // ============================================================
+        // REGISTER
+        // ============================================================
+        public async Task<(bool Success, string Message)> RegisterAsync(RegisterViewModel dto)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/auth/register", dto);
+                var response = await _http.PostAsJsonAsync("api/auths/register", dto);
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JsonDocument.Parse(content).RootElement;
                 var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
@@ -121,12 +116,14 @@ namespace PetCenterClient.Services
             }
         }
 
-        // STEP 2: Verify OTP → api/auth/verify-otp
+        // ============================================================
+        // OTP — VERIFY
+        // ============================================================
         public async Task<(bool Success, string Message)> VerifyOtpAsync(string email, string code)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/auth/verify-otp", new { email, code });
+                var response = await _http.PostAsJsonAsync("api/auths/verify-otp", new { email, code });
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JsonDocument.Parse(content).RootElement;
                 var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
@@ -139,12 +136,14 @@ namespace PetCenterClient.Services
             }
         }
 
-        // Resend OTP → api/auth/resend-otp
+        // ============================================================
+        // OTP — RESEND
+        // ============================================================
         public async Task<(bool Success, string Message)> ResendOtpAsync(string email)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/auth/resend-otp", new { email });
+                var response = await _http.PostAsJsonAsync("api/auths/resend-otp", new { email });
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JsonDocument.Parse(content).RootElement;
                 var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
