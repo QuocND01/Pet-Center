@@ -1,50 +1,54 @@
 ﻿using System.Text.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Login;
 
 namespace PetCenterClient.Services
 {
-    public class AuthAPIClient : IAuthAPIClient
+    public class AuthApiService : IAuthApiService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public AuthApiService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
+        public async Task<LoginResponseViewModel?> LoginAsync(LoginViewModel dto)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/auth/customer-login", dto);
+                var response = await _http.PostAsJsonAsync("api/auths/customer-login", dto);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     var errorData = JsonDocument.Parse(errorContent).RootElement;
 
-                    return new LoginResponseDto
+                    return new LoginResponseViewModel
                     {
                         Success = false,
-                        message = errorData.GetProperty("message").GetString(),
+                        Message = errorData.GetProperty("message").GetString(),
                         ErrorType = errorData.GetProperty("errorType").GetString(),
-                        token = null
+                        Token = null
                     };
                 }
 
-                return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+                return await response.Content.ReadFromJsonAsync<LoginResponseViewModel>(
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
-            catch
+            catch (Exception ex) 
             {
-                return new LoginResponseDto
+                Console.WriteLine($"[AuthApiService] LoginAsync error: {ex.Message}");
+                
+                return new LoginResponseViewModel
                 {
                     Success = false,
-                    message = "An error occurred. Please try again.",
+                    Message = "An error occurred. Please try again.",
                     ErrorType = "Exception",
-                    token = null
+                    Token = null
                 };
             }
         }

@@ -12,6 +12,7 @@ using PetCenterAPI.Odata;
 using PetCenterAPI.Profiles;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
+using PetCenterAPI.Security;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
 using System.Text;
@@ -110,7 +111,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
+// ── 1. DbContext ──────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<PetCenterContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
 
@@ -160,7 +161,13 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 
+// ── 2. Repositories ──────────────────────────────────────────────────────────
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 
+// ── 3. Services ───────────────────────────────────────────────────────────────
+builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddSingleton<PasswordService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
