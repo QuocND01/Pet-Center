@@ -1,44 +1,124 @@
 ﻿@model PetCenterClient.DTOs.UpdateProductViewModel
 
+
 <style>
 
-    .image-preview {
-        width: 120px;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
+    /* ===== PAGE WRAPPER ===== */
+    .page-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 30px;
     }
+
+    /* ===== SECTION ===== */
+    .section-card {
+        background: #f8f9fa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #e9ecef;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 18px;
+        color: #212529;
+    }
+
+    /* ===== FORM ===== */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .form-control {
+        min-height: 48px;
+        border-radius: 12px;
+        border: 1px solid #ced4da;
+    }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 .15rem rgba(13,110,253,.15);
+        }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    /* ===== IMAGES ===== */
+    .image-preview {
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 14px;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,.08);
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .image-preview:hover {
+            transform: scale(1.05);
+        }
 
     .image-wrapper {
         position: relative;
         display: inline-block;
     }
 
+    /* REMOVE BUTTON */
     .remove-btn {
         position: absolute;
         top: -6px;
         right: -6px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        width: 22px;
-        height: 22px;
         padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 12px;
     }
 
+    /* ===== BUTTONS ===== */
+    .btn {
+        border-radius: 10px;
+    }
+
+    .btn-warning,
+    .btn-primary,
+    .btn-success {
+        font-weight: 600;
+    }
+
+    .text-end {
+        margin-top: 20px;
+    }
+
+    /* ===== ERROR ===== */
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
 </style>
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-<form asp-action="Edit"
-      asp-controller="Products"
-      method="post"
-      enctype="multipart/form-data">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<input asp-for="ProductId" type="hidden" />
+<input asp-for="BrandId" type="hidden" />
+<input asp-for="CategoryId" type="hidden" />
 
-    <input asp-for="ProductId" type="hidden" />
+<!-- BASIC INFO -->
+<div class="section-card">
+
+    <div class="section-title">
+        Product Information
+    </div>
 
     <div class="row">
-
-        <!-- NAME -->
 
         <div class="col-md-12 mb-3">
             <label class="form-label">Product Name</label>
@@ -46,168 +126,156 @@
             <span asp-validation-for="ProductName" class="text-danger"></span>
         </div>
 
-        <!-- DESCRIPTION -->
-
         <div class="col-md-12 mb-3">
-            <label>Description</label>
-            <textarea asp-for="ProductDescription"
-                      class="form-control"></textarea>
+            <label class="form-label">Description</label>
+            <textarea asp-for="ProductDescription" class="form-control"></textarea>
             <span asp-validation-for="ProductDescription" class="text-danger"></span>
         </div>
 
-        <!-- PRICE -->
-
-        <div class="col-md-6 mb-3">
-            <label>Price</label>
-            <input asp-for="ProductPrice"
-                   type="number"
-                   class="form-control" />
-
+        <div class="col-md-6">
+            <label class="form-label">Price</label>
+            <input asp-for="ProductPrice" type="number" class="form-control" />
             <span asp-validation-for="ProductPrice" class="text-danger"></span>
         </div>
 
-        <!-- BRAND -->
+    </div>
+
+</div>
+
+<!-- BRAND / CATEGORY -->
+<div class="section-card">
+
+    <div class="section-title">
+        Classification
+    </div>
+
+    <div class="row">
 
         <div class="col-md-6 mb-3">
-            <label>Brand</label>
-            <input class="form-control"
-                   value="@Model.BrandName"
-                   readonly />
+            <label class="form-label">Brand</label>
+            <input class="form-control" value="@Model.BrandName" readonly />
         </div>
-
-        <!-- CATEGORY -->
 
         <div class="col-md-6 mb-3">
-            <label>Category</label>
-            <input class="form-control"
-                   value="@Model.CategoryName"
-                   readonly />
+            <label class="form-label">Category</label>
+            <input class="form-control" value="@Model.CategoryName" readonly />
         </div>
 
     </div>
-    <input asp-for="BrandId" type="hidden" />
-    <input asp-for="CategoryId" type="hidden" />
 
-    <!-- CURRENT IMAGES -->
+</div>
 
-    <div class="mt-3">
+<!-- CURRENT IMAGES -->
+<div class="section-card">
 
-        <h6>Current Images</h6>
+    <div class="section-title">
+        Product Images
+    </div>
 
-        <div class="d-flex flex-wrap gap-2">
+    <div class="d-flex flex-wrap gap-2">
 
-            @if (Model.ExistingImages != null)
+        @if (Model.ExistingImages != null)
+        {
+            foreach (var img in Model.ExistingImages)
             {
-                foreach (var img in Model.ExistingImages)
-                {
-                    <div class="image-wrapper">
+                <div class="image-wrapper">
 
-                        <img src="@img" class="image-preview" />
+                    <img src="@img" class="image-preview" />
 
-                        <button type="button"
-                                class="btn btn-danger btn-sm remove-btn"
-                                onclick="removeOldImage(this,'@img')">
-                            ✖
-                        </button>
+                    <button type="button"
+                            class="btn btn-danger btn-sm remove-btn"
+                            onclick="removeOldImage(this)">
+                        ✖
+                    </button>
 
-                        <input type="hidden"
-                               name="ExistingImages"
-                               value="@img" />
-
-                    </div>
-                }
-            }
-
-        </div>
-
-    </div>
-
-
-    <!-- ADD NEW IMAGE -->
-
-    <div class="mt-3">
-
-        <label>Add New Images</label>
-
-        <input type="file"
-               id="newImages"
-               multiple
-               accept="image/*"
-               class="form-control" />
-
-        <div id="previewNewImages"
-             class="d-flex flex-wrap gap-2 mt-2">
-        </div>
-
-    </div>
-
-
-    <!-- ATTRIBUTES -->
-    @if (Model.Attributes != null && Model.Attributes.Any())
-    {
-
-        <div class="mt-4">
-
-            <h6>Attributes</h6>
-
-            @for (int i = 0; i < Model.Attributes.Count; i++)
-            {
-
-                <div class="row mb-2">
-                    <div class="col-md-5">
-
-                        <input class="form-control"
-                               value="@Model.Attributes[i].AttributeName"
-                               readonly />
-
-                        <input asp-for="Attributes[i].AttributeName"
-                               type="hidden" />
-
-                    </div>
-                    <div class="col-md-7">
-
-                        <input asp-for="Attributes[i].AttributeValue"
-                               class="form-control" />
-
-                        <span asp-validation-for="Attributes[i].AttributeValue"
-                              class="text-danger"></span>
-
-                        <input asp-for="Attributes[i].CategoryAttributeId" type="hidden" />
-
-                    </div>
+                    <input type="hidden"
+                           name="ExistingImages"
+                           value="@img" />
 
                 </div>
-
             }
-
-        </div>
-
-    }
-
-
-    <!-- ACTION BUTTON -->
-
-    <div class="d-flex justify-content-end gap-2 mt-4">
-
-        <button type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal">
-
-            Cancel
-
-        </button>
-
-        <button type="submit"
-                class="btn btn-warning">
-
-            <i class="bi bi-pencil-square"></i>
-            Update
-
-        </button>
+        }
 
     </div>
 
-</form>
+</div>
+
+<!-- NEW IMAGES -->
+<div class="section-card">
+
+    <div class="section-title">
+        Add New Images
+    </div>
+
+    <input type="file"
+           id="newImages"
+           multiple
+           accept="image/*"
+           class="form-control" />
+
+    <div id="previewNewImages"
+         class="d-flex flex-wrap gap-2 mt-3">
+    </div>
+
+</div>
+
+<!-- ATTRIBUTES -->
+@if (Model.Attributes != null && Model.Attributes.Any())
+{
+    <div class="section-card">
+
+        <div class="section-title">
+            Attributes
+        </div>
+
+        @for (int i = 0; i < Model.Attributes.Count; i++)
+        {
+            <div class="row mb-2">
+
+                <div class="col-md-5">
+                    <input class="form-control"
+                           value="@Model.Attributes[i].AttributeName"
+                           readonly />
+
+                    <input asp-for="Attributes[i].AttributeName"
+                           type="hidden" />
+                </div>
+
+                <div class="col-md-7">
+                    <input asp-for="Attributes[i].AttributeValue"
+                           class="form-control" />
+
+                    <span asp-validation-for="Attributes[i].AttributeValue"
+                          class="text-danger"></span>
+
+                    <input asp-for="Attributes[i].CategoryAttributeId"
+                           type="hidden" />
+                </div>
+
+            </div>
+        }
+
+    </div>
+}
+
+<!-- ACTION -->
+<div class="text-end">
+
+    <button type="button"
+            class="btn btn-secondary me-2"
+            data-bs-dismiss="modal">
+        Cancel
+    </button>
+
+    <button type="submit"
+            class="btn btn-warning">
+
+        <i class="bi bi-pencil-square me-1"></i>
+        Update
+
+    </button>
+
+</div>
 
 <script>
 

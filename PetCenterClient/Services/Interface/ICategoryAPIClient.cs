@@ -3,7 +3,7 @@ using PetCenterClient.DTOs;
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface ICategoryServiceClient
+    public interface ICategoryAPIClient
     {
         Task<OdataResponse<ReadCategoryViewModelForCustomer>> GetAllCategoryAsync();
 

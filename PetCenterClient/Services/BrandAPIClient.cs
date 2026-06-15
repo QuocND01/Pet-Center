@@ -8,15 +8,17 @@ using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
-    public class BrandServiceClient : IBrandServiceClient
+    public class BrandAPIClient : IBrandAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _baseUrl;
 
-        public BrandServiceClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public BrandAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
+            _baseUrl = configuration["Api:url"];
         }
 
         public async Task AddBrandAsync(CreateBrandViewModel createBrand)
@@ -43,7 +45,7 @@ namespace PetCenterClient.Services
                 content.Add(streamContent, "BrandLogo", createBrand.BrandLogo.FileName);
             }
 
-            var response = await _http.PostAsync("product-service/Brands", content);
+            var response = await _http.PostAsync("api/Brands", content);
 
             var result = await response.Content.ReadAsStringAsync();
 
@@ -58,7 +60,7 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
 
             var response = await _http.PatchAsJsonAsync(
-                $"product-service/Brands/{id}/status",
+                $"api/Brands/{id}/status",
                 status);
 
             response.EnsureSuccessStatusCode();
@@ -68,7 +70,7 @@ namespace PetCenterClient.Services
         {
             return await _http.GetFromJsonAsync<
                 OdataResponse<ReadBrandViewModelForCustomer>>(
-                    "product-service/odata/Brands?$count=true");
+                    "odata/Brands?$count=true");
         }
 
 
@@ -92,7 +94,7 @@ namespace PetCenterClient.Services
             query.Add($"page={page}");
             query.Add($"pageSize={pageSize}");
 
-            var url = "product-service/Brands/admin?" + string.Join("&", query);
+            var url = "api/Brands/admin?" + string.Join("&", query);
 
             var response = await _http.GetFromJsonAsync<PagedResponse<ReadBrandViewModel>>(url);
 
@@ -103,7 +105,7 @@ namespace PetCenterClient.Services
 
         public async Task<ReadBrandViewModel> DetailsBrandAsync(Guid? id)
         {
-            return await _http.GetFromJsonAsync<ReadBrandViewModel>($"product-service/Brands/{id}");
+            return await _http.GetFromJsonAsync<ReadBrandViewModel>($"api/Brands/{id}");
         }
 
 
@@ -131,7 +133,7 @@ namespace PetCenterClient.Services
                 form.Add(content, "BrandLogo", updateBrand.BrandLogo.FileName);
             }
 
-            var response = await _http.PutAsync($"product-service/Brands/{id}", form);
+            var response = await _http.PutAsync($"api/Brands/{id}", form);
 
             var result = await response.Content.ReadAsStringAsync();
 

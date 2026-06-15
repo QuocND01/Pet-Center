@@ -689,7 +689,7 @@
         <div class="hero-banner-content">
             <h1>Pet Center Shop</h1>
             <p>Best products for your lovely pets</p>
-            <a asp-controller="Products" asp-action="IndexAsync" class="btn-banner">
+            <a asp-controller="Products" asp-action="Index" class="btn-banner">
                 Shop Now →
             </a>
         </div>
@@ -1024,7 +1024,7 @@ else
     @if (currentPage > 1)
     {
         <a class="page-btn"
-           href="@Url.Action("IndexAsync", new {
+           href="@Url.Action("Index", new {
                 page = currentPage - 1,
                 search = currentSearch,
                 sortBy = currentSortBy,
@@ -1042,7 +1042,7 @@ else
     @for (int i = 1; i <= totalPages; i++)
     {
         <a class="page-btn @(i == currentPage ? "active" : "")"
-           href="@Url.Action("IndexAsync", new {
+           href="@Url.Action("Index", new {
                 page = i,
                 search = currentSearch,
                 sortBy = currentSortBy,
@@ -1060,7 +1060,7 @@ else
     @if (currentPage < totalPages)
     {
         <a class="page-btn"
-           href="@Url.Action("IndexAsync", new {
+           href="@Url.Action("Index", new {
                 page = currentPage + 1,
                 search = currentSearch,
                 sortBy = currentSortBy,

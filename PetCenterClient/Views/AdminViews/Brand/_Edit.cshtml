@@ -1,120 +1,220 @@
 ﻿@model PetCenterClient.DTOs.UpdateBrandViewModel
 
 <style>
-    .logo-preview {
-        width: 140px;
-        height: 140px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        cursor: pointer;
+
+    .edit-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 25px;
     }
 
-    .remove-btn {
-        position: absolute;
-        top: -6px;
-        right: -6px;
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        padding: 0;
-        font-size: 12px;
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        min-height: 48px;
+        border: 1px solid #dee2e6;
+    }
+
+        .form-control:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 .2rem rgba(79,70,229,.15);
+        }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .logo-section {
+        text-align: center;
+        margin-top: 25px;
     }
 
     .logo-wrapper {
         position: relative;
         display: inline-block;
     }
+
+    .logo-preview {
+        width: 180px;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 18px;
+        border: 3px solid #fff;
+        box-shadow: 0 6px 25px rgba(0,0,0,.12);
+        cursor: pointer;
+        transition: .25s;
+    }
+
+        .logo-preview:hover {
+            transform: scale(1.03);
+        }
+
+    .remove-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-text {
+        margin-top: 12px;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .btn-update {
+        min-width: 140px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .btn-cancel {
+        min-width: 140px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
 </style>
 
 <form asp-action="Edit"
       asp-controller="Brand"
       method="post"
       enctype="multipart/form-data">
-
-    <!-- ID -->
     <input type="hidden" asp-for="BrandId" />
     <input type="hidden" asp-for="Status" />
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="edit-card">
 
-    <div class="row">
+        <h3 class="page-title">
+            Edit Brand
+        </h3>
 
-        <!-- NAME -->
-        <div class="col-md-12 mb-3">
-            <label asp-for="BrandName"></label>
-            <input asp-for="BrandName" class="form-control" />
-            <span asp-validation-for="BrandName" class="text-danger"></span>
+        <p class="page-subtitle">
+            Update brand information and logo
+        </p>
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
         </div>
 
-        <!-- DESCRIPTION -->
-        <div class="col-md-12 mb-3">
-            <label asp-for="BrandDescription"></label>
+        <div class="row">
 
-            <textarea asp-for="BrandDescription"
-                      class="form-control"
-                      rows="3"
-                      placeholder="Enter brand description"></textarea>
+            <div class="col-md-12 mb-4">
 
-            <span asp-validation-for="BrandDescription"
-                  class="text-danger"></span>
+                <label asp-for="BrandName"
+                       class="form-label">
+                </label>
+
+                <input asp-for="BrandName"
+                       class="form-control" />
+
+                <span asp-validation-for="BrandName"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+            <div class="col-md-12">
+
+                <label asp-for="BrandDescription"
+                       class="form-label">
+                </label>
+
+                <textarea asp-for="BrandDescription"
+                          class="form-control"
+                          placeholder="Enter brand description">
+            </textarea>
+
+                <span asp-validation-for="BrandDescription"
+                      class="text-danger">
+                </span>
+
+            </div>
+
         </div>
 
-    </div>
+        <div class="logo-section">
 
-    <!-- CURRENT LOGO -->
-    <div class="mt-3">
+            <h5 class="mb-3">
+                Brand Logo
+            </h5>
 
-        <h6>Current Logo</h6>
+            <div class="logo-wrapper">
 
-        <div class="logo-wrapper">
+                <img id="logoPreview"
+                     src="@(string.IsNullOrEmpty(Model.ExistingBrandLogo)
+                                         ? "https://via.placeholder.com/180?text=Brand"
+                                         : Model.ExistingBrandLogo)"
+                     class="logo-preview"
+                     onclick="document.getElementById('logoInput').click()" />
 
-            <img id="logoPreview"
-                 src="@(string.IsNullOrEmpty(Model.ExistingBrandLogo)
-                     ? "https://via.placeholder.com/140"
-                     : Model.ExistingBrandLogo)"
-                 class="logo-preview"
-                 onclick="document.getElementById('logoInput').click()" />
+                <button type="button"
+                        class="btn btn-danger remove-btn"
+                        onclick="removeLogo()">
 
-            <!-- remove (optional) -->
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+            <div class="upload-text">
+                Click the image to upload a new logo
+            </div>
+
+            <input asp-for="BrandLogo"
+                   type="file"
+                   id="logoInput"
+                   accept="image/*"
+                   hidden
+                   onchange="previewLogo(this)" />
+
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+
             <button type="button"
-                    class="btn btn-danger btn-sm remove-btn"
-                    onclick="removeLogo()">
-                ✖
+                    class="btn btn-outline-secondary btn-cancel"
+                    data-bs-dismiss="modal">
+
+                Cancel
+
+            </button>
+
+            <button type="submit"
+                    class="btn btn-warning btn-update">
+
+                <i class="bi bi-pencil-square me-1"></i>
+                Update
+
             </button>
 
         </div>
-
-    </div>
-
-    <!-- NEW LOGO -->
-    <div class="mt-3">
-
-        <label>Change Logo</label>
-
-        <input type="file"
-               id="logoInput"
-               name="BrandLogo"
-               accept="image/*"
-               hidden
-               onchange="previewLogo(this)" />
-
-    </div>
-
-    <!-- BUTTON -->
-    <div class="d-flex justify-content-end gap-2 mt-4">
-
-        <button type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal">
-            Cancel
-        </button>
-
-        <button type="submit"
-                class="btn btn-warning">
-            <i class="bi bi-pencil-square"></i>
-            Update
-        </button>
 
     </div>
 
@@ -124,26 +224,29 @@
 
     function previewLogo(input) {
 
-        const file = input.files[0]
-        if (!file) return
+        const file = input.files[0];
 
-        const reader = new FileReader()
+        if (!file)
+            return;
+
+        const reader = new FileReader();
 
         reader.onload = function (e) {
-            $("#logoPreview").attr("src", e.target.result)
-        }
 
-        reader.readAsDataURL(file)
+            document.getElementById("logoPreview").src =
+                e.target.result;
+
+        };
+
+        reader.readAsDataURL(file);
     }
 
     function removeLogo() {
 
-        // reset preview
-        $("#logoPreview").attr("src", "https://via.placeholder.com/140")
+        document.getElementById("logoPreview").src =
+            "https://via.placeholder.com/180?text=Brand";
 
-        // clear file input
-        $("#logoInput").val("")
-
+        document.getElementById("logoInput").value = "";
     }
 
 </script>

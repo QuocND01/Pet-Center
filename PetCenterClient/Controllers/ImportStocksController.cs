@@ -11,12 +11,12 @@ namespace PetCenterClient.Controllers
     {
         private readonly IImportStockService _service;
         private readonly ISupplierService _suppService;
-        private readonly IProductServiceClient _productService;
+        private readonly IProductAPIClient _productService;
         private readonly IStaffService _staffService;
         private readonly ILogger<ImportStocksController> _logger;
         private readonly ExcelService _excelService;
 
-        public ImportStocksController(IImportStockService service, ILogger<ImportStocksController> logger, ISupplierService suppService, ExcelService excelService, IProductServiceClient productService, IStaffService staffService)
+        public ImportStocksController(IImportStockService service, ILogger<ImportStocksController> logger, ISupplierService suppService, ExcelService excelService, IProductAPIClient productService, IStaffService staffService)
         {
             _service = service;
             _logger = logger;
