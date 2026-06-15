@@ -19,7 +19,7 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task AddBrandAsync(CreateBrandDTO createBrand)
+        public async Task AddBrandAsync(CreateBrandViewModel createBrand)
         {
             AddAuthorizationHeader();
 
@@ -64,43 +64,15 @@ namespace PetCenterClient.Services
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<OdataResponse<ReadBrandDTOForCustomer>> GetAllBrandAsync(string? search, int page = 1)
+        public async Task<OdataResponse<ReadBrandViewModelForCustomer>> GetAllBrandAsync()
         {
-            int pageSize = 10;
-
-            if (page < 1)
-                page = 1;
-
-            var filters = new List<string>();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                search = search.Replace("'", "''");
-                filters.Add($"contains(BrandName,'{search}')");
-            }
-
-            var query = new List<string>();
-
-            if (filters.Any())
-                query.Add("$filter=" + string.Join(" and ", filters));
-            query.Add("$count=true");
-
-            int skip = (page - 1) * pageSize;
-
-            query.Add($"$skip={skip}");
-            query.Add($"$top={pageSize}");
-
-            var url = "?" + string.Join("&", query);
-
-            var response = await _http.GetFromJsonAsync<OdataResponse<ReadBrandDTOForCustomer>>(
-                "product-service/odata/Brands" + url
-            );
-
-            return response;
+            return await _http.GetFromJsonAsync<
+                OdataResponse<ReadBrandViewModelForCustomer>>(
+                    "product-service/odata/Brands?$count=true");
         }
 
 
-        public async Task<PagedResponse<ReadBrandDTO>> GetAllBrandAdminAsync(
+        public async Task<PagedResponse<ReadBrandViewModel>> GetAllBrandAdminAsync(
       string? search, bool? isActive, int page = 1, int pageSize = 10)
         {
             if (page < 1)
@@ -122,20 +94,20 @@ namespace PetCenterClient.Services
 
             var url = "product-service/Brands/admin?" + string.Join("&", query);
 
-            var response = await _http.GetFromJsonAsync<PagedResponse<ReadBrandDTO>>(url);
+            var response = await _http.GetFromJsonAsync<PagedResponse<ReadBrandViewModel>>(url);
 
             return response;
         }
 
 
 
-        public async Task<ReadBrandDTO> DetailsBrandAsync(Guid? id)
+        public async Task<ReadBrandViewModel> DetailsBrandAsync(Guid? id)
         {
-            return await _http.GetFromJsonAsync<ReadBrandDTO>($"product-service/Brands/{id}");
+            return await _http.GetFromJsonAsync<ReadBrandViewModel>($"product-service/Brands/{id}");
         }
 
 
-        public async Task UpdateBrandAsync(Guid? id, UpdateBrandDTO updateBrand)
+        public async Task UpdateBrandAsync(Guid? id, UpdateBrandViewModel updateBrand)
         {
             AddAuthorizationHeader();
 

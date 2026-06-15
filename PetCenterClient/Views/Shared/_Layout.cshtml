@@ -213,6 +213,24 @@
                 color: #64748b;
                 font-size: .95rem;
             }
+
+        .admin-btn {
+            background: #0f172a;
+            color: white;
+        }
+
+            .admin-btn:hover {
+                background: #1e293b;
+                color: white;
+            }
+
+        .user-name {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            color: #334155;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -248,17 +266,30 @@
 
             <div class="auth-nav">
 
-                <a asp-controller="Auth"
-                   asp-action="Login"
-                   class="auth-btn login-btn">
-                    Login
-                </a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="user-name">
+                        👋 @User.Identity.Name
+                    </span>
+                    <a asp-controller="Auth"
+                       asp-action="Logout"
+                       class="auth-btn logout-btn">
+                        Logout
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Auth"
+                       asp-action="Login"
+                       class="auth-btn login-btn">
+                        Login
+                    </a>
 
-                <a asp-controller="Auth"
-                   asp-action="Logout"
-                   class="auth-btn logout-btn">
-                    Logout
-                </a>
+                    <!-- tạm thời để login admin -->
+                    <a asp-controller="Auth" asp-action="AdminLogin" class="pc-admin-link" id="adminBtn" title="Admin Panel">
+                        ⚙ Admin
+                    </a>
+                }
 
             </div>
 

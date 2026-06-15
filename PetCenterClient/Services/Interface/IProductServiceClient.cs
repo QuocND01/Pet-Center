@@ -5,7 +5,7 @@ namespace PetCenterClient.Services.Interface
 {
     public interface IProductServiceClient
     {
-        Task<OdataResponse<ReadProductDTOForCustomer>> GetAllProductAsync(
+        Task<OdataResponse<ReadProductViewModelForCustomer>> GetAllProductAsync(
                 string? search,
                 bool? isActive,
                 decimal? minPrice,
@@ -18,7 +18,7 @@ namespace PetCenterClient.Services.Interface
                 string sortOrder = "asc",
                 int page = 1);
 
-        Task<PagedResponse<ReadProductDTO>> GetAllProductAdminAsync(
+        Task<PagedResponse<ReadProductViewModel>> GetAllProductAdminAsync(
        string? search,
        bool? isActive,
        decimal? minPrice,
@@ -32,20 +32,20 @@ namespace PetCenterClient.Services.Interface
        int page = 1,
        int pageSize = 10);
 
-        Task<ReadProductDTO> DetailsProductAsync(Guid? id);
-        Task AddProductAsync(CreateProductDTO createproduct);
-        Task UpdateProductAsync(Guid? id, UpdateProductDTO updateproduct);
+        Task<ReadProductViewModel> DetailsProductAsync(Guid? id);
+        Task AddProductAsync(CreateProductViewModel createproduct);
+        Task UpdateProductAsync(Guid? id, UpdateProductViewModel updateproduct);
         Task ChangeProductStatusAsync(
       Guid id,
       Status status);
 
-        Task<List<ReadProductDTOForCustomer>> GetHotProductsAsync();
-        Task<List<ReadProductDTOForCustomer>> GetNewProductsAsync();
-        Task<List<ProductSelectDto>> GetProductSelectAsync();
-        Task<List<ProductSelectDto>> GetProductSelectToViewAsync();
+        Task<List<ReadProductViewModelForCustomer>> GetHotProductsAsync();
+        Task<List<ReadProductViewModelForCustomer>> GetNewProductsAsync();
+        Task<List<ProductSelectViewModel>> GetProductSelectAsync();
+        Task<List<ProductSelectViewModel>> GetProductSelectToViewAsync();
         Task IncreaseStockBulkAsync(List<IncreaseStockItemDto> items);
         Task<bool> DecreaseStockAsync(Guid productId, int quantity);
         Task<bool> IncreaseStockAsync(Guid productId, int quantity);
-        Task<ReadProductDTO> GetProductByIdIncludeDeletedAsync(Guid? id);
+        Task<ReadProductViewModel> GetProductByIdIncludeDeletedAsync(Guid? id);
     }
 }

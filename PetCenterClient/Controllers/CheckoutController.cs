@@ -53,7 +53,7 @@ namespace PetCenterClient.Controllers
                         System.Globalization.CultureInfo.InvariantCulture,
                         out var price)) continue;
 
-                ReadProductDTO? product = null;
+                ReadProductViewModel? product = null;
                 try { product = await _productService.DetailsProductAsync(productId); }
                 catch { }
 

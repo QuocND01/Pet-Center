@@ -5,13 +5,13 @@ namespace PetCenterClient.Services.Interface
 {
     public interface ICategoryServiceClient
     {
-        Task<OdataResponse<ReadCategoryDTOForCustomer>> GetAllCategoryAsync(string? search, int page = 1);
+        Task<OdataResponse<ReadCategoryViewModelForCustomer>> GetAllCategoryAsync();
 
-        Task<PagedResponse<ReadCategoryDTO>> GetAllCategoryAdminAsync(
+        Task<PagedResponse<ReadCategoryViewModel>> GetAllCategoryAdminAsync(
       string? search, bool? isActive, int page = 1, int pageSize = 10);
-        Task<ReadCategoryDTO> DetailsCategoryAsync(Guid? id);
-        Task AddCategoryAsync(CreateCategoryDTO createCategory);
-        Task UpdateCategoryAsync(Guid? id, UpdateCategoryDTO updateCategory);
+        Task<ReadCategoryViewModel> DetailsCategoryAsync(Guid? id);
+        Task AddCategoryAsync(CreateCategoryViewModel createCategory);
+        Task UpdateCategoryAsync(Guid? id, UpdateCategoryViewModel updateCategory);
         Task ChangeCategoryStatusAsync(Guid id, Status status);
     }
 }

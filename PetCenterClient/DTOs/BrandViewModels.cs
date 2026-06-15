@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterClient.DTOs
 {
-    public class ReadBrandDTO
+    public class ReadBrandViewModel
     {
 
         public Guid BrandId { get; set; }
@@ -15,7 +15,7 @@ namespace PetCenterClient.DTOs
         public Status Status { get; set; }
     }
 
-    public class ReadBrandDTOForCustomer
+    public class ReadBrandViewModelForCustomer
     {
 
         public Guid BrandId { get; set; }
@@ -25,7 +25,7 @@ namespace PetCenterClient.DTOs
         public string? BrandLogo { get; set; }
     }
 
-    public class UpdateBrandDTO
+    public class UpdateBrandViewModel
     {
         public Guid BrandId { get; set; }
         [Required(ErrorMessage = "Brand name is required")]
@@ -39,7 +39,7 @@ namespace PetCenterClient.DTOs
         public Status Status { get; set; }
     }
 
-    public class CreateBrandDTO
+    public class CreateBrandViewModel
     {
         [Required(ErrorMessage = "Brand name is required")]
         [MaxLength(200, ErrorMessage = "Brand name cannot exceed 200 characters")]

@@ -18,12 +18,9 @@ namespace PetCenterClient.Controllers
             _brandService = brandService;
         }
         // GET: BrandController
-        public async Task<IActionResult> IndexAsync(string? search, int page = 1)
+        public async Task<IActionResult> IndexAsync()
         {
-            var result = await _brandService.GetAllBrandAsync(search, page);
-
-            ViewBag.CurrentPage = page;
-            ViewBag.Search = search;
+            var result = await _brandService.GetAllBrandAsync();
 
             return View("~/Views/CustomerViews/Home/ProductPage.cshtml", result);
         }
@@ -83,7 +80,7 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAsync(CreateBrandDTO model)
+        public async Task<IActionResult> CreateAsync(CreateBrandViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -122,7 +119,7 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var model = new UpdateBrandDTO
+            var model = new UpdateBrandViewModel
             {
                 BrandId = brand.BrandId,
                 BrandName = brand.BrandName,
@@ -137,7 +134,7 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(Guid BrandId, UpdateBrandDTO model)
+        public async Task<IActionResult> EditAsync(Guid BrandId, UpdateBrandViewModel model)
         {
             Console.WriteLine("ĐÃ VÀO EDIT");
             Console.WriteLine($"ID: {BrandId}");

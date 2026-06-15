@@ -17,12 +17,9 @@ namespace PetCenterClient.Controllers
             _categoryService = categoryService;
         }
         // GET: BrandController
-        public async Task<IActionResult> IndexAsync(string? search, int page = 1)
+        public async Task<IActionResult> IndexAsync()
         {
-            var result = await _categoryService.GetAllCategoryAsync(search, page);
-
-            ViewBag.CurrentPage = page;
-            ViewBag.Search = search;
+            var result = await _categoryService.GetAllCategoryAsync();
 
             return View("~/Views/CustomerViews/Home/ProductPage.cshtml", result);
         }
@@ -82,7 +79,7 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAsync(CreateCategoryDTO model)
+        public async Task<IActionResult> CreateAsync(CreateCategoryViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -114,7 +111,7 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var model = new UpdateCategoryDTO
+            var model = new UpdateCategoryViewModel
             {
                 CategoryId = category.CategoryId,
                 CategoryName = category.CategoryName,
@@ -123,7 +120,7 @@ namespace PetCenterClient.Controllers
                 Status = category.Status,
 
                 Attributes = category.Attributes?
-                    .Select(a => new UpdateCategoryAttributeDTOs
+                    .Select(a => new UpdateCategoryAttributeViewModel
                     {
                         AttributeName = a.AttributeName
                     }).ToList()
@@ -135,7 +132,7 @@ namespace PetCenterClient.Controllers
         // POST: CategoryController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(Guid id, UpdateCategoryDTO model)
+        public async Task<IActionResult> EditAsync(Guid id, UpdateCategoryViewModel model)
         {
             if (!ModelState.IsValid)
             {
