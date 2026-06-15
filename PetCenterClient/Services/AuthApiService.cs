@@ -16,6 +16,13 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        // ============================================================
+        // LOGIN — CUSTOMER
+        // ============================================================
+
+        /// <summary>
+        /// Post customer credentials to backend, parse token or error response
+        /// </summary>
         public async Task<LoginResponseViewModel?> LoginAsync(LoginViewModel dto)
         {
             try
@@ -53,38 +60,45 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<LoginStaffResponseDto?> StaffLoginAsync(LoginDto dto)
+        // ============================================================
+        // LOGIN — STAFF / ADMIN
+        // ============================================================
+
+        /// <summary>
+        /// Post staff credentials to backend, parse token, roles or error response
+        /// </summary>
+        public async Task<StaffLoginResponseViewModel?> StaffLoginAsync(StaffLoginViewModel dto)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/staff/auth/staff-login", dto);
+                var response = await _http.PostAsJsonAsync("api/auths/staff-login", dto);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     var errorData = JsonDocument.Parse(errorContent).RootElement;
 
-                    return new LoginStaffResponseDto
+                    return new StaffLoginResponseViewModel
                     {
                         Success = false,
-                        message = errorData.TryGetProperty("message", out var msg)
+                        Message = errorData.TryGetProperty("message", out var msg)
                             ? msg.GetString() : "Email or password incorrect",
                         ErrorType = errorData.TryGetProperty("errorType", out var eType)
                             ? eType.GetString() : "InvalidCredentials",
-                        token = null
+                        Token = null
                     };
                 }
 
-                return await response.Content.ReadFromJsonAsync<LoginStaffResponseDto>();
+                return await response.Content.ReadFromJsonAsync<StaffLoginResponseViewModel>();
             }
             catch
             {
-                return new LoginStaffResponseDto
+                return new StaffLoginResponseViewModel
                 {
                     Success = false,
-                    message = "An error occurred. Please try again.",
+                    Message = "An error occurred. Please try again.",
                     ErrorType = "Exception",
-                    token = null
+                    Token = null
                 };
             }
         }
