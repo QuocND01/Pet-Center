@@ -96,34 +96,45 @@ namespace PetCenterClient.Controllers
             return Json(new { isAuthenticated = true, token = token });
         }
 
+        // ============================================================
+        // LOGIN — STAFF / ADMIN
+        // ============================================================
+
+        /// <summary>
+        /// Display the admin and staff login page
+        /// </summary>
         public IActionResult AdminLogin()
         {
             return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
         }
 
+        /// <summary>
+        /// Handle admin or staff login, validate role against selected tab,
+        /// then store JWT, role and identity info in session
+        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> AdminLogin(LoginDto dto, string selectedRole)
+        public async Task<IActionResult> AdminLogin(StaffLoginViewModel dto, string selectedRole)
         {
             var result = await _authService.StaffLoginAsync(dto);
 
             // Xử lý lỗi từ API
-            if (result == null || !result.Success || string.IsNullOrEmpty(result.token))
+            if (result == null || !result.Success || string.IsNullOrEmpty(result.Token))
             {
                 ViewBag.Error = result?.ErrorType switch
                 {
                     "AccountInactive" => "Your account has been deactivated. Please contact admin.",
                     "NoPermission" => "This account does not have permission to access the system.",
-                    _ => result?.message ?? "Email or password incorrect"
+                    _ => result?.Message ?? "Email or password incorrect"
                 };
                 return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
             }
 
-            var roles = result.roles ?? new List<string>();
-            var primaryRole = result.primaryRole ?? "";
+            var roles = result.Roles ?? new List<string>();
+            var primaryRole = result.PrimaryRole ?? "";
 
             // Decode JWT lấy thông tin
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(result.token);
+            var jwt = handler.ReadJwtToken(result.Token);
 
             var staffId = jwt.Claims
                 .FirstOrDefault(c =>
@@ -164,7 +175,7 @@ namespace PetCenterClient.Controllers
             }
 
             // Lưu session
-            HttpContext.Session.SetString("JWT", result.token);
+            HttpContext.Session.SetString("JWT", result.Token);
             HttpContext.Session.SetString("Role", primaryRole);
             HttpContext.Session.SetString("Name", fullName);
 

@@ -5,9 +5,23 @@ namespace PetCenterClient.Services.Interface
 {
     public interface IAuthApiService
     {
+        // ============================================================
+        // LOGIN — CUSTOMER
+        // ============================================================
+
+        /// <summary>
+        /// Send customer login request to backend and return token or error
+        /// </summary>
         Task<LoginResponseViewModel?> LoginAsync(LoginViewModel dto);
 
-        Task<LoginStaffResponseDto?> StaffLoginAsync(LoginDto dto);
+        // ============================================================
+        // LOGIN — STAFF / ADMIN
+        // ============================================================
+
+        /// <summary>
+        /// Send staff or admin login request to backend and return token, roles or error
+        /// </summary>
+        Task<StaffLoginResponseViewModel?> StaffLoginAsync(StaffLoginViewModel dto);
 
         
         Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto);

@@ -163,11 +163,13 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 // ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IStaffAuthRepository, StaffAuthRepository>();
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordService>();
+builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
