@@ -16,7 +16,7 @@ namespace PetCenterClient.Controllers
         private readonly ICustomerAPIClient _customerService;
 
         public ProductsController(IProductServiceClient productService, IBrandServiceClient brandService, ICategoryServiceClient categoryService, IFeedbackAPIClient feedbackService, ICustomerAPIClient customerService)
-            
+
         {
             _productService = productService;
             _brandService = brandService;
@@ -27,35 +27,72 @@ namespace PetCenterClient.Controllers
 
         // GET: ReadProdutDTOs
         public async Task<IActionResult> IndexAsync(
-          string? search,
-             bool? isActive,
-             decimal? minPrice,
-             decimal? maxPrice,
-             DateTime? fromDate,
-             DateTime? toDate,
-             string? sortBy,
-              Guid? categoryid,
-             Guid? brandid,
-             string sortOrder = "asc",
-             int page = 1)
+        string? search,
+        bool? isActive,
+        decimal? minPrice,
+        decimal? maxPrice,
+        DateTime? fromDate,
+        DateTime? toDate,
+        string? sortBy,
+        Guid? categoryid,
+        Guid? brandid,
+        string sortOrder = "asc",
+        int page = 1)
         {
             int pagesize = 24;
+
             var result = await _productService.GetAllProductAsync(
-               search, isActive, minPrice, maxPrice, fromDate, toDate, sortBy, categoryid, brandid, sortOrder, page);
+                search,
+                isActive,
+                minPrice,
+                maxPrice,
+                fromDate,
+                toDate,
+                sortBy,
+                categoryid,
+                brandid,
+                sortOrder,
+                page);
+
             int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
+
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
-            var hotProducts = await _productService.GetHotProductsAsync();
-            var newProducts = await _productService.GetNewProductsAsync();
-            ViewBag.HotProducts = hotProducts;
-            ViewBag.NewProducts = newProducts;
             ViewBag.PageSize = pagesize;
-            ViewBag.Brands = await _brandService.GetAllBrandAsync("", 1);
-            ViewBag.Categories = await _categoryService.GetAllCategoryAsync("", 1);
-            return View("~/Views/CustomerViews/Home/ProductPage.cshtml", result);
-        }
 
+            // Hot/New
+            ViewBag.HotProducts = await _productService.GetHotProductsAsync();
+            ViewBag.NewProducts = await _productService.GetNewProductsAsync();
+
+            // Categories
+            var categoriesResponse = await _categoryService.GetAllCategoryAsync();
+            ViewBag.Categories = categoriesResponse.Values;
+
+            // Brands
+            var brandsResponse = await _brandService.GetAllBrandAsync();
+            ViewBag.Brands = brandsResponse.Values;
+
+            // Category đang được chọn
+            if (categoryid.HasValue)
+            {
+                ViewBag.SelectedCategory =
+                    categoriesResponse.Values
+                    .FirstOrDefault(x => x.CategoryId == categoryid.Value);
+            }
+
+            // Brand đang được chọn
+            if (brandid.HasValue)
+            {
+                ViewBag.SelectedBrand =
+                    brandsResponse.Values
+                    .FirstOrDefault(x => x.BrandId == brandid.Value);
+            }
+
+            return View(
+                "~/Views/CustomerViews/Home/ProductPage.cshtml",
+                result);
+        }
 
 
         public async Task<IActionResult> IndexAdminAsync(
@@ -166,8 +203,8 @@ namespace PetCenterClient.Controllers
         // GET: ReadProdutDTOs/Create
         public async Task<IActionResult> CreateAsync()
         {
-            var brands = await _brandService.GetAllBrandAsync("", 1) ?? new OdataResponse<ReadBrandDTOForCustomer>();
-            var categories = await _categoryService.GetAllCategoryAsync("", 1) ?? new OdataResponse<ReadCategoryDTOForCustomer>();
+            var brands = await _brandService.GetAllBrandAsync() ?? new OdataResponse<ReadBrandViewModelForCustomer>();
+            var categories = await _categoryService.GetAllCategoryAsync() ?? new OdataResponse<ReadCategoryViewModelForCustomer>();
             ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
             ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
 
@@ -179,7 +216,7 @@ namespace PetCenterClient.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAsync(CreateProductDTO model)
+        public async Task<IActionResult> CreateAsync(CreateProductViewModel model)
         {
 
             if (!ModelState.IsValid)
@@ -193,7 +230,7 @@ namespace PetCenterClient.Controllers
                 var category = await _categoryService.DetailsCategoryAsync(model.CategoryId);
 
                 model.Attributes = category.Attributes
-                    .Select(a => new CreateProductAttributeDTO
+                    .Select(a => new CreateProductAttributeViewModel
                     {
                         CategoryAttributeId = a.CategoryAttributeId,
                         AttributeName = a.AttributeName,
@@ -202,8 +239,8 @@ namespace PetCenterClient.Controllers
                             .AttributeValue
                     }).ToList();
 
-                var brands = await _brandService.GetAllBrandAsync("", 1);
-                var categories = await _categoryService.GetAllCategoryAsync("", 1);
+                var brands = await _brandService.GetAllBrandAsync();
+                var categories = await _categoryService.GetAllCategoryAsync();
 
                 ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
@@ -218,8 +255,8 @@ namespace PetCenterClient.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                var brands = await _brandService.GetAllBrandAsync("", 1);
-                var categories = await _categoryService.GetAllCategoryAsync("", 1);
+                var brands = await _brandService.GetAllBrandAsync();
+                var categories = await _categoryService.GetAllCategoryAsync();
 
                 ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
@@ -242,7 +279,7 @@ namespace PetCenterClient.Controllers
                 return NotFound();
             }
 
-            var model = new UpdateProductDTO
+            var model = new UpdateProductViewModel
             {
                 ProductId = product.ProductId,
                 ProductName = product.ProductName,
@@ -255,7 +292,7 @@ namespace PetCenterClient.Controllers
                 Status = product.Status,
                 ExistingImages = product.Images,
                 Attributes = product.Attributes?
-                    .Select(a => new UpdateProductAttributeDTO
+                    .Select(a => new UpdateProductAttributeViewModel
                     {
                         CategoryAttributeId = a.CategoryAttributeId,
                         AttributeName = a.AttributeName,
@@ -263,8 +300,8 @@ namespace PetCenterClient.Controllers
                     }).ToList()
             };
 
-            var brands = await _brandService.GetAllBrandAsync("", 1);
-            var categories = await _categoryService.GetAllCategoryAsync("", 1);
+            var brands = await _brandService.GetAllBrandAsync();
+            var categories = await _categoryService.GetAllCategoryAsync();
 
             ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
             ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
@@ -277,12 +314,12 @@ namespace PetCenterClient.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(Guid ProductId, UpdateProductDTO model)
+        public async Task<IActionResult> EditAsync(Guid ProductId, UpdateProductViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                var brands = await _brandService.GetAllBrandAsync("", 1);
-                var categories = await _categoryService.GetAllCategoryAsync("", 1);
+                var brands = await _brandService.GetAllBrandAsync();
+                var categories = await _categoryService.GetAllCategoryAsync();
                 ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
                 foreach (var item in ModelState)
@@ -306,8 +343,8 @@ namespace PetCenterClient.Controllers
             {
                 ModelState.AddModelError("", ex.Message);
 
-                var brands = await _brandService.GetAllBrandAsync("", 1);
-                var categories = await _categoryService.GetAllCategoryAsync("", 1);
+                var brands = await _brandService.GetAllBrandAsync();
+                var categories = await _categoryService.GetAllCategoryAsync();
 
                 ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");

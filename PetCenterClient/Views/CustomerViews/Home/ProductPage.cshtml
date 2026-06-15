@@ -1,5 +1,5 @@
 @using PetCenterClient.DTOs
-@model OdataResponse<ReadProductDTOForCustomer>
+@model OdataResponse<ReadProductViewModelForCustomer>
 
 @{
 
@@ -12,8 +12,16 @@
     var currentCat      = Context.Request.Query["categoryid"].ToString();
     var currentBrand    = Context.Request.Query["brandid"].ToString();
     var totalCount      = Model?.Count ?? 0;
-    var hotProducts     = ViewBag.HotProducts as List<ReadProductDTO>;
-    var newProducts     = ViewBag.NewProducts as List<ReadProductDTO>;
+    var hotProducts     = ViewBag.HotProducts as List<ReadProductViewModel>;
+    var newProducts     = ViewBag.NewProducts as List<ReadProductViewModel>;
+    var cats = ViewBag.Categories as IEnumerable<ReadCategoryViewModelForCustomer>;
+    var currentCatName = cats?.FirstOrDefault(x => x.CategoryId.ToString() == currentCat)?.CategoryName;
+    var catClass = !string.IsNullOrEmpty(currentCat) ? "filter-select active" : "filter-select";
+    var brands = ViewBag.Brands as IEnumerable<ReadBrandViewModelForCustomer>;
+    var currentBrandName = brands?.FirstOrDefault(x => x.BrandId.ToString() == currentBrand)?.BrandName;
+    var brandClass = !string.IsNullOrEmpty(currentBrand) ? "filter-select active" : "filter-select";
+    var selectedCategory =ViewBag.SelectedCategory as ReadCategoryViewModelForCustomer;
+    var selectedBrand =ViewBag.SelectedBrand as ReadBrandViewModelForCustomer;
 }
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -484,6 +492,112 @@
 .badge-new {
     background: #2ecc71; /* xanh */
 }
+
+/* =========================
+   CATEGORY / BRAND DROPDOWN
+========================= */
+
+.nav-dropdown {
+    position: relative;
+}
+
+.nav-dropdown::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 10px;
+}
+
+.dropdown-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    transition: all .2s;
+}
+
+.dropdown-btn:hover {
+    border-color: var(--g3);
+    background: var(--g0);
+}
+
+.dropdown-content {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 220px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.12);
+    overflow: hidden;
+    z-index: 999;
+    display: none;
+}
+
+.nav-dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 12px 16px;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background .2s;
+}
+
+.dropdown-content a:hover {
+    background: var(--g0);
+    color: var(--g5);
+}
+
+/* =========================
+   SELECTED CATEGORY / BRAND
+========================= */
+
+.selected-info-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow);
+}
+
+.selected-info-card img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.selected-info-card h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-family: var(--font-head);
+    color: var(--ink);
+}
+
+.selected-info-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+}
 </style>
 
 @{
@@ -515,12 +629,54 @@
                 Profile
             </a>
 
+              <!-- Category Dropdown -->
+    <div class="nav-dropdown">
+        <button type="button" class="dropdown-btn">
+            Categories ▼
+        </button>
+
+        <div class="dropdown-content">
+            @if (cats != null)
+            {
+                foreach (var c in cats)
+                {
+                    <a asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-categoryid="@c.CategoryId">
+                        @c.CategoryName
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Brand Dropdown -->
+    <div class="nav-dropdown">
+        <button type="button" class="dropdown-btn">
+            Brands ▼
+        </button>
+
+        <div class="dropdown-content">
+            @if (brands != null)
+            {
+                foreach (var b in brands)
+                {
+                    <a asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-brandid="@b.BrandId">
+                        @b.BrandName
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+
         </div>
     </div>
 }
 
 <h1>Product Page</h1>
-```
 
 <div id="toast-container"></div>
 
@@ -612,232 +768,253 @@
         <hr class="section-divider" />
     }
 
-    <!-- ── FILTER ── -->
-    <div class="filter-card" id="products">
-        <form asp-action="Index" asp-controller="Products" method="get" id="filterForm">
-            <div class="filter-top">
-                <span class="filter-label">🔍 Tìm kiếm</span>
-                <div class="search-wrap">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                    </svg>
-                    <input type="text"
-                           name="search"
-                           value="@currentSearch"
-                           class="search-input"
-                           placeholder="Tên sản phẩm..." />
-                </div>
+  <!-- ── FILTER ── -->
+<div class="filter-card" id="products">
+    <form asp-action="Index" asp-controller="Products" method="get" id="filterForm">
+        <div class="filter-top">
+            <span class="filter-label">🔍 Search</span>
+            <div class="search-wrap">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input type="text"
+                       name="search"
+                       value="@currentSearch"
+                       class="search-input"
+                       placeholder="Product name..." />
             </div>
+        </div>
 
-            <div class="filter-row">
-                <!-- Category -->
-                @{
-                    var cats = (ViewBag.Categories as OdataResponse<ReadCategoryDTO>)?.Values;
-                    var catClass = !string.IsNullOrEmpty(currentCat) ? "filter-select active" : "filter-select";
-                }
-                <select name="categoryid" class="@catClass">
-                    <option value="">🏷 Danh mục</option>
-                    @if (cats != null)
-                    {
-                        foreach (var c in cats)
-                        {
-                            if (currentCat == c.CategoryId.ToString())
-                            {
-                                <option value="@c.CategoryId" selected>@c.CategoryName</option>
-                            }
-                            else
-                            {
-                                <option value="@c.CategoryId">@c.CategoryName</option>
-                            }
-                        }
-                    }
-                </select>
+        <div class="filter-row">
 
-                <!-- Brand -->
-                @{
-                    var brands = (ViewBag.Brands as OdataResponse<ReadBrandDTO>)?.Values;
-                    var brandClass = !string.IsNullOrEmpty(currentBrand) ? "filter-select active" : "filter-select";
-                }
-                <select name="brandid" class="@brandClass">
-                    <option value="">🏪 Thương hiệu</option>
-                    @if (brands != null)
-                    {
-                        foreach (var b in brands)
-                        {
-                            if (currentBrand == b.BrandId.ToString())
-                            {
-                                <option value="@b.BrandId" selected>@b.BrandName</option>
-                            }
-                            else
-                            {
-                                <option value="@b.BrandId">@b.BrandName</option>
-                            }
-                        }
-                    }
-                </select>
-
-                <!-- Sort -->
-                <select name="sortBy" class="filter-select">
-                    <option value="">↕ Sắp xếp</option>
-                    @if (currentSortBy == "Price")
-                    {
-                        <option value="Price" selected>Giá</option>
-                    }
-                    else
-                    {
-                        <option value="Price">Giá</option>
-                    }
-                    @if (currentSortBy == "Name")
-                    {
-                        <option value="Name" selected>Tên</option>
-                    }
-                    else
-                    {
-                        <option value="Name">Tên</option>
-                    }
-                    @if (currentSortBy == "date")
-                    {
-                        <option value="date" selected>Mới nhất</option>
-                    }
-                    else
-                    {
-                        <option value="date">Mới nhất</option>
-                    }
-                </select>
-
-                <select name="sortOrder" class="filter-select">
-                    @if (currentOrder != "desc")
-                    {
-                        <option value="asc" selected>↑ Tăng dần</option>
-                        <option value="desc">↓ Giảm dần</option>
-                    }
-                    else
-                    {
-                        <option value="asc">↑ Tăng dần</option>
-                        <option value="desc" selected>↓ Giảm dần</option>
-                    }
-                </select>
-
-                <!-- Price range -->
-                <div class="price-group">
-                    <span>₫</span>
-                    <input type="number" name="minPrice" value="@currentMin" class="price-input" placeholder="Từ" />
-                    <span>–</span>
-                    <input type="number" name="maxPrice" value="@currentMax" class="price-input" placeholder="Đến" />
-                </div>
-
-                <button type="submit" class="btn-filter">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                    Lọc
-                </button>
-
-                @if (!string.IsNullOrEmpty(currentSearch) || !string.IsNullOrEmpty(currentCat) || !string.IsNullOrEmpty(currentBrand) || !string.IsNullOrEmpty(currentMin) || !string.IsNullOrEmpty(currentMax))
+           
+            <!-- Category -->
+            <select name="categoryid" class="@catClass">
+                <option value="">🏷 Category</option>
+                @if (cats != null)
                 {
-                    <a asp-action="IndexAsync" asp-controller="Products" class="btn-reset">✕ Xoá lọc</a>
-                }
-            </div>
-        </form>
-    </div>
-
-
-    @if (hasFilter)
-    {
-        <div class="active-filters">
-            @if (!string.IsNullOrEmpty(currentSearch))
-            {
-                <span class="filter-chip">🔍 "@currentSearch"</span>
-            }
-            @if (!string.IsNullOrEmpty(currentCat))
-            {
-                var catName = (ViewBag.Categories as OdataResponse<ReadCategoryDTO>)?.Values?.FirstOrDefault(c => c.CategoryId.ToString() == currentCat)?.CategoryName;
-                <span class="filter-chip">🏷 @catName</span>
-            }
-            @if (!string.IsNullOrEmpty(currentBrand))
-            {
-                var bName = (ViewBag.Brands as OdataResponse<ReadBrandDTO>)?.Values?.FirstOrDefault(b => b.BrandId.ToString() == currentBrand)?.BrandName;
-                <span class="filter-chip">🏪 @bName</span>
-            }
-            @if (!string.IsNullOrEmpty(currentMin) || !string.IsNullOrEmpty(currentMax))
-            {
-                <span class="filter-chip">₫ @currentMin – @currentMax</span>
-            }
-        </div>
-    }
-
-    <!-- ── RESULTS BAR ── -->
-    <div class="results-bar">
-        <div class="results-count">
-            @if (Model?.Values != null)
-            {
-              <strong>@totalCount</strong> <span>sản phẩm được tìm thấy</span>
-            }
-        </div>
-    </div>
-
-    <!-- ── PRODUCT GRID ── -->
-    @if (Model?.Values != null && Model.Values.Any())
-    {
-        <div class="products-grid">
-            @foreach (var item in Model.Values)
-            {
-                var imgSrc = item.Images?.FirstOrDefault();
-                <a asp-controller="Products"
-                   asp-action="DetailsForcustomer"
-                   asp-route-id="@item.ProductId"
-                   class="product-card">
-
-                    <div class="product-img-wrap">
-                        @if (!string.IsNullOrEmpty(imgSrc))
+                    foreach (var c in cats)
+                    {
+                        if (currentCat == c.CategoryId.ToString())
                         {
-                            <img src="@imgSrc" alt="@item.ProductName" loading="lazy"
-                                 onerror="this.parentElement.innerHTML='<div class=\'no-img\'>🐾</div>'" />
+                            <option value="@c.CategoryId" selected>@c.CategoryName</option>
                         }
                         else
                         {
-                            <div class="no-img">🐾</div>
+                            <option value="@c.CategoryId">@c.CategoryName</option>
                         }
+                    }
+                }
+            </select>
 
-                        <span class="badge-stock @(item.StockQuantity > 0 ? "badge-in" : "badge-out")">
-                            @(item.StockQuantity > 0 ? "Còn hàng" : "Hết hàng")
-                        </span>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="card-meta">
-                            @if (!string.IsNullOrEmpty(item.CategoryName))
-                            {
-                                <span class="card-tag">@item.CategoryName</span>
-                            }
-                            @if (!string.IsNullOrEmpty(item.BrandName))
-                            {
-                                <span class="card-tag brand">@item.BrandName</span>
-                            }
-                        </div>
-
-                        <div class="card-name">@item.ProductName</div>
-
-                        @if (!string.IsNullOrEmpty(item.ProductDescription))
+            <!-- Brand -->
+            <select name="brandid" class="@brandClass">
+                <option value="">🏪 Brand</option>
+                @if (brands != null)
+                {
+                    foreach (var b in brands)
+                    {
+                        if (currentBrand == b.BrandId.ToString())
                         {
-                            <div class="card-desc">@item.ProductDescription</div>
+                            <option value="@b.BrandId" selected>@b.BrandName</option>
                         }
+                        else
+                        {
+                            <option value="@b.BrandId">@b.BrandName</option>
+                        }
+                    }
+                }
+            </select>
 
-                        <div class="card-footer">
-                            <span class="card-price">@item.ProductPrice.ToString("N0")₫</span>
-                            <span class="card-add" title="Xem chi tiết">→</span>
-                        </div>
-                    </div>
-                </a>
+            <!-- Sort -->
+            <select name="sortBy" class="filter-select">
+                <option value="">↕ Sort</option>
+                @if (currentSortBy == "Price")
+                {
+                    <option value="Price" selected>Price</option>
+                }
+                else
+                {
+                    <option value="Price">Price</option>
+                }
+                @if (currentSortBy == "Name")
+                {
+                    <option value="Name" selected>Name</option>
+                }
+                else
+                {
+                    <option value="Name">Name</option>
+                }
+                @if (currentSortBy == "date")
+                {
+                    <option value="date" selected>Newest</option>
+                }
+                else
+                {
+                    <option value="date">Newest</option>
+                }
+            </select>
+
+            <select name="sortOrder" class="filter-select">
+                @if (currentOrder != "desc")
+                {
+                    <option value="asc" selected>↑ Ascending</option>
+                    <option value="desc">↓ Descending</option>
+                }
+                else
+                {
+                    <option value="asc">↑ Ascending</option>
+                    <option value="desc" selected>↓ Descending</option>
+                }
+            </select>
+
+            <!-- Price range -->
+            <div class="price-group">
+                <span>₫</span>
+                <input type="number" name="minPrice" value="@currentMin" class="price-input" placeholder="From" />
+                <span>–</span>
+                <input type="number" name="maxPrice" value="@currentMax" class="price-input" placeholder="To" />
+            </div>
+
+            <button type="submit" class="btn-filter">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                Filter
+            </button>
+
+            @if (!string.IsNullOrEmpty(currentSearch) || !string.IsNullOrEmpty(currentCat) || !string.IsNullOrEmpty(currentBrand) || !string.IsNullOrEmpty(currentMin) || !string.IsNullOrEmpty(currentMax))
+            {
+                <a asp-action="" asp-controller="Products" class="btn-reset">✕ Clear filters</a>
             }
         </div>
-    }
-    else
-    {
-        <div class="empty-state">
-            <div class="empty-icon">🔍</div>
-            <div class="empty-title">Không tìm thấy sản phẩm</div>
-            <div class="empty-sub">Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm</div>
+    </form>
+</div>
+
+
+@if (hasFilter)
+{
+    <div class="active-filters">
+        @if (!string.IsNullOrEmpty(currentSearch))
+        {
+            <span class="filter-chip">🔍: "@currentSearch"</span>
+        }
+        @if (!string.IsNullOrEmpty(currentCat))
+        {
+            <span class="filter-chip">
+                🏷: @currentCatName
+            </span>
+        }
+       @if (!string.IsNullOrEmpty(currentBrand))
+        {
+            <span class="filter-chip">
+                🏪: @currentBrandName
+            </span>
+        }
+        @if (!string.IsNullOrEmpty(currentMin) || !string.IsNullOrEmpty(currentMax))
+        {
+            <span class="filter-chip">₫ @currentMin – @currentMax</span>
+        }
+    </div>
+}
+
+  
+@if (selectedCategory != null)
+{
+    <div class="selected-info-card">
+        <img src="@selectedCategory.CategoryLogo" />
+
+        <div>
+            <h2>@selectedCategory.CategoryName</h2>
+            <p>@selectedCategory.CategoryDescription</p>
         </div>
-    }
+    </div>
+}
+
+@if (selectedBrand != null)
+{
+    <div class="selected-info-card">
+        <img src="@selectedBrand.BrandLogo" />
+
+        <div>
+            <h2>@selectedBrand.BrandName</h2>
+            <p>@selectedBrand.BrandDescription</p>
+        </div>
+    </div>
+}
+
+<!-- ── RESULTS BAR ── -->
+<div class="results-bar">
+    <div class="results-count">
+        @if (Model?.Values != null)
+        {
+          <strong>@totalCount</strong> <span>products found</span>
+        }
+    </div>
+</div>
+
+<!-- ── PRODUCT GRID ── -->
+@if (Model?.Values != null && Model.Values.Any())
+{
+    <div class="products-grid">
+        @foreach (var item in Model.Values)
+        {
+            var imgSrc = item.Images?.FirstOrDefault();
+            <a asp-controller="Products"
+               asp-action="DetailsForcustomer"
+               asp-route-id="@item.ProductId"
+               class="product-card">
+
+                <div class="product-img-wrap">
+                    @if (!string.IsNullOrEmpty(imgSrc))
+                    {
+                        <img src="@imgSrc" alt="@item.ProductName" loading="lazy"
+                             onerror="this.parentElement.innerHTML='<div class=\'no-img\'>🐾</div>'" />
+                    }
+                    else
+                    {
+                        <div class="no-img">🐾</div>
+                    }
+
+                    <span class="badge-stock @(item.StockQuantity > 0 ? "badge-in" : "badge-out")">
+                        @(item.StockQuantity > 0 ? "In stock" : "Out of stock")
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <div class="card-meta">
+                        @if (!string.IsNullOrEmpty(item.CategoryName))
+                        {
+                            <span class="card-tag">@item.CategoryName</span>
+                        }
+                        @if (!string.IsNullOrEmpty(item.BrandName))
+                        {
+                            <span class="card-tag brand">@item.BrandName</span>
+                        }
+                    </div>
+
+                    <div class="card-name">@item.ProductName</div>
+
+                    @if (!string.IsNullOrEmpty(item.ProductDescription))
+                    {
+                        <div class="card-desc">@item.ProductDescription</div>
+                    }
+
+                    <div class="card-footer">
+                        <span class="card-price">@item.ProductPrice.ToString("N0")₫</span>
+                        <span class="card-add" title="View details">→</span>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No products found</div>
+        <div class="empty-sub">Try changing filters or search keywords</div>
+    </div>
+}
 
 
 

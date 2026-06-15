@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.DTOs
 {
-    public class CreateCategoryAttributeDTOs
+    public class CreateCategoryAttributeViewModel
     {
         [Required(ErrorMessage = "Category Attribute name is required")]
         [MaxLength(200, ErrorMessage = "Category Attribute name cannot exceed 200 characters")]
@@ -11,7 +11,7 @@ namespace PetCenterClient.DTOs
         public string? AttributeName { get; set; }
     }
 
-    public class ReadCategoryAttributeDTO
+    public class ReadCategoryAttributeViewModel
     {
         public Guid CategoryAttributeId { get; set; }
 
@@ -20,7 +20,7 @@ namespace PetCenterClient.DTOs
     }
 
 
-    public class UpdateCategoryAttributeDTOs
+    public class UpdateCategoryAttributeViewModel
     {
         public Guid CategoryAttributeId { get; set; }
         [Required(ErrorMessage = "Category Attribute name is required")]
