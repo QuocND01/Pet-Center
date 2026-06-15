@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.DTOs.GoogleClientDto
+﻿@model PetCenterClient.ViewModels.Login.GoogleClientViewModel
 @{
     Layout = null;
 }
@@ -272,7 +272,6 @@
                     return;
                 }
 
-                // ✅ Hiện overlay ngay khi popup đóng và có code
                 showGoogleLoading();
 
                 try {
@@ -288,7 +287,6 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        // ✅ Giữ overlay đến khi browser chuyển trang
                         window.location.href = data.redirectUrl || '/Products/Index';
                     } else {
                         hideGoogleLoading();

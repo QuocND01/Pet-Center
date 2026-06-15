@@ -171,9 +171,13 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.Configure<GoogleAuthSettings>(
+    builder.Configuration.GetSection("Authentication:Google"));
 
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpClient();

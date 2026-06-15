@@ -26,5 +26,16 @@ namespace PetCenterAPI.Repository.Interface
         Task<bool> AddOtpAsync(OtpCode otp);
         Task<bool> UpdateOtpAsync(OtpCode otp);
         Task<bool> DeleteOtpAsync(OtpCode otp);
+
+        // ============================================================
+        // STAFF / ADMIN — CUSTOMER MANAGEMENT
+        // ============================================================
+        Task<List<Customer>> GetAllCustomersAsync();
+        Task<Customer?> GetCustomerByIdAsync(Guid customerId);
+
+        // ============================================================
+        // CUSTOMER PROFILE
+        // ============================================================
+        Task<Customer?> GetByIdAsync(Guid customerId);
     }
 }

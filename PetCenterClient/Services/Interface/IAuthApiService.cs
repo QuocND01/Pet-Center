@@ -28,9 +28,12 @@ namespace PetCenterClient.Services.Interface
         Task<(bool Success, string Message)> ResendOtpAsync(string email);
 
         Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordRequestDto dto);
-        Task<LoginResponseDto?> GoogleLoginAsync(string idToken);
 
-        Task<LoginResponseDto?> GoogleCallbackAsync(string code, string redirectUri);
+        // ============================================================
+        // GOOGLE LOGIN
+        // ============================================================
+        Task<LoginResponseDto?> GoogleLoginAsync(string idToken);
+        Task<LoginResponseViewModel?> GoogleCallbackAsync(string code, string redirectUri);
 
         Task<(bool Success, string Message)> ForgotPasswordAsync(string email);
         Task<ValidateTokenResponseDto> ValidateResetTokenAsync(string email, string token);
