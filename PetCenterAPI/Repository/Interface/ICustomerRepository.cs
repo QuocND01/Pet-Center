@@ -7,15 +7,24 @@ namespace PetCenterAPI.Repository.Interface
         // ============================================================
         // LOGIN
         // ============================================================
-
-        /// <summary>
-        /// Get customer by email (only active accounts)
-        /// </summary>
         Task<Customer?> GetByEmailAsync(string email);
-
-        /// <summary>
-        /// Get customer by email (include inactive accounts - used for login validation)
-        /// </summary>
         Task<Customer?> GetByEmailAsyncWithoutActiveCheck(string email);
+
+        // ============================================================
+        // REGISTER
+        // ============================================================
+        Task<bool> AddAsync(Customer customer);
+        Task<bool> DeleteAsync(Customer customer);
+        Task<Customer?> GetByPhoneAsync(string phone);
+        Task<bool> UpdateAsync(Customer customer);
+        Task<Customer?> GetByIdInternalAsync(Guid customerId);
+
+        // ============================================================
+        // OTP
+        // ============================================================
+        Task<OtpCode?> GetOtpByCustomerIdAsync(Guid customerId);
+        Task<bool> AddOtpAsync(OtpCode otp);
+        Task<bool> UpdateOtpAsync(OtpCode otp);
+        Task<bool> DeleteOtpAsync(OtpCode otp);
     }
 }

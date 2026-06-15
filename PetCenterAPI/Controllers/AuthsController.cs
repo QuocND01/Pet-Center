@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Protocol.Plugins;
 using PetCenterAPI.DTOs.Requests.Login;
+using PetCenterAPI.DTOs.Requests.Register;
 using PetCenterAPI.DTOs.Responses;
 using PetCenterAPI.DTOs.Responses.Login;
 using PetCenterAPI.Security;
@@ -38,10 +39,6 @@ namespace PetCenterAPI.Controllers
         // ============================================================
         // LOGIN
         // ============================================================
-
-        /// <summary>
-        /// Authenticate a customer with email and password, return JWT on success
-        /// </summary>
         [HttpPost("customer-login")]
         [AllowAnonymous]
         public async Task<IActionResult> CustomerLogin([FromBody] LoginRequestDTO request)
@@ -74,10 +71,6 @@ namespace PetCenterAPI.Controllers
         // ============================================================
         // LOGIN — STAFF / ADMIN
         // ============================================================
-
-        /// <summary>
-        /// Authenticate a staff or admin account, return JWT and role list on success
-        /// </summary>
         [HttpPost("staff-login")]
         [AllowAnonymous]
         public async Task<IActionResult> StaffLogin([FromBody] StaffLoginRequestDTO request)
@@ -112,6 +105,60 @@ namespace PetCenterAPI.Controllers
                 roles,
                 primaryRole
             });
+        }
+
+        // ============================================================
+        // REGISTER — STEP 1: Nhận form, tạo customer tạm, gửi OTP
+        // ============================================================
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerAuthService.RegisterAsync(request);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // ============================================================
+        // REGISTER — STEP 2: Verify OTP, kích hoạt tài khoản
+        // ============================================================
+        [HttpPost("verify-otp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerAuthService.VerifyOtpAsync(request);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // ============================================================
+        // REGISTER — RESEND OTP
+        // ============================================================
+        [HttpPost("resend-otp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerAuthService.ResendOtpAsync(request.Email);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
         }
     }
 }

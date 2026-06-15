@@ -2,6 +2,7 @@
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.Login;
+using PetCenterClient.ViewModels.Register;
 
 namespace PetCenterClient.Controllers
 {
@@ -19,19 +20,12 @@ namespace PetCenterClient.Controllers
         // ============================================================
         // LOGIN
         // ============================================================
-
-        /// <summary>
-        /// Display the login page with Google client ID pre-loaded
-        /// </summary>
         public IActionResult Login()
         {
             var dto = _googleClientService.GetGoogleClientId();
             return View("~/Views/CustomerViews/Auth/Login.cshtml", dto);
         }
 
-        /// <summary>
-        /// Handle login form submission, store JWT and user info in session on success
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel dto)
         {
@@ -99,25 +93,16 @@ namespace PetCenterClient.Controllers
         // ============================================================
         // LOGIN — STAFF / ADMIN
         // ============================================================
-
-        /// <summary>
-        /// Display the admin and staff login page
-        /// </summary>
         public IActionResult AdminLogin()
         {
             return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
         }
 
-        /// <summary>
-        /// Handle admin or staff login, validate role against selected tab,
-        /// then store JWT, role and identity info in session
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> AdminLogin(StaffLoginViewModel dto, string selectedRole)
         {
             var result = await _authService.StaffLoginAsync(dto);
 
-            // Xử lý lỗi từ API
             if (result == null || !result.Success || string.IsNullOrEmpty(result.Token))
             {
                 ViewBag.Error = result?.ErrorType switch
@@ -132,7 +117,6 @@ namespace PetCenterClient.Controllers
             var roles = result.Roles ?? new List<string>();
             var primaryRole = result.PrimaryRole ?? "";
 
-            // Decode JWT lấy thông tin
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.Token);
 
@@ -147,7 +131,6 @@ namespace PetCenterClient.Controllers
                 .FirstOrDefault(c => c.Type == "fullName")
                 ?.Value ?? "";
 
-            // ── Kiểm tra tab Admin ──────────────────────────────
             if (selectedRole == "Admin")
             {
                 if (!roles.Contains("Admin"))
@@ -156,7 +139,6 @@ namespace PetCenterClient.Controllers
                     return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
                 }
             }
-            // ── Kiểm tra tab Staff ──────────────────────────────
             else if (selectedRole == "Staff")
             {
                 var staffRoles = new[] { "Sale Staff", "Inventory Staff", "Vet" };
@@ -166,7 +148,6 @@ namespace PetCenterClient.Controllers
                     return View("~/Views/AdminViews/Auth/AdminLogin.cshtml");
                 }
 
-                // Admin không được login qua tab Staff
                 if (roles.Contains("Admin") && !roles.Any(r => staffRoles.Contains(r)))
                 {
                     ViewBag.Error = "Please use the Admin tab to sign in.";
@@ -174,7 +155,6 @@ namespace PetCenterClient.Controllers
                 }
             }
 
-            // Lưu session
             HttpContext.Session.SetString("JWT", result.Token);
             HttpContext.Session.SetString("Role", primaryRole);
             HttpContext.Session.SetString("Name", fullName);
@@ -203,15 +183,16 @@ namespace PetCenterClient.Controllers
             return Json(new { isAuthenticated = true, role });
         }
 
-        // ================= REGISTER =================
-
+        // ============================================================
+        // REGISTER
+        // ============================================================
         public IActionResult Register()
         {
             return View("~/Views/CustomerViews/Auth/Register.cshtml");
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register(RegisterViewModel dto)
         {
             if (!ModelState.IsValid)
             {
@@ -237,17 +218,18 @@ namespace PetCenterClient.Controllers
             return Json(new { success = true, redirectUrl = Url.Action("Verify", "Auth", new { email = dto.Email }) });
         }
 
-        // ================= VERIFY EMAIL =================
-
+        // ============================================================
+        // OTP — VERIFY
+        // ============================================================
         public IActionResult Verify(string email)
         {
             TempData.Keep("PrefilledEmail");
             TempData.Keep("PrefilledPassword");
-            return View("~/Views/CustomerViews/Auth/Verify.cshtml", new VerifyEmailDto { Email = email });
+            return View("~/Views/CustomerViews/Auth/Verify.cshtml", new VerifyEmailViewModel { Email = email });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Verify(VerifyEmailDto dto)
+        public async Task<IActionResult> Verify(VerifyEmailViewModel dto)
         {
             var result = await _authService.VerifyOtpAsync(dto.Email, dto.Code);
 
@@ -269,8 +251,9 @@ namespace PetCenterClient.Controllers
             return RedirectToAction("Login");
         }
 
-        // ================= RESEND OTP =================
-
+        // ============================================================
+        // OTP — RESEND
+        // ============================================================
         [HttpPost]
         public async Task<IActionResult> Resend(string email)
         {
