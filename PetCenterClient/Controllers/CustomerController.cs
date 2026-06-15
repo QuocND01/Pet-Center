@@ -8,9 +8,9 @@ namespace PetCenterClient.Controllers
     public class CustomerController : Controller
     {
         private readonly ICustomerAPIClient _customerService;
-        private readonly IAuthAPIClient _authService;
+        private readonly IAuthApiService _authService;
 
-        public CustomerController(ICustomerAPIClient customerService, IAuthAPIClient authService)
+        public CustomerController(ICustomerAPIClient customerService, IAuthApiService authService)
         {
             _customerService = customerService;
             _authService = authService;

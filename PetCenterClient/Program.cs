@@ -34,7 +34,7 @@ builder.Services.AddHttpClient<IStaffService, StaffService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IAuthAPIClient, AuthAPIClient>(client =>
+builder.Services.AddHttpClient<IAuthApiService, AuthApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
@@ -89,7 +89,7 @@ builder.Services.AddHttpClient<IFeedbackAPIClient, FeedbackAPIClient>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-// ✅ Register CheckoutService
+// ✅ Register CheckoutService.
 builder.Services.AddHttpClient<ICheckoutService, CheckoutService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
