@@ -5,12 +5,12 @@ using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
-    public class CategoryServiceClient : ICategoryServiceClient
+    public class CategoryAPIClient : ICategoryAPIClient
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CategoryServiceClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public CategoryAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
@@ -47,7 +47,7 @@ namespace PetCenterClient.Services
                 }
             }
 
-            var response = await _http.PostAsync("product-service/Categories", content);
+            var response = await _http.PostAsync("api/Categories", content);
 
             var result = await response.Content.ReadAsStringAsync();
 
@@ -62,7 +62,7 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
 
             var response = await _http.PatchAsJsonAsync(
-                $"product-service/Categories/{id}/status",
+                $"api/Categories/{id}/status",
                 status);
 
             response.EnsureSuccessStatusCode();
@@ -71,7 +71,7 @@ namespace PetCenterClient.Services
         {
             return await _http.GetFromJsonAsync<
                 OdataResponse<ReadCategoryViewModelForCustomer>>(
-                    "product-service/odata/Categories?$count=true");
+                    "odata/Categories?$count=true");
         }
 
 
@@ -95,14 +95,14 @@ namespace PetCenterClient.Services
             query.Add($"page={page}");
             query.Add($"pageSize={pageSize}");
 
-            var url = "product-service/Categories/admin?" + string.Join("&", query);
+            var url = "api/Categories/admin?" + string.Join("&", query);
 
             return await _http.GetFromJsonAsync<PagedResponse<ReadCategoryViewModel>>(url);
         }
 
         public async Task<ReadCategoryViewModel> DetailsCategoryAsync(Guid? id)
         {
-            return await _http.GetFromJsonAsync<ReadCategoryViewModel>($"product-service/Categories/{id}");
+            return await _http.GetFromJsonAsync<ReadCategoryViewModel>($"api/Categories/{id}");
         }
 
         public async Task UpdateCategoryAsync(Guid? id, UpdateCategoryViewModel updateCategory)
@@ -137,7 +137,7 @@ namespace PetCenterClient.Services
                 }
             }
 
-            var response = await _http.PutAsync($"product-service/Categories/{id}", form);
+            var response = await _http.PutAsync($"api/Categories/{id}", form);
 
             var result = await response.Content.ReadAsStringAsync();
 

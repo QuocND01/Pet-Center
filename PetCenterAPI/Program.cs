@@ -158,18 +158,7 @@ builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-//builder.Services.AddHttpClient("InventoryAPI", client =>
-//{
-//    client.BaseAddress = new Uri(builder.Configuration["Services:InventoryAPI"]);
-//});
-//builder.Services.AddHttpClient("OrdersAPI", client =>
-//{
-//    client.BaseAddress = new Uri(builder.Configuration["Services:OrdersAPI"]);
-//});
-//builder.Services.AddHttpClient("ImportStockAPI", client =>
-//{
-//    client.BaseAddress = new Uri(builder.Configuration["Services:ImportStockAPI"]);
-//});
+
 
 
 

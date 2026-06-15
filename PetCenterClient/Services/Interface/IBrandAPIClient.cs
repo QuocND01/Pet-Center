@@ -3,7 +3,7 @@ using PetCenterClient.DTOs;
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IBrandServiceClient
+    public interface IBrandAPIClient
     {
         Task<OdataResponse<ReadBrandViewModelForCustomer>> GetAllBrandAsync();
         Task<PagedResponse<ReadBrandViewModel>> GetAllBrandAdminAsync(

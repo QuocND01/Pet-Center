@@ -9,13 +9,13 @@ namespace PetCenterClient.Controllers
 {
     public class ProductsController : Controller
     {
-        private readonly IProductServiceClient _productService;
-        private readonly IBrandServiceClient _brandService;
-        private readonly ICategoryServiceClient _categoryService;
+        private readonly IProductAPIClient _productService;
+        private readonly IBrandAPIClient _brandService;
+        private readonly ICategoryAPIClient _categoryService;
         private readonly IFeedbackAPIClient _feedbackService;
         private readonly ICustomerAPIClient _customerService;
 
-        public ProductsController(IProductServiceClient productService, IBrandServiceClient brandService, ICategoryServiceClient categoryService, IFeedbackAPIClient feedbackService, ICustomerAPIClient customerService)
+        public ProductsController(IProductAPIClient productService, IBrandAPIClient brandService, ICategoryAPIClient categoryService, IFeedbackAPIClient feedbackService, ICustomerAPIClient customerService)
 
         {
             _productService = productService;

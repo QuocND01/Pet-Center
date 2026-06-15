@@ -2,46 +2,100 @@
 
 <style>
 
+    /* ===== PAGE WRAPPER ===== */
+    .detail-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 25px;
+    }
+
+    /* ===== SECTION ===== */
+    .detail-section {
+        background: #f8f9fa;
+        border-radius: 14px;
+        padding: 15px 18px;
+        margin-bottom: 15px;
+        border: 1px solid #eee;
+    }
+
+    /* ===== LABEL ===== */
+    .detail-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    /* ===== VALUE ===== */
+    .detail-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    /* ===== LOGO ===== */
     .category-logo {
         width: 120px;
         height: 120px;
         object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
+        border-radius: 14px;
+        border: 2px solid #eee;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    /* ===== BADGE ===== */
+    .attr-badge {
+        display: inline-block;
+        background: #6c757d;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        margin: 3px;
+    }
+
+    /* ===== EMPTY TEXT ===== */
+    .empty-text {
+        color: #adb5bd;
+        font-style: italic;
     }
 
 </style>
 
-<div class="row">
+<div class="detail-card">
 
     <!-- CATEGORY NAME -->
+    <div class="detail-section">
 
-    <div class="col-md-12 mb-3">
-        <label class="fw-bold">Category Name</label>
-        <div>@Model.CategoryName</div>
+        <div class="detail-label">Category Name</div>
+        <div class="detail-value">
+            @Model.CategoryName
+        </div>
+
     </div>
 
+    <!-- DESCRIPTION -->
+    <div class="detail-section">
 
-    <div class="col-md-12 mb-3">
-        <label class="fw-bold">Description</label>
-        <div>
+        <div class="detail-label">Description</div>
+
+        <div class="detail-value">
             @if (!string.IsNullOrEmpty(Model.CategoryDescription))
             {
                 @Model.CategoryDescription
             }
             else
             {
-                <span class="text-muted">No description</span>
+                <span class="empty-text">No description</span>
             }
         </div>
+
     </div>
 
-
     <!-- LOGO -->
+    <div class="detail-section">
 
-    <div class="col-md-12 mb-3">
-
-        <label class="fw-bold">Category Logo</label>
+        <div class="detail-label">Category Logo</div>
 
         <div class="mt-2">
 
@@ -51,19 +105,17 @@
             }
             else
             {
-                <span>No logo</span>
+                <span class="empty-text">No logo</span>
             }
 
         </div>
 
     </div>
 
-
     <!-- ATTRIBUTES -->
+    <div class="detail-section">
 
-    <div class="col-md-12 mb-3">
-
-        <label class="fw-bold">Attributes</label>
+        <div class="detail-label">Attributes</div>
 
         <div class="mt-2">
 
@@ -71,14 +123,14 @@
             {
                 foreach (var attr in Model.Attributes)
                 {
-                    <span class="badge bg-secondary me-1">
+                    <span class="attr-badge">
                         @attr.AttributeName
                     </span>
                 }
             }
             else
             {
-                <span>No attributes</span>
+                <span class="empty-text">No attributes</span>
             }
 
         </div>

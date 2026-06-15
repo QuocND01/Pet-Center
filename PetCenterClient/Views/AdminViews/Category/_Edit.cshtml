@@ -1,309 +1,286 @@
 ﻿@model PetCenterClient.DTOs.UpdateCategoryViewModel
 
 <style>
+
+    .page-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 30px;
+    }
+
+    .section-card {
+        background: #f8f9fa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+    }
+
+    .section-title {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        min-height: 46px;
+    }
+
     .logo-preview {
         width: 140px;
         height: 140px;
         object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
+        border-radius: 14px;
+        border: 2px solid #eee;
         cursor: pointer;
     }
 
-    .logo-wrapper {
-        position: relative;
-        display: inline-block;
+    .attribute-item {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        width: 100%;
     }
 
-    .remove-btn {
-        position: absolute;
-        top: -6px;
-        right: -6px;
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        padding: 0;
-        font-size: 12px;
+        .attribute-item.is-dup input {
+            border-color: #dc3545 !important;
+            background: #fff5f5;
+        }
+
+    #attributeError {
+        font-size: 13px;
     }
+
 </style>
 
-<form asp-action="Edit"
-      asp-controller="Category"
-      method="post"
-      enctype="multipart/form-data">
+<div class="page-card">
 
-    <input type="hidden" asp-for="CategoryId" />
+    <form asp-action="Edit"
+          asp-controller="Category"
+          method="post"
+          enctype="multipart/form-data">
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="CategoryId" />
 
-    <div class="row">
+        <!-- CATEGORY INFO -->
+        <div class="section-card">
+            <div class="section-title">Category Information</div>
 
-        <!-- CATEGORY NAME -->
-        <div class="col-md-12 mb-3">
-            <label asp-for="CategoryName"></label>
-            <input asp-for="CategoryName" class="form-control" />
-            <span asp-validation-for="CategoryName" class="text-danger"></span>
+            <div class="row">
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="CategoryName"></label>
+                    <input asp-for="CategoryName" class="form-control" />
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label asp-for="CategoryDescription"></label>
+                    <textarea asp-for="CategoryDescription"
+                              class="form-control"
+                              rows="3"></textarea>
+                </div>
+
+            </div>
         </div>
 
-
-        <!-- DESCRIPTION -->
-        <div class="col-md-12 mb-3">
-            <label asp-for="CategoryDescription"></label>
-
-            <textarea asp-for="CategoryDescription"
-                      class="form-control"
-                      rows="3"
-                      placeholder="Enter category description"></textarea>
-
-            <span asp-validation-for="CategoryDescription"
-                  class="text-danger"></span>
-        </div>
-
-    </div>
-
-    <!-- CURRENT LOGO -->
-    <div class="mt-3">
-
-        <h6>Current Logo</h6>
-
-        <div class="logo-wrapper">
+        <!-- LOGO -->
+        <div class="section-card">
+            <div class="section-title">Category Logo</div>
 
             <img id="logoPreview"
-                 src="@(string.IsNullOrEmpty(Model.ExistingCategoryLogo) ? "https://via.placeholder.com/140" : Model.ExistingCategoryLogo)"
+                 src="@(string.IsNullOrEmpty(Model.ExistingCategoryLogo)
+                                         ? "https://via.placeholder.com/140"
+                                         : Model.ExistingCategoryLogo)"
                  class="logo-preview"
                  onclick="document.getElementById('logoInput').click()" />
 
+            <input type="file"
+                   id="logoInput"
+                   name="CategoryLogo"
+                   hidden
+                   accept="image/*"
+                   onchange="previewLogo(this)" />
+        </div>
+
+        <!-- ATTRIBUTES -->
+        <div class="section-card">
+            <div class="section-title">Attributes</div>
+
+            <div id="attributeContainer">
+
+                @if (Model.Attributes != null)
+                {
+                    var index = 0;
+
+                    foreach (var attr in Model.Attributes)
+                    {
+                        <div class="input-group attribute-item">
+
+                            <input type="hidden"
+                                   name="Attributes[@index].CategoryAttributeId"
+                                   value="@attr.CategoryAttributeId" />
+
+                            <input name="Attributes[@index].AttributeName"
+                                   value="@attr.AttributeName"
+                                   class="form-control attribute-input"
+                                   autocomplete="off" />
+
+                            <button type="button"
+                                    class="btn btn-danger removeAttr">
+                                X
+                            </button>
+
+                        </div>
+
+                        index++;
+                    }
+                }
+
+            </div>
+
             <button type="button"
-                    class="btn btn-danger btn-sm remove-btn"
-                    onclick="removeLogo()">
-                ✖
+                    class="btn btn-secondary btn-sm mt-2"
+                    id="addAttributeBtn">
+                + Add Attribute
             </button>
 
+            <div id="attributeError" class="mt-2"></div>
         </div>
 
-    </div>
-
-    <!-- NEW LOGO -->
-    <div class="mt-3">
-
-        <label>Change Logo</label>
-
-        <input type="file"
-               id="logoInput"
-               name="CategoryLogo"
-               accept="image/*"
-               hidden
-               onchange="previewLogo(this)" />
-
-    </div>
-
-    <!-- ATTRIBUTES -->
-    <div class="mt-4">
-
-        <label class="fw-bold">Attributes</label>
-
-        <div id="attributeContainer">
-
-            @if (Model.Attributes != null && Model.Attributes.Any())
-            {
-                var index = 0;
-
-                foreach (var attr in Model.Attributes)
-                {
-                    <div class="input-group mb-2 attribute-item">
-
-                        <input type="hidden"
-                               name="Attributes[@index].CategoryAttributeId"
-                               value="@attr.CategoryAttributeId" />
-
-                        <input name="Attributes[@index].AttributeName"
-                               value="@attr.AttributeName"
-                               class="form-control"
-                               data-val="true"
-                               data-val-required="Attribute name is required" />
-
-                        <span class="text-danger field-validation-valid"
-                              data-valmsg-for="Attributes[@index].AttributeName"
-                              data-valmsg-replace="true"></span>
-
-                        <button type="button"
-                                class="btn btn-danger removeAttr">
-                            X
-                        </button>
-
-                    </div>
-
-                    index++;
-                }
-            }
-
+        <!-- BUTTON -->
+        <div class="text-end">
+            <button type="submit" class="btn btn-warning">
+                Update
+            </button>
         </div>
 
-        <button type="button"
-                class="btn btn-sm btn-secondary mt-2"
-                id="addAttributeBtn">
-            Add Attribute
-        </button>
+    </form>
 
-    </div>
-
-    <!-- BUTTON -->
-    <div class="d-flex justify-content-end gap-2 mt-4">
-
-        <button type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal">
-            Cancel
-        </button>
-
-        <button type="submit"
-                class="btn btn-warning">
-            <i class="bi bi-pencil-square"></i>
-            Update
-        </button>
-
-    </div>
-
-</form>
+</div>
 
 <script>
 
-    // preview file
+    let attrIndex = @((Model.Attributes?.Count ?? 0));
+
+    /* ================= LOGO ================= */
+
     function previewLogo(input) {
-        const file = input.files[0]
-        if (!file) return
+        const file = input.files[0];
+        if (!file) return;
 
-        const reader = new FileReader()
-        reader.onload = function (e) {
-            $("#logoPreview").attr("src", e.target.result)
-        }
-        reader.readAsDataURL(file)
+        const reader = new FileReader();
+        reader.onload = e => {
+            $("#logoPreview").attr("src", e.target.result);
+        };
+        reader.readAsDataURL(file);
     }
 
-    function removeLogo() {
-        $("#logoPreview").attr("src", "https://via.placeholder.com/140")
-        $("#logoInput").val("")
-    }
+    /* ================= ADD ATTRIBUTE ================= */
 
-    // ===== ATTRIBUTES (giữ nguyên logic bạn, chỉ clean lại chút) =====
-
-    let attrIndex = @((Model.Attributes?.Count ?? 0))
-
-         $(document).off("click", "#addAttributeBtn")
-               .on("click", "#addAttributeBtn", function () {
+    $(document).on("click", "#addAttributeBtn", function () {
 
         const html = `
-        <div class="input-group mb-2 attribute-item">
+        <div class="input-group attribute-item">
 
             <input name="Attributes[${attrIndex}].AttributeName"
-                   class="form-control"
-                   data-val="true"
-                   data-val-required="Attribute name is required"/>
-
-            <span class="text-danger field-validation-valid"
-                  data-valmsg-for="Attributes[${attrIndex}].AttributeName"></span>
+                   class="form-control attribute-input"
+                   autocomplete="off" />
 
             <button type="button"
                     class="btn btn-danger removeAttr">X</button>
 
-        </div>
-        `
+        </div>`;
 
-        const $html = $(html)
+        $("#attributeContainer").append(html);
 
-        $("#attributeContainer").append($html)
-        $.validator.unobtrusive.parse($html)
+        attrIndex++;
 
-        attrIndex++
-    })
+        checkDuplicate();
+    });
+
+    /* ================= REMOVE ATTRIBUTE ================= */
 
     $(document).on("click", ".removeAttr", function () {
-        $(this).closest(".attribute-item").remove()
-        reIndexAttributes()
-        checkDuplicate()
-    })
 
-           $(document).off("submit", "form")
-           .on("submit", "form", function (e) {
+        $(this).closest(".attribute-item").remove();
 
-        reIndexAttributes()
+        reindex();
 
-        const isDuplicate = checkDuplicate()
+        setTimeout(checkDuplicate, 0);
+    });
 
-        if (isDuplicate) {
-            e.preventDefault()
-            $(".is-invalid").first().focus()
-        }
-    })
+    function reindex() {
 
-       function reIndexAttributes() {
+        $("#attributeContainer .attribute-item").each(function (i) {
 
-        $("#attributeContainer .attribute-item").each(function (index) {
+            $(this).find("input[name*='AttributeName']")
+                   .attr("name", `Attributes[${i}].AttributeName`);
 
-            $(this).find("input[name$='.AttributeName']")
-                   .attr("name", `Attributes[${index}].AttributeName`)
+            $(this).find("input[name*='CategoryAttributeId']")
+                   .attr("name", `Attributes[${i}].CategoryAttributeId`);
+        });
 
-            $(this).find("input[name$='.CategoryAttributeId']")
-                   .attr("name", `Attributes[${index}].CategoryAttributeId`)
-
-            $(this).find("span[data-valmsg-for]")
-                   .attr("data-valmsg-for", `Attributes[${index}].AttributeName`)
-        })
-
-        attrIndex = $("#attributeContainer .attribute-item").length
-
-        checkDuplicate() // ✔ giữ lại
+        attrIndex = $(".attribute-item").length;
     }
 
-               function checkDuplicate() {
+    /* ================= DUPLICATE CHECK (FINAL FIX) ================= */
 
-        let map = {}
-        let isDuplicate = false
+    let debounceTimer;
 
-        $(".duplicate-error").remove()
+    function normalize(val) {
+        return (val || "").trim().toLowerCase();
+    }
 
-        $("input[name*='AttributeName']").each(function () {
+    function checkDuplicate() {
 
-            const val = $(this).val().trim().toLowerCase()
+        clearTimeout(debounceTimer);
 
-            $(this).removeClass("is-invalid")
+        debounceTimer = setTimeout(() => {
 
-            if (!val) return
+            const map = new Map();
+            let hasDup = false;
 
-            if (map[val]) {
+            $("#attributeError").empty();
+            $(".attribute-item").removeClass("is-dup");
 
-                isDuplicate = true
+            $(".attribute-input").each(function () {
 
-                $(this).addClass("is-invalid")
-                map[val].addClass("is-invalid")
+                const val = normalize($(this).val());
 
-            } else {
-                map[val] = $(this)
+                if (!val) return;
+
+                if (map.has(val)) {
+
+                    hasDup = true;
+
+                    $(this).closest(".attribute-item").addClass("is-dup");
+                    map.get(val).closest(".attribute-item").addClass("is-dup");
+
+                } else {
+                    map.set(val, $(this));
+                }
+            });
+
+            if (hasDup) {
+                $("#attributeError").html(`
+                    <div class="text-danger">
+                        Attributes must be unique
+                    </div>
+                `);
             }
-        })
 
-        if (isDuplicate) {
-            $("#attributeContainer").prepend(`
-                <div class="text-danger duplicate-error mb-2">
-                    Attributes must be unique
-                </div>
-            `)
-        }
+            $("button[type='submit']").prop("disabled", hasDup);
 
-        $("button[type='submit']").prop("disabled", isDuplicate)
-
-        return isDuplicate
+        }, 150);
     }
 
-        $(document).on("input", "input[name*='AttributeName']", function () {
-        checkDuplicate()
-    })
+    /* ================= EVENTS ================= */
 
-        $(document).ready(function () {
-        checkDuplicate()
-    })
+    $(document).on("input", ".attribute-input", checkDuplicate);
+
+    $(document).ready(function () {
+        checkDuplicate();
+    });
+
 </script>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

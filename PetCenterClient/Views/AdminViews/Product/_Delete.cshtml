@@ -2,58 +2,227 @@
 @using PetCenterClient.Common
 
 <style>
-    .product-image {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        margin-right: 8px;
+
+    .confirm-container {
+        padding: 10px;
     }
+
+    .confirm-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: rgba(220,53,69,.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: #dc3545;
+    }
+
+    .confirm-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .confirm-message {
+        color: #6c757d;
+        margin-top: 8px;
+        margin-bottom: 25px;
+    }
+
+    .product-card {
+        border: 1px solid #e9ecef;
+        border-radius: 18px;
+        padding: 20px;
+        background: #fafafa;
+        text-align: center;
+    }
+
+    .product-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 18px;
+        border: 3px solid #fff;
+        box-shadow: 0 5px 20px rgba(0,0,0,.1);
+    }
+
+    .product-name {
+        margin-top: 15px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .product-price {
+        font-size: 18px;
+        font-weight: 600;
+        color: #198754;
+        margin-top: 8px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: #fff3cd;
+        color: #856404;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 20px;
+        text-align: left;
+    }
+
+    .info-item {
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e9ecef;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 15px;
+        color: #212529;
+    }
+
+    .btn-confirm {
+        min-width: 130px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .btn-cancel {
+        min-width: 130px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
 </style>
 
 <form asp-action="ChangeStatusConfirmed"
       asp-controller="Products"
       method="post">
 
-    @Html.AntiForgeryToken()
+ 
+@Html.AntiForgeryToken()
 
-    <input type="hidden"
-           name="id"
-           value="@Model.ProductId" />
+<input type="hidden"
+       name="id"
+       value="@Model.ProductId" />
 
-    <input type="hidden"
-           name="status"
-           value="@((int)ViewBag.Status)" />
+<input type="hidden"
+       name="status"
+       value="@((int)ViewBag.Status)" />
+
+<div class="confirm-container">
 
     <div class="text-center">
 
-        <h5 class="text-danger mb-3">
-            Are you sure you want to update this product status?
-        </h5>
+        <div class="confirm-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
 
-        <h4 class="fw-bold">
-            @Model.ProductName
-        </h4>
+        <div class="confirm-title">
+            Change Product Status
+        </div>
+
+        <div class="confirm-message">
+            Are you sure you want to change the status of this product?
+        </div>
 
     </div>
 
-    <div class="d-flex justify-content-end gap-2 mt-3">
+    <div class="product-card">
+
+        @if (Model.Images != null && Model.Images.Any())
+        {
+            <img src="@Model.Images.First()"
+                 class="product-image"
+                 alt="Product Image" />
+        }
+        else
+        {
+            <img src="https://via.placeholder.com/150?text=Product"
+                 class="product-image"
+                 alt="No Image" />
+        }
+
+        <div class="product-name">
+            @Model.ProductName
+        </div>
+
+        <div class="product-price">
+            @Model.ProductPrice.ToString("N0") ₫
+        </div>
+
+        <div class="status-badge">
+            New Status: @ViewBag.Status
+        </div>
+
+        <div class="info-grid">
+
+            <div class="info-item">
+                <div class="info-label">
+                    Brand
+                </div>
+
+                <div class="info-value">
+                    @Model.BrandName
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">
+                    Category
+                </div>
+
+                <div class="info-value">
+                    @Model.CategoryName
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
 
         <button type="button"
-                class="btn btn-secondary"
+                class="btn btn-outline-secondary btn-cancel"
                 data-bs-dismiss="modal">
+
             Cancel
+
         </button>
 
         <button type="submit"
-                class="btn btn-danger">
+                class="btn btn-danger btn-confirm">
 
-            <i class="bi bi-trash"></i>
+            <i class="bi bi-check-circle-fill me-1"></i>
             Confirm
 
         </button>
 
     </div>
+
+</div>
+ 
 
 </form>
