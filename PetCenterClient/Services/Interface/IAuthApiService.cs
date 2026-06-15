@@ -1,10 +1,11 @@
 ﻿using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels.Login;
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IAuthAPIClient
+    public interface IAuthApiService
     {
-        Task<LoginResponseDto?> LoginAsync(LoginDto dto);
+        Task<LoginResponseViewModel?> LoginAsync(LoginViewModel dto);
 
         Task<LoginStaffResponseDto?> StaffLoginAsync(LoginDto dto);
 
