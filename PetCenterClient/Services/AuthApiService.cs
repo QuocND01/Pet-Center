@@ -160,8 +160,6 @@ namespace PetCenterClient.Services
         {
             try
             {
-                // Lấy token từ IHttpContextAccessor
-                // Cần inject IHttpContextAccessor vào AuthService
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
 
                 var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/change-password")
@@ -184,6 +182,9 @@ namespace PetCenterClient.Services
             }
         }
 
+        // ============================================================
+        // OTP — RESEND
+        // ============================================================
         public async Task<LoginResponseDto?> GoogleLoginAsync(string idToken)
         {
             try
@@ -220,38 +221,37 @@ namespace PetCenterClient.Services
             }
         }
 
-        // Thêm vào PetCenterClient/Services/AuthService.cs
-        public async Task<LoginResponseDto?> GoogleCallbackAsync(string code, string redirectUri)
+        public async Task<LoginResponseViewModel?> GoogleCallbackAsync(string code, string redirectUri)
         {
             try
             {
                 var response = await _http.PostAsJsonAsync(
-                    "api/auth/google-callback",
+                    "api/auths/google-callback",
                     new GoogleCallbackRequestDto { Code = code, RedirectUri = redirectUri });
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     var errorData = JsonDocument.Parse(errorContent).RootElement;
-                    return new LoginResponseDto
+                    return new LoginResponseViewModel
                     {
                         Success = false,
-                        message = errorData.TryGetProperty("message", out var msg) ? msg.GetString() : "Google login failed",
+                        Message = errorData.TryGetProperty("message", out var msg) ? msg.GetString() : "Google login failed",
                         ErrorType = errorData.TryGetProperty("errorType", out var eType) ? eType.GetString() : "GoogleLoginFailed",
-                        token = null
+                        Token = null
                     };
                 }
 
-                return await response.Content.ReadFromJsonAsync<LoginResponseDto>();
+                return await response.Content.ReadFromJsonAsync<LoginResponseViewModel>();
             }
             catch
             {
-                return new LoginResponseDto
+                return new LoginResponseViewModel
                 {
                     Success = false,
-                    message = "An error occurred. Please try again.",
+                    Message = "An error occurred. Please try again.",
                     ErrorType = "Exception",
-                    token = null
+                    Token = null
                 };
             }
         }

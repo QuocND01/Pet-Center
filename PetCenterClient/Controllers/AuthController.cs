@@ -265,8 +265,9 @@ namespace PetCenterClient.Controllers
             return RedirectToAction("Verify", new { email });
         }
 
-        // POST: /Auth/GoogleLogin
-        // Nhận idToken từ Google Identity Services JS SDK
+        // ============================================================
+        // GOOGLE LOGIN
+        // ============================================================
         [HttpPost]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto dto)
         {
@@ -285,10 +286,8 @@ namespace PetCenterClient.Controllers
                 });
             }
 
-            // Lưu JWT vào Session — nhất quán với Login thường
             HttpContext.Session.SetString("JWT", result.token!);
 
-            // Decode JWT lấy thêm thông tin nếu cần
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.token);
             var role = jwt.Claims
@@ -303,7 +302,6 @@ namespace PetCenterClient.Controllers
             HttpContext.Session.SetString("Role", role);
             HttpContext.Session.SetString("Name", name);
 
-            // Lấy CustomerId từ JWT — giống Login thường
             var customerId = jwt.Claims
                 .FirstOrDefault(c =>
                     c.Type == "sub" ||
@@ -331,7 +329,7 @@ namespace PetCenterClient.Controllers
 
         // POST: /Auth/GoogleCallback — frontend gọi sau khi lấy được code
         [HttpPost]
-        public async Task<IActionResult> GoogleCallback([FromBody] GoogleCallbackRequestDto dto)
+        public async Task<IActionResult> GoogleCallback([FromBody] GoogleCallbackViewModel dto)
         {
             var result = await _authService.GoogleCallbackAsync(dto.Code, dto.RedirectUri);
 
@@ -340,15 +338,15 @@ namespace PetCenterClient.Controllers
                 return Json(new
                 {
                     success = false,
-                    message = result?.message ?? "Google login failed.",
+                    message = result?.Message ?? "Google login failed.",
                     errorType = result?.ErrorType ?? "GoogleLoginFailed"
                 });
             }
 
-            HttpContext.Session.SetString("JWT", result.token!);
+            HttpContext.Session.SetString("JWT", result.Token!);
 
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(result.token);
+            var jwt = handler.ReadJwtToken(result.Token);
             var role = jwt.Claims
                 .FirstOrDefault(c => c.Type ==
                     "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")

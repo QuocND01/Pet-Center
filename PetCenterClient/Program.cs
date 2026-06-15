@@ -1,6 +1,7 @@
 ﻿using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Login;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
@@ -107,7 +108,7 @@ builder.Services.AddHttpClient<IAdminFeedbackAPIClient, AdminFeedbackAPIClient>(
 builder.Services.AddScoped<ExcelService>();
 
 
-builder.Services.Configure<GoogleClientDto>(
+builder.Services.Configure<GoogleClientViewModel>(
     builder.Configuration.GetSection("Authentication:Google"));
 
 builder.Services.AddScoped<IGoogleAPIClient, GoogleAPIClient>();

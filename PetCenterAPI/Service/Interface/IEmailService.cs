@@ -5,10 +5,12 @@
         // ============================================================
         // REGISTER — OTP
         // ============================================================
-
-        /// <summary>
-        /// Send a verification email containing the OTP code to the given address
-        /// </summary>
         Task SendVerificationEmail(string toEmail, string code);
+
+        // ============================================================
+        // GOOGLE LOGIN
+        // ============================================================
+        Task<bool> SendWelcomeEmailAsync(string toEmail, string fullName, string tempPassword);
+        Task<bool> SendResetPasswordEmailAsync(string toEmail, string fullName, string resetLink);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Protocol.Plugins;
@@ -16,21 +17,21 @@ namespace PetCenterAPI.Controllers
     public class AuthsController : Controller
     {
         private readonly ICustomerAuthService _customerAuthService;
-        // private readonly IGoogleAuthService _googleAuthService;
+        private readonly IGoogleAuthService _googleAuthService;
         private readonly IJwtService _jwtService;
         // private readonly IForgotPasswordService _forgotPasswordService;
         private readonly IStaffAuthService _staffAuthService;
 
         public AuthsController(
             ICustomerAuthService customerAuthService,
-            // IGoogleAuthService googleAuthService,
+            IGoogleAuthService googleAuthService,
             IJwtService jwtService,
             IStaffAuthService staffAuthService
             // IForgotPasswordService forgotPasswordService
             )
         {
             _customerAuthService = customerAuthService;
-            // _googleAuthService = googleAuthService;
+            _googleAuthService = googleAuthService;
             _jwtService = jwtService;
             //_forgotPasswordService = forgotPasswordService;
             _staffAuthService = staffAuthService;
@@ -159,6 +160,65 @@ namespace PetCenterAPI.Controllers
                 return BadRequest(new { success = false, message = result.Message });
 
             return Ok(new { success = true, message = result.Message });
+        }
+
+        // ============================================================
+        // GOOGLE LOGIN
+        // ============================================================
+        [HttpPost("google-callback")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleCallback([FromBody] GoogleCallbackRequestDTO request)
+        {
+            try
+            {
+                var idToken = await _googleAuthService.ExchangeCodeForIdTokenAsync(
+                    request.Code, request.RedirectUri);
+
+                var payload = await _googleAuthService.VerifyGoogleTokenAsync(idToken);
+
+                var customer = await _googleAuthService
+                    .GetOrCreateUserFromGoogleAsync(payload.Email, payload.Name);
+
+                if (customer.IsActive != true)
+                    return Unauthorized(new
+                    {
+                        success = false,
+                        errorType = "AccountInactive",
+                        message = "Your account has been deactivated. Please contact support."
+                    });
+
+                var token = _jwtService.GenerateToken(
+                    customer.CustomerId,
+                    customer.Email!,
+                    new List<string> { "Customer" },
+                    customer.FullName ?? "");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Google login successful",
+                    token,
+                    fullName = customer.FullName,
+                    email = customer.Email
+                });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    errorType = "InvalidGoogleToken",
+                    message = "Invalid Google token. Please try again."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Token exchange failed: " + ex.Message
+                });
+            }
         }
     }
 }

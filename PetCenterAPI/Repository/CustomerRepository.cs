@@ -77,5 +77,26 @@ namespace PetCenterAPI.Repository
             _context.OtpCodes.Remove(otp);
             return await _context.SaveChangesAsync() > 0;
         }
+
+        // ============================================================
+        // STAFF / ADMIN — CUSTOMER MANAGEMENT
+        // ============================================================
+        public async Task<List<Customer>> GetAllCustomersAsync()
+            => await _context.Customers
+                .AsNoTracking()
+                .ToListAsync();
+
+        public async Task<Customer?> GetCustomerByIdAsync(Guid customerId)
+            => await _context.Customers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+
+        // ============================================================
+        // CUSTOMER PROFILE
+        // ============================================================
+        public async Task<Customer?> GetByIdAsync(Guid customerId)
+            => await _context.Customers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
     }
 }

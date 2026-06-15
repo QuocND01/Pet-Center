@@ -1,9 +1,10 @@
 ﻿using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels.Login;
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IGoogleAPIClient  // ← thêm public
+    public interface IGoogleAPIClient 
     {
-        GoogleClientDto GetGoogleClientId();
+        GoogleClientViewModel GetGoogleClientId();
     }
 }
