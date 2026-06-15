@@ -16,6 +16,8 @@
   <ItemGroup>
     <Folder Include="DTOs\Response\" />
     <Folder Include="DTOs\Resquest\" />
+    <Folder Include="ViewModels\Imports\" />
+    <Folder Include="ViewModels\Suppliers\" />
   </ItemGroup>
 
   <ItemGroup>
