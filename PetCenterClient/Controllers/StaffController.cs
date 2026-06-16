@@ -1,106 +1,190 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.ManageStaff;
 
 namespace PetCenterClient.Controllers
 {
     public class StaffController : Controller
     {
+        private const int PageSize = 10;
         private readonly IStaffService _service;
+
         public StaffController(IStaffService service) => _service = service;
 
+        private bool IsAdmin() =>
+            !string.IsNullOrEmpty(HttpContext.Session.GetString("JWT")) &&
+            HttpContext.Session.GetString("Role") == "Admin";
+
+        // ============================================================
+        // VIEW LIST (search + filter by role/status + pagination)
+        // ============================================================
         public async Task<IActionResult> Index(
-            string? searchTerm,
-            bool? isActive,
-            string? sortBy,
-            string sortOrder = "asc",
+            string? search,
+            string status = "active",
+            Guid? roleId = null,
             int page = 1)
         {
-            var result = await _service.GetAllODataAsync(
-                search: searchTerm,
-                isActive: isActive,
-                sortBy: sortBy,
-                sortOrder: sortOrder,
-                page: page,
-                pageSize: 10);
+            if (!IsAdmin()) return RedirectToAction("AdminLogin", "Auth");
 
-            ViewBag.Search = searchTerm;
-            ViewBag.IsActive = isActive;
-            ViewBag.SortBy = sortBy;
-            ViewBag.SortOrder = sortOrder;
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling((result.Count ?? 0) / 10.0);
+            var all = await _service.GetAllAsync();
+            var roles = await _service.GetRolesAsync();
 
-            return View("~/Views/AdminViews/ManageStaff/Index.cshtml", result);
-        }
-
-        public IActionResult Create() => View("~/Views/AdminViews/ManageStaff/Create.cshtml");
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(StaffDto dto)
-        {
-            // Kiểm tra xem dữ liệu nhập vào có thỏa mãn DataAnnotations không
-            if (!ModelState.IsValid)
+            // Status filter (default: active only)
+            all = status switch
             {
-                return View(dto); // Trả về View cùng với các thông báo lỗi
+                "inactive" => all.Where(s => !s.IsActive).ToList(),
+                "all" => all,
+                _ => all.Where(s => s.IsActive).ToList()
+            };
+
+            // Role filter
+            if (roleId.HasValue && roleId.Value != Guid.Empty)
+                all = all.Where(s => s.RoleId == roleId.Value).ToList();
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var q = RemoveDiacritics(search.Trim().ToLower());
+                all = all.Where(s =>
+                    RemoveDiacritics((s.FullName ?? "").ToLower()).Contains(q) ||
+                    (s.Email ?? "").ToLower().Contains(search.Trim().ToLower()) ||
+                    (s.PhoneNumber ?? "").Contains(search.Trim())
+                ).ToList();
             }
 
-            var success = await _service.CreateAsync(dto);
-            if (success)
+            all = all.OrderBy(s => s.FullName).ToList();
+
+            var total = all.Count;
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+            if (page < 1) page = 1;
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = all.Skip((page - 1) * PageSize).Take(PageSize).ToList();
+
+            var vm = new StaffIndexViewModel
             {
-                return RedirectToAction(nameof(Index));
-            }
+                Items = items,
+                Roles = roles,
+                TotalCount = total,
+                CurrentPage = page,
+                TotalPages = Math.Max(totalPages, 1),
+                PageSize = PageSize,
+                Search = search,
+                Status = status,
+                RoleId = roleId
+            };
 
-            ModelState.AddModelError("", "An error occurred while calling the API. Please try again.");
-            return View("~/Views/AdminViews/ManageStaff/Create.cshtml", dto);
+            return View("~/Views/AdminViews/ManageStaff/Index.cshtml", vm);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Edit(Guid id)
-        {
-            var staff = await _service.GetByIdAsync(id);
-            if (staff == null)
-            {
-                return NotFound();
-            }
-            // Đảm bảo staff.BirthDay đã có giá trị từ API trả về
-            return View("~/Views/AdminViews/ManageStaff/Edit.cshtml", staff);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Edit(Guid id, StaffDto dto)
-        {
-            if (await _service.UpdateAsync(id, dto)) return RedirectToAction(nameof(Index));
-            return View("~/Views/AdminViews/ManageStaff/Edit.cshtml", dto);
-        }
-
-        // 1. Xem chi tiết nhân viên
+        // ============================================================
+        // VIEW DETAIL (page)
+        // ============================================================
         public async Task<IActionResult> Details(Guid id)
         {
+            if (!IsAdmin()) return RedirectToAction("AdminLogin", "Auth");
+
             var staff = await _service.GetByIdAsync(id);
             if (staff == null) return NotFound();
+
             return View("~/Views/AdminViews/ManageStaff/Details.cshtml", staff);
         }
 
-        // 2. Hiện trang xác nhận xóa (GET)
-        // Khi bạn bấm nút Delete ở Index, nó sẽ nhảy vào đây để hiện View Delete.cshtml
+        // ============================================================
+        // VIEW DETAIL (JSON — used to prefill the Edit modal)
+        // ============================================================
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> GetDetail(Guid id)
         {
+            if (!IsAdmin()) return Json(new { success = false, message = "Unauthorized" });
+
             var staff = await _service.GetByIdAsync(id);
-            if (staff == null) return NotFound();
-            return View("~/Views/AdminViews/ManageStaff/Delete.cshtml", staff);
+            if (staff == null) return Json(new { success = false, message = "Staff not found" });
+
+            return Json(new { success = true, data = staff });
         }
 
-        // 3. Thực hiện xóa thực tế (POST)
-        // Khi bạn bấm "Yes, Delete" ở trang Delete.cshtml, nó mới thực hiện xóa
-        [HttpPost, ActionName("Delete")]
+        // ============================================================
+        // CREATE (modal -> POST)
+        // ============================================================
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> Create(CreateStaffDto dto)
         {
-            await _service.DeleteAsync(id);
+            if (!IsAdmin()) return RedirectToAction("AdminLogin", "Auth");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["StaffError"] = CollectModelErrors();
+                return RedirectToAction(nameof(Index));
+            }
+
+            var (success, message) = await _service.CreateAsync(dto);
+            TempData[success ? "StaffSuccess" : "StaffError"] = message;
             return RedirectToAction(nameof(Index));
+        }
+
+        // ============================================================
+        // UPDATE (modal -> POST)
+        // ============================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Guid id, UpdateStaffDto dto)
+        {
+            if (!IsAdmin()) return RedirectToAction("AdminLogin", "Auth");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["StaffError"] = CollectModelErrors();
+                return RedirectToAction(nameof(Index));
+            }
+
+            var (success, message) = await _service.UpdateAsync(id, dto);
+            TempData[success ? "StaffSuccess" : "StaffError"] = message;
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ============================================================
+        // DELETE (confirm modal -> POST, soft delete)
+        // ============================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            if (!IsAdmin()) return RedirectToAction("AdminLogin", "Auth");
+
+            var (success, message) = await _service.DeleteAsync(id);
+            TempData[success ? "StaffSuccess" : "StaffError"] = message;
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        private string CollectModelErrors()
+        {
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .Where(m => !string.IsNullOrWhiteSpace(m));
+            return string.Join(" | ", errors);
+        }
+
+        private static string RemoveDiacritics(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+
+            var normalized = text.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+            foreach (var c in normalized)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+            return sb.ToString().Normalize(NormalizationForm.FormC);
         }
     }
 }

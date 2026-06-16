@@ -1,21 +1,25 @@
-﻿@using PetCenterClient.DTOs
-@using PetCenterClient.ViewModels.Common
-@model OdataResponse<StaffDto>
+@using PetCenterClient.ViewModels.ManageStaff
+@model StaffIndexViewModel
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Staff Management";
-    int currentPage = ViewBag.CurrentPage ?? 1;
-    int totalPages = ViewBag.TotalPages ?? 1;
-    string sortOrder = ViewBag.SortOrder ?? "asc";
-    string sortBy = ViewBag.SortBy ?? "";
 
-    // isActive filter
-    bool? isActiveFilter = ViewBag.IsActive as bool?;
-    bool isActiveTrue = isActiveFilter == true;
-    bool isActiveFalse = isActiveFilter == false;
+    string status = Model.Status ?? "active";
+    string today = DateTime.Now.ToString("yyyy-MM-dd");
+
+    string PageUrl(int p) =>
+        Url.Action("Index", new { search = Model.Search, status = Model.Status, roleId = Model.RoleId, page = p })!;
 }
 
 <link rel="stylesheet" href="~/css/AdminViews/ManageStaff/manage-staff.css" asp-append-version="true" />
+
+<style>
+    .avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .role-pill { display: inline-block; padding: 3px 11px; border-radius: 20px; font-size: 12px; font-weight: 600;
+                 background: var(--accent-light); color: var(--accent); }
+    .vet-section { border-top: 1px dashed var(--border); margin-top: 8px; padding-top: 16px; }
+    .modal-vet-hint { font-size: 12px; color: var(--text-muted); }
+</style>
 
 <div class="page-wrapper">
 
@@ -26,52 +30,53 @@
             <p>View and manage all staff members</p>
         </div>
         <div class="header-stat">
-            <span class="num">@(Model?.Count ?? 0)</span>
+            <span class="num">@Model.TotalCount</span>
             <span class="label">Total Staff</span>
         </div>
     </div>
 
+    @if (TempData["StaffSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mx-4" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["StaffSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["StaffError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mx-4" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["StaffError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <!-- TOOLBAR / FILTER -->
     <form asp-action="Index" method="get" class="toolbar">
-
         <div class="search-wrap">
             <i class="bi bi-search"></i>
-            <input type="text"
-                   name="searchTerm"
-                   value="@ViewBag.Search"
-                   class="search-input"
+            <input type="text" name="search" value="@Model.Search" class="search-input"
                    placeholder="Search name, email, phone…" />
         </div>
 
-        <select name="isActive" class="filter-select">
-            <option value="">All Status</option>
-            <option value="true" selected="@isActiveTrue">Active</option>
-            <option value="false" selected="@isActiveFalse">Inactive</option>
+        <select name="roleId" class="filter-select">
+            <option value="">All Roles</option>
+            @foreach (var r in Model.Roles)
+            {
+                <option value="@r.RoleId" selected="@(Model.RoleId == r.RoleId)">@r.RoleName</option>
+            }
         </select>
 
-        <select name="sortBy" class="filter-select">
-            <option value="">Sort by</option>
-            <option value="name" selected="@(sortBy == "name")">Full Name</option>
-            <option value="email" selected="@(sortBy == "email")">Email</option>
+        <select name="status" class="filter-select">
+            <option value="active" selected="@(status == "active")">Active</option>
+            <option value="inactive" selected="@(status == "inactive")">Inactive</option>
+            <option value="all" selected="@(status == "all")">All Status</option>
         </select>
 
-        <select name="sortOrder" class="filter-select" style="min-width:100px">
-            <option value="asc" selected="@(sortOrder == "asc")">A → Z</option>
-            <option value="desc" selected="@(sortOrder == "desc")">Z → A</option>
-        </select>
-
-        <button type="submit" class="filter-btn btn-apply">
-            <i class="bi bi-funnel"></i> Apply
-        </button>
-
-        <a asp-action="Index" class="filter-btn btn-clear">
-            <i class="bi bi-x-circle"></i> Clear
-        </a>
-
-        <a asp-action="Create" class="filter-btn btn-add">
+        <button type="submit" class="filter-btn btn-apply"><i class="bi bi-funnel"></i> Apply</button>
+        <a asp-action="Index" class="filter-btn btn-clear"><i class="bi bi-x-circle"></i> Clear</a>
+        <button type="button" class="filter-btn btn-add" data-bs-toggle="modal" data-bs-target="#createStaffModal">
             <i class="bi bi-plus-lg"></i> Add Staff
-        </a>
-
+        </button>
     </form>
 
     <!-- TABLE -->
@@ -83,21 +88,19 @@
                     <th>Staff</th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Role</th>
                     <th>Gender</th>
-                    <th>Date of Birth</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @if (Model?.Values == null || !Model.Values.Any())
+                @if (!Model.Items.Any())
                 {
                     <tr>
                         <td colspan="8">
                             <div class="empty-state">
-                                <div class="empty-icon">
-                                    <i class="bi bi-person-badge"></i>
-                                </div>
+                                <div class="empty-icon"><i class="bi bi-person-badge"></i></div>
                                 <h3>No staff members found</h3>
                                 <p>Try adjusting your filters or add a new staff member.</p>
                             </div>
@@ -106,29 +109,35 @@
                 }
                 else
                 {
-                    int i = (currentPage - 1) * 10 + 1;
-                    foreach (var s in Model.Values)
+                    int i = (Model.CurrentPage - 1) * Model.PageSize + 1;
+                    foreach (var s in Model.Items)
                     {
-                        var initials = string.Join("", s.FullName.Split(' ')
-                        .Take(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
+                        var initials = string.Join("", (s.FullName ?? "")
+                            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Take(2).Select(w => w[0].ToString().ToUpper()));
                         var genderClass = s.Gender?.ToLower() == "male" ? "male"
-                        : s.Gender?.ToLower() == "female" ? "female" : "";
+                            : s.Gender?.ToLower() == "female" ? "female" : "";
                         <tr>
                             <td><span class="row-num">@i</span></td>
-
                             <td>
                                 <div class="staff-cell">
-                                    <div class="staff-avatar @genderClass">@initials</div>
+                                    @if (!string.IsNullOrEmpty(s.Avatar))
+                                    {
+                                        <img src="@s.Avatar" class="avatar-img" alt="avatar" />
+                                    }
+                                    else
+                                    {
+                                        <div class="staff-avatar @genderClass">@initials</div>
+                                    }
                                     <div>
                                         <div class="staff-name">@s.FullName</div>
                                         <div class="staff-id-sub">@s.StaffId.ToString()[..8]…</div>
                                     </div>
                                 </div>
                             </td>
-
                             <td><span class="email-cell">@s.Email</span></td>
                             <td><span class="phone-cell">@s.PhoneNumber</span></td>
-
+                            <td><span class="role-pill">@(s.RoleName ?? "—")</span></td>
                             <td>
                                 <span class="gender-cell">
                                     @if (s.Gender?.ToLower() == "male")
@@ -146,35 +155,29 @@
                                     @(s.Gender ?? "—")
                                 </span>
                             </td>
-
-                            <td><span class="dob-cell">@(s.BirthDay?.ToString("dd/MM/yyyy") ?? "—")</span></td>
-
                             <td>
                                 @if (s.IsActive)
                                 {
-                                    <span class="badge-status badge-active">
-                                        <span class="badge-dot"></span> Active
-                                    </span>
+                                    <span class="badge-status badge-active"><span class="badge-dot"></span> Active</span>
                                 }
                                 else
                                 {
-                                    <span class="badge-status badge-inactive">
-                                        <span class="badge-dot"></span> Inactive
-                                    </span>
+                                    <span class="badge-status badge-inactive"><span class="badge-dot"></span> Inactive</span>
                                 }
                             </td>
-
                             <td>
                                 <div class="action-group">
-                                    <a asp-action="Details" asp-route-id="@s.StaffId" class="btn-action btn-view">
+                                    <a asp-action="Details" asp-route-id="@s.StaffId" class="btn-action btn-view" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a asp-action="Edit" asp-route-id="@s.StaffId" class="btn-action btn-edit">
+                                    <button type="button" class="btn-action btn-edit js-edit" title="Edit"
+                                            data-id="@s.StaffId">
                                         <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@s.StaffId" class="btn-action btn-delete">
+                                    </button>
+                                    <button type="button" class="btn-action btn-delete js-delete" title="Delete"
+                                            data-id="@s.StaffId" data-name="@s.FullName">
                                         <i class="bi bi-trash"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -186,40 +189,327 @@
     </div>
 
     <!-- PAGINATION -->
-    @if (totalPages > 1)
+    @if (Model.TotalPages > 1)
     {
         <div class="pagination-wrap">
-            <a class="page-btn @(currentPage <= 1 ? "disabled" : "")"
-               asp-action="Index"
-               asp-route-searchTerm="@ViewBag.Search"
-               asp-route-isActive="@ViewBag.IsActive"
-               asp-route-sortBy="@ViewBag.SortBy"
-               asp-route-sortOrder="@sortOrder"
-               asp-route-page="@(currentPage - 1)">
+            <a class="page-btn @(Model.CurrentPage <= 1 ? "disabled" : "")" href="@PageUrl(Model.CurrentPage - 1)">
                 <i class="bi bi-chevron-left"></i>
             </a>
-
-            @for (int p = 1; p <= totalPages; p++)
+            @for (int p = 1; p <= Model.TotalPages; p++)
             {
-                <a class="page-btn @(p == currentPage ? "active" : "")"
-                   asp-action="Index"
-                   asp-route-searchTerm="@ViewBag.Search"
-                   asp-route-isActive="@ViewBag.IsActive"
-                   asp-route-sortBy="@ViewBag.SortBy"
-                   asp-route-sortOrder="@sortOrder"
-                   asp-route-page="@p">@p</a>
+                <a class="page-btn @(p == Model.CurrentPage ? "active" : "")" href="@PageUrl(p)">@p</a>
             }
-
-            <a class="page-btn @(currentPage >= totalPages ? "disabled" : "")"
-               asp-action="Index"
-               asp-route-searchTerm="@ViewBag.Search"
-               asp-route-isActive="@ViewBag.IsActive"
-               asp-route-sortBy="@ViewBag.SortBy"
-               asp-route-sortOrder="@sortOrder"
-               asp-route-page="@(currentPage + 1)">
+            <a class="page-btn @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")" href="@PageUrl(Model.CurrentPage + 1)">
                 <i class="bi bi-chevron-right"></i>
             </a>
         </div>
     }
-
 </div>
+
+@* ════════════════════════ CREATE MODAL ════════════════════════ *@
+<div class="modal fade" id="createStaffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form asp-action="Create" method="post" enctype="multipart/form-data" id="createStaffForm">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus"></i> Add Staff</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Full Name *</label>
+                            <input name="FullName" class="field-input" maxlength="50" required />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Email *</label>
+                            <input name="Email" type="email" class="field-input" required />
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Phone Number *</label>
+                            <input name="PhoneNumber" class="field-input" pattern="^(0[3|5|7|8|9])[0-9]{8}$"
+                                   title="Valid 10-digit Vietnamese phone number" required />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Gender *</label>
+                            <select name="Gender" class="field-select" required>
+                                <option value="">— Select —</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Birth Date *</label>
+                            <input name="BirthDate" type="date" class="field-input" required />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Hire Date *</label>
+                            <input name="HireDate" type="date" class="field-input" value="@today" required />
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Role *</label>
+                            <select name="RoleId" class="field-select js-role-select" data-target="create" required>
+                                <option value="">— Select —</option>
+                                @foreach (var r in Model.Roles)
+                                {
+                                    <option value="@r.RoleId" data-rolename="@r.RoleName">@r.RoleName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Avatar (optional)</label>
+                            <input name="Avatar" type="file" accept="image/*" class="field-input" />
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Password *</label>
+                            <input name="Password" type="password" class="field-input" minlength="6" required />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Confirm Password *</label>
+                            <input name="ConfirmPassword" type="password" class="field-input" minlength="6" required />
+                        </div>
+                    </div>
+
+                    <!-- VET SECTION -->
+                    <div class="vet-section" id="createVetSection" style="display:none">
+                        <p class="modal-vet-hint mb-2"><i class="bi bi-heart-pulse"></i> Veterinarian profile</p>
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label class="field-label">License Number *</label>
+                                <input name="LicenseNumber" class="field-input js-vet-create" maxlength="50" />
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Experience Years *</label>
+                                <input name="ExperienceYears" type="number" step="0.1" min="0" max="100"
+                                       class="field-input js-vet-create" />
+                            </div>
+                        </div>
+                        <div class="field-row full">
+                            <div class="field-group">
+                                <label class="field-label">Description</label>
+                                <textarea name="Description" class="field-input" rows="2" maxlength="255"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-submit primary"><i class="bi bi-check-lg"></i> Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ════════════════════════ EDIT MODAL ════════════════════════ *@
+<div class="modal fade" id="editStaffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editStaffForm">
+                <input type="hidden" name="id" id="editStaffId" />
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Update Staff</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Full Name *</label>
+                            <input name="FullName" id="editFullName" class="field-input" maxlength="50" required />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Email *</label>
+                            <input name="Email" id="editEmail" type="email" class="field-input" required />
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Phone Number *</label>
+                            <input name="PhoneNumber" id="editPhone" class="field-input"
+                                   pattern="^(0[3|5|7|8|9])[0-9]{8}$" required />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Gender *</label>
+                            <select name="Gender" id="editGender" class="field-select" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Birth Date *</label>
+                            <input name="BirthDate" id="editBirthDate" type="date" class="field-input" required />
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Hire Date *</label>
+                            <input name="HireDate" id="editHireDate" type="date" class="field-input" required />
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-group">
+                            <label class="field-label">Role *</label>
+                            <select name="RoleId" id="editRole" class="field-select js-role-select" data-target="edit" required>
+                                @foreach (var r in Model.Roles)
+                                {
+                                    <option value="@r.RoleId" data-rolename="@r.RoleName">@r.RoleName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">New Avatar (optional)</label>
+                            <input name="Avatar" type="file" accept="image/*" class="field-input" />
+                        </div>
+                    </div>
+
+                    <div class="field-row full">
+                        <div class="field-group">
+                            <label class="toggle-group" style="cursor:pointer">
+                                <input type="checkbox" name="ResetPassword" value="true" />
+                                <span class="toggle-label">Reset password to default <strong>123456</strong></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- VET SECTION (license & experience are read-only) -->
+                    <div class="vet-section" id="editVetSection" style="display:none">
+                        <p class="modal-vet-hint mb-2"><i class="bi bi-heart-pulse"></i> Veterinarian profile
+                            — license, experience years &amp; rating cannot be changed here.</p>
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label class="field-label">License Number</label>
+                                <input id="editLicense" class="field-value" disabled />
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Experience Years</label>
+                                <input id="editExperience" class="field-value" disabled />
+                            </div>
+                        </div>
+                        <div class="field-row full">
+                            <div class="field-group">
+                                <label class="field-label">Description</label>
+                                <textarea name="Description" id="editDescription" class="field-input" rows="2"
+                                          maxlength="255"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-submit warning"><i class="bi bi-check-lg"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* ════════════════════════ DELETE MODAL ════════════════════════ *@
+<div class="modal fade" id="deleteStaffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Delete" method="post" id="deleteStaffForm">
+                <input type="hidden" name="id" id="deleteStaffId" />
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle"></i> Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to deactivate <strong id="deleteStaffName"></strong>?</p>
+                    <p class="modal-vet-hint">This is a soft delete — the account will be set to inactive and can be reactivated later.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-submit danger"><i class="bi bi-trash"></i> Yes, Deactivate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ── Vet section toggle (shared by create & edit) ──
+        function toggleVet(target) {
+            var select = document.querySelector('.js-role-select[data-target="' + target + '"]');
+            if (!select) return;
+            var opt = select.options[select.selectedIndex];
+            var isVet = opt && opt.getAttribute('data-rolename') === 'Veterinarian';
+
+            var section = document.getElementById(target === 'create' ? 'createVetSection' : 'editVetSection');
+            if (section) section.style.display = isVet ? 'block' : 'none';
+
+            if (target === 'create') {
+                document.querySelectorAll('.js-vet-create').forEach(function (el) {
+                    el.required = isVet;
+                    if (!isVet) el.value = '';
+                });
+            }
+        }
+
+        document.querySelectorAll('.js-role-select').forEach(function (sel) {
+            sel.addEventListener('change', function () { toggleVet(this.getAttribute('data-target')); });
+        });
+
+        // ── Create: confirm-password check ──
+        document.getElementById('createStaffForm').addEventListener('submit', function (e) {
+            var pwd = this.querySelector('[name="Password"]').value;
+            var cfm = this.querySelector('[name="ConfirmPassword"]').value;
+            if (pwd !== cfm) {
+                e.preventDefault();
+                alert('The password and confirmation password do not match.');
+            }
+        });
+
+        // ── Delete modal ──
+        document.querySelectorAll('.js-delete').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.getElementById('deleteStaffId').value = this.dataset.id;
+                document.getElementById('deleteStaffName').textContent = this.dataset.name;
+                new bootstrap.Modal(document.getElementById('deleteStaffModal')).show();
+            });
+        });
+
+        // ── Edit modal: fetch detail & prefill ──
+        document.querySelectorAll('.js-edit').forEach(function (btn) {
+            btn.addEventListener('click', async function () {
+                var id = this.dataset.id;
+                try {
+                    var res = await fetch('/Staff/GetDetail?id=' + id);
+                    var json = await res.json();
+                    if (!json.success) { alert(json.message || 'Failed to load staff.'); return; }
+                    var d = json.data;
+
+                    document.getElementById('editStaffId').value = d.staffId;
+                    document.getElementById('editFullName').value = d.fullName || '';
+                    document.getElementById('editEmail').value = d.email || '';
+                    document.getElementById('editPhone').value = d.phoneNumber || '';
+                    document.getElementById('editGender').value = d.gender || 'Male';
+                    document.getElementById('editBirthDate').value = (d.birthDate || '').substring(0, 10);
+                    document.getElementById('editHireDate').value = (d.hireDate || '').substring(0, 10);
+                    if (d.roleId) document.getElementById('editRole').value = d.roleId;
+
+                    // Vet fields
+                    var vet = d.vetProfile;
+                    document.getElementById('editLicense').value = vet ? (vet.licenseNumber || '') : '';
+                    document.getElementById('editExperience').value = vet ? (vet.experienceYears ?? '') : '';
+                    document.getElementById('editDescription').value = vet ? (vet.description || '') : '';
+
+                    toggleVet('edit');
+                    new bootstrap.Modal(document.getElementById('editStaffModal')).show();
+                } catch (err) {
+                    alert('Error loading staff: ' + err.message);
+                }
+            });
+        });
+    </script>
+}
