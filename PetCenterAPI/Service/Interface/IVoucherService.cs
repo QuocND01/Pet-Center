@@ -1,4 +1,5 @@
-﻿using PetCenterAPI.DTOs.Responses.ManageVoucher;
+﻿using PetCenterAPI.DTOs.Requests.ManageVoucher;
+using PetCenterAPI.DTOs.Responses.ManageVoucher;
 
 namespace PetCenterAPI.Service.Interface
 {
@@ -8,5 +9,15 @@ namespace PetCenterAPI.Service.Interface
         // VOUCHER — VIEW LIST
         // ============================================================
         Task<IEnumerable<VoucherResponseDTO>> GetAllAsync();
+
+        // ============================================================
+        // VOUCHER — CREATE
+        // ============================================================
+        Task<(bool Success, string Message, VoucherResponseDTO? Data)> CreateAsync(CreateVoucherRequestDTO request);
+
+        // ============================================================
+        // VOUCHER — GET BY ID
+        // ============================================================
+        Task<VoucherResponseDTO?> GetByIdAsync(Guid id);
     }
 }

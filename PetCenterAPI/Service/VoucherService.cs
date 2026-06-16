@@ -1,4 +1,6 @@
-﻿using PetCenterAPI.DTOs.Responses.ManageVoucher;
+﻿using PetCenterAPI.DTOs.Requests.ManageVoucher;
+using PetCenterAPI.DTOs.Responses.ManageVoucher;
+using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
 
@@ -28,6 +30,62 @@ namespace PetCenterAPI.Service
             }
 
             return result;
+        }
+
+        // ============================================================
+        // VOUCHER — CREATE
+        // ============================================================
+        public async Task<(bool Success, string Message, VoucherResponseDTO? Data)> CreateAsync(CreateVoucherRequestDTO request)
+        {
+            var codeExists = await _voucherRepository.CodeExistsAsync(request.Code);
+            if (codeExists)
+                return (false, $"Voucher code '{request.Code.ToUpper()}' already exists.", null);
+
+            if (request.MaxDiscountAmount >= request.MinOrderAmount && request.MinOrderAmount > 0)
+                return (false, "Max discount amount must be less than min order amount.", null);
+
+            if (request.MinOrderAmount > 0)
+            {
+                var effectiveRate = (request.MaxDiscountAmount / request.MinOrderAmount) * 100;
+                if (effectiveRate > 80)
+                    return (false,
+                        $"Effective discount rate ({effectiveRate:F1}%) exceeds 80%. Please lower Max Discount Amount or raise Min Order Amount.",
+                        null);
+            }
+
+            if (request.ExpiredDate.HasValue && request.ExpiredDate.Value <= DateTime.UtcNow)
+                return (false, "Expiry date must be in the future.", null);
+
+            var entity = new Voucher
+            {
+                Code = request.Code.ToUpper().Trim(),
+                DiscountPercent = request.DiscountPercent,
+                Description = request.Description,
+                MinOrderAmount = request.MinOrderAmount,
+                MaxDiscountAmount = request.MaxDiscountAmount,
+                UseageLimit = request.UseageLimit,
+                ExpiredDate = request.ExpiredDate.HasValue
+                    ? DateTime.SpecifyKind(request.ExpiredDate.Value, DateTimeKind.Utc)
+                    : null,
+                IsActive = true,
+                CreateAt = DateTime.UtcNow
+            };
+
+            var created = await _voucherRepository.CreateAsync(entity);
+
+            return (true, "Voucher created successfully.", MapToResponse(created, 0));
+        }
+
+        // ============================================================
+        // VOUCHER — GET BY ID
+        // ============================================================
+        public async Task<VoucherResponseDTO?> GetByIdAsync(Guid id)
+        {
+            var voucher = await _voucherRepository.GetByIdAsync(id);
+            if (voucher == null) return null;
+
+            var usedCount = await _voucherRepository.GetUsedCountAsync(voucher.VoucherId);
+            return MapToResponse(voucher, usedCount);
         }
 
         // ============================================================

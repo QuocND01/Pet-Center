@@ -9,5 +9,16 @@ namespace PetCenterAPI.Repository.Interface
         // ============================================================
         Task<IEnumerable<Voucher>> GetAllAsync();
         Task<int> GetUsedCountAsync(Guid voucherId);
+
+        // ============================================================
+        // VOUCHER — CREATE
+        // ============================================================
+        Task<Voucher> CreateAsync(Voucher voucher);
+        Task<bool> CodeExistsAsync(string code, Guid? excludeId = null);
+
+        // ============================================================
+        // VOUCHER — GET BY ID
+        // ============================================================
+        Task<Voucher?> GetByIdAsync(Guid id);
     }
 }

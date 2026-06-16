@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.ManageVoucher;
 using System.Net.Http;
 using System.Text;
 
@@ -48,6 +49,9 @@ namespace PetCenterClient.Controllers
             return Json(vouchers);
         }
 
+        // ============================================================
+        // VOUCHER — GET BY ID
+        // ============================================================
         [HttpGet]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -58,8 +62,11 @@ namespace PetCenterClient.Controllers
             return Json(voucher);
         }
 
+        // ============================================================
+        // VOUCHER — CREATE
+        // ============================================================
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateVoucherDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateVoucherViewModel dto)
         {
             if (!IsAuthorized(out var redirect)) return redirect!;
             if (dto == null)
