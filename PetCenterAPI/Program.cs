@@ -135,11 +135,11 @@ builder.Services
 // Đăng ký Automapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<BrandProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ServiceProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductAttributeProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>());
-builder.Services.AddAutoMapper(cfg =>{cfg.AddProfile<CustomerMappingProfile>();
-});
+builder.Services.AddAutoMapper(cfg =>{cfg.AddProfile<CustomerMappingProfile>();});
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
 
 builder.Services.AddCors(options =>
@@ -158,7 +158,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();

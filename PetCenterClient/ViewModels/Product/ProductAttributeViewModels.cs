@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterClient.DTOs
+namespace PetCenterClient.ViewModels.Product
 {
     public class ProductAttributeViewModels
     {

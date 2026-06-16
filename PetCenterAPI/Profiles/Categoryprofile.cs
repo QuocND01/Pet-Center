@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.Models;
+using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Category.CategoryResponseDTO;
 
 namespace PetCenterAPI.Profiles
 {

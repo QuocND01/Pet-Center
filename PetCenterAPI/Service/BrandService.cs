@@ -6,6 +6,8 @@ using PetCenterAPI.Models;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
+using static PetCenterAPI.DTOs.Requests.Brand.BrandRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Brand.BrandResposeDTO;
 
 namespace PetCenterAPI.Service
 {

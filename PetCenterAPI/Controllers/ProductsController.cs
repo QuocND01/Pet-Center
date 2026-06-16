@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Product.ProductResponseDTO;
 
 namespace PetCenterAPI.Controllers
 {
@@ -173,19 +175,19 @@ namespace PetCenterAPI.Controllers
             }
         }
 
-        [HttpGet("select")]
-        public async Task<IActionResult> GetProductSelectAsync()
-        {
-            var result = await _productService.GetProductSelectListAsync();
-            return Ok(result);
-        }
+        //[HttpGet("select")]
+        //public async Task<IActionResult> GetProductSelectAsync()
+        //{
+        //    var result = await _productService.GetProductSelectListAsync();
+        //    return Ok(result);
+        //}
 
-        [HttpGet("selecttoview")]
-        public async Task<IActionResult> GetProductSelectToViewAsync()
-        {
-            var result = await _productService.GetProductSelectListToViewAsync();
-            return Ok(result);
-        }
+        //[HttpGet("selecttoview")]
+        //public async Task<IActionResult> GetProductSelectToViewAsync()
+        //{
+        //    var result = await _productService.GetProductSelectListToViewAsync();
+        //    return Ok(result);
+        //}
 
 
         // Lấy sản phẩm mới

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PetCenterAPI.Common;
+using System;
 using System.Collections.Generic;
 
 namespace PetCenterAPI.Models;
@@ -11,7 +12,7 @@ public partial class Service
 
     public decimal Price { get; set; }
 
-    public int Status { get; set; }
+    public Status Status { get; set; }
 
     public string? ServiceDescription { get; set; }
 

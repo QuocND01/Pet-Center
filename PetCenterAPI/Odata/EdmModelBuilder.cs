@@ -1,6 +1,10 @@
 ﻿using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using PetCenterAPI.DTOs;
+using static PetCenterAPI.DTOs.Requests.Brand.BrandRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Service.ServiceRequestDTO;
 
 namespace PetCenterAPI.Odata
 {
@@ -17,6 +21,8 @@ namespace PetCenterAPI.Odata
 
             builder.EntitySet<ReadCategoryDTOForCustomer>("Categories");
 
+            builder.EntitySet<ReadServiceDTOForCustomer>("Services");
+
             builder.EntityType<ReadProductDTOForCustomer>()
                .HasKey(p => p.ProductId);
 
@@ -25,6 +31,9 @@ namespace PetCenterAPI.Odata
 
             builder.EntityType<ReadCategoryDTOForCustomer>()
               .HasKey(p => p.CategoryId);
+
+            builder.EntityType<ReadServiceDTOForCustomer>()
+              .HasKey(p => p.ServiceId);
 
             return builder.GetEdmModel();
         }

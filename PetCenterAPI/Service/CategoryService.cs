@@ -7,6 +7,9 @@ using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
 using System.Xml.Linq;
+using static PetCenterAPI.DTOs.Requests.Category.CategoryAttributeRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Category.CategoryResponseDTO;
 
 namespace PetCenterAPI.Service
 {
@@ -116,11 +119,11 @@ namespace PetCenterAPI.Service
         }
 
 
-        public async Task<IEnumerable<ReadCategoryAttributeDTOs>> GetAllCategoryAttributeByCategoryIDAsync(Guid id)
+        public async Task<IEnumerable<ReadCategoryAttributeDTO>> GetAllCategoryAttributeByCategoryIDAsync(Guid id)
         {
             var attributes = await _categoryRepository.GetAllCategoryAttributeByCategoryIDAsync(id);
 
-            var readattribute = _mapper.Map<IEnumerable<ReadCategoryAttributeDTOs>>(attributes);
+            var readattribute = _mapper.Map<IEnumerable<ReadCategoryAttributeDTO>>(attributes);
 
             return readattribute;
         }

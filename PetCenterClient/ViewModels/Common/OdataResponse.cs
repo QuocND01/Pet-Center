@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PetCenterClient.DTOs
+namespace PetCenterClient.ViewModels.Common
 {
     public class OdataResponse<T>
     {

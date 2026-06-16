@@ -2,6 +2,8 @@
 using PetCenterClient.DTOs;
 
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Common;
+using PetCenterClient.ViewModels.Product;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;

@@ -1,8 +1,9 @@
 ﻿using Humanizer;
 using Microsoft.Data.SqlClient;
 using PetCenterClient.Common;
-using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Brand;
+using PetCenterClient.ViewModels.Common;
 using System.Globalization;
 using System.Net.Http.Headers;
 

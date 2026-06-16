@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PetCenterClient.Common;
-using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Brand;
 
 namespace PetCenterClient.Controllers
 {

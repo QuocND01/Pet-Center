@@ -1,6 +1,9 @@
 ﻿using PetCenterAPI.Common;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.Models;
+using static PetCenterAPI.DTOs.Requests.Category.CategoryAttributeRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Category.CategoryResponseDTO;
 
 namespace PetCenterAPI.Service.Interface
 {
@@ -17,6 +20,6 @@ namespace PetCenterAPI.Service.Interface
         Task ChangeCategoryStatusAsync(
        Guid id,
        Status status);
-        Task<IEnumerable<ReadCategoryAttributeDTOs>> GetAllCategoryAttributeByCategoryIDAsync(Guid id);
+        Task<IEnumerable<ReadCategoryAttributeDTO>> GetAllCategoryAttributeByCategoryIDAsync(Guid id);
     }
 }
