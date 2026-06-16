@@ -1,23 +1,18 @@
-﻿using PetCenterClient.DTOs;
-using PetCenterClient.ViewModels.Common;
+using PetCenterClient.DTOs;
 
 namespace PetCenterClient.Services.Interface
 {
     public interface IStaffService
     {
-        Task<OdataResponse<StaffDto>> GetAllODataAsync(
-            string? search = null,
-            bool? isActive = null,
-            string? sortBy = null,
-            string sortOrder = "asc",
-            int page = 1,
-            int pageSize = 10);
+        Task<List<StaffListItemDto>> GetAllAsync();
+        Task<StaffDetailDto?> GetByIdAsync(Guid id);
+        Task<List<RoleDto>> GetRolesAsync();
 
-        Task<List<StaffDto>> GetAllAsync();
-        Task<StaffDto?> GetByIdAsync(Guid id);
-        Task<bool> CreateAsync(StaffDto dto);
-        Task<bool> UpdateAsync(Guid id, StaffDto dto);
-        Task<bool> DeleteAsync(Guid id);
+        Task<(bool Success, string Message)> CreateAsync(CreateStaffDto dto);
+        Task<(bool Success, string Message)> UpdateAsync(Guid id, UpdateStaffDto dto);
+        Task<(bool Success, string Message)> DeleteAsync(Guid id);
+
+        /// <summary>Lightweight name list for other modules (e.g. import stocks).</summary>
         Task<List<StaffNameListDto>> GetStaffNameListAsync();
     }
 }
