@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PetCenterAPI.DTOs.Requests.ManageCustomer;
 using PetCenterAPI.Service.Interface;
 
 namespace PetCenterAPI.Controllers
@@ -48,6 +49,29 @@ namespace PetCenterAPI.Controllers
                 status = 200,
                 message = "Get customer detail successfully",
                 data = result
+            });
+        }
+
+        // ============================================================
+        // STAFF / ADMIN — CHANGE STATUS CUSTOMER
+        // ============================================================
+        [HttpPut("{id:guid}/status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeCustomerStatus(
+            Guid id, [FromBody] ChangeCustomerStatusRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _customerService.ChangeCustomerStatusAsync(id, request.IsActive);
+
+            if (!result)
+                return NotFound(new { status = 404, message = "Customer not found" });
+
+            return Ok(new
+            {
+                status = 200,
+                message = $"Customer status changed to {(request.IsActive ? "Active" : "Inactive")} successfully"
             });
         }
     }

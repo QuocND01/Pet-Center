@@ -21,5 +21,6 @@ namespace PetCenterAPI.Service.Interface
         // ============================================================
         Task<List<CustomerResponseDTO>> GetAllCustomersAsync();
         Task<CustomerResponseDTO?> GetCustomerByIdAsync(Guid customerId);
+        Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive);
     }
 }

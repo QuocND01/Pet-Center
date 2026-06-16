@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.ManageCustomer;
 
 namespace PetCenterClient.Controllers
 {
@@ -110,10 +111,12 @@ namespace PetCenterClient.Controllers
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         }
 
-        // Thêm vào class
+        // ============================================================
+        // STAFF / ADMIN — CHANGE STATUS CUSTOMER
+        // ============================================================
         [HttpPut]
         [Route("ManageCustomer/ChangeStatus/{customerId:guid}")]
-        public async Task<IActionResult> ChangeStatus(Guid customerId, [FromBody] ChangeCustomerStatusRequestDto request)
+        public async Task<IActionResult> ChangeStatus(Guid customerId, [FromBody] ChangeCustomerStatusViewModel request)
         {
             var token = HttpContext.Session.GetString("JWT");
             if (string.IsNullOrEmpty(token))

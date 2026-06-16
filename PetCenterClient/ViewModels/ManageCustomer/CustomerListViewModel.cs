@@ -1,4 +1,6 @@
-﻿namespace PetCenterClient.ViewModels.ManageCustomer
+﻿using System.Text.Json.Serialization;
+
+namespace PetCenterClient.ViewModels.ManageCustomer
 {
     public class CustomerListViewModel
     {
@@ -17,8 +19,15 @@
         public DateTime? BirthDay { get; set; }
         public string? Gender { get; set; }
         public string? Address { get; set; }
+        
+        [JsonPropertyName("isVerified")]
         public bool EmailVerified { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+    }
+
+    public class ChangeCustomerStatusViewModel
+    {
+        public bool IsActive { get; set; }
     }
 }
