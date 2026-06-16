@@ -9,13 +9,16 @@ namespace PetCenterClient.Controllers
 {
     public class VoucherController : Controller
     {
-        private readonly IVoucherAPIClient _voucherService;
+        private readonly IVoucherApiService _voucherService;
 
-        public VoucherController(IVoucherAPIClient voucherService)
+        public VoucherController(IVoucherApiService voucherService)
         {
             _voucherService = voucherService;
         }
 
+        // ============================================================
+        // HELPER
+        // ============================================================
         private bool IsAuthorized(out IActionResult? redirect)
         {
             var role = HttpContext.Session.GetString("Role");
@@ -28,6 +31,9 @@ namespace PetCenterClient.Controllers
             return true;
         }
 
+        // ============================================================
+        // VOUCHER — VIEW LIST
+        // ============================================================
         public IActionResult Index()
         {
             if (!IsAuthorized(out var redirect)) return redirect!;

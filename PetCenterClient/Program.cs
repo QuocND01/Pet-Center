@@ -80,7 +80,7 @@ builder.Services.AddHttpClient<IFeedbackAPIClient, FeedbackAPIClient>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IVoucherAPIClient, VoucherAPIClient>(client =>
+builder.Services.AddHttpClient<IVoucherApiService, VoucherApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
