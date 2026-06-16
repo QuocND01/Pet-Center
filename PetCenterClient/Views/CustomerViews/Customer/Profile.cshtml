@@ -1,5 +1,5 @@
-﻿@using PetCenterClient.DTOs
-@model CustomerProfileResponseDto
+﻿@using PetCenterClient.ViewModels.CustomerProfile
+@model CustomerProfileViewModel
 
 @{
     ViewData["Title"] = "Customer Profile";
@@ -591,25 +591,21 @@
         const successAlert = document.getElementById('successAlert');
         const errorAlert = document.getElementById('errorAlert');
 
-        // Set current gender
         document.addEventListener('DOMContentLoaded', function() {
             const currentGender = '@Model.Gender';
             document.getElementById('gender').value = currentGender;
         });
 
-        // Toggle Edit Mode
         editToggleBtn.addEventListener('click', () => {
             editForm.classList.add('active');
             infoDisplay.classList.add('hidden');
             editToggleBtn.style.display = 'none';
 
-            // Scroll to form
             setTimeout(() => {
                 editForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         });
 
-        // Cancel Edit
         cancelBtn.addEventListener('click', () => {
             editForm.classList.remove('active');
             infoDisplay.classList.remove('hidden');
@@ -617,7 +613,6 @@
             editForm.reset();
         });
 
-        // Show Alert
         function showAlert(message, type) {
             const alert = type === 'success' ? successAlert : errorAlert;
             const msgElement = type === 'success' ? document.getElementById('successMessage') : document.getElementById('errorMessage');
@@ -630,7 +625,6 @@
             }, 4000);
         }
 
-        // Submit Form
                 editForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -639,7 +633,6 @@
             const birthDay = document.getElementById('birthDay').value;
             const gender = document.getElementById('gender').value;
 
-            // Client-side validation
             const validation = validateProfileForm(fullName, phoneNumber, birthDay, gender);
             if (!validation.valid) {
                 showAlert(validation.message, 'error');
@@ -673,7 +666,6 @@
                         location.reload();
                     }, 1500);
                 } else {
-                    // Handle backend validation errors
                     const errorMessage = result.errors || result.message || 'Failed to update profile';
                     showAlert(errorMessage, 'error');
                     loadingState.classList.remove('active');
@@ -688,7 +680,6 @@
         });
 
                 function validateProfileForm(fullName, phoneNumber, birthDay, gender) {
-            // Full Name — giống Register: chỉ chữ cái + dấu tiếng Việt, tối thiểu 2 từ
             if (!fullName)
                 return { valid: false, message: 'Full name is required' };
             if (!/^[a-zA-ZÀ-ỹ\s]{2,}$/.test(fullName.trim()))
@@ -696,13 +687,11 @@
             if (fullName.trim().split(/\s+/).length < 2)
                 return { valid: false, message: 'Please enter your full name (first and last name)' };
 
-            // Phone — giống Register: bắt đầu 0, đúng 10 số
             if (!phoneNumber)
                 return { valid: false, message: 'Phone number is required' };
             if (!/^0[0-9]{9}$/.test(phoneNumber))
                 return { valid: false, message: 'Phone number must start with 0 and be exactly 10 digits' };
 
-            // Birthday — giống Register: tối thiểu 16 tuổi
             if (!birthDay)
                 return { valid: false, message: 'Date of birth is required' };
 
@@ -721,7 +710,6 @@
             if (age > 120)
                 return { valid: false, message: 'Invalid date of birth' };
 
-            // Gender
             if (!gender)
                 return { valid: false, message: 'Gender is required' };
             if (!['Male', 'Female', 'Other'].includes(gender))

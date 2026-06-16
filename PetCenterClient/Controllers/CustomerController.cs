@@ -2,20 +2,24 @@
 using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.CustomerProfile;
 
 namespace PetCenterClient.Controllers
 {
     public class CustomerController : Controller
     {
-        private readonly ICustomerAPIClient _customerService;
+        private readonly ICustomerApiService _customerService;
         private readonly IAuthApiService _authService;
 
-        public CustomerController(ICustomerAPIClient customerService, IAuthApiService authService)
+        public CustomerController(ICustomerApiService customerService, IAuthApiService authService)
         {
             _customerService = customerService;
             _authService = authService;
         }
 
+        // ============================================================
+        // CUSTOMER — VIEW PROFILE
+        // ============================================================
         public async Task<IActionResult> Profile()
         {
             var token = HttpContext.Session.GetString("JWT");
@@ -29,8 +33,11 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Customer/Profile.cshtml", profile);
         }
 
+        // ============================================================
+        // CUSTOMER — UPDATE PROFILE
+        // ============================================================
         [HttpPost]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateCustomerProfileRequestDto dto)
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateCustomerProfileViewModel dto)
         {
             var result = await _customerService.UpdateProfileAsync(dto);
 

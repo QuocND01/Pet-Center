@@ -256,11 +256,14 @@ namespace PetCenterClient.Services
             }
         }
 
+        // ============================================================
+        // FORGOT PASSWORD — SEND RESET LINK
+        // ============================================================
         public async Task<(bool Success, string Message)> ForgotPasswordAsync(string email)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/auth/forgot-password", new { email });
+                var response = await _http.PostAsJsonAsync("api/auths/forgot-password", new { email });
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JsonDocument.Parse(content).RootElement;
                 var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";
@@ -272,17 +275,20 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<ValidateTokenResponseDto> ValidateResetTokenAsync(string email, string token)
+        // ============================================================
+        // FORGOT PASSWORD — VALIDATE TOKEN
+        // ============================================================
+        public async Task<ValidateTokenResponseViewModel> ValidateResetTokenAsync(string email, string token)
         {
             try
             {
                 var encodedEmail = Uri.EscapeDataString(email);
                 var encodedToken = Uri.EscapeDataString(token);
                 var response = await _http.GetAsync(
-                    $"api/auth/validate-reset-token?email={encodedEmail}&token={encodedToken}");
+                    $"api/auths/validate-reset-token?email={encodedEmail}&token={encodedToken}");
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JsonDocument.Parse(content).RootElement;
-                return new ValidateTokenResponseDto
+                return new ValidateTokenResponseViewModel
                 {
                     Success = response.IsSuccessStatusCode,
                     Message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : ""
@@ -290,15 +296,15 @@ namespace PetCenterClient.Services
             }
             catch
             {
-                return new ValidateTokenResponseDto { Success = false, Message = "An error occurred." };
+                return new ValidateTokenResponseViewModel { Success = false, Message = "An error occurred." };
             }
         }
 
-        public async Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequestDto dto)
+        public async Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordViewModel dto)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/auth/reset-password", dto);
+                var response = await _http.PostAsJsonAsync("api/auths/reset-password", dto);
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JsonDocument.Parse(content).RootElement;
                 var message = json.TryGetProperty("message", out var msg) ? msg.GetString() ?? "" : "";

@@ -2,20 +2,24 @@
 using System.Text.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.CustomerProfile;
 
 namespace PetCenterClient.Services
 {
-    public class CustomerAPIClient : ICustomerAPIClient
+    public class CustomerApiService : ICustomerApiService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CustomerAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public CustomerApiService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
         }
 
+        // ============================================================
+        // HELPER
+        // ============================================================
         private HttpRequestMessage CreateAuthorizedRequest(
             HttpMethod method, string url, HttpContent? content = null)
         {
@@ -28,7 +32,7 @@ namespace PetCenterClient.Services
             return request;
         }
 
-        public async Task<CustomerProfileResponseDto?> GetProfileAsync()
+        public async Task<CustomerProfileViewModel?> GetProfileAsync()
         {
             try
             {
@@ -49,7 +53,7 @@ namespace PetCenterClient.Services
                 if (!response.IsSuccessStatusCode)
                     return null;
 
-                var result = await System.Text.Json.JsonSerializer.DeserializeAsync<ApiResponse<CustomerProfileResponseDto>>(
+                var result = await System.Text.Json.JsonSerializer.DeserializeAsync<ApiResponse<CustomerProfileViewModel>>(
                     new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(content)),
                     new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -64,7 +68,7 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> UpdateProfileAsync(UpdateCustomerProfileRequestDto dto)
+        public async Task<(bool Success, string Message)> UpdateProfileAsync(UpdateCustomerProfileViewModel dto)
         {
             try
             {
