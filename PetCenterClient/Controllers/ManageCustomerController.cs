@@ -16,6 +16,9 @@ namespace PetCenterClient.Controllers
             _customerService = customerService;
         }
 
+        // ============================================================
+        // STAFF / ADMIN — VIEW LIST CUSTOMER
+        // ============================================================
         public async Task<IActionResult> Index()
         {
             var token = HttpContext.Session.GetString("JWT");
@@ -28,6 +31,9 @@ namespace PetCenterClient.Controllers
             return View("~/Views/AdminViews/ManageCustomer/Index.cshtml", customers);
         }
 
+        // ============================================================
+        // STAFF / ADMIN — VIEW DETAIL CUSTOMER
+        // ============================================================
         public async Task<IActionResult> Detail(Guid id)
         {
             var token = HttpContext.Session.GetString("JWT");
@@ -41,7 +47,9 @@ namespace PetCenterClient.Controllers
             return View("~/Views/AdminViews/ManageCustomer/Detail.cshtml", customer);
         }
 
-        // ===== SEARCH API ENDPOINT =====
+        // ============================================================
+        // STAFF / ADMIN — SEARCH CUSTOMER
+        // ============================================================
         [HttpGet]
         [Route("ManageCustomer/Search")]
         public async Task<IActionResult> Search(string query)
@@ -56,20 +64,16 @@ namespace PetCenterClient.Controllers
 
             try
             {
-                // Nếu query trống, lấy tất cả
                 if (string.IsNullOrEmpty(query))
                 {
                     var allCustomers = await _customerService.GetAllCustomersAsync();
                     return Json(new { success = true, data = allCustomers });
                 }
 
-                // Lấy tất cả customers
                 var customers = await _customerService.GetAllCustomersAsync();
 
-                // Normalize search query - Remove diacritics
                 var normalizedQuery = RemoveDiacritics(query.ToLower());
 
-                // Search: match tên và email (normalized)
                 var results = customers.Where(c =>
                     RemoveDiacritics(c.FullName.ToLower()).Contains(normalizedQuery) ||
                     c.Email.ToLower().Contains(query.ToLower())
@@ -83,7 +87,9 @@ namespace PetCenterClient.Controllers
             }
         }
 
-        // ===== HELPER: Remove Diacritics for Vietnamese search =====
+        // ============================================================
+        // HELPER
+        // ============================================================
         private string RemoveDiacritics(string text)
         {
             if (string.IsNullOrEmpty(text))

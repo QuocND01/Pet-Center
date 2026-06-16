@@ -1,5 +1,6 @@
 ﻿using PetCenterAPI.DTOs.Requests.CustomerProfile;
 using PetCenterAPI.DTOs.Responses.CustomerProfile;
+using PetCenterAPI.DTOs.Responses.ManageCustomer;
 
 namespace PetCenterAPI.Service.Interface
 {
@@ -15,5 +16,10 @@ namespace PetCenterAPI.Service.Interface
         // ============================================================
         Task<(bool Success, string Message)> UpdateProfileAsync(
             Guid customerId, UpdateCustomerProfileRequestDTO request);
+        // ============================================================
+        // STAFF / ADMIN — CUSTOMER MANAGEMENT
+        // ============================================================
+        Task<List<CustomerResponseDTO>> GetAllCustomersAsync();
+        Task<CustomerResponseDTO?> GetCustomerByIdAsync(Guid customerId);
     }
 }

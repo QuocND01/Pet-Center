@@ -3,6 +3,7 @@ using System.Text.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.CustomerProfile;
+using PetCenterClient.ViewModels.ManageCustomer;
 
 namespace PetCenterClient.Services
 {
@@ -107,26 +108,32 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<List<CustomerListDto>> GetAllCustomersAsync()
+        // ============================================================
+        // STAFF / ADMIN — VIEW LIST CUSTOMER
+        // ============================================================
+        public async Task<List<CustomerListViewModel>> GetAllCustomersAsync()
         {
             try
             {
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
-                if (string.IsNullOrEmpty(token)) return new List<CustomerListDto>();
+                if (string.IsNullOrEmpty(token)) return new List<CustomerListViewModel>();
 
                 _http.DefaultRequestHeaders.Authorization = null;
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 var response = await _http.GetAsync("api/customers");
-                if (!response.IsSuccessStatusCode) return new List<CustomerListDto>();
+                if (!response.IsSuccessStatusCode) return new List<CustomerListViewModel>();
 
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<CustomerListDto>>>();
-                return result?.Data ?? new List<CustomerListDto>();
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<CustomerListViewModel>>>();
+                return result?.Data ?? new List<CustomerListViewModel>();
             }
-            catch { return new List<CustomerListDto>(); }
+            catch { return new List<CustomerListViewModel>(); }
         }
 
-        public async Task<CustomerDetailDto?> GetCustomerByIdAsync(Guid id)
+        // ============================================================
+        // STAFF / ADMIN — VIEW DETAIL CUSTOMER
+        // ============================================================
+        public async Task<CustomerDetailViewModel?> GetCustomerByIdAsync(Guid id)
         {
             try
             {
@@ -139,7 +146,7 @@ namespace PetCenterClient.Services
                 var response = await _http.GetAsync($"api/customers/{id}");
                 if (!response.IsSuccessStatusCode) return null;
 
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<CustomerDetailDto>>();
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<CustomerDetailViewModel>>();
                 return result?.Data;
             }
             catch { return null; }

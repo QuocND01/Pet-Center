@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using PetCenterAPI.DTOs.Requests.CustomerProfile;
 using PetCenterAPI.DTOs.Responses.CustomerProfile;
+using PetCenterAPI.DTOs.Responses.ManageCustomer;
 using PetCenterAPI.Models;
 
 namespace PetCenterAPI.Profiles
@@ -26,6 +27,11 @@ namespace PetCenterAPI.Profiles
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+
+            // ============================================================
+            // STAFF / ADMIN — CUSTOMER MANAGEMENT
+            // ============================================================
+            CreateMap<Customer, CustomerResponseDTO>();
         }
     }
 }
