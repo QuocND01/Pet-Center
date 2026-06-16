@@ -2,27 +2,29 @@
 using Newtonsoft.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.ManageVoucher;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
-    public class VoucherAPIClient : IVoucherAPIClient
+    public class VoucherApiService : IVoucherApiService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        // Ocelot gateway: /voucher-service/{everything} → downstream /api/{everything}
         private const string PREFIX = "voucher-service/voucher";
 
-        public VoucherAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public VoucherApiService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        // ── HELPER: gắn JWT vào header ───────────────────────────
+        // ============================================================
+        // HELPER
+        // ============================================================
         private void AttachToken()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
@@ -31,8 +33,10 @@ namespace PetCenterClient.Services
                 new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // ── GET ALL ──────────────────────────────────────────────
-        public async Task<List<VoucherDto>> GetAllAsync()
+        // ============================================================
+        // VOUCHER — VIEW LIST
+        // ============================================================
+        public async Task<List<VoucherViewModel>> GetAllAsync()
         {
             try
             {
@@ -40,15 +44,15 @@ namespace PetCenterClient.Services
                 var response = await _http.GetAsync($"{PREFIX}/vouchers");
 
                 if (!response.IsSuccessStatusCode)
-                    return new List<VoucherDto>();
+                    return new List<VoucherViewModel>();
 
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<List<VoucherDto>>(content)
-                       ?? new List<VoucherDto>();
+                return JsonConvert.DeserializeObject<List<VoucherViewModel>>(content)
+                       ?? new List<VoucherViewModel>();
             }
             catch
             {
-                return new List<VoucherDto>();
+                return new List<VoucherViewModel>();
             }
         }
 

@@ -167,6 +167,7 @@ builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 // ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IStaffAuthRepository, StaffAuthRepository>();
+builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
@@ -178,6 +179,7 @@ builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IVoucherService, VoucherService>();
 
 
 builder.Services.Configure<CloudinarySettings>(
