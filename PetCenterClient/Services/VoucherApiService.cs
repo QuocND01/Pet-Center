@@ -41,33 +41,37 @@ namespace PetCenterClient.Services
             try
             {
                 AttachToken();
-                var response = await _http.GetAsync($"{PREFIX}/vouchers");
 
+                var response = await _http.GetAsync("api/voucher/vouchers");
                 if (!response.IsSuccessStatusCode)
                     return new List<VoucherViewModel>();
 
                 var content = await response.Content.ReadAsStringAsync();
+
                 return JsonConvert.DeserializeObject<List<VoucherViewModel>>(content)
                        ?? new List<VoucherViewModel>();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[VoucherApiService] GetAllAsync error: {ex.Message}");
                 return new List<VoucherViewModel>();
             }
         }
 
-        // ── GET BY ID ────────────────────────────────────────────
-        public async Task<VoucherDto?> GetByIdAsync(Guid id)
+        // ============================================================
+        // VOUCHER — GET BY ID
+        // ============================================================
+        public async Task<VoucherViewModel?> GetByIdAsync(Guid id)
         {
             try
             {
                 AttachToken();
-                var response = await _http.GetAsync($"{PREFIX}/vouchers/{id}");
+                var response = await _http.GetAsync($"api/voucher/vouchers/{id}");
 
                 if (!response.IsSuccessStatusCode) return null;
 
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<VoucherDto>(content);
+                return JsonConvert.DeserializeObject<VoucherViewModel>(content);
             }
             catch
             {
@@ -75,8 +79,10 @@ namespace PetCenterClient.Services
             }
         }
 
-        // ── CREATE ───────────────────────────────────────────────
-        public async Task<(bool Success, string Message, VoucherDto? Data)> CreateAsync(CreateVoucherDto dto)
+        // ============================================================
+        // VOUCHER — CREATE
+        // ============================================================
+        public async Task<(bool Success, string Message, VoucherViewModel? Data)> CreateAsync(CreateVoucherViewModel dto)
         {
             try
             {
@@ -84,7 +90,7 @@ namespace PetCenterClient.Services
                 var json = JsonConvert.SerializeObject(dto);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _http.PostAsync($"{PREFIX}/vouchers", content);
+                var response = await _http.PostAsync($"api/voucher/vouchers", content);
                 var body = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
@@ -97,7 +103,7 @@ namespace PetCenterClient.Services
                 var result = JsonConvert.DeserializeObject<dynamic>(body);
                 string message = result?.message ?? "Voucher created successfully.";
                 var dataJson = JsonConvert.SerializeObject(result?.data);
-                var data = JsonConvert.DeserializeObject<VoucherDto>(dataJson);
+                var data = JsonConvert.DeserializeObject<VoucherViewModel>(dataJson);
 
                 return (true, message, data);
             }

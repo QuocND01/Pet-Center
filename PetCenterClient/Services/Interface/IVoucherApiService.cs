@@ -9,8 +9,12 @@ namespace PetCenterClient.Services.Interface
         // VOUCHER — VIEW LIST
         // ============================================================
         Task<List<VoucherViewModel>> GetAllAsync();
-        Task<VoucherDto?> GetByIdAsync(Guid id);
-        Task<(bool Success, string Message, VoucherDto? Data)> CreateAsync(CreateVoucherDto dto);
+        Task<VoucherViewModel?> GetByIdAsync(Guid id);
+
+        // ============================================================
+        // VOUCHER — CREATE
+        // ============================================================
+        Task<(bool Success, string Message, VoucherViewModel? Data)> CreateAsync(CreateVoucherViewModel dto);
         Task<(bool Success, string Message, VoucherDto? Data)> UpdateAsync(Guid id, UpdateVoucherDto dto);
         Task<(bool Success, string Message)> ToggleStatusAsync(Guid id, bool isActive);
     }
