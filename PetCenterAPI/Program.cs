@@ -138,11 +138,9 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<BrandProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductAttributeProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>());
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.AddProfile<CustomerMappingProfile>();
+builder.Services.AddAutoMapper(cfg =>{cfg.AddProfile<CustomerMappingProfile>();
 });
-
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
 
 builder.Services.AddCors(options =>
 {
@@ -163,6 +161,7 @@ builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
 
 // ── 2. Repositories ──────────────────────────────────────────────────────────
@@ -178,6 +177,8 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
