@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
+using PetCenterAPI.DTOs.Requests.CustomerProfile;
 using PetCenterAPI.DTOs.Requests.Register;
 
 namespace PetCenterAPI.Service.Interface
@@ -21,5 +22,11 @@ namespace PetCenterAPI.Service.Interface
         // ============================================================
         Task<(bool Success, string Message)> VerifyOtpAsync(VerifyOtpRequestDTO request);
         Task<(bool Success, string Message)> ResendOtpAsync(string email);
+
+        // ============================================================
+        // CHANGE PASSWORD
+        // ============================================================
+        Task<(bool Success, string Message)> ChangePasswordAsync(
+            Guid customerId, ChangePasswordRequestDTO request);
     }
 }
