@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using PetCenterClient.Common;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Brand;
+using PetCenterClient.ViewModels.Category;
+using PetCenterClient.ViewModels.Common;
+using PetCenterClient.ViewModels.Product;
 
 namespace PetCenterClient.Controllers
 {

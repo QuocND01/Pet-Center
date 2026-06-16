@@ -1,6 +1,7 @@
 ﻿using PetCenterClient.Common;
-using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Category;
+using PetCenterClient.ViewModels.Common;
 using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services

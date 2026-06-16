@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using PetCenterClient.Common;
-using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Category;
 
 namespace PetCenterClient.Controllers
 {

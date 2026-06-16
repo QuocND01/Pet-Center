@@ -1,23 +1,23 @@
-﻿using PetCenterAPI.Common;
-using PetCenterAPI.Models;
+﻿using PetCenterClient.Common;
+using PetCenterClient.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterAPI.DTOs
+namespace PetCenterClient.ViewModels.Brand
 {
-    public class ReadBrandDTO
+    public class ReadBrandViewModel
     {
+
         public Guid BrandId { get; set; }
         public string BrandName { get; set; } = null!;
         public string? BrandDescription { get; set; }
 
         public string? BrandLogo { get; set; }
-
         public Status Status { get; set; }
     }
 
-
-    public class ReadBrandDTOForCustomer
+    public class ReadBrandViewModelForCustomer
     {
+
         public Guid BrandId { get; set; }
         public string BrandName { get; set; } = null!;
         public string? BrandDescription { get; set; }
@@ -25,9 +25,9 @@ namespace PetCenterAPI.DTOs
         public string? BrandLogo { get; set; }
     }
 
-    public class UpdateBrandDTO
+    public class UpdateBrandViewModel
     {
-
+        public Guid BrandId { get; set; }
         [Required(ErrorMessage = "Brand name is required")]
         [MaxLength(200, ErrorMessage = "Brand name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
@@ -35,9 +35,11 @@ namespace PetCenterAPI.DTOs
         public string BrandName { get; set; } = null!;
         public string? BrandDescription { get; set; }
         public IFormFile? BrandLogo { get; set; }
+        public string? ExistingBrandLogo { get; set; }
+        public Status Status { get; set; }
     }
 
-    public class CreateBrandDTO
+    public class CreateBrandViewModel
     {
         [Required(ErrorMessage = "Brand name is required")]
         [MaxLength(200, ErrorMessage = "Brand name cannot exceed 200 characters")]

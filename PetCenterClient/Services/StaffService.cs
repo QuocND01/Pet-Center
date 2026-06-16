@@ -2,6 +2,7 @@
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using System.Net.Http.Headers;
+using PetCenterClient.ViewModels.Common;
 
 namespace PetCenterClient.Services
 {

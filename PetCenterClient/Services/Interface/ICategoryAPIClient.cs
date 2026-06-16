@@ -1,5 +1,6 @@
 ﻿using PetCenterClient.Common;
-using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels.Category;
+using PetCenterClient.ViewModels.Common;
 
 namespace PetCenterClient.Services.Interface
 {

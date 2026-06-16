@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Category.CategoryResponseDTO;
 namespace PetCenterAPI.Controllers
 {
     [Route("api/[controller]")]

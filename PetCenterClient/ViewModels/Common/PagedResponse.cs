@@ -1,4 +1,4 @@
-﻿namespace PetCenterClient.DTOs
+﻿namespace PetCenterClient.ViewModels.Common
 {
     public class PagedResponse<T>
     {

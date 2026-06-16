@@ -9,6 +9,8 @@ using PetCenterAPI.Models;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
+using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Product.ProductResponseDTO;
 
 namespace PetCenterAPI.Service
 {
@@ -16,18 +18,14 @@ namespace PetCenterAPI.Service
     {
         private readonly IProductRepository _productRepository;
         private readonly ICloudinaryService _cloudinaryService;
-        private readonly HttpClient _inventoryClient;
         private readonly HttpClient _orderClient;
-        private readonly HttpClient _importClient;
         private readonly IMapper _mapper;
         public ProductService(IProductRepository productRepository, IMapper mapper, ICloudinaryService service, IHttpClientFactory httpClientFactory)
         {
             _productRepository = productRepository;
             _mapper = mapper;
             _cloudinaryService = service;
-            _inventoryClient = httpClientFactory.CreateClient("InventoryAPI");
             _orderClient = httpClientFactory.CreateClient("OrdersAPI");
-            _importClient = httpClientFactory.CreateClient("ImportStockAPI");
         }
 
 
@@ -300,16 +298,16 @@ namespace PetCenterAPI.Service
             return _mapper.Map<List<ReadProductDTOForCustomer>>(products);
         }
 
-        public async Task<List<SelectProductDto>> GetProductSelectListAsync()
-        {
-            // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
-            return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.Status == Status.Active);
-        }
+        //public async Task<List<SelectProductDto>> GetProductSelectListAsync()
+        //{
+        //    // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
+        //    return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.Status == Status.Active);
+        //}
 
-        public async Task<List<SelectProductDto>> GetProductSelectListToViewAsync()
-        {
-            return await _productRepository.GetActiveProductsAsync<SelectProductDto>();
-        }
+        //public async Task<List<SelectProductDto>> GetProductSelectListToViewAsync()
+        //{
+        //    return await _productRepository.GetActiveProductsAsync<SelectProductDto>();
+        //}
 
         //Code Hồ mới thêm
         public async Task<ProductInternalDto?> GetInternalAsync(Guid productId)

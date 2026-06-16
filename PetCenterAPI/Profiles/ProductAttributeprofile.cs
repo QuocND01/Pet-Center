@@ -3,6 +3,8 @@ using global::PetCenterAPI.DTOs;
 using global::PetCenterAPI.Models;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.Models;
+using static PetCenterAPI.DTOs.Requests.Product.ProductAttributeRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Product.ProductAttributeResponseDTO;
 
 namespace PetCenterAPI.Profiles
 {
@@ -11,7 +13,7 @@ namespace PetCenterAPI.Profiles
         public ProductAttributeProfile()
         {
             // Entity -> DTO
-            CreateMap<ProductAttribute, ProductAttributedto>()
+            CreateMap<ProductAttribute, ProductAttributeDTO>()
                 .ForMember(dest => dest.CategoryAttributeId,
                     opt => opt.MapFrom(src => src.CategoryAttributeId))
                 .ForMember(dest => dest.AttributeName,

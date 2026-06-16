@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterAPI.DTOs
+namespace PetCenterClient.ViewModels.Category
 {
-    public class CreateCategoryAttributeDTOs
+    public class CreateCategoryAttributeViewModel
     {
         [Required(ErrorMessage = "Category Attribute name is required")]
         [MaxLength(200, ErrorMessage = "Category Attribute name cannot exceed 200 characters")]
@@ -11,24 +11,22 @@ namespace PetCenterAPI.DTOs
         public string? AttributeName { get; set; }
     }
 
-    public class ReadCategoryAttributeDTOs
+    public class ReadCategoryAttributeViewModel
     {
-
         public Guid CategoryAttributeId { get; set; }
-        public Guid CategoryID { get; set; }
 
-        public string? AttributeName { get; set; }
+        public string AttributeName { get; set; } = null!;
+
     }
 
 
-    public class UpdateCategoryAttributeDTOs
+    public class UpdateCategoryAttributeViewModel
     {
-        public Guid? CategoryAttributeId { get; set; }
-
+        public Guid CategoryAttributeId { get; set; }
         [Required(ErrorMessage = "Category Attribute name is required")]
         [MaxLength(200, ErrorMessage = "Category Attribute name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
-            ErrorMessage = "Category Attribute name cannot contain special characters")]
+    ErrorMessage = "Category Attribute name cannot contain special characters")]
         public string? AttributeName { get; set; }
     }
 }

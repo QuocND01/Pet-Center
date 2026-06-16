@@ -12,6 +12,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static PetCenterAPI.DTOs.Requests.Brand.BrandRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Brand.BrandResposeDTO;
+
 
 namespace PetCenterAPI.Controllers
 {

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.Models;
+using static PetCenterAPI.DTOs.Requests.Brand.BrandRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Brand.BrandResposeDTO;
 
 namespace PetCenterAPI.Profiles
 {

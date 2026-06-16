@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.Models;
+using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Product.ProductResponseDTO;
 
 namespace PetCenterAPI.Profiles
 {
@@ -62,18 +64,18 @@ namespace PetCenterAPI.Profiles
                 .ForMember(dest => dest.ProductAttributes, opt => opt.Ignore())
                  .ForMember(dest => dest.Status, opt => opt.Ignore());
 
-            CreateMap<Product, SelectProductDto>();
-            CreateMap<IncreaseStockItemDto, Product>();
-            //import product snapshot
-            CreateMap<Product, ProductSnapshotResponseDto>()
-                .ForMember(
-                    dest => dest.CategoryName,
-                    opt => opt.MapFrom(src => src.Category!.CategoryName)
-                )
-                .ForMember(
-                    dest => dest.BrandName,
-                    opt => opt.MapFrom(src => src.Brand!.BrandName)
-                );
+            //CreateMap<Product, SelectProductDto>();
+            //CreateMap<IncreaseStockItemDto, Product>();
+            ////import product snapshot
+            //CreateMap<Product, ProductSnapshotResponseDto>()
+            //    .ForMember(
+            //        dest => dest.CategoryName,
+            //        opt => opt.MapFrom(src => src.Category!.CategoryName)
+            //    )
+            //    .ForMember(
+            //        dest => dest.BrandName,
+            //        opt => opt.MapFrom(src => src.Brand!.BrandName)
+            //    );
         }
     }
 

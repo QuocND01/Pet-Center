@@ -1,21 +1,20 @@
-﻿using PetCenterAPI.Common;
-using PetCenterAPI.Models;
+﻿using PetCenterClient.Common;
+using PetCenterClient.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterAPI.DTOs
+namespace PetCenterClient.ViewModels.Product
 {
-    public class ReadProductDTO
+    public class ReadProductViewModel
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = null!;
         public decimal ProductPrice { get; set; }
         public string? ProductDescription { get; set; }
-        public int StockQuantity { get; set; } = 0;
+        public int? StockQuantity { get; set; }
 
         public DateTime? AddedAt { get; set; }
         public DateTime? UpdateAt { get; set; }
         public Status Status { get; set; }
-
         // Brand
         public Guid BrandId { get; set; }
         public string? BrandName { get; set; }
@@ -30,16 +29,16 @@ namespace PetCenterAPI.DTOs
         public List<string>? Images { get; set; }
 
         // Attributes
-        public List<ProductAttributedto>? Attributes { get; set; }
+        public List<ProductAttributeViewModels>? Attributes { get; set; }
     }
 
-    public class ReadProductDTOForCustomer
+    public class ReadProductViewModelForCustomer
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = null!;
         public decimal ProductPrice { get; set; }
         public string? ProductDescription { get; set; }
-        public int StockQuantity { get; set; } = 0;
+        public int? StockQuantity { get; set; } = 0;
         public DateTime? AddedAt { get; set; }
 
         // Brand
@@ -56,12 +55,12 @@ namespace PetCenterAPI.DTOs
         public List<string>? Images { get; set; }
 
         // Attributes
-        public List<ProductAttributedto>? Attributes { get; set; }
+        public List<ProductAttributeViewModels>? Attributes { get; set; }
     }
 
-    public class UpdateProductDTO
+    public class UpdateProductViewModel
     {
-       // public Guid ProductId { get; set; }
+        public Guid ProductId { get; set; }
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
@@ -75,20 +74,24 @@ namespace PetCenterAPI.DTOs
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? ProductDescription { get; set; }
 
-     //   public Status Status { get; set; }
-        public Guid? BrandId { get; set; }
 
-        public Guid? CategoryId { get; set; }
+        public Guid BrandId { get; set; }
+        public string? BrandName { get; set; }
+        public string? BrandLogo { get; set; }
+
+        // Category
+        public Guid CategoryId { get; set; }
+        public string? CategoryName { get; set; }
 
         public List<IFormFile>? ImageFiles { get; set; }
 
         public List<string>? ExistingImages { get; set; }
-
-        public List<UpdateProductAttributeDTO>? Attributes { get; set; }
+        public Status Status { get; set; }
+        public List<UpdateProductAttributeViewModel>? Attributes { get; set; }
     }
 
 
-    public class CreateProductDTO
+    public class CreateProductViewModel
     {
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
@@ -104,38 +107,21 @@ namespace PetCenterAPI.DTOs
         public string? ProductDescription { get; set; }
 
 
-
         [Required(ErrorMessage = "Brand is required")]
-        public Guid BrandId { get; set; }
+        public Guid? BrandId { get; set; }
 
         [Required(ErrorMessage = "Category is required")]
-        public Guid CategoryId { get; set; }
+        public Guid? CategoryId { get; set; }
 
         public List<IFormFile>? ImageFiles { get; set; }
 
-        public List<CreateProductAttributeDTO>? Attributes { get; set; }
+        public List<CreateProductAttributeViewModel>? Attributes { get; set; }
     }
 
 
-    public class SelectProductDto
+    public class ProductSelectViewModel
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = null!;
-    }
-    public class IncreaseStockItemDto
-    {
-        public Guid ProductId { get; set; }
-        public int Quantity { get; set; }
-    }
-    public class DecreaseStockItemDto
-    {
-        public Guid ProductId { get; set; }
-        public int Quantity { get; set; }
-    }
-
-    public class StockDto
-    {
-        public Guid ProductId { get; set; }
-        public int QuantityAvailable { get; set; }
     }
 }
