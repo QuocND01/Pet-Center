@@ -70,5 +70,16 @@ namespace PetCenterAPI.Service
             var customer = await _customerRepository.GetCustomerByIdAsync(customerId);
             return customer == null ? null : _mapper.Map<CustomerResponseDTO>(customer);
         }
+
+        public async Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive)
+        {
+            var customer = await _customerRepository.GetByIdAsync(customerId);
+            if (customer == null) return false;
+
+            customer.IsActive = isActive;
+            customer.UpdatedAt = DateTime.UtcNow;
+
+            return await _customerRepository.UpdateAsync(customer);
+        }
     }
 }

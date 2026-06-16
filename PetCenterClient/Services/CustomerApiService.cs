@@ -152,6 +152,10 @@ namespace PetCenterClient.Services
             catch { return null; }
         }
 
+        // ============================================================
+        // STAFF / ADMIN — CHANGE STATUS CUSTOMER
+        // ============================================================
+
         public async Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive)
         {
             try
