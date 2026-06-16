@@ -1,5 +1,5 @@
-﻿@using PetCenterClient.DTOs
-@model List<ReadSupplierDto>
+﻿@using PetCenterClient.ViewModels.Supplier
+@model List<ViewSupplierViewModel>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Suppliers";
@@ -82,7 +82,7 @@
             // 1. Mở Modal CREATE
             $("#btnCreate").click(function () {
                 $("#modalTitle").text("Create New Supplier");
-                $("#modalBody").load('/Suppliers/Create', function () {
+                $("#modalBody").load('/Supplier/Create', function () {
                     myModal.show();
                 });
             });
@@ -91,7 +91,7 @@
             $(document).on("click", ".btn-edit", function () {
                 var id = $(this).data("id");
                 $("#modalTitle").text("Details and Edit Supplier");
-                $("#modalBody").load('/Suppliers/Edit/' + id, function () {
+                $("#modalBody").load('/Supplier/Edit/' + id, function () {
                     myModal.show();
                 });
             });
@@ -118,7 +118,7 @@
             $(document).on("submit", "#createForm, #editForm", function (e) {
                 e.preventDefault();
                 var form = $(this);
-                var url = form.attr('id') === "createForm" ? '/Suppliers/Create' : '/Suppliers/Edit';
+                var url = form.attr('id') === "createForm" ? '/Supplier/Create' : '/Supplier/Edit';
 
                 $.ajax({
                     url: url,
@@ -140,7 +140,7 @@
             // 5. Xử lý xóa thực sự
             $(document).on("click", "#confirmDeleteBtn", function () {
                 var id = $(this).data("id");
-                $.post('/Suppliers/Delete/' + id, function () {
+                $.post('/Supplier/Delete/' + id, function () {
                     location.reload();
                 }).fail(function() {
                     alert("Error deleting supplier!");

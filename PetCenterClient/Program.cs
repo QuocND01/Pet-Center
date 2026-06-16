@@ -50,7 +50,7 @@ builder.Services.AddHttpClient<IImportStockService, ImportStockService>(client =
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<ISupplierService, SupplierService>(client =>
+builder.Services.AddHttpClient<ISupplierApiService, SupplierApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });

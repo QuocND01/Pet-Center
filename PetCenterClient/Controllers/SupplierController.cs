@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Supplier;
 
 namespace PetCenterClient.Controllers
 {
-    public class SuppliersController : Controller
+    public class SupplierController : Controller
     {
-        private readonly ISupplierService _supplierService;
+        private readonly ISupplierApiService _supplierService;
 
-        public SuppliersController(ISupplierService supplierService)
+        public SupplierController(ISupplierApiService supplierService)
         {
             _supplierService = supplierService;
         }
@@ -19,7 +20,7 @@ namespace PetCenterClient.Controllers
             var suppliers = await _supplierService.GetAllAsync();
 
             if (suppliers == null)
-                suppliers = new List<ReadSupplierDto>();
+                suppliers = new List<ViewSupplierViewModel>();
 
             return View("~/Views/AdminViews/Supplier/Index.cshtml", suppliers);
         }
@@ -34,7 +35,7 @@ namespace PetCenterClient.Controllers
 
         // POST: Create
         [HttpPost]
-        public async Task<IActionResult> Create(CreateSupplierDto dto)
+        public async Task<IActionResult> Create(CreateSupplierViewModel dto)
         {
             if (!ModelState.IsValid)
             {
@@ -57,9 +58,9 @@ namespace PetCenterClient.Controllers
             if (supplier == null)
                 return NotFound();
 
-            var dto = new UpdateSupplierDto
+            var dto = new CreateSupplierViewModel
             {
-                SupplierId = supplier.SupplierId,
+                SupplierId = id,
                 TaxId = supplier.TaxId,
                 SupplierName = supplier.SupplierName,
                 SupplierEmail = supplier.SupplierEmail,
@@ -74,7 +75,7 @@ namespace PetCenterClient.Controllers
 
         // POST: Edit
         [HttpPost]
-        public async Task<IActionResult> Edit(UpdateSupplierDto dto)
+        public async Task<IActionResult> Edit(CreateSupplierViewModel dto)
         {
             if (!ModelState.IsValid)
             {
