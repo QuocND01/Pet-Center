@@ -19,21 +19,21 @@ namespace PetCenterAPI.Controllers
         private readonly ICustomerAuthService _customerAuthService;
         private readonly IGoogleAuthService _googleAuthService;
         private readonly IJwtService _jwtService;
-        // private readonly IForgotPasswordService _forgotPasswordService;
+        private readonly IForgotPasswordService _forgotPasswordService;
         private readonly IStaffAuthService _staffAuthService;
 
         public AuthsController(
             ICustomerAuthService customerAuthService,
             IGoogleAuthService googleAuthService,
             IJwtService jwtService,
-            IStaffAuthService staffAuthService
-            // IForgotPasswordService forgotPasswordService
+            IStaffAuthService staffAuthService,
+            IForgotPasswordService forgotPasswordService
             )
         {
             _customerAuthService = customerAuthService;
             _googleAuthService = googleAuthService;
             _jwtService = jwtService;
-            //_forgotPasswordService = forgotPasswordService;
+            _forgotPasswordService = forgotPasswordService;
             _staffAuthService = staffAuthService;
         }
 
@@ -219,6 +219,62 @@ namespace PetCenterAPI.Controllers
                     message = "Token exchange failed: " + ex.Message
                 });
             }
+        }
+
+        // ============================================================
+        // FORGOT PASSWORD — SEND RESET LINK
+        // ============================================================
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _forgotPasswordService.SendResetPasswordEmailAsync(request.Email);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // ============================================================
+        // FORGOT PASSWORD — VALIDATE RESET TOKEN
+        // ============================================================
+        [HttpGet("validate-reset-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ValidateResetToken(
+            [FromQuery] string email, [FromQuery] string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+                return BadRequest(new { success = false, message = "Invalid request." });
+
+            var result = await _forgotPasswordService.ValidateResetTokenAsync(email, token);
+
+            if (!result.Valid)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // ============================================================
+        // FORGOT PASSWORD — RESET PASSWORD
+        // ============================================================
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _forgotPasswordService.ResetPasswordAsync(
+                request.Email, request.Token, request.NewPassword);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
         }
     }
 }

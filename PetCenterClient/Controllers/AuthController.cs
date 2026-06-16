@@ -378,6 +378,10 @@ namespace PetCenterClient.Controllers
             });
         }
 
+        // ============================================================
+        // FORGOT PASSWORD — SEND RESET LINK
+        // ============================================================
+
         // GET: /Auth/ForgotPassword
         public IActionResult ForgotPassword()
         {
@@ -399,6 +403,10 @@ namespace PetCenterClient.Controllers
             return Json(new { success = true, message = result.Message });
         }
 
+        // ============================================================
+        // FORGOT PASSWORD — VALIDATE TOKEN & DISPLAY RESET FORM
+        // ============================================================
+
         // GET: /Auth/ResetPassword?email=...&token=...
         [HttpGet]
         public async Task<IActionResult> ResetPassword(string email, string token)
@@ -416,9 +424,13 @@ namespace PetCenterClient.Controllers
             return View("~/Views/CustomerViews/Auth/ResetPassword.cshtml");
         }
 
+        // ============================================================
+        // FORGOT PASSWORD — SUBMIT NEW PASSWORD
+        // ============================================================
+
         // POST: /Auth/ResetPassword
         [HttpPost]
-        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto dto)
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel dto)
         {
             if (string.IsNullOrEmpty(dto.NewPassword) || dto.NewPassword != dto.ConfirmPassword)
                 return Json(new { success = false, message = "Passwords do not match." });

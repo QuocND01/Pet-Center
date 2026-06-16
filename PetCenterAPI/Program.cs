@@ -138,6 +138,10 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<BrandProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductAttributeProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>());
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<CustomerMappingProfile>();
+});
 
 
 builder.Services.AddCors(options =>
@@ -172,6 +176,8 @@ builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddScoped<IStaffAuthService, StaffAuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));

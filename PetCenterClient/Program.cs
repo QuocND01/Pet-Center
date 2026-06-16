@@ -40,7 +40,7 @@ builder.Services.AddHttpClient<IAuthApiService, AuthApiService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<ICustomerAPIClient, CustomerAPIClient>(client =>
+builder.Services.AddHttpClient<ICustomerApiService, CustomerApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
