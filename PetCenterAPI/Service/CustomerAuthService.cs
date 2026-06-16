@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
+using PetCenterAPI.DTOs.Requests.CustomerProfile;
 using PetCenterAPI.DTOs.Requests.Register;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
@@ -200,6 +201,27 @@ namespace PetCenterAPI.Service
 
             await _emailService.SendVerificationEmail(email, newCode);
             return (true, "New verification code sent.");
+        }
+
+        // ============================================================
+        // CHANGE PASSWORD
+        // ============================================================
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(
+            Guid customerId, ChangePasswordRequestDTO request)
+        {
+            var customer = await _customerRepository.GetByIdAsync(customerId);
+            if (customer == null)
+                return (false, "Customer not found.");
+
+            if (customer.PasswordHash == null ||
+                !_passwordService.Verify(request.CurrentPassword, customer.PasswordHash))
+                return (false, "Current password is incorrect.");
+
+            customer.PasswordHash = _passwordService.Hash(request.NewPassword);
+            customer.UpdatedAt = DateTime.UtcNow;
+            await _customerRepository.UpdateAsync(customer);
+
+            return (true, "Password changed successfully.");
         }
 
         // ============================================================

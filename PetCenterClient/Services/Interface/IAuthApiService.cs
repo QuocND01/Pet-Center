@@ -1,4 +1,5 @@
 ﻿using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels.CustomerProfile;
 using PetCenterClient.ViewModels.Login;
 using PetCenterClient.ViewModels.Register;
 
@@ -27,7 +28,10 @@ namespace PetCenterClient.Services.Interface
         Task<(bool Success, string Message)> VerifyOtpAsync(string email, string code);
         Task<(bool Success, string Message)> ResendOtpAsync(string email);
 
-        Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordRequestDto dto);
+        // ============================================================
+        // CHANGE PASSWORD
+        // ============================================================
+        Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordViewModel dto);
 
         // ============================================================
         // GOOGLE LOGIN

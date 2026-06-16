@@ -1,8 +1,10 @@
-﻿using Google.Apis.Auth;
+﻿using System.Security.Claims;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Protocol.Plugins;
+using PetCenterAPI.DTOs.Requests.CustomerProfile;
 using PetCenterAPI.DTOs.Requests.Login;
 using PetCenterAPI.DTOs.Requests.Register;
 using PetCenterAPI.DTOs.Responses;
@@ -270,6 +272,28 @@ namespace PetCenterAPI.Controllers
 
             var result = await _forgotPasswordService.ResetPasswordAsync(
                 request.Email, request.Token, request.NewPassword);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // ============================================================
+        // CHANGE PASSWORD
+        // ============================================================
+        [Authorize(Roles = "Customer")]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var customerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(customerIdStr, out var customerId))
+                return Unauthorized();
+
+            var result = await _customerAuthService.ChangePasswordAsync(customerId, request);
 
             if (!result.Success)
                 return BadRequest(new { success = false, message = result.Message });

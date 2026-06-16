@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.CustomerProfile;
 using PetCenterClient.ViewModels.Login;
 using PetCenterClient.ViewModels.Register;
 
@@ -156,13 +157,16 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordRequestDto dto)
+        // ============================================================
+        // CHANGE PASSWORD
+        // ============================================================
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(ChangePasswordViewModel dto)
         {
             try
             {
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
 
-                var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/change-password")
+                var request = new HttpRequestMessage(HttpMethod.Post, "api/auths/change-password")
                 {
                     Content = JsonContent.Create(dto)
                 };
