@@ -30,6 +30,11 @@ builder.Services.AddHttpClient<ICategoryAPIClient, CategoryAPIClient>(client =>
 });
 
 
+builder.Services.AddHttpClient<IServiceAPIClient, ServiceAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
 builder.Services.AddHttpClient<IStaffService, StaffService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);

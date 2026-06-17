@@ -1,0 +1,1008 @@
+﻿@using PetCenterClient.ViewModels.Common
+@using static PetCenterClient.ViewModels.Service.ServiceViewModel
+@model OdataResponse<ReadServiceViewModelForCustomer>
+
+@{
+    ViewData["Title"] = "Pet Services";
+
+    var currentSearch = Context.Request.Query["search"].ToString();
+    var currentType = Context.Request.Query["serviceType"].ToString();
+
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<style>
+
+    :root {
+        --primary: #2ecc71;
+        --primary-dark: #27ae60;
+        --bg: #f7faf8;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --shadow: 0 10px 30px rgba(0,0,0,.06);
+        --shadow-hover: 0 25px 60px rgba(46,204,113,.18);
+        --radius: 24px;
+    }
+
+    body {
+        background: var(--bg);
+    }
+
+    .service-page {
+        max-width: 1500px;
+        margin: auto;
+    }
+
+    /* HERO */
+
+    .hero {
+        height: 600px;
+        border-radius: 32px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 80px;
+    }
+
+        .hero img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient( 90deg, rgba(0,0,0,.72), rgba(0,0,0,.25) );
+    }
+
+    .hero-content {
+        position: absolute;
+        left: 80px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        max-width: 700px;
+    }
+
+        .hero-content h1 {
+            font-size: 72px;
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 20px;
+        }
+
+        .hero-content p {
+            font-size: 22px;
+            opacity: .9;
+            margin-bottom: 35px;
+        }
+
+    .hero-btn {
+        background: var(--primary);
+        color: white;
+        padding: 16px 34px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+    }
+
+    /* FLOAT SEARCH */
+
+    .search-box {
+        margin-top: -45px;
+        position: relative;
+        z-index: 5;
+    }
+
+    .search-card {
+        background: white;
+        border-radius: 24px;
+        padding: 25px;
+        box-shadow: 0 15px 50px rgba(0,0,0,.1);
+    }
+
+    .search-row {
+        display: flex;
+        gap: 15px;
+    }
+
+    .search-input,
+    .search-select {
+        flex: 1;
+        border: 1px solid #ddd;
+        padding: 16px;
+        border-radius: 14px;
+        font-size: 15px;
+    }
+
+    .search-btn {
+        border: none;
+        background: var(--primary);
+        color: white;
+        padding: 0 35px;
+        border-radius: 14px;
+        font-weight: 800;
+    }
+
+    /* STATS */
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4,1fr);
+        gap: 25px;
+        margin: 50px 0;
+    }
+
+    .stat {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: var(--shadow);
+    }
+
+        .stat h3 {
+            color: var(--primary-dark);
+            font-size: 40px;
+            font-weight: 900;
+        }
+
+        .stat p {
+            color: var(--muted);
+        }
+
+    /* SECTION */
+
+    .section-title {
+        font-size: 36px;
+        font-weight: 900;
+        margin-bottom: 30px;
+    }
+
+    /* GRID */
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(380px,1fr));
+        gap: 30px;
+    }
+
+    /* CARD */
+
+    .service-card {
+        background: white;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        text-decoration: none;
+        color: inherit;
+        transition: .35s;
+    }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
+        }
+
+    .service-image {
+        height: 280px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .service-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: .5s;
+        }
+
+    .service-card:hover img {
+        transform: scale(1.08);
+    }
+
+    .service-badge {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        background: rgba(255,255,255,.95);
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        backdrop-filter: blur(10px);
+    }
+
+    .service-content {
+        padding: 28px;
+    }
+
+    .service-name {
+        font-size: 24px;
+        font-weight: 900;
+        margin-bottom: 12px;
+    }
+
+    .service-desc {
+        color: var(--muted);
+        line-height: 1.7;
+        height: 75px;
+        overflow: hidden;
+    }
+
+    .service-meta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+    }
+
+    .meta {
+        background: #f0fdf4;
+        color: #166534;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .service-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .price {
+        font-size: 34px;
+        font-weight: 900;
+        color: var(--primary-dark);
+    }
+
+    .book-btn {
+        background: var(--primary);
+        color: white;
+        padding: 12px 22px;
+        border-radius: 999px;
+        font-weight: 800;
+    }
+
+    /* EMPTY */
+
+    .empty {
+        text-align: center;
+        padding: 120px 20px;
+    }
+
+        .empty h2 {
+            font-size: 36px;
+        }
+
+    /* PAGINATION */
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 60px 0;
+    }
+
+    .page-btn {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        background: white;
+        color: #111;
+        font-weight: 800;
+        box-shadow: var(--shadow);
+    }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+    @@media(max-width:768px) {
+
+        .hero {
+            height: 450px;
+        }
+
+        .hero-content {
+            left: 30px;
+        }
+
+            .hero-content h1 {
+                font-size: 42px;
+            }
+
+        .stats {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .search-row {
+            flex-direction: column;
+        }
+    }
+
+    .service-marquee {
+        overflow: hidden;
+        background: white;
+        margin: 35px 0;
+        border-radius: 20px;
+        padding: 18px 0;
+    }
+
+    .marquee-track {
+        display: flex;
+        gap: 60px;
+        width: max-content;
+        animation: scroll 25s linear infinite;
+    }
+
+        .marquee-track span {
+            font-weight: 700;
+            color: #27ae60;
+            font-size: 18px;
+        }
+
+    @@keyframes scroll {
+        from {
+            transform: translateX(0);
+        }
+
+        to {
+            transform: translateX(-50%);
+        }
+    }
+
+
+    .promo-banner {
+        margin: 50px 0;
+        padding: 45px;
+        border-radius: 30px;
+        background: linear-gradient( 135deg, #2ecc71, #27ae60 );
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .promo-banner::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.08);
+            right: -100px;
+            top: -150px;
+        }
+
+    .promo-left h2 {
+        font-size: 42px;
+        font-weight: 900;
+    }
+
+    .promo-left a {
+        display: inline-block;
+        margin-top: 15px;
+        background: white;
+        color: #27ae60;
+        padding: 12px 24px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+    }
+
+
+    .about-services {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 40px;
+        margin: 70px 0;
+    }
+
+    .about-text span {
+        color: #27ae60;
+        font-weight: 800;
+        letter-spacing: 2px;
+    }
+
+    .about-text h2 {
+        font-size: 46px;
+        font-weight: 900;
+        margin: 15px 0;
+    }
+
+    .about-text p {
+        color: #6b7280;
+        line-height: 1.9;
+    }
+
+    .about-features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .feature-box {
+        background: white;
+        border-radius: 22px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,.05);
+    }
+
+    .cta-section {
+        margin: 100px 0 60px;
+        text-align: center;
+        background: white;
+        border-radius: 32px;
+        padding: 80px;
+    }
+
+        .cta-section h2 {
+            font-size: 52px;
+            font-weight: 900;
+        }
+
+        .cta-section p {
+            color: #6b7280;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .cta-section a {
+            display: inline-block;
+            margin-top: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 16px 35px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+    .slider-section {
+        position: relative;
+        margin: 50px 0;
+        border-radius: 30px;
+        overflow: hidden;
+        height: 420px;
+        box-shadow: 0 20px 50px rgba(0,0,0,.12);
+    }
+
+    .slider-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: .8s ease;
+    }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slide::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( 90deg, rgba(0,0,0,.65), rgba(0,0,0,.15) );
+        }
+
+    .slide-content {
+        position: absolute;
+        left: 60px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        z-index: 2;
+        max-width: 500px;
+    }
+
+        .slide-content h2 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        .slide-content p {
+            font-size: 18px;
+        }
+
+    .slider-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 5;
+        width: 55px;
+        height: 55px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,.85);
+        cursor: pointer;
+        font-size: 24px;
+    }
+
+    .prev {
+        left: 25px;
+    }
+
+    .next {
+        right: 25px;
+    }
+
+    .slider-dots {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+        display: flex;
+        gap: 10px;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.4);
+    }
+
+        .dot.active {
+            background: white;
+        }
+
+    @@media(max-width:768px) {
+
+        .slider-section {
+            height: 300px;
+        }
+
+        .slide-content {
+            left: 25px;
+            max-width: 300px;
+        }
+
+            .slide-content h2 {
+                font-size: 28px;
+            }
+    }
+</style>
+
+<div class="service-page">
+
+    <section class="hero">
+
+        <img src="https://res.cloudinary.com/dbjdxy4p6/image/upload/v1781687991/a_professional_high_quality_wide_banner_for_a_premium_veterinary_clinic._the_wy49m3.png">
+
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+
+            <h1>
+                Premium Pet Care Services
+            </h1>
+
+            <p>
+                Trusted veterinary, grooming, boarding and training services for your beloved pets.
+            </p>
+
+            <a href="#services" class="hero-btn">
+                Explore Services
+            </a>
+
+        </div>
+
+
+    </section>
+
+    <div class="slider-section">
+
+        <div class="slider-container">
+
+            <div class="slide active">
+                <img src="https://res.cloudinary.com/dbjdxy4p6/image/upload/v1781690348/a_premium_veterinary_clinic_banner_focusing_on_a_close_up_of_a_calm_cat_being_czdp0j.png">
+
+                <div class="slide-content">
+                    <h2>Premium Veterinary Care</h2>
+                    <p>Expert healthcare for every stage of your pet's life.</p>
+                </div>
+            </div>
+
+            <div class="slide">
+                <img src="https://res.cloudinary.com/dbjdxy4p6/image/upload/v1781690348/professional_wide_banner_for_luxury_pet_grooming_service._1600x420_aspect_cr83fu.png">
+
+                <div class="slide-content">
+                    <h2>Professional Grooming</h2>
+                    <p>Luxury spa and grooming services for dogs and cats.</p>
+                </div>
+            </div>
+
+            <div class="slide">
+                <img src="https://res.cloudinary.com/dbjdxy4p6/image/upload/v1781690348/a_professional_high_quality_wide_banner_for_a_premium_veterinary_clinic_health_qwwxb5.png">
+
+                <div class="slide-content">
+                    <h2>Health & Wellness</h2>
+                    <p>Comprehensive checkups and preventive care.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <button class="slider-btn prev">
+            ❮
+        </button>
+
+        <button class="slider-btn next">
+            ❯
+        </button>
+
+        <div class="slider-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+
+    </div>
+
+    <div class="service-marquee">
+        <div class="marquee-track">
+
+            <span>🐶 Veterinary Care</span>
+            <span>✂️ Grooming</span>
+            <span>🩺 Health Check</span>
+            <span>💚 Pet Wellness</span>
+
+            <span>🐶 Veterinary Care</span>
+            <span>✂️ Grooming</span>
+            <span>🩺 Health Check</span>
+            <span>💚 Pet Wellness</span>
+
+        </div>
+    </div>
+
+   
+
+    <div class="stats">
+
+        <div class="stat">
+            <h3>@Model.Count</h3>
+            <p>Services</p>
+        </div>
+
+        <div class="stat">
+            <h3>500+</h3>
+            <p>Happy Pets</p>
+        </div>
+
+        <div class="stat">
+            <h3>24/7</h3>
+            <p>Support</p>
+        </div>
+
+        <div class="stat">
+            <h3>99%</h3>
+            <p>Satisfaction</p>
+        </div>
+
+    </div>
+
+    <div class="promo-banner">
+
+        <div class="promo-left">
+            <h2>
+                First Visit?
+            </h2>
+
+            <p>
+                Get 20% off your first pet service booking.
+            </p>
+
+            <a href="#">
+                Claim Offer
+            </a>
+        </div>
+
+        <div class="promo-right">
+            🎉
+        </div>
+
+    </div>
+
+
+    <section class="about-services">
+
+        <div class="about-text">
+
+            <span>
+                WHY CHOOSE PETCENTER
+            </span>
+
+            <h2>
+                Comprehensive Care For Every Stage Of Your Pet's Life
+            </h2>
+
+            <p>
+                At PetCenter, we provide premium veterinary services,
+                grooming to keep your pets healthy, happy and comfortable.
+            </p>
+
+            <p>
+                Our experienced team combines modern facilities,
+                compassionate care and personalized treatment plans
+                to ensure the highest quality experience for every pet.
+            </p>
+
+        </div>
+
+        <div class="about-features">
+
+            <div class="feature-box">
+                🩺
+                <h4>Certified Veterinarians</h4>
+            </div>
+
+            <div class="feature-box">
+                ✂️
+                <h4>Professional Grooming</h4>
+            </div>
+
+            <div class="feature-box">
+                ❤️
+                <h4>24/7 Support</h4>
+            </div>
+
+        </div>
+
+    </section>
+
+    <h2 class="section-title">
+        Our Services
+    </h2>
+    <div class="search-box">
+
+        <div class="search-card">
+
+            <form asp-action="Index"
+                  asp-controller="Service"
+                  method="get">
+
+                <div class="search-row">
+
+                    <input type="text"
+                           name="search"
+                           value="@currentSearch"
+                           class="search-input"
+                           placeholder="Search services..." />
+
+                    <select name="serviceType"
+                            class="search-select">
+
+                        <option value="">
+                            All Categories
+                        </option>
+
+                        <option value="1">
+                            Veterinary
+                        </option>
+
+                        <option value="2">
+                            Grooming
+                        </option>
+
+                        <option value="3">
+                            Boarding
+                        </option>
+
+                        <option value="4">
+                            Training
+                        </option>
+
+                    </select>
+
+                    <button class="search-btn">
+                        Search
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    @if (Model?.Values != null && Model.Values.Any())
+    {
+        <div id="services"
+             class="services-grid">
+
+            @foreach (var item in Model.Values)
+            {
+                var img =
+                item.ImageFiles?.FirstOrDefault();
+
+                <a asp-action="Details"
+                   asp-controller="Services"
+                   asp-route-id="@item.ServiceId"
+                   class="service-card">
+
+                    <div class="service-image">
+
+                        <img src="@(img ?? "/images/no-image.jpg")">
+
+                        <span class="service-badge">
+                            @GetTypeName(item.ServiceType)
+                        </span>
+
+                    </div>
+
+                    <div class="service-content">
+
+                        <div class="service-name">
+                            @item.ServiceName
+                        </div>
+
+                        <div class="service-desc">
+                            @item.ServiceDescription
+                        </div>
+
+                        <div class="service-meta">
+
+                            <div class="meta">
+                                ⏱ @item.Duration min
+                            </div>
+
+                            <div class="meta">
+                                ⭐ Premium
+                            </div>
+
+                        </div>
+
+                        <div class="service-footer">
+
+                            <div class="price">
+                                @item.Price.ToString("N0")₫
+                            </div>
+
+                            <div class="book-btn">
+                                Book Now →
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </a>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="empty">
+
+            <h2>
+                No Services Found
+            </h2>
+
+            <p>
+                Try changing your search.
+            </p>
+
+        </div>
+    }
+
+</div>
+
+<section class="cta-section">
+
+    <h2>
+        Ready To Give Your Pet The Best Care?
+    </h2>
+
+    <p>
+        Schedule an appointment today and let our experts
+        take care of your beloved companion.
+    </p>
+
+    <a href="#">
+        Book Appointment
+    </a>
+
+</section>
+
+@functions {
+
+    string GetTypeName(int type)
+    {
+        return type switch
+        {
+            1 => "Veterinary",
+            2 => "Grooming",
+            3 => "Spa",
+        };
+    }
+
+}
+
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+
+        let current = 0;
+
+        function showSlide(index){
+
+            slides.forEach(s =>
+                s.classList.remove('active'));
+
+            dots.forEach(d =>
+                d.classList.remove('active'));
+
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
+        }
+
+        function nextSlide(){
+
+            current++;
+
+            if(current >= slides.length)
+                current = 0;
+
+            showSlide(current);
+        }
+
+        document.querySelector('.next')
+            .addEventListener('click', () => {
+
+                nextSlide();
+
+            });
+
+        document.querySelector('.prev')
+            .addEventListener('click', () => {
+
+                current--;
+
+                if(current < 0)
+                    current = slides.length - 1;
+
+                showSlide(current);
+
+            });
+
+        setInterval(nextSlide, 5000);
+
+    });
+
+</script>
