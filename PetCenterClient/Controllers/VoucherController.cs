@@ -91,6 +91,9 @@ namespace PetCenterClient.Controllers
             return Ok(new { message, data });
         }
 
+        // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
         [HttpPost]
         public async Task<IActionResult> Toggle(Guid id, bool isActive)
         {
