@@ -24,5 +24,15 @@ namespace PetCenterAPI.Service.Interface
         // FEEDBACK — UPDATE REPLY
         // ============================================================
         Task<ApiResponse<bool>> UpdateReplyAsync(UpdateReplyRequestDTO request);
+
+        // ============================================================
+        // FEEDBACK — DELETE REPLY
+        // ============================================================
+        Task<ApiResponse<bool>> DeleteReplyAsync(Guid feedbackId);
+
+        // ============================================================
+        // FEEDBACK — TOGGLE VISIBILITY
+        // ============================================================
+        Task<ApiResponse<bool>> ToggleVisibilityAsync(Guid feedbackId, bool isVisible);
     }
 }

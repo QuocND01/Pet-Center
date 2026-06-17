@@ -154,5 +154,41 @@ namespace PetCenterAPI.Repository
             await _context.SaveChangesAsync();
             return true;
         }
+
+        // ============================================================
+        // FEEDBACK — DELETE REPLY
+        // ============================================================
+        public async Task<bool> DeleteReplyAsync(Guid feedbackId)
+        {
+            var feedback = await _context.ProductFeedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId);
+
+            if (feedback == null) return false;
+
+            feedback.Reply = null;
+            feedback.StaffId = null;
+            feedback.ReplyDate = null;
+            feedback.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // ============================================================
+        // FEEDBACK — TOGGLE VISIBILITY
+        // ============================================================
+        public async Task<bool> ToggleVisibilityAsync(Guid feedbackId, bool isVisible)
+        {
+            var feedback = await _context.ProductFeedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId);
+
+            if (feedback == null) return false;
+
+            feedback.Status = isVisible ? 1 : 0;
+            feedback.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

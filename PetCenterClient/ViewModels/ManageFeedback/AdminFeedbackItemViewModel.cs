@@ -50,4 +50,10 @@
         public Guid FeedbackId { get; set; }
         public string ReplyContent { get; set; } = string.Empty;
     }
+
+    public class ToggleVisibilityViewModel
+    {
+        public Guid FeedbackId { get; set; }
+        public bool IsVisible { get; set; }
+    }
 }
