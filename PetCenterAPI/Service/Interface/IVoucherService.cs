@@ -19,5 +19,11 @@ namespace PetCenterAPI.Service.Interface
         // VOUCHER — GET BY ID
         // ============================================================
         Task<VoucherResponseDTO?> GetByIdAsync(Guid id);
+
+        // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
+        Task<(bool Success, string Message)> ToggleStatusAsync(Guid id, bool isActive);
     }
 }
+

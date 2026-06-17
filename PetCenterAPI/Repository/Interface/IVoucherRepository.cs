@@ -20,5 +20,10 @@ namespace PetCenterAPI.Repository.Interface
         // VOUCHER — GET BY ID
         // ============================================================
         Task<Voucher?> GetByIdAsync(Guid id);
+        
+        // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
+        Task<Voucher> UpdateAsync(Voucher voucher);
     }
 }

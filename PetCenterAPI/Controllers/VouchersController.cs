@@ -64,5 +64,20 @@ namespace PetCenterAPI.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = data!.VoucherId }, new { message, data });
         }
+
+        // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
+        [HttpPatch("vouchers/{id:guid}/toggle")]
+        [Authorize(Roles = "Admin,Sale Staff")]
+        public async Task<IActionResult> Toggle(Guid id, [FromQuery] bool isActive)
+        {
+            var (success, message) = await _voucherService.ToggleStatusAsync(id, isActive);
+
+            if (!success)
+                return BadRequest(new { message });
+
+            return Ok(new { message });
+        }
     }
 }

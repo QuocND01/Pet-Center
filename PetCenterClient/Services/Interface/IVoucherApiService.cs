@@ -16,6 +16,10 @@ namespace PetCenterClient.Services.Interface
         // ============================================================
         Task<(bool Success, string Message, VoucherViewModel? Data)> CreateAsync(CreateVoucherViewModel dto);
         Task<(bool Success, string Message, VoucherDto? Data)> UpdateAsync(Guid id, UpdateVoucherDto dto);
+
+        // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
         Task<(bool Success, string Message)> ToggleStatusAsync(Guid id, bool isActive);
     }
 }

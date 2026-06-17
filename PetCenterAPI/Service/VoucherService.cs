@@ -89,6 +89,31 @@ namespace PetCenterAPI.Service
         }
 
         // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
+        public async Task<(bool Success, string Message)> ToggleStatusAsync(Guid id, bool isActive)
+        {
+            var voucher = await _voucherRepository.GetByIdAsync(id);
+            if (voucher == null)
+                return (false, "Voucher not found.");
+
+            if (isActive && voucher.ExpiredDate.HasValue && voucher.ExpiredDate.Value <= DateTime.UtcNow)
+                return (false, "Cannot activate an expired voucher. Please update the expiry date first.");
+
+            if (isActive && voucher.UseageLimit.HasValue)
+            {
+                var usedCount = await _voucherRepository.GetUsedCountAsync(id);
+                if (usedCount >= voucher.UseageLimit.Value)
+                    return (false, "Cannot activate voucher that has reached its usage limit.");
+            }
+
+            voucher.IsActive = isActive;
+            await _voucherRepository.UpdateAsync(voucher);
+
+            return (true, isActive ? "Voucher activated." : "Voucher deactivated.");
+        }
+
+        // ============================================================
         // HELPER
         // ============================================================
         private static VoucherResponseDTO MapToResponse(Models.Voucher v, int usedCount)

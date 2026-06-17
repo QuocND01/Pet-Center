@@ -145,17 +145,19 @@ namespace PetCenterClient.Services
             }
         }
 
-        // ── TOGGLE STATUS ─────────────────────────────────────────
+        // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
+
         public async Task<(bool Success, string Message)> ToggleStatusAsync(Guid id, bool isActive)
         {
             try
             {
                 AttachToken();
 
-                // Gửi PATCH không có body, isActive nằm trên query string
                 var response = await _http.PatchAsync(
-                    $"{PREFIX}/vouchers/{id}/toggle?isActive={isActive.ToString().ToLower()}",
-                    null  // không cần body
+                    $"api/voucher/vouchers/{id}/toggle?isActive={isActive.ToString().ToLower()}",
+                    null
                 );
 
                 var body = await response.Content.ReadAsStringAsync();

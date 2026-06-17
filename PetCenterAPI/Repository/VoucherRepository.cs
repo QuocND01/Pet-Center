@@ -63,5 +63,18 @@ namespace PetCenterAPI.Repository
             return await _context.Vouchers
                 .FirstOrDefaultAsync(v => v.VoucherId == id);
         }
+
+        // ============================================================
+        // VOUCHER — TOGGLE STATUS
+        // ============================================================
+        public async Task<Voucher> UpdateAsync(Voucher voucher)
+        {
+            voucher.Code = voucher.Code.ToUpper().Trim();
+
+            _context.Vouchers.Update(voucher);
+            await _context.SaveChangesAsync();
+
+            return voucher;
+        }
     }
 }
