@@ -1,23 +1,27 @@
 ﻿using Newtonsoft.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.ManageFeedback;
 using System.Net.Http.Headers;
 using System.Text;
 
 namespace PetCenterClient.Services
 {
-    public class AdminFeedbackAPIClient : IAdminFeedbackAPIClient
+    public class AdminFeedbackApiService : IAdminFeedbackApiService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AdminFeedbackAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public AdminFeedbackApiService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        // ── Attach JWT token ──────────────────────────────────
+        // ============================================================
+        // HELPER
+        // ============================================================
+
         private void AttachToken()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
@@ -26,17 +30,20 @@ namespace PetCenterClient.Services
                 new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // ── GET list with filter + paging ─────────────────────
-        public async Task<FeedbackPagedResult?> GetAllAsync(
-    int page = 1, int pageSize = 10,
-    int? rating = null, bool? hasReply = null,
-    string? keyword = null, string? sortBy = null)
+        // ============================================================
+        // FEEDBACK — VIEW LIST (ADMIN/STAFF)
+        // ============================================================
+        public async Task<FeedbackPagedResultViewModel?> GetAllAsync(
+            int page = 1, int pageSize = 10,
+            int? rating = null, bool? hasReply = null,
+            string? keyword = null, string? sortBy = null)
         {
             try
             {
                 AttachToken();
 
                 var query = new List<string> { $"page={page}", $"pageSize={pageSize}" };
+
                 if (rating.HasValue) query.Add($"rating={rating.Value}");
                 if (hasReply.HasValue) query.Add($"hasReply={hasReply.Value.ToString().ToLower()}");
                 if (!string.IsNullOrWhiteSpace(keyword))
@@ -44,21 +51,20 @@ namespace PetCenterClient.Services
                 if (!string.IsNullOrWhiteSpace(sortBy))
                     query.Add($"sortBy={sortBy}");
 
-                var url = $"feedback-service/AdminProductFeedback/list?{string.Join("&", query)}";
+                var url = $"api/AdminFeedbacks/list?{string.Join("&", query)}";
                 var response = await _http.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
-                {
-                    var err = await response.Content.ReadAsStringAsync();
                     return null;
-                }
 
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponse<FeedbackPagedResult>>(content);
+                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponseViewModel<FeedbackPagedResultViewModel>>(content);
+
                 return result?.Data;
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[AdminFeedbackApiService] GetAllAsync error: {ex.Message}");
                 return null;
             }
         }
