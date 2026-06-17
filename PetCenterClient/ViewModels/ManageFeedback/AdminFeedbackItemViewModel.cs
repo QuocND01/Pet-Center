@@ -37,4 +37,17 @@
         public string? Message { get; set; }
         public T? Data { get; set; }
     }
+
+    public class ReplyFeedbackViewModel
+    {
+        public Guid FeedbackId { get; set; }
+        public Guid StaffId { get; set; }
+        public string ReplyContent { get; set; } = string.Empty;
+    }
+
+    public class UpdateReplyViewModel
+    {
+        public Guid FeedbackId { get; set; }
+        public string ReplyContent { get; set; } = string.Empty;
+    }
 }

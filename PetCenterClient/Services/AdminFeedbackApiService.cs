@@ -69,26 +69,30 @@ namespace PetCenterClient.Services
             }
         }
 
-        // ── GET single feedback by id ─────────────────────────
-        public async Task<AdminFeedbackItemDto?> GetByIdAsync(Guid feedbackId)
+        // ============================================================
+        // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
+        // ============================================================
+        public async Task<AdminFeedbackItemViewModel?> GetByIdAsync(Guid feedbackId)
         {
             try
             {
                 AttachToken();
                 var response = await _http.GetAsync(
-                    $"feedback-service/AdminProductFeedback/{feedbackId}");
+                    $"api/AdminFeedbacks/{feedbackId}");
 
                 if (!response.IsSuccessStatusCode) return null;
 
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponse<AdminFeedbackItemDto>>(content);
+                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponseViewModel<AdminFeedbackItemViewModel>>(content);
                 return result?.Data;
             }
             catch { return null; }
         }
 
-        // ── POST reply ────────────────────────────────────────
-        public async Task<(bool success, string message)> ReplyAsync(ReplyFeedbackDto dto)
+        // ============================================================
+        // FEEDBACK — REPLY
+        // ============================================================
+        public async Task<(bool success, string message)> ReplyAsync(ReplyFeedbackViewModel dto)
         {
             try
             {
@@ -97,21 +101,25 @@ namespace PetCenterClient.Services
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _http.PostAsync(
-                    "feedback-service/AdminProductFeedback/reply", content);
+                    "api/AdminFeedbacks/reply", content);
 
                 var body = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponse<bool>>(body);
+                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponseViewModel<bool>>(body);
 
                 return (
                     response.IsSuccessStatusCode,
-                    result?.Message ?? (response.IsSuccessStatusCode ? "Reply thành công." : "Có lỗi xảy ra.")
+            result?.Message ?? (response.IsSuccessStatusCode
+                ? "Reply submitted successfully."
+                : "An error occurred.")
                 );
             }
             catch (Exception ex) { return (false, ex.Message); }
         }
 
-        // ── PUT update reply ──────────────────────────────────
-        public async Task<(bool success, string message)> UpdateReplyAsync(UpdateReplyDto dto)
+        // ============================================================
+        // FEEDBACK — UPDATE REPLY
+        // ============================================================
+        public async Task<(bool success, string message)> UpdateReplyAsync(UpdateReplyViewModel dto)
         {
             try
             {
@@ -121,14 +129,16 @@ namespace PetCenterClient.Services
 
                 // ← Backend API dùng PUT, gọi đúng PUT tới gateway
                 var response = await _http.PutAsync(
-                    "feedback-service/AdminProductFeedback/reply", content);
+                    "api/AdminFeedbacks/reply", content);
 
                 var body = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponse<bool>>(body);
+                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponseViewModel<bool>>(body);
 
                 return (
                     response.IsSuccessStatusCode,
-                    result?.Message ?? (response.IsSuccessStatusCode ? "Cập nhật thành công." : "Có lỗi xảy ra.")
+            result?.Message ?? (response.IsSuccessStatusCode
+                ? "Reply updated successfully."
+                : "An error occurred.")
                 );
             }
             catch (Exception ex) { return (false, ex.Message); }

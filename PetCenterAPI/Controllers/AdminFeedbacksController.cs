@@ -36,5 +36,78 @@ namespace PetCenterAPI.Controllers
                 return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
             }
         }
+
+        // ============================================================
+        // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
+        // ============================================================
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            try
+            {
+                var result = await _adminFeedbackService.GetByIdAsync(id);
+                if (!result.Success) return NotFound(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            }
+        }
+
+        // ============================================================
+        // FEEDBACK — REPLY
+        // ============================================================
+        [HttpPost("reply")]
+        public async Task<IActionResult> Reply([FromBody] ReplyFeedbackRequestDTO request)
+        {
+            try
+            {
+                if (request.FeedbackId == Guid.Empty || request.StaffId == Guid.Empty)
+                    return BadRequest(ApiResponse<bool>.Fail("FeedbackId and StaffId cannot be empty."));
+
+                if (string.IsNullOrWhiteSpace(request.ReplyContent))
+                    return BadRequest(ApiResponse<bool>.Fail("Reply content cannot be empty."));
+
+                var result = await _adminFeedbackService.ReplyAsync(request);
+                if (!result.Success) return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            }
+        }
+
+        // ============================================================
+        // FEEDBACK — UPDATE REPLY
+        // ============================================================
+
+        /// <summary>
+        /// Update an existing reply on a feedback, validated for required fields
+        /// </summary>
+        [HttpPut("reply")]
+        public async Task<IActionResult> UpdateReply([FromBody] UpdateReplyRequestDTO request)
+        {
+            try
+            {
+                if (request.FeedbackId == Guid.Empty)
+                    return BadRequest(ApiResponse<bool>.Fail("FeedbackId cannot be empty."));
+
+                if (string.IsNullOrWhiteSpace(request.ReplyContent))
+                    return BadRequest(ApiResponse<bool>.Fail("Reply content cannot be empty."));
+
+                var result = await _adminFeedbackService.UpdateReplyAsync(request);
+                if (!result.Success) return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            }
+        }
     }
 }

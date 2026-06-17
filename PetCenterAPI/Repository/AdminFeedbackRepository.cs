@@ -83,5 +83,76 @@ namespace PetCenterAPI.Repository
                 PageSize = filter.PageSize
             };
         }
+
+        // ============================================================
+        // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
+        // ============================================================
+        public async Task<AdminFeedbackItemResponseDTO?> GetByIdAsync(Guid feedbackId)
+        {
+            return await _context.ProductFeedbacks
+                .Where(f => f.FeedbackId == feedbackId)
+                .Select(f => new AdminFeedbackItemResponseDTO
+                {
+                    FeedbackId = f.FeedbackId,
+                    CustomerId = f.CustomerId,
+                    CustomerName = f.Customer.FullName,
+                    CustomerEmail = f.Customer.Email,
+                    ProductId = f.ProductId,
+                    ProductName = f.Product.ProductName,
+                    ProductImage = f.Product.ProductImages
+                        .Where(pi => pi.IsActive == true)
+                        .Select(pi => pi.ImageUrl)
+                        .FirstOrDefault(),
+                    OrderId = f.OrderId,
+                    Rating = f.Rating,
+                    Comment = f.Comment,
+                    ReplyContent = f.Reply,
+                    HasReply = !string.IsNullOrEmpty(f.Reply),
+                    StaffId = f.StaffId,
+                    StaffName = f.Staff != null ? f.Staff.FullName : null,
+                    ReplyDate = f.ReplyDate,
+                    CreatedDate = f.CreatedAt,
+                    IsVisible = f.Status == 1
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        // ============================================================
+        // FEEDBACK — REPLY
+        // ============================================================
+        public async Task<bool> ReplyAsync(Guid feedbackId, Guid staffId, string replyContent)
+        {
+            var feedback = await _context.ProductFeedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId);
+
+            if (feedback == null) return false;
+
+            feedback.Reply = replyContent;
+            feedback.StaffId = staffId;
+            feedback.ReplyDate = DateTime.Now;
+            feedback.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // ============================================================
+        // FEEDBACK — UPDATE REPLY
+        // ============================================================
+        public async Task<bool> UpdateReplyAsync(Guid feedbackId, string replyContent)
+        {
+            var feedback = await _context.ProductFeedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId);
+
+            if (feedback == null || string.IsNullOrEmpty(feedback.Reply))
+                return false;
+
+            feedback.Reply = replyContent;
+            feedback.ReplyDate = DateTime.Now;
+            feedback.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

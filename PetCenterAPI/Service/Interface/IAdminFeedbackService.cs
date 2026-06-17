@@ -9,5 +9,20 @@ namespace PetCenterAPI.Service.Interface
         // FEEDBACK — VIEW LIST (ADMIN/STAFF)
         // ============================================================
         Task<ApiResponse<PagedResult<AdminFeedbackItemResponseDTO>>> GetAllAsync(FeedbackFilterRequestDTO filter);
+
+        // ============================================================
+        // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
+        // ============================================================
+        Task<ApiResponse<AdminFeedbackItemResponseDTO>> GetByIdAsync(Guid feedbackId);
+
+        // ============================================================
+        // FEEDBACK — REPLY
+        // ============================================================
+        Task<ApiResponse<bool>> ReplyAsync(ReplyFeedbackRequestDTO request);
+
+        // ============================================================
+        // FEEDBACK — UPDATE REPLY
+        // ============================================================
+        Task<ApiResponse<bool>> UpdateReplyAsync(UpdateReplyRequestDTO request);
     }
 }
