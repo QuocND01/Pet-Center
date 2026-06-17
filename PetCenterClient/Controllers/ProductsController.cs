@@ -65,6 +65,16 @@ namespace PetCenterClient.Controllers
             ViewBag.TotalPages = totalPages;
             ViewBag.PageSize = pagesize;
 
+            ViewBag.Search = search;
+            ViewBag.MinPrice = minPrice;
+            ViewBag.MaxPrice = maxPrice;
+            ViewBag.CategoryId = categoryid;
+            ViewBag.BrandId = brandid;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortOrder = sortOrder;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+
             // Hot/New
             ViewBag.HotProducts = await _productService.GetHotProductsAsync();
             ViewBag.NewProducts = await _productService.GetNewProductsAsync();

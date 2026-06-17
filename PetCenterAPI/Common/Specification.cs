@@ -95,18 +95,12 @@ namespace PetCenterAPI.Common
     {
         public string? Search { get; set; }
 
-        public Status? Status { get; set; }
+        public bool? IsActive { get; set; }
 
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
 
-        public int? MinDuration { get; set; }
-        public int? MaxDuration { get; set; }
-
         public int? ServiceType { get; set; }
-
-        public string? SortBy { get; set; }
-        public string SortOrder { get; set; } = "asc";
 
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -115,22 +109,24 @@ namespace PetCenterAPI.Common
         {
             return s =>
                 (string.IsNullOrEmpty(Search) ||
-                 s.ServiceName.Contains(Search)) &&
+                 s.ServiceName.Contains(Search))
 
-                (!Status.HasValue ||
-                 s.Status == Status) &&
+                &&
+
+                (!IsActive.HasValue ||
+                 (s.Status == Status.Active) == IsActive.Value)
+
+                &&
 
                 (!MinPrice.HasValue ||
-                 s.Price >= MinPrice.Value) &&
+                 s.Price >= MinPrice.Value)
+
+                &&
 
                 (!MaxPrice.HasValue ||
-                 s.Price <= MaxPrice.Value) &&
+                 s.Price <= MaxPrice.Value)
 
-                (!MinDuration.HasValue ||
-                 s.Duration >= MinDuration.Value) &&
-
-                (!MaxDuration.HasValue ||
-                 s.Duration <= MaxDuration.Value) &&
+                &&
 
                 (!ServiceType.HasValue ||
                  s.ServiceType == ServiceType.Value);

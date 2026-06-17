@@ -1,4 +1,5 @@
 ﻿using PetCenterAPI.Common;
+using PetCenterAPI.Models;
 using System.Linq.Expressions;
 
 namespace PetCenterAPI.Repository.Interface
@@ -19,5 +20,6 @@ namespace PetCenterAPI.Repository.Interface
      bool hardDeleteImages = false);
         Task<bool> CheckServiceExistAsync(string ServiceName, Guid? excludeId = null);
         Task SaveAsync();
+        void DeleteServiceImage(ServiceImage image);
     }
 }

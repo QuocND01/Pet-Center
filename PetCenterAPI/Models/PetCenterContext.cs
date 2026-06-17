@@ -144,7 +144,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.PetId).HasColumnName("PetID");
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.Status).HasDefaultValue(1);
-            entity.Property(e => e.Total).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Appointments)
@@ -174,7 +174,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.Duration)
                 .HasMaxLength(200)
                 .IsUnicode(false);
-            entity.Property(e => e.PriceAtBooking).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PriceAtBooking).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
             entity.Property(e => e.ServiceName)
                 .HasMaxLength(200)
@@ -437,7 +437,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.Status).HasDefaultValue(1);
             entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
-            entity.Property(e => e.TotalAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.ImportStocks)
@@ -459,7 +459,7 @@ public partial class PetCenterContext : DbContext
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ImportStockDetailsID");
             entity.Property(e => e.ImportId).HasColumnName("ImportID");
-            entity.Property(e => e.ImportPrice).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ImportPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
 
             entity.HasOne(d => d.Import).WithMany(p => p.ImportStockDetails)
@@ -561,7 +561,7 @@ public partial class PetCenterContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
             entity.Property(e => e.DeliveredDate).HasColumnType("datetime");
-            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.OrderDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -572,7 +572,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.PaymentStatus).HasDefaultValue(1);
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.Status).HasDefaultValue(1);
-            entity.Property(e => e.TotalAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdateAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Orders)
@@ -600,7 +600,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ImportStockDetailsId).HasColumnName("ImportStockDetailsID");
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
-            entity.Property(e => e.UnitPrice).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.ImportStockDetails).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ImportStockDetailsId)
@@ -634,7 +634,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ProductDescription).HasMaxLength(255);
             entity.Property(e => e.ProductImage).HasMaxLength(255);
             entity.Property(e => e.ProductName).HasMaxLength(255);
-            entity.Property(e => e.ProductPrice).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.ProductPrice).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.OrderDetails).WithOne(p => p.OrderProductSnapshot)
                 .HasForeignKey<OrderProductSnapshot>(d => d.OrderDetailsId)
@@ -669,7 +669,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.PaymentId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("PaymentID");
-            entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BankCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -680,7 +680,7 @@ public partial class PetCenterContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
-            entity.Property(e => e.PaidAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PaidAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.PaidAt).HasColumnType("datetime");
             entity.Property(e => e.PaymentMethod)
                 .HasMaxLength(20)
@@ -891,7 +891,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ServiceId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ServiceID");
-            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ServiceName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -1079,8 +1079,8 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.ExpiredDate).HasColumnType("datetime");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.MaxDiscountAmount).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.MinOrderAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.MaxDiscountAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MinOrderAmount).HasColumnType("decimal(18, 2)");
         });
 
         OnModelCreatingPartial(modelBuilder);

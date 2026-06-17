@@ -45,7 +45,7 @@ namespace PetCenterAPI.Service
                     {
                         // 1️⃣ Upload trước
                         var uploadResult = await _cloudinaryService
-                            .UploadImageAsync(file, "Services");
+                            .UploadImageAsync(file, "services");
 
                         if (uploadResult == null ||
                             uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
@@ -97,9 +97,9 @@ namespace PetCenterAPI.Service
 
                         foreach (var image in Service.ServiceImages.ToList())
                         {
-                            await _cloudinaryService.DeleteImageAsync(image.ImageUrl);
+                            await _cloudinaryService.DeleteImageAsync(image.PublicId);
 
-                            Service.ServiceImages.Remove(image);
+                            _ServiceRepository.DeleteServiceImage(image);
                         }
 
                         await _ServiceRepository.SaveAsync();
@@ -191,7 +191,7 @@ namespace PetCenterAPI.Service
                 {
                     await _cloudinaryService.DeleteImageAsync(img.PublicId);
 
-                    Service.ServiceImages.Remove(img);
+                    _ServiceRepository.DeleteServiceImage(img);
                 }
 
             }
@@ -201,7 +201,7 @@ namespace PetCenterAPI.Service
             {
                 foreach (var file in updateService.ImageFiles)
                 {
-                    var uploadResult = await _cloudinaryService.UploadImageAsync(file, "Services");
+                    var uploadResult = await _cloudinaryService.UploadImageAsync(file, "services");
 
                     if (uploadResult == null ||
                         uploadResult.StatusCode != System.Net.HttpStatusCode.OK)

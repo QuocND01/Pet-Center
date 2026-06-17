@@ -122,5 +122,10 @@ namespace PetCenterAPI.Repository
         {
             await _db.SaveChangesAsync();
         }
-}
+
+        public void DeleteServiceImage(ServiceImage image)
+        {
+            _db.ServiceImages.Remove(image);
+        }
+    }
 }
