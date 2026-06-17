@@ -1,10 +1,14 @@
 ﻿using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels.ManageFeedback;
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IAdminFeedbackAPIClient
+    public interface IAdminFeedbackApiService
     {
-        Task<FeedbackPagedResult?> GetAllAsync(
+        // ============================================================
+        // FEEDBACK — VIEW LIST (ADMIN/STAFF)
+        // ============================================================
+        Task<FeedbackPagedResultViewModel?> GetAllAsync(
             int page = 1,
             int pageSize = 10,
             int? rating = null,

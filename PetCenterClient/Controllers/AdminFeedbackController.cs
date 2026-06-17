@@ -6,14 +6,16 @@ namespace PetCenterClient.Controllers
 {
     public class AdminFeedbackController : Controller
     {
-        private readonly IAdminFeedbackAPIClient _feedbackService;
+        private readonly IAdminFeedbackApiService _feedbackService;
 
-        public AdminFeedbackController(IAdminFeedbackAPIClient feedbackService)
+        public AdminFeedbackController(IAdminFeedbackApiService feedbackService)
         {
             _feedbackService = feedbackService;
         }
 
-        // ── GET: /AdminFeedback/Index ─────────────────────────
+        // ============================================================
+        // FEEDBACK — VIEW LIST (ADMIN/STAFF)
+        // ============================================================
         public IActionResult Index()
         {
             var staffId = HttpContext.Session.GetString("StaffId");
@@ -21,7 +23,6 @@ namespace PetCenterClient.Controllers
             return View("~/Views/AdminViews/Feedback/Index.cshtml");
         }
 
-        // ── AJAX: GET list với filter + paging ────────────────
         [HttpGet]
         public async Task<IActionResult> GetList(
             int page = 1,
@@ -35,7 +36,7 @@ namespace PetCenterClient.Controllers
                 page, pageSize, rating, hasReply, keyword, sortBy);
 
             if (result == null)
-                return Json(new { success = false, message = "Không thể tải dữ liệu." });
+                return Json(new { success = false, message = "Data could not be loaded." });
 
             return Json(new { success = true, data = result });
         }

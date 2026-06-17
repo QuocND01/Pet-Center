@@ -104,7 +104,7 @@ builder.Services.AddHttpClient<IStatisticsServiceClient, StatisticsServiceClient
 {
     client.BaseAddress = new Uri(apiUrl);
 });
-builder.Services.AddHttpClient<IAdminFeedbackAPIClient, AdminFeedbackAPIClient>(client =>
+builder.Services.AddHttpClient<IAdminFeedbackApiService, AdminFeedbackApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
