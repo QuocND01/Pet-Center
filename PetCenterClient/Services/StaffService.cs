@@ -180,11 +180,29 @@ namespace PetCenterClient.Services
             try
             {
                 using var doc = JsonDocument.Parse(body);
-                if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-                    doc.RootElement.TryGetProperty("message", out var msg))
-                {
+                if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                    return null;
+
+                // 1) Our wrapper: { success, message }
+                if (doc.RootElement.TryGetProperty("message", out var msg))
                     return msg.ValueKind == JsonValueKind.String ? msg.GetString() : msg.ToString();
+
+                // 2) ASP.NET ProblemDetails: { title, errors: { field: [msgs] } }
+                if (doc.RootElement.TryGetProperty("errors", out var errors) &&
+                    errors.ValueKind == JsonValueKind.Object)
+                {
+                    var messages = errors.EnumerateObject()
+                        .SelectMany(p => p.Value.ValueKind == JsonValueKind.Array
+                            ? p.Value.EnumerateArray().Select(e => e.GetString())
+                            : new[] { p.Value.ToString() })
+                        .Where(m => !string.IsNullOrWhiteSpace(m));
+                    var joined = string.Join(" | ", messages);
+                    if (!string.IsNullOrWhiteSpace(joined)) return joined;
                 }
+
+                // 3) Fallback to ProblemDetails title
+                if (doc.RootElement.TryGetProperty("title", out var title))
+                    return title.GetString();
             }
             catch (JsonException)
             {

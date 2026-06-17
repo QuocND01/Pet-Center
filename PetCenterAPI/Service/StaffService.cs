@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
 using PetCenterAPI.DTOs.Requests.ManageStaff;
 using PetCenterAPI.DTOs.Responses.ManageStaff;
 using PetCenterAPI.Models;
@@ -140,7 +142,7 @@ namespace PetCenterAPI.Service
             var staff = new Staff
             {
                 StaffId = Guid.NewGuid(),
-                FullName = request.FullName.Trim(),
+                FullName = NormalizeFullName(request.FullName),
                 Email = email,
                 PhoneNumber = request.PhoneNumber.Trim(),
                 Gender = request.Gender,
@@ -181,6 +183,9 @@ namespace PetCenterAPI.Service
             if (staff == null)
                 return (false, "Staff not found.");
 
+            if (!staff.IsActive)
+                return (false, "Cannot update an inactive staff member.");
+
             var role = await _staffRepository.GetRoleByIdAsync(request.RoleId);
             if (role == null || !role.IsActive)
                 return (false, "Selected role does not exist.");
@@ -198,7 +203,7 @@ namespace PetCenterAPI.Service
             if (request.HireDate.Date > DateTime.UtcNow.Date)
                 return (false, "Hire date cannot be in the future.");
 
-            staff.FullName = request.FullName.Trim();
+            staff.FullName = NormalizeFullName(request.FullName);
             staff.Email = email;
             staff.PhoneNumber = request.PhoneNumber.Trim();
             staff.Gender = request.Gender;
@@ -278,6 +283,20 @@ namespace PetCenterAPI.Service
         // ============================================================
         // HELPERS
         // ============================================================
+        /// <summary>
+        /// Trims, collapses inner whitespace and applies Title Case so names are stored
+        /// consistently for both Vietnamese ("nguyễn văn a" → "Nguyễn Văn A") and
+        /// foreign names ("john o'brien" → "John O'Brien").
+        /// </summary>
+        private static string NormalizeFullName(string raw)
+        {
+            var collapsed = Regex.Replace(raw.Trim(), @"\s+", " ");
+            var titled = CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(collapsed.ToLower());
+            // ToTitleCase lowercases the letter after an apostrophe (e.g. "O'brien");
+            // fix it so names like O'Brien / D'Angelo capitalize correctly.
+            return Regex.Replace(titled, @"'(\p{L})", m => "'" + m.Groups[1].Value.ToUpper());
+        }
+
         private static bool IsVeterinarian(Role role) =>
             string.Equals(role.RoleName, VeterinarianRoleName, StringComparison.OrdinalIgnoreCase);
 
