@@ -1,0 +1,108 @@
+﻿@model PetCenterClient.DTOs.ReadOrderDetailViewModel
+
+<div class="container-fluid text-dark" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+
+    <div class="row border-bottom pb-3 mb-3">
+        <div class="col-md-6">
+            <h6 class="text-muted text-uppercase font-size-sm mb-1">Order Information</h6>
+            <p class="mb-1"><strong>Order ID:</strong> #@Model.OrderId.ToString().ToUpper()</p>
+            <p class="mb-1"><strong>Date Placed:</strong> @Model.OrderDate.ToString("MM/dd/yyyy HH:mm")</p>
+            <p class="mb-1"><strong>Payment Method:</strong> <span class="badge bg-primary">@Model.PaymentMethod</span></p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <h6 class="text-muted text-uppercase font-size-sm mb-1">Order Status</h6>
+            <p class="mb-1">
+                @if (Model.Status == 0)
+                {
+                    <span class="badge bg-danger">Cancelled</span>
+                }
+                else if (Model.Status == 1)
+                {
+                    <span class="badge bg-warning text-dark">Pending</span>
+                }
+                else if (Model.Status == 2)
+                {
+                    <span class="badge bg-info text-dark">Processing</span>
+                }
+                else if (Model.Status == 3)
+                {
+                    <span class="badge bg-primary">Shipping</span>
+                }
+                else if (Model.Status == 4)
+                {
+                    <span class="badge bg-success">Completed</span>
+                }
+            </p>
+            <p class="mb-1"><strong>Payment Status:</strong> @(Model.PaymentStatus == 2 ? "Paid" : "Unpaid")</p>
+        </div>
+    </div>
+
+    <div class="row border-bottom pb-3 mb-3">
+        <div class="col-md-6 border-end">
+            <h6 class="text-muted text-uppercase font-size-sm mb-2">Customer Details</h6>
+            <p class="mb-1"><strong>Name:</strong> @Model.CustomerName</p>
+            <p class="mb-1"><strong>Phone:</strong> @Model.PhoneNumber</p>
+            <p class="mb-1"><strong>Email:</strong> @Model.Email</p>
+        </div>
+        <div class="col-md-6 ps-md-4">
+            <h6 class="text-muted text-uppercase font-size-sm mb-2">Shipping Address</h6>
+            <p class="text-secondary lh-sm">@Model.AddressSnapshot</p>
+        </div>
+    </div>
+
+    <h6 class="text-muted text-uppercase font-size-sm mb-2">Products Purchased</h6>
+    <div class="table-responsive mb-3">
+        <table class="table table-bordered table-hover align-middle m-0" style="font-size: 0.95rem;">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th class="text-center" style="width: 100px;">Brand</th>
+                    <th class="text-center" style="width: 120px;">Category</th>
+                    <th class="text-end" style="width: 120px;">Price</th>
+                    <th class="text-center" style="width: 80px;">Qty</th>
+                    <th class="text-end" style="width: 130px;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.OrderItems != null && Model.OrderItems.Any())
+                {
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="@item.ProductImage" alt="@item.ProductName" style="width:40px; height:40px; border-radius:6px; object-fit:cover;" />
+                                    <span class="fw-semibold">@item.ProductName</span>
+                                </div>
+                            </td>
+                            <td class="text-center text-muted">@item.ProductBrand</td>
+                            <td class="text-center text-muted">@item.ProductCategory</td>
+                            <td class="text-end">@item.UnitPrice.ToString("N0") ₫</td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-end fw-bold text-dark">@item.SubTotal.ToString("N0") ₫</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-3">No products found for this order.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row justify-content-end">
+        <div class="col-md-5">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Discount Amount:</span>
+                <span class="text-danger">-@((Model.DiscountAmount ?? 0).ToString("N0")) ₫</span>
+            </div>
+            <div class="d-flex justify-content-between border-top pt-2" style="font-size: 1.15rem;">
+                <span class="fw-bold">Total Bill:</span>
+                <span class="fw-bold text-success">@Model.TotalAmount.ToString("N0") ₫</span>
+            </div>
+        </div>
+    </div>
+</div>

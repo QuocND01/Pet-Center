@@ -141,7 +141,7 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductAttributeProfile>())
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>());
 builder.Services.AddAutoMapper(cfg =>{cfg.AddProfile<CustomerMappingProfile>();});
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
-
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<OrderProfile>());
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient",
@@ -169,9 +169,11 @@ builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 // ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IStaffAuthRepository, StaffAuthRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -182,9 +184,11 @@ builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
