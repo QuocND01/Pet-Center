@@ -79,7 +79,7 @@ builder.Services.AddHttpClient<ICartService, CartService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IFeedbackAPIClient, FeedbackAPIClient>(client =>
+builder.Services.AddHttpClient<IFeedbackApiService, FeedbackApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
@@ -89,7 +89,7 @@ builder.Services.AddHttpClient<IVoucherApiService, VoucherApiService>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IFeedbackAPIClient, FeedbackAPIClient>(client =>
+builder.Services.AddHttpClient<IFeedbackApiService, FeedbackApiService>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
