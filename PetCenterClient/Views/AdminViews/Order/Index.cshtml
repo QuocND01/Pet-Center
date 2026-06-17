@@ -1,0 +1,309 @@
+﻿@using PetCenterClient.Common
+@using PetCenterClient.DTOs
+@model IEnumerable<ReadOrderListViewModel>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Order Management";
+}
+
+<style>
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .page-btn {
+        padding: 6px 12px;
+        background: #eee;
+        border-radius: 6px;
+        text-decoration: none;
+        color: black;
+    }
+
+        .page-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+
+    .badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.85rem;
+    }
+
+    .badge-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .badge-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+<link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
+
+<div class="page-wrapper">
+
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>Order Management</h1>
+            <p>Manage customer orders and tracking status</p>
+        </div>
+        <div class="header-stat">
+            <span class="num">@(ViewBag.TotalPages * 10 > 0 ? ViewBag.TotalPages * 10 : Model?.Count() ?? 0)+</span>
+            <span class="label">Orders</span>
+        </div>
+    </div>
+
+    <form asp-action="IndexAdmin" asp-controller="Orders" method="get" class="toolbar">
+
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" value="@ViewBag.Search" class="search-input" placeholder="Search customer name..." />
+        </div>
+
+        <select name="status" class="filter-btn">
+            <option value="">All Status</option>
+            <option value="1" selected="@(ViewBag.Status == 1)">Pending</option>
+            <option value="2" selected="@(ViewBag.Status == 2)">Processing</option>
+            <option value="3" selected="@(ViewBag.Status == 3)">Shipping</option>
+            <option value="4" selected="@(ViewBag.Status == 4)">Completed</option>
+            <option value="0" selected="@(ViewBag.Status == 0)">Cancelled</option>
+        </select>
+
+        <select name="paymentMethod" class="filter-btn">
+            <option value="">All Payments</option>
+            <option value="COD" selected="@(ViewBag.PaymentMethod == "COD")">COD</option>
+            <option value="VNPAY" selected="@(ViewBag.PaymentMethod == "VNPAY")">VNPAY</option>
+            <option value="MOMO" selected="@(ViewBag.PaymentMethod == "MOMO")">MOMO</option>
+        </select>
+
+        <select name="sortBy" class="filter-btn">
+            <option value="OrderDate" selected="@(ViewBag.SortBy == "OrderDate")">Order Date</option>
+            <option value="TotalAmount" selected="@(ViewBag.SortBy == "TotalAmount")">Total Amount</option>
+        </select>
+
+        <select name="sortOrder" class="filter-btn">
+            <option value="desc" selected="@(ViewBag.SortOrder == "desc")">Desc</option>
+            <option value="asc" selected="@(ViewBag.SortOrder == "asc")">Asc</option>
+        </select>
+
+        <button type="submit" class="filter-btn active">Apply</button>
+    </form>
+
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer Name</th>
+                    <th>Phone</th>
+                    <th>Date</th>
+                    <th>Payment</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var o in Model)
+                    {
+                        <tr>
+                            <td class="row-num">#@o.OrderId.ToString().Substring(0, 8).ToUpper()</td>
+                            <td class="fw-bold">@o.CustomerName</td>
+                            <td class="email-cell">@o.PhoneNumber</td>
+                            <td>@o.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge @(o.PaymentMethod == "COD" ? "bg-secondary" : "bg-primary")">@o.PaymentMethod</span>
+                            </td>
+                            <td class="fw-bold text-success">@o.TotalAmount.ToString("N0") ₫</td>
+                            <td>
+                                @if (o.Status == 0)
+                                {
+                                    <span class="badge badge-cancelled">Cancelled</span>
+                                }
+                                else if (o.Status == 1)
+                                {
+                                    <span class="badge badge-pending">Pending</span>
+                                }
+                                else if (o.Status == 2)
+                                {
+                                    <span class="badge bg-info text-dark">Processing</span>
+                                }
+                                else if (o.Status == 3)
+                                {
+                                    <span class="badge bg-primary">Shipping</span>
+                                }
+                                else if (o.Status == 4)
+                                {
+                                    <span class="badge badge-completed">Completed</span>
+                                }
+                            </td>
+
+                            <td style="white-space: nowrap;">
+
+                                <button class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#orderModal"
+                                        data-url="@Url.Action("Details", "Orders", new { id = o.OrderId })"
+                                        title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                                @if (o.Status == 1)
+                                {
+                                    <button class="btn btn-sm btn-success btn-advance ms-1" data-id="@o.OrderId" title="Mark as Processed">
+                                        <i class="bi bi-gear"></i> Process
+                                    </button>
+                                }
+                                else if (o.Status == 2)
+                                {
+                                    <button class="btn btn-sm btn-info text-dark btn-advance ms-1" data-id="@o.OrderId" title="Mark as Shipping">
+                                        <i class="bi bi-truck"></i> Ship
+                                    </button>
+                                }
+                                else if (o.Status == 3)
+                                {
+                                    <button class="btn btn-sm btn-primary btn-advance ms-1" data-id="@o.OrderId" title="Mark as Completed">
+                                        <i class="bi bi-check-all"></i> Complete
+                                    </button>
+                                }
+
+                                @if (o.Status == 1 || o.Status == 2)
+                                {
+                                    <button class="btn btn-sm btn-danger btn-cancel ms-1" data-id="@o.OrderId" title="Cancel Order">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                                <h3>No orders found</h3>
+                                <p>Try adjusting your filters</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @{
+            int currentPage = ViewBag.CurrentPage ?? 1;
+            int totalPages = ViewBag.TotalPages ?? 1;
+        }
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                <a class="page-btn @(currentPage == 1 ? "disabled" : "")"
+                   href="@Url.Action("IndexAdmin", new { page = currentPage - 1, search = ViewBag.Search, status = ViewBag.Status, paymentMethod = ViewBag.PaymentMethod, sortBy = ViewBag.SortBy, sortOrder = ViewBag.SortOrder })">Prev</a>
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <a class="page-btn @(i == currentPage ? "active" : "")"
+                       href="@Url.Action("IndexAdmin", new { page = i, search = ViewBag.Search, status = ViewBag.Status, paymentMethod = ViewBag.PaymentMethod, sortBy = ViewBag.SortBy, sortOrder = ViewBag.SortOrder })">@i</a>
+                }
+
+                <a class="page-btn @(currentPage == totalPages ? "disabled" : "")"
+                   href="@Url.Action("IndexAdmin", new { page = currentPage + 1, search = ViewBag.Search, status = ViewBag.Status, paymentMethod = ViewBag.PaymentMethod, sortBy = ViewBag.SortBy, sortOrder = ViewBag.SortOrder })">Next</a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderModalBody">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 1. Script dọn dẹp URL khi search
+        document.querySelector(".toolbar").addEventListener("submit", function () {
+            this.querySelectorAll("input, select").forEach(el => {
+                if (!el.value) {
+                    el.removeAttribute("name");
+                }
+            });
+        });
+
+        // 2. Script gọi AJAX để load Partial View vào Modal
+        $(document).on("click", "[data-bs-target='#orderModal']", function () {
+            var url = $(this).data("url");
+            $("#orderModalBody").html("<div class='text-center my-4'><div class='spinner-border text-primary'></div><p class='mt-2'>Loading details...</p></div>");
+            $("#orderModalBody").load(url);
+        });
+
+        // 3. Script gọi AJAX cho Advance Status (Next Step)
+        $(document).on("click", ".btn-advance", function () {
+            var orderId = $(this).data("id");
+            if (confirm("Are you sure you want to move this order to the next status?")) {
+                $.ajax({
+                    url: '@Url.Action("AdvanceStatus", "Orders")',
+                    type: 'POST',
+                    data: { id: orderId },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert("Error: " + res.message);
+                        }
+                    },
+                    error: function () {
+                        alert("An unexpected error occurred while updating status.");
+                    }
+                });
+            }
+        });
+
+        // 4. Script gọi AJAX cho Cancel Order
+        $(document).on("click", ".btn-cancel", function () {
+            var orderId = $(this).data("id");
+            if (confirm("Are you sure you want to cancel this order? This action cannot be undone.")) {
+                $.ajax({
+                    url: '@Url.Action("Cancel", "Orders")',
+                    type: 'POST',
+                    data: { id: orderId },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert("Error: " + res.message);
+                        }
+                    },
+                    error: function () {
+                        alert("An unexpected error occurred while cancelling the order.");
+                    }
+                });
+            }
+        });
+    </script>
+}

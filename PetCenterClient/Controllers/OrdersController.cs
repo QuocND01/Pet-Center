@@ -1,381 +1,82 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using PetCenterClient.DTOs;
+﻿using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Controllers
 {
     public class OrdersController : Controller
     {
-        private readonly IOrderServiceClient _orderService;
-        private readonly IAddressServiceClient _addressService;
-        private readonly ICustomerApiService _customerService;
-        private readonly IOrderDetailServiceClient _detailService;
-        private readonly IProductAPIClient _productService;
-        private readonly IImportStockService _importStockService;
+        private readonly IOrderAPIClient _orderService;
 
-        public OrdersController(IOrderServiceClient orderService,
-                               IAddressServiceClient addressService,
-                               ICustomerApiService customerService,
-                               IOrderDetailServiceClient detailService,
-                               IProductAPIClient productService,
-                               IImportStockService importStockService)
+        public OrdersController(IOrderAPIClient orderService)
         {
             _orderService = orderService;
-            _addressService = addressService;
-            _customerService = customerService;
-            _detailService = detailService;
-            _productService = productService;
-            _importStockService = importStockService;
         }
 
-        // 1. ORDER LIST (Includes Search & Filter)
-        public async Task<IActionResult> Index(string? search, int? status, DateTime? fromDate, DateTime? toDate)
+        public async Task<IActionResult> IndexAdminAsync(
+            string? search,
+            int? status,
+            string? paymentMethod,
+            string? sortBy,
+            string sortOrder = "desc",
+            int page = 1)
         {
-            var token = HttpContext.Session.GetString("JWT");
-            if (string.IsNullOrEmpty(token)) return RedirectToAction("Login", "Auth");
-
+            // Chỉ Admin hoặc Sale mới được xem
             var role = HttpContext.Session.GetString("Role");
-            var orders = await _orderService.GetAllAsync();
-
-            // Authorization: Customer only sees their own orders
-            if (role == "Customer")
+            if (role != "Admin" && role != "Sale")
             {
-                var profile = await _customerService.GetProfileAsync();
-                if (profile != null)
-                {
-                    orders = orders.Where(o => o.CustomerId == profile.CustomerId).ToList();
-                }
+                return RedirectToAction("Index", "Home");
             }
 
-            // ==========================================
-            // START SEARCH & FILTER
-            // ==========================================
+            var result = await _orderService.GetOrderListAdminAsync(
+                search, status, paymentMethod, sortBy, sortOrder, page);
 
-            // 1. Search by Order ID
-            if (!string.IsNullOrEmpty(search))
-            {
-                search = search.Trim().ToLower();
-                orders = orders.Where(o => o.OrderId.ToString().ToLower().Contains(search)).ToList();
-            }
+            int pageSize = 10;
+            int totalItems = result?.Count ?? 0;
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-            // 2. Filter by status
-            if (status.HasValue)
-            {
-                orders = orders.Where(o => o.Status == status.Value).ToList();
-            }
-
-            // 3. Filter by from date
-            if (fromDate.HasValue)
-            {
-                orders = orders.Where(o => o.OrderDate >= fromDate.Value).ToList();
-            }
-
-            // 4. Filter by to date (Add 1 day to include the whole toDate)
-            if (toDate.HasValue)
-            {
-                orders = orders.Where(o => o.OrderDate < toDate.Value.AddDays(1)).ToList();
-            }
-
-            // Sort newest orders first
-            orders = orders.OrderByDescending(o => o.OrderDate).ToList();
-
-            // ==========================================
-            // Save filter values to ViewBag to display on the UI Form
-            // ==========================================
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
             ViewBag.Search = search;
             ViewBag.Status = status;
-            // HTML5 input type="date" requires yyyy-MM-dd format
-            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
-            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+            ViewBag.PaymentMethod = paymentMethod;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortOrder = sortOrder;
 
-            return View(orders);
+            return View("~/Views/AdminViews/Order/Index.cshtml", result?.Values);
         }
 
-        // 2. ORDER DETAILS (Aggregate data from multiple APIs)
-        public async Task<IActionResult> Details(Guid id)
+        // GET: Orders/Details/{id}
+        public async Task<IActionResult> DetailsAsync(Guid id)
         {
-            var token = HttpContext.Session.GetString("JWT");
-            if (string.IsNullOrEmpty(token)) return RedirectToAction("Login", "Auth");
-
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null) return NotFound();
-
-            var rawDetails = await _detailService.GetByOrderIdAsync(id);
-            var fullDetails = new List<OrderDetailVM>();
-
-            foreach (var item in rawDetails)
+            var orderDetail = await _orderService.GetOrderDetailsAsync(id);
+            if (orderDetail == null)
             {
-                var product = await _productService.GetProductByIdIncludeDeletedAsync(item.ProductId);
-                fullDetails.Add(new OrderDetailVM
-                {
-                    ProductId = item.ProductId,
-                    ProductName = product?.ProductName ?? "Unknown Product",
-                    ImageUrl = product?.Images?.FirstOrDefault() ?? "/no-image.png",
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
-                });
+                return NotFound();
             }
-
-            ViewBag.OrderDetails = fullDetails;
-            return View(order);
+            // Trả về một PartialView để nhúng vào Modal Bootstrap có sẵn ở trang danh sách
+            return PartialView("~/Views/AdminViews/Order/_Details.cshtml", orderDetail);
         }
 
-        // 3. CREATE NEW ORDER (GET)
-        public async Task<IActionResult> Create()
-        {
-            var profile = await _customerService.GetProfileAsync();
-            if (profile == null) return RedirectToAction("Login", "Auth");
-
-            var addresses = await _addressService.GetAllAsync();
-            ViewBag.AddressList = new SelectList(addresses, "AddressId", "AddressDetails");
-
-            return View(new OrderRequestDTO());
-        }
-
-        // 4. CREATE NEW ORDER (POST)
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(OrderRequestDTO dto)
+        public async Task<IActionResult> Cancel(Guid id)
         {
-            var profile = await _customerService.GetProfileAsync();
-            if (profile == null) return RedirectToAction("Login", "Auth");
-
-            dto.CustomerId = profile.CustomerId;
-            dto.OrderDate = DateTime.Now;
-            dto.Status = 1;
-
-            ModelState.Remove("CustomerId");
-
-            if (ModelState.IsValid)
-            {
-                var success = await _orderService.CreateAsync(dto);
-                if (success)
-                {
-                    TempData["Success"] = "Order placed successfully!";
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-
-            var addresses = await _addressService.GetAllAsync();
-            ViewBag.AddressList = new SelectList(addresses, "AddressId", "AddressDetails", dto.AddressId);
-            return View(dto);
-        }
-
-        // 5. EDIT (GET) - Only Admin or Staff allowed
-        public async Task<IActionResult> Edit(Guid id)
-        {
-            var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff") return RedirectToAction(nameof(Index));
-
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null) return NotFound();
-
-            var addresses = await _addressService.GetAllAsync();
-            ViewBag.AddressList = new SelectList(addresses, "AddressId", "AddressDetails", order.AddressId);
-
-            var editDto = new OrderRequestDTO
-            {
-                CustomerId = order.CustomerId,
-                StaffId = order.StaffId,
-                AddressId = order.AddressId,
-                AddressSnapshot = order.AddressSnapshot,
-                TotalAmount = order.TotalAmount,
-                DiscountAmount = order.DiscountAmount,
-                Status = order.Status
-            };
-
-            return View(editDto);
-        }
-
-        // 6. EDIT (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, OrderRequestDTO dto)
-        {
-            var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff") return RedirectToAction(nameof(Index));
-
-            if (ModelState.IsValid)
-            {
-                var success = await _orderService.UpdateAsync(id, dto);
-                if (success)
-                {
-                    TempData["Success"] = "Order updated successfully!";
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-            return View(dto);
-        }
-
-        // 7. CONFIRM DELETE ORDER (GET) - Shows Delete.cshtml
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null) return NotFound();
-            return View(order);
-        }
-
-        // 8. DELETE ORDER (POST)
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null) return NotFound();
-
-            // LOGIC RESTORE STOCK: Only restore if order was approved (2) or delivering (3)
-            if (order.Status == 2 || order.Status == 3)
-            {
-                // Get the details of the items in the order
-                var orderDetails = await _detailService.GetByOrderIdAsync(id);
-
-                foreach (var item in orderDetails)
-                {
-                    // --- PHẦN CHÈN THÊM: HOÀN LÔ THEO MAPPING ---
-                    if (!string.IsNullOrEmpty(item.ImportStockDetailId))
-                    {
-                        // Gọi Inventory Service để trả hàng về đúng lô (Batch) dựa trên mapping đã lưu
-                        await _importStockService.ReturnStock(item.ImportStockDetailId);
-
-                        // Cập nhật lại Detail để xóa mapping (tránh hoàn kho trùng lặp)
-                        var detailUpdateDto = new OrderDetailRequestDTO
-                        {
-                            OrderId = id,
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity,
-                            UnitPrice = item.UnitPrice,
-                            ImportStockDetailId = null // Xóa mapping sau khi đã hoàn lô thành công
-                        };
-                        await _detailService.UpdateAsync(item.OrderDetailId, detailUpdateDto);
-                    }
-                    // --- KẾT THÚC PHẦN CHÈN THÊM ---
-
-                    // Call ProductService to restore stock quantity (CODE CÓ SẴN CỦA BẠN)
-                    var stockRestored = await _productService.IncreaseStockAsync(item.ProductId, item.Quantity);
-
-                    if (!stockRestored)
-                    {
-                        // If stock restoration fails 
-                        TempData["Error"] = $"System error: Cannot restore stock for product ID {item.ProductId}.";
-                        return RedirectToAction(nameof(Index));
-                    }
-                }
-            }
-
-            // Call Cancel Order API (Update Status = 0) (CODE CÓ SẴN CỦA BẠN)
-            var success = await _orderService.DeleteAsync(id);
-
+            var success = await _orderService.CancelOrderAsync(id);
             if (success)
             {
-                if (order.Status == 1)
-                    TempData["Success"] = "Pending order canceled successfully!";
-                else
-                    TempData["Success"] = "Order canceled and stock restored successfully!";
+                return Json(new { success = true, message = "Order has been cancelled successfully." });
             }
-            else
-            {
-                TempData["Error"] = "Cannot cancel this order. Please check your permissions!";
-            }
-
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = false, message = "Failed to cancel the order." });
         }
 
-        // 9. FORWARD STATUS (Update Status + Deduct Stock)
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForwardStatus(Guid id)
+        public async Task<IActionResult> AdvanceStatus(Guid id)
         {
-            var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff") return Unauthorized();
-
-            // Get StaffId of the current user from Session
-            var currentUserIdString = HttpContext.Session.GetString("StaffId"); 
-            Guid? staffId = null;
-            if (Guid.TryParse(currentUserIdString, out Guid parsedId))
-            {
-                staffId = parsedId;
-            }
-
-            // Get current order information
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null || order.Status == 0 || order.Status >= 4)
-            {
-                TempData["Error"] = "Invalid order for status update.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // LOGIC DEDUCT STOCK: Only when approving order (Status 1 -> 2)
-            if (order.Status == 1)
-            {
-                var orderDetails = await _detailService.GetByOrderIdAsync(id);
-
-                foreach (var item in orderDetails)
-                {
-                    // Call Product/Inventory API to deduct the corresponding quantity
-                    var stockUpdated = await _productService.DecreaseStockAsync(item.ProductId, item.Quantity);
-                    var mapping = await _importStockService.DeductFIFO(item.ProductId, item.Quantity);
-                    if (!stockUpdated)
-                    {
-                        // If stock deduction fails
-                        TempData["Error"] = $"Error: Product ID {item.ProductId} has insufficient stock or API call failed!";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    if (string.IsNullOrEmpty(mapping))
-                    {
-                        TempData["Error"] = $" Product ID {item.ProductId} is out of stocks!";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    // 3. Cập nhật Mapping vào OrderDetail (Dùng hàm Update có sẵn của bạn)
-                    var detailUpdateDto = new OrderDetailRequestDTO
-                    {
-                        OrderId = id,
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        ImportStockDetailId = mapping // Gán mapping vào đây
-                    };
-                    await _detailService.UpdateAsync(item.OrderDetailId, detailUpdateDto);
-                }
-            }
-
-            // Increment status (Status + 1)
-            var newStatus = order.Status + 1;
-
-            // Package DTO to send for update
-            var updateDto = new OrderRequestDTO
-            {
-                CustomerId = order.CustomerId,
-                AddressId = order.AddressId,
-                AddressSnapshot = order.AddressSnapshot,
-                TotalAmount = order.TotalAmount,
-                DiscountAmount = order.DiscountAmount,
-                Status = newStatus,
-                StaffId = staffId 
-            };
-
-            if (newStatus == 4)
-            {
-                updateDto.DeliveredDate = DateTime.Now;
-            }
-
-            // Call order update API
-            var success = await _orderService.UpdateAsync(id, updateDto);
-
+            var success = await _orderService.AdvanceOrderStatusAsync(id);
             if (success)
             {
-                if (newStatus == 4)
-                    TempData["Success"] = "Order completed successfully! Delivered date and Staff ID have been recorded.";
-                else
-                    TempData["Success"] = "Order status updated to the next step successfully!";
+                return Json(new { success = true, message = "Order status has been advanced successfully." });
             }
-            else
-            {
-                TempData["Error"] = "Error updating order status.";
-            }
-
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = false, message = "Failed to update order status." });
         }
     }
 }
