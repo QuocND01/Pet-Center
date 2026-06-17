@@ -1,17 +1,18 @@
 ﻿using Newtonsoft.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.ManageFeedback;
 using System.Net.Http.Headers;
 using System.Text;
 
 namespace PetCenterClient.Services
 {
-    public class FeedbackAPIClient : IFeedbackAPIClient
+    public class FeedbackApiService : IFeedbackApiService
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public FeedbackAPIClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
+        public FeedbackApiService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
             _httpContextAccessor = httpContextAccessor;
@@ -83,23 +84,26 @@ namespace PetCenterClient.Services
             catch { return false; }
         }
 
-        public async Task<List<ProductFeedbackResponseDto>> GetFeedbacksByProductIdAsync(Guid productId)
+        // ============================================================
+        // FEEDBACK — VIEW BY PRODUCT (CUSTOMER SIDE)
+        // ============================================================
+        public async Task<List<ProductFeedbackViewModel>> GetFeedbacksByProductIdAsync(Guid productId)
         {
             try
             {
                 var response = await _http.GetAsync(
-                    $"feedback-service/ProductFeedback/product/{productId}");
+                    $"api/ProductFeedbacks/product/{productId}");
 
                 if (!response.IsSuccessStatusCode)
-                    return new List<ProductFeedbackResponseDto>();
+                    return new List<ProductFeedbackViewModel>();
 
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<ApiResponse<List<ProductFeedbackResponseDto>>>(content);
-                return result?.Data ?? new List<ProductFeedbackResponseDto>();
+                var result = JsonConvert.DeserializeObject<FeedbackApiResponseViewModel<List<ProductFeedbackViewModel>>>(content);
+                return result?.Data ?? new List<ProductFeedbackViewModel>();
             }
             catch
             {
-                return new List<ProductFeedbackResponseDto>();
+                return new List<ProductFeedbackViewModel>();
             }
         }
     }

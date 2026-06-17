@@ -56,4 +56,35 @@
         public Guid FeedbackId { get; set; }
         public bool IsVisible { get; set; }
     }
+
+    public class FeedbackMediaViewModel
+    {
+        public Guid MediaId { get; set; }
+        public string MediaUrl { get; set; } = null!;
+        public string? PublicId { get; set; }
+        public string MediaType { get; set; } = "image";
+    }
+
+    public class ProductFeedbackViewModel
+    {
+        public Guid FeedbackId { get; set; }
+        public Guid CustomerId { get; set; }
+        public string? CustomerName { get; set; }
+        public Guid ProductId { get; set; }
+        public Guid OrderId { get; set; }
+        public int? Rating { get; set; }
+        public string? Comment { get; set; }
+        public string? Reply { get; set; }
+        public DateTime? ReplyDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public List<FeedbackMediaViewModel> MediaFiles { get; set; } = new();
+    }
+
+    public class FeedbackApiResponseViewModel<T>
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
 }

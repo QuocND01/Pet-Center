@@ -175,6 +175,8 @@ builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IAdminFeedbackRepository, AdminFeedbackRepository>();
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductFeedbackRepository, ProductFeedbackRepository>();
+
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -191,6 +193,7 @@ builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IAdminFeedbackService, AdminFeedbackService>();
 
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IProductFeedbackService, ProductFeedbackService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
