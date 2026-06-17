@@ -27,5 +27,56 @@ namespace PetCenterAPI.Service
 
             return ApiResponse<PagedResult<AdminFeedbackItemResponseDTO>>.Ok(paged);
         }
+
+        // ============================================================
+        // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
+        // ============================================================
+        public async Task<ApiResponse<AdminFeedbackItemResponseDTO>> GetByIdAsync(Guid feedbackId)
+        {
+            var feedback = await _adminFeedbackRepository.GetByIdAsync(feedbackId);
+            if (feedback == null)
+                return ApiResponse<AdminFeedbackItemResponseDTO>.Fail("Feedback Not Found.");
+
+            return ApiResponse<AdminFeedbackItemResponseDTO>.Ok(feedback);
+        }
+
+        // ============================================================
+        // FEEDBACK — REPLY
+        // ============================================================
+        public async Task<ApiResponse<bool>> ReplyAsync(ReplyFeedbackRequestDTO request)
+        {
+            if (string.IsNullOrWhiteSpace(request.ReplyContent))
+                return ApiResponse<bool>.Fail("Reply content cannot be empty.");
+
+            var existing = await _adminFeedbackRepository.GetByIdAsync(request.FeedbackId);
+            if (existing == null)
+                return ApiResponse<bool>.Fail("Feedback does not exist.");
+
+            if (!string.IsNullOrEmpty(existing.ReplyContent))
+                return ApiResponse<bool>.Fail("This feedback already has a reply. Please use the update function.");
+
+            var success = await _adminFeedbackRepository.ReplyAsync(
+                request.FeedbackId, request.StaffId, request.ReplyContent);
+
+            return success
+                ? ApiResponse<bool>.Ok(true, "Reply submitted successfully.")
+                : ApiResponse<bool>.Fail("An error occurred while submitting the reply.");
+        }
+
+        // ============================================================
+        // FEEDBACK — UPDATE REPLY
+        // ============================================================
+        public async Task<ApiResponse<bool>> UpdateReplyAsync(UpdateReplyRequestDTO request)
+        {
+            if (string.IsNullOrWhiteSpace(request.ReplyContent))
+                return ApiResponse<bool>.Fail("Reply content cannot be empty.");
+
+            var success = await _adminFeedbackRepository.UpdateReplyAsync(
+                request.FeedbackId, request.ReplyContent);
+
+            return success
+                ? ApiResponse<bool>.Ok(true, "Reply updated successfully.")
+                : ApiResponse<bool>.Fail("Feedback does not exist or has no reply yet.");
+        }
     }
 }

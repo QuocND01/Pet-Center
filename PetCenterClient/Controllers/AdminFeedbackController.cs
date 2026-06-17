@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.ManageFeedback;
 
 namespace PetCenterClient.Controllers
 {
@@ -41,7 +42,9 @@ namespace PetCenterClient.Controllers
             return Json(new { success = true, data = result });
         }
 
-        // ── AJAX: GET detail 1 feedback ───────────────────────
+        // ============================================================
+        // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
+        // ============================================================
         [HttpGet]
         public async Task<IActionResult> GetDetail(Guid feedbackId)
         {
@@ -53,17 +56,18 @@ namespace PetCenterClient.Controllers
             return Json(new { success = true, data = result });
         }
 
-        // ── AJAX: POST reply ──────────────────────────────────
+        // ============================================================
+        // FEEDBACK — REPLY
+        // ============================================================
         [HttpPost]
-        public async Task<IActionResult> Reply([FromBody] ReplyFeedbackDto dto)
+        public async Task<IActionResult> Reply([FromBody] ReplyFeedbackViewModel dto)
         {
             if (dto == null || dto.FeedbackId == Guid.Empty)
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+                return Json(new { success = false, message = "Invalid data." });
 
             if (string.IsNullOrWhiteSpace(dto.ReplyContent))
-                return Json(new { success = false, message = "Nội dung reply không được để trống." });
+                return Json(new { success = false, message = "Reply content cannot be empty." });
 
-            // Lấy StaffId từ session nếu dto chưa có
             if (dto.StaffId == Guid.Empty)
             {
                 var staffIdStr = HttpContext.Session.GetString("StaffId");
@@ -75,15 +79,17 @@ namespace PetCenterClient.Controllers
             return Json(new { success, message });
         }
 
-        // ── AJAX: PUT update reply ────────────────────────────
+        // ============================================================
+        // FEEDBACK — UPDATE REPLY
+        // ============================================================
         [HttpPost]
-        public async Task<IActionResult> UpdateReply([FromBody] UpdateReplyDto dto)
+        public async Task<IActionResult> UpdateReply([FromBody] UpdateReplyViewModel dto)
         {
             if (dto == null || dto.FeedbackId == Guid.Empty)
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+                return Json(new { success = false, message = "Invalid data." });
 
             if (string.IsNullOrWhiteSpace(dto.ReplyContent))
-                return Json(new { success = false, message = "Nội dung reply không được để trống." });
+                return Json(new { success = false, message = "Reply content cannot be empty." });
 
             var (success, message) = await _feedbackService.UpdateReplyAsync(dto);
             return Json(new { success, message });

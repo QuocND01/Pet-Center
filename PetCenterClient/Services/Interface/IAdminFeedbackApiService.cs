@@ -16,9 +16,20 @@ namespace PetCenterClient.Services.Interface
             string? keyword = null,
             string? sortBy = null);
 
-        Task<AdminFeedbackItemDto?> GetByIdAsync(Guid feedbackId);
-        Task<(bool success, string message)> ReplyAsync(ReplyFeedbackDto dto);
-        Task<(bool success, string message)> UpdateReplyAsync(UpdateReplyDto dto);
+        // ============================================================
+        // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
+        // ============================================================
+        Task<AdminFeedbackItemViewModel?> GetByIdAsync(Guid feedbackId);
+
+        // ============================================================
+        // FEEDBACK — REPLY
+        // ============================================================
+        Task<(bool success, string message)> ReplyAsync(ReplyFeedbackViewModel dto);
+
+        // ============================================================
+        // FEEDBACK — UPDATE REPLY
+        // ============================================================
+        Task<(bool success, string message)> UpdateReplyAsync(UpdateReplyViewModel dto);
         Task<(bool success, string message)> DeleteReplyAsync(Guid feedbackId);
         Task<(bool success, string message)> ToggleVisibilityAsync(Guid feedbackId, bool isVisible);
     }
