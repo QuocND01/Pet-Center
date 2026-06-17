@@ -78,5 +78,29 @@ namespace PetCenterAPI.Service
                 ? ApiResponse<bool>.Ok(true, "Reply updated successfully.")
                 : ApiResponse<bool>.Fail("Feedback does not exist or has no reply yet.");
         }
+
+        // ============================================================
+        // FEEDBACK — DELETE REPLY
+        // ============================================================
+        public async Task<ApiResponse<bool>> DeleteReplyAsync(Guid feedbackId)
+        {
+            var success = await _adminFeedbackRepository.DeleteReplyAsync(feedbackId);
+
+            return success
+                ? ApiResponse<bool>.Ok(true, "Reply deleted.")
+                : ApiResponse<bool>.Fail("Feedback does not exist.");
+        }
+
+        // ============================================================
+        // FEEDBACK — TOGGLE VISIBILITY
+        // ============================================================
+        public async Task<ApiResponse<bool>> ToggleVisibilityAsync(Guid feedbackId, bool isVisible)
+        {
+            var success = await _adminFeedbackRepository.ToggleVisibilityAsync(feedbackId, isVisible);
+
+            return success
+                ? ApiResponse<bool>.Ok(true, isVisible ? "Feedback is now visible." : "Feedback has been hidden.")
+                : ApiResponse<bool>.Fail("Feedback does not exist.");
+        }
     }
 }

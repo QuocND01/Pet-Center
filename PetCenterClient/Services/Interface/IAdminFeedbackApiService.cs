@@ -30,7 +30,15 @@ namespace PetCenterClient.Services.Interface
         // FEEDBACK — UPDATE REPLY
         // ============================================================
         Task<(bool success, string message)> UpdateReplyAsync(UpdateReplyViewModel dto);
+
+        // ============================================================
+        // FEEDBACK — DELETE REPLY
+        // ============================================================
         Task<(bool success, string message)> DeleteReplyAsync(Guid feedbackId);
+
+        // ============================================================
+        // FEEDBACK — TOGGLE VISIBILITY
+        // ============================================================
         Task<(bool success, string message)> ToggleVisibilityAsync(Guid feedbackId, bool isVisible);
     }
 }

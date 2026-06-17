@@ -21,7 +21,6 @@ namespace PetCenterClient.Services
         // ============================================================
         // HELPER
         // ============================================================
-
         private void AttachToken()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
@@ -127,7 +126,6 @@ namespace PetCenterClient.Services
                 var json = JsonConvert.SerializeObject(dto);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                // ← Backend API dùng PUT, gọi đúng PUT tới gateway
                 var response = await _http.PutAsync(
                     "api/AdminFeedbacks/reply", content);
 
@@ -144,42 +142,50 @@ namespace PetCenterClient.Services
             catch (Exception ex) { return (false, ex.Message); }
         }
 
-        // ── DELETE reply ──────────────────────────────────────
+        // ============================================================
+        // FEEDBACK — DELETE REPLY
+        // ============================================================
         public async Task<(bool success, string message)> DeleteReplyAsync(Guid feedbackId)
         {
             try
             {
                 AttachToken();
                 var response = await _http.DeleteAsync(
-                    $"feedback-service/AdminProductFeedback/reply/{feedbackId}");
+                    $"api/AdminFeedbacks/reply/{feedbackId}");
 
                 var body = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponse<bool>>(body);
+                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponseViewModel<bool>>(body);
 
                 return (
                     response.IsSuccessStatusCode,
-                    result?.Message ?? (response.IsSuccessStatusCode ? "Đã xóa reply." : "Có lỗi xảy ra.")
+            result?.Message ?? (response.IsSuccessStatusCode
+                ? "Reply deleted."
+                : "An error occurred.")
                 );
             }
             catch (Exception ex) { return (false, ex.Message); }
         }
 
-        // ── PATCH toggle visibility ───────────────────────────
+        // ============================================================
+        // FEEDBACK — TOGGLE VISIBILITY
+        // ============================================================
         public async Task<(bool success, string message)> ToggleVisibilityAsync(Guid feedbackId, bool isVisible)
         {
             try
             {
                 AttachToken();
                 var response = await _http.PatchAsync(
-                    $"feedback-service/AdminProductFeedback/visibility?feedbackId={feedbackId}&isVisible={isVisible.ToString().ToLower()}",
+                    $"api/AdminFeedbacks/visibility?feedbackId={feedbackId}&isVisible={isVisible.ToString().ToLower()}",
                     null);
 
                 var body = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponse<bool>>(body);
+                var result = JsonConvert.DeserializeObject<AdminFeedbackApiResponseViewModel<bool>>(body);
 
                 return (
                     response.IsSuccessStatusCode,
-                    result?.Message ?? (response.IsSuccessStatusCode ? "Cập nhật thành công." : "Có lỗi xảy ra.")
+            result?.Message ?? (response.IsSuccessStatusCode
+                ? "Update successful."
+                : "An error occurred.")
                 );
             }
             catch (Exception ex) { return (false, ex.Message); }

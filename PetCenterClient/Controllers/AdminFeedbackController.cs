@@ -95,36 +95,33 @@ namespace PetCenterClient.Controllers
             return Json(new { success, message });
         }
 
-        // ── AJAX: DELETE reply ────────────────────────────────
+        // ============================================================
+        // FEEDBACK — DELETE REPLY
+        // ============================================================
         [HttpPost]
         public async Task<IActionResult> DeleteReply([FromBody] Guid feedbackId)
         {
             if (feedbackId == Guid.Empty)
-                return Json(new { success = false, message = "FeedbackId không hợp lệ." });
+                return Json(new { success = false, message = "Invalid FeedbackId." });
 
             var (success, message) = await _feedbackService.DeleteReplyAsync(feedbackId);
             return Json(new { success, message });
         }
 
-        // ── AJAX: PATCH toggle visibility ─────────────────────
+        // ============================================================
+        // FEEDBACK — TOGGLE VISIBILITY
+        // ============================================================
         [HttpPost]
         public async Task<IActionResult> ToggleVisibility(
-            [FromBody] ToggleVisibilityRequest request)
+            [FromBody] ToggleVisibilityViewModel request)
         {
             if (request.FeedbackId == Guid.Empty)
-                return Json(new { success = false, message = "FeedbackId không hợp lệ." });
+                return Json(new { success = false, message = "Invalid FeedbackId." });
 
             var (success, message) = await _feedbackService
                 .ToggleVisibilityAsync(request.FeedbackId, request.IsVisible);
 
             return Json(new { success, message });
         }
-    }
-
-    // ── Request model nhỏ dùng riêng cho action này ───────────
-    public class ToggleVisibilityRequest
-    {
-        public Guid FeedbackId { get; set; }
-        public bool IsVisible { get; set; }
     }
 }
