@@ -114,17 +114,14 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateStaffDto dto)
         {
-            if (!IsAdmin()) return RedirectToAction("AdminLogin", "Auth");
+            if (!IsAdmin()) return Json(new { success = false, message = "Unauthorized" });
 
             if (!ModelState.IsValid)
-            {
-                TempData["StaffError"] = CollectModelErrors();
-                return RedirectToAction(nameof(Index));
-            }
+                return Json(new { success = false, message = CollectModelErrors() });
 
             var (success, message) = await _service.CreateAsync(dto);
-            TempData[success ? "StaffSuccess" : "StaffError"] = message;
-            return RedirectToAction(nameof(Index));
+            if (success) TempData["StaffSuccess"] = message;
+            return Json(new { success, message });
         }
 
         // ============================================================
@@ -134,17 +131,14 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, UpdateStaffDto dto)
         {
-            if (!IsAdmin()) return RedirectToAction("AdminLogin", "Auth");
+            if (!IsAdmin()) return Json(new { success = false, message = "Unauthorized" });
 
             if (!ModelState.IsValid)
-            {
-                TempData["StaffError"] = CollectModelErrors();
-                return RedirectToAction(nameof(Index));
-            }
+                return Json(new { success = false, message = CollectModelErrors() });
 
             var (success, message) = await _service.UpdateAsync(id, dto);
-            TempData[success ? "StaffSuccess" : "StaffError"] = message;
-            return RedirectToAction(nameof(Index));
+            if (success) TempData["StaffSuccess"] = message;
+            return Json(new { success, message });
         }
 
         // ============================================================

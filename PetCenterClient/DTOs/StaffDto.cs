@@ -62,7 +62,9 @@ namespace PetCenterClient.DTOs
     public class CreateStaffDto
     {
         [Required(ErrorMessage = "Full name is required")]
-        [StringLength(50, ErrorMessage = "Full name cannot exceed 50 characters")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Full name must be between 2 and 50 characters")]
+        [RegularExpression(@"^\s*\p{L}[\p{L} .'\-]*$",
+            ErrorMessage = "Full name may contain only letters, spaces, apostrophes, hyphens and dots")]
         public string FullName { get; set; } = null!;
 
         [Required(ErrorMessage = "Email is required")]
@@ -111,7 +113,9 @@ namespace PetCenterClient.DTOs
     public class UpdateStaffDto
     {
         [Required(ErrorMessage = "Full name is required")]
-        [StringLength(50, ErrorMessage = "Full name cannot exceed 50 characters")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Full name must be between 2 and 50 characters")]
+        [RegularExpression(@"^\s*\p{L}[\p{L} .'\-]*$",
+            ErrorMessage = "Full name may contain only letters, spaces, apostrophes, hyphens and dots")]
         public string FullName { get; set; } = null!;
 
         [Required(ErrorMessage = "Email is required")]
