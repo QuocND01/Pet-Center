@@ -1,4 +1,12 @@
 ﻿@model PetCenterClient.DTOs.ReadOrderDetailViewModel
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var role = HttpContextAccessor.HttpContext?.Session.GetString("Role");
+    var isStaffOrAdmin = (role == "Sales" || role == "Admin");
+    var customerDisplayName = HttpContextAccessor.HttpContext?.Session.GetString("FullName")
+        ?? HttpContextAccessor.HttpContext?.Session.GetString("Name")
+        ?? "Bạn";
+}
 
 <div class="container-fluid text-dark" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
 
@@ -106,3 +114,40 @@
         </div>
     </div>
 </div>
+
+@* ═══════════════════════════════════════════════════
+   ORDER FEEDBACK — script must be inline since this is a PartialView
+   loaded into a Bootstrap modal (no Layout to render @section Scripts into)
+════════════════════════════════════════════════════ *@
+@if (Model.Status == 4 && !isStaffOrAdmin)
+{
+    <meta name="customer-name" content="@customerDisplayName" id="meta-customer-name">
+
+    <script>
+        (function () {
+            // Remove any previously injected meta tag from an earlier modal load,
+            // so the customer name always reflects the current session correctly
+            document.querySelectorAll('meta[name="customer-name"]').forEach(function (el, idx) {
+                if (idx > 0) el.remove();
+            });
+
+            var orderProducts = @Html.Raw(Json.Serialize(Model.OrderItems.Select(i => new
+            {
+                productId = i.ProductId,
+                productName = i.ProductName,
+                imageUrl = i.ProductImage
+            })));
+
+            function startFeedback() {
+                if (typeof OrderFeedback === 'undefined') {
+                    // order-feedback.js not loaded yet, retry shortly
+                    setTimeout(startFeedback, 150);
+                    return;
+                }
+                OrderFeedback.init('@Model.OrderId', orderProducts);
+            }
+
+            startFeedback();
+        })();
+    </script>
+}

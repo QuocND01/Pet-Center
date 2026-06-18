@@ -18,6 +18,9 @@ namespace PetCenterClient.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        // ============================================================
+        // HELPER
+        // ============================================================
         private void AttachToken()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT") ?? "";
@@ -26,38 +29,45 @@ namespace PetCenterClient.Services
                 new AuthenticationHeaderValue("Bearer", token);
         }
 
+        // ============================================================
+        // FEEDBACK — VIEW BY ORDER (CUSTOMER SIDE — ORDER DETAIL POPUP)
+        // ============================================================
         public async Task<bool> HasFeedbackForOrderAsync(Guid orderId)
         {
             try
             {
                 AttachToken();
-                var response = await _http.GetAsync(
-                    $"feedback-service/ProductFeedback/check/{orderId}");
 
+                var response = await _http.GetAsync($"api/ProductFeedbacks/check/{orderId}");
                 if (!response.IsSuccessStatusCode) return false;
 
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<dynamic>(content);
-                return (bool)(result?.hasFeedback ?? false);
+                var result = JsonConvert.DeserializeObject<CheckFeedbackResponseViewModel>(content);
+
+                return result?.HasFeedback ?? false;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FeedbackApiService] HasFeedbackForOrderAsync error: {ex.Message}");
+                return false;
+            }
         }
 
-        public async Task<List<ProductFeedbackResponseDto>> GetFeedbacksByOrderIdAsync(Guid orderId)
+        public async Task<List<ProductFeedbackViewModel>> GetFeedbacksByOrderIdAsync(Guid orderId)
         {
             try
             {
                 AttachToken();
                 var response = await _http.GetAsync(
-                    $"feedback-service/ProductFeedback/order/{orderId}");
+                    $"api/ProductFeedbacks/order/{orderId}");
 
-                if (!response.IsSuccessStatusCode) return new List<ProductFeedbackResponseDto>();
+                if (!response.IsSuccessStatusCode) return new List<ProductFeedbackViewModel>();
 
                 var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<ApiResponse<List<ProductFeedbackResponseDto>>>(content);
-                return result?.Data ?? new List<ProductFeedbackResponseDto>();
+                var result = JsonConvert.DeserializeObject<ApiResponse<List<ProductFeedbackViewModel>>>(content);
+                return result?.Data ?? new List<ProductFeedbackViewModel>();
             }
-            catch { return new List<ProductFeedbackResponseDto>(); }
+            catch { return new List<ProductFeedbackViewModel>(); }
         }
 
         public async Task<bool> CreateBulkFeedbackAsync(MultipartFormDataContent formData)

@@ -5,8 +5,11 @@ namespace PetCenterClient.Services.Interface
 {
     public interface IFeedbackApiService
     {
+        // ============================================================
+        // FEEDBACK — VIEW BY ORDER (CUSTOMER SIDE — ORDER DETAIL POPUP)
+        // ============================================================
         Task<bool> HasFeedbackForOrderAsync(Guid orderId);
-        Task<List<ProductFeedbackResponseDto>> GetFeedbacksByOrderIdAsync(Guid orderId);
+        Task<List<ProductFeedbackViewModel>> GetFeedbacksByOrderIdAsync(Guid orderId);
 
         // ============================================================
         // FEEDBACK — VIEW BY PRODUCT (CUSTOMER SIDE)

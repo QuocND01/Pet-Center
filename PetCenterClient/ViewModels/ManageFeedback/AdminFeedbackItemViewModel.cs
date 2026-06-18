@@ -87,4 +87,10 @@
         public string? Message { get; set; }
         public T? Data { get; set; }
     }
+
+    public class CheckFeedbackResponseViewModel
+    {
+        public bool Success { get; set; }
+        public bool HasFeedback { get; set; }
+    }
 }
