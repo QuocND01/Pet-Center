@@ -7,5 +7,6 @@ namespace PetCenterAPI.Repository.Interface
         IQueryable<Order> GetAllOrders();
         Task<Order?> GetOrderByIdAsync(Guid orderId);
         Task SaveAsync();
+        Task<List<Order>> GetOrdersByCustomerIdAsync(Guid customerId);
     }
 }

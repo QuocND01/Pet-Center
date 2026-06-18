@@ -108,5 +108,18 @@ namespace PetCenterClient.Services
             var response = await _http.PatchAsync($"api/Orders/{id}/advance", null);
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<List<ReadOrderListViewModel>?> GetMyOrderHistoryAsync()
+        {
+            // Đảm bảo hàm này có chèn kèm Token vào Header (như AddAuthorizationHeader() team bạn hay dùng)
+            AddAuthorizationHeader();
+            var response = await _http.GetAsync("api/Orders/my-orders");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<List<ReadOrderListViewModel>>();
+            }
+            return new List<ReadOrderListViewModel>(); // Trả về list rỗng nếu lỗi/chưa có đơn
+        }
     }
 }

@@ -78,5 +78,18 @@ namespace PetCenterClient.Controllers
             }
             return Json(new { success = false, message = "Failed to update order status." });
         }
+
+        public async Task<IActionResult> History()
+        {
+            // Lấy Role từ Session hoặc Claim để check (tuỳ cơ chế lưu đăng nhập bên Client của bạn)
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Customer")
+            {
+                return RedirectToAction("Index", "Home"); // Hoặc đá ra trang Login
+            }
+
+            var historyList = await _orderService.GetMyOrderHistoryAsync();
+            return View(historyList);
+        }
     }
 }
