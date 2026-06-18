@@ -1,0 +1,151 @@
+﻿@using PetCenterClient.DTOs
+@model IEnumerable<ReadOrderListViewModel>
+
+@{
+    // Giả sử layout cho phía ngoài trang chủ/khách hàng là _Layout.cshtml
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Order History";
+}
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold" style="font-family: 'Segoe UI', sans-serif;">My Order History</h2>
+            <p class="text-muted">Track, manage and view your recent purchases.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Order ID</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-semibold text-secondary">
+                                    #@order.OrderId.ToString().Substring(0, 8).ToUpper()
+                                </td>
+                                <td>@order.OrderDate.ToString("MMM dd, yyyy - HH:mm")</td>
+                                <td class="fw-bold">@order.TotalAmount.ToString("N0") ₫</td>
+                                <td>
+                                    <span class="badge @(order.PaymentMethod == "COD" ? "bg-secondary" : "bg-primary")">
+                                        @order.PaymentMethod
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (order.Status == 0)
+                                    {
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    }
+                                    else if (order.Status == 1)
+                                    {
+
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    }
+                                    else if (order.Status == 2)
+                                    {
+
+                                        <span class="badge bg-info text-dark">Processing</span>
+                                    }
+                                    else if (order.Status == 3)
+                                    {
+
+                                        <span class="badge bg-primary">Shipping</span>
+                                    }
+                                    else if (order.Status == 4)
+                                    {
+
+                                        <span class="badge bg-success">Completed</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-dark me-2"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#orderModal"
+                                            data-url="@Url.Action("Details", "Orders", new { id = order.OrderId })">
+                                        View Details
+                                    </button>
+
+                                    @if (order.Status == 1 || order.Status == 2)
+                                    {
+                                        <button class="btn btn-sm btn-danger btn-cancel-customer" data-id="@order.OrderId">
+                                            Cancel
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-cart-x fs-1 d-block mb-3"></i>
+                                <h5>You haven't placed any orders yet.</h5>
+                                <a href="/" class="btn btn-primary mt-2">Start Shopping</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderModalBody"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Tái sử dụng Ajax Load View Details
+        $(document).on("click", "[data-bs-target='#orderModal']", function () {
+            var url = $(this).data("url");
+            $("#orderModalBody").html("<div class='text-center my-4'><div class='spinner-border text-primary'></div><p class='mt-2'>Loading...</p></div>");
+            $("#orderModalBody").load(url);
+        });
+
+        // Ajax xử lý Hủy đơn cho Customer
+        $(document).on("click", ".btn-cancel-customer", function () {
+            var orderId = $(this).data("id");
+            if (confirm("Are you sure you want to cancel this order?")) {
+                $.ajax({
+                    url: '@Url.Action("Cancel", "Orders")',
+                    type: 'POST',
+                    data: { id: orderId },
+                    success: function (res) {
+                        if (res.success) {
+                            alert("Your order has been cancelled successfully.");
+                            location.reload();
+                        } else {
+                            alert("Notice: " + res.message);
+                        }
+                    },
+                    error: function () {
+                        alert("An error occurred while cancelling your order.");
+                    }
+                });
+            }
+        });
+    </script>
+}

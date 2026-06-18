@@ -32,5 +32,14 @@ namespace PetCenterAPI.Repository
         {
             await _db.SaveChangesAsync();
         }
+
+        public async Task<List<Order>> GetOrdersByCustomerIdAsync(Guid customerId)
+        {
+            return await _db.Orders
+                .Include(o => o.Customer)
+                .Where(o => o.CustomerId == customerId)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+        }
     }
 }

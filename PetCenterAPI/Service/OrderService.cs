@@ -111,5 +111,25 @@ namespace PetCenterAPI.Service
             await _orderRepository.SaveAsync();
             return order.Status;
         }
+        public async Task<List<ReadOrderListDTO>> GetCustomerOrderHistoryAsync(Guid customerId)
+        {
+            var orders = await _orderRepository.GetOrdersByCustomerIdAsync(customerId);
+
+            // Tự map thủ công hoặc dùng AutoMapper (_mapper.Map<...>)
+            var dtoList = orders.Select(o => new ReadOrderListDTO
+            {
+                OrderId = o.OrderId,
+                CustomerName = o.Customer?.FullName ?? "Unknown",
+                PhoneNumber = o.Customer?.PhoneNumber ?? "N/A",
+                OrderDate = o.OrderDate ?? DateTime.UtcNow,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                PaymentMethod = o.PaymentMethod,
+                PaymentStatus = o.PaymentStatus,
+                AddressSnapshot = o.AddressSnapshot
+            }).ToList();
+
+            return dtoList;
+        }
     }
 }

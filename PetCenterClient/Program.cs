@@ -65,19 +65,11 @@ builder.Services.AddHttpClient<IAddressServiceClient, AddressServiceClient>(clie
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IOrderServiceClient, OrderServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(apiUrl);
-});
 builder.Services.AddHttpClient<IOrderAPIClient, OrderAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IOrderDetailServiceClient, OrderDetailServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(apiUrl);
-});
 
 builder.Services.AddHttpClient<ICartService, CartService>(client =>
 {

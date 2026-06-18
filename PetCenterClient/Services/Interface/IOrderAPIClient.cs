@@ -18,5 +18,6 @@ namespace PetCenterClient.Services.Interface
 
         Task<bool> CancelOrderAsync(Guid id);
         Task<bool> AdvanceOrderStatusAsync(Guid id);
+        Task<List<ReadOrderListViewModel>?> GetMyOrderHistoryAsync();
     }
 }

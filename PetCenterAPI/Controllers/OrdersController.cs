@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
 using PetCenterAPI.Service.Interface;
+using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
 
 namespace PetCenterAPI.Controllers
 {
@@ -86,6 +87,28 @@ namespace PetCenterAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        //[Authorize(Roles = "Customer")]
+        [HttpGet("my-orders")]
+        public async Task<IActionResult> GetMyOrders()
+        {
+            try
+            {
+                // Lấy CustomerID an toàn từ Token mà AuthsController đã cấp
+                var customerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!Guid.TryParse(customerIdStr, out var customerId))
+                {
+                    return Unauthorized(new { success = false, message = "Invalid token data." });
+                }
+
+                var orders = await _orderService.GetCustomerOrderHistoryAsync(customerId);
+                return Ok(orders);
             }
             catch (Exception ex)
             {
