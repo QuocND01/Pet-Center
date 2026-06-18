@@ -34,9 +34,8 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: white;
+            background: #fff;
             border-bottom: 1px solid var(--border);
-            height: 70px;
         }
 
         .top-header-inner {
@@ -46,25 +45,27 @@
             padding: 0 24px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 16px;
         }
 
         .logo {
             text-decoration: none;
             color: var(--green-dark);
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
+            white-space: nowrap;
         }
 
+        /* primary navigation */
         .main-nav {
             display: flex;
-            gap: 12px;
+            gap: 8px;
         }
 
             .main-nav a {
                 text-decoration: none;
                 color: #475569;
-                padding: 10px 18px;
+                padding: 9px 18px;
                 border-radius: 999px;
                 font-weight: 700;
                 transition: .2s;
@@ -77,25 +78,187 @@
 
         .auth-nav {
             display: flex;
+            align-items: center;
             gap: 10px;
+            margin-left: auto;
         }
 
         .auth-btn {
             text-decoration: none;
-            padding: 10px 18px;
+            padding: 9px 18px;
             border-radius: 999px;
             font-weight: 700;
+            transition: .2s;
         }
 
         .login-btn {
             border: 1px solid #cbd5e1;
             color: #334155;
-            background: white;
+            background: #fff;
         }
+
+            .login-btn:hover {
+                background: #f1f5f9;
+            }
 
         .logout-btn {
             background: var(--green);
-            color: white;
+            color: #fff;
+        }
+
+        /* hamburger (mobile only) */
+        .nav-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            font-size: 20px;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 10px;
+            color: #334155;
+            cursor: pointer;
+        }
+
+        /* user dropdown */
+        .user-menu {
+            position: relative;
+        }
+
+        .user-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px 6px 6px;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+            .user-trigger:hover {
+                background: #f1f5f9;
+            }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .user-trigger .name {
+            font-weight: 700;
+            color: #334155;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-trigger .caret {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 10px);
+            min-width: 230px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 14px 40px rgba(0,0,0,.14);
+            padding: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity .18s ease, transform .18s ease, visibility .18s;
+        }
+
+        .user-menu.open .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #334155;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+            .user-dropdown a:hover {
+                background: #dcfce7;
+                color: var(--green-dark);
+            }
+
+        .user-dropdown .ic {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 6px;
+        }
+
+        .logout-item {
+            color: #dc2626 !important;
+        }
+
+            .logout-item:hover {
+                background: #fee2e2 !important;
+                color: #dc2626 !important;
+            }
+
+        @@media (max-width: 768px) {
+            .nav-toggle {
+                display: inline-flex;
+            }
+
+            .main-nav {
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background: #fff;
+                border-bottom: 1px solid var(--border);
+                padding: 12px 16px;
+                gap: 6px;
+                display: none;
+                box-shadow: 0 10px 28px rgba(0,0,0,.08);
+            }
+
+                .main-nav.open {
+                    display: flex;
+                }
+
+            .user-trigger .name {
+                display: none;
+            }
+
+            .logo {
+                font-size: 22px;
+            }
         }
 
         /* ===============================
@@ -239,66 +402,49 @@
     <header class="top-header">
         <div class="top-header-inner">
 
-            <a asp-controller="Home"
-               asp-action="Index"
-               class="logo">
-                🐾 PetCenter
-            </a>
+            @{
+                // Login state is tracked via Session (the client has no auth middleware,
+                // so User.Identity is never authenticated). Customers are not linked to roles.
+                var custToken = Context.Session.GetString("JWT");
+                var custName = Context.Session.GetString("FullName")
+                               ?? Context.Session.GetString("Name");
+                var custInitial = string.IsNullOrWhiteSpace(custName)
+                    ? "U" : custName.Trim()[0].ToString().ToUpper();
+            }
 
-            <nav class="main-nav">
+            <a asp-controller="Home" asp-action="Index" class="logo">🐾 PetCenter</a>
 
-                <a asp-controller="Home"
-                   asp-action="Index">
-                    Home Page
-                </a>
+            <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle menu">☰</button>
 
-                <a asp-controller="Products"
-                   asp-action="Index">
-                    Product Page
-                </a>
-
-                <a asp-controller="Service"
-                   asp-action="Index">
-                    Service Page
-                </a>
-
+            <nav class="main-nav" id="mainNav">
+                <a asp-controller="Home" asp-action="Index">Home Page</a>
+                <a asp-controller="Products" asp-action="Index">Product Page</a>
+                <a asp-controller="Service" asp-action="Index">Service Page</a>
             </nav>
 
             <div class="auth-nav">
-
-                @{
-                    // Login state is tracked via Session (the client has no auth middleware,
-                    // so User.Identity is never authenticated). Customers have no role.
-                    var custToken = Context.Session.GetString("JWT");
-                    var custName = Context.Session.GetString("FullName")
-                                   ?? Context.Session.GetString("Name");
-                }
-
                 @if (!string.IsNullOrEmpty(custToken))
                 {
-                    <span class="user-name">
-                        👋 @custName
-                    </span>
-                    <a asp-controller="Auth"
-                       asp-action="Logout"
-                       class="auth-btn logout-btn">
-                        Logout
-                    </a>
+                    <div class="user-menu" id="userMenu">
+                        <button class="user-trigger" id="userTrigger" type="button">
+                            <span class="user-avatar">@custInitial</span>
+                            <span class="name">@custName</span>
+                            <span class="caret">▾</span>
+                        </button>
+                        <div class="user-dropdown">
+                            <a asp-controller="Customer" asp-action="Profile"><span class="ic">👤</span> Profile</a>
+                            <a asp-controller="Orders" asp-action="History"><span class="ic">📦</span> My Orders</a>
+                            <a asp-controller="Cart" asp-action="Index"><span class="ic">🛒</span> Cart</a>
+                            <div class="dropdown-divider"></div>
+                            <a asp-controller="Auth" asp-action="Logout" class="logout-item"><span class="ic">🚪</span> Logout</a>
+                        </div>
+                    </div>
                 }
                 else
                 {
-                    <a asp-controller="Auth"
-                       asp-action="Login"
-                       class="auth-btn login-btn">
-                        Login
-                    </a>
-
-                    <!-- tạm thời để login admin -->
-                    <a asp-controller="Auth" asp-action="AdminLogin" class="pc-admin-link" id="adminBtn" title="Admin Panel">
-                        ⚙ Admin
-                    </a>
+                    <a asp-controller="Auth" asp-action="Login" class="auth-btn login-btn">Login</a>
+                    <a asp-controller="Auth" asp-action="AdminLogin" class="auth-btn admin-btn" id="adminBtn" title="Admin Panel">⚙ Admin</a>
                 }
-
             </div>
 
         </div>
@@ -363,6 +509,32 @@
     </footer>
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Header: user dropdown + mobile nav toggle (vanilla, no dependency)
+        (function () {
+            var menu = document.getElementById('userMenu');
+            var trigger = document.getElementById('userTrigger');
+            if (menu && trigger) {
+                trigger.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    menu.classList.toggle('open');
+                });
+                var dd = menu.querySelector('.user-dropdown');
+                if (dd) dd.addEventListener('click', function (e) { e.stopPropagation(); });
+                document.addEventListener('click', function () { menu.classList.remove('open'); });
+            }
+
+            var navToggle = document.getElementById('navToggle');
+            var mainNav = document.getElementById('mainNav');
+            if (navToggle && mainNav) {
+                navToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    mainNav.classList.toggle('open');
+                });
+            }
+        })();
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 
