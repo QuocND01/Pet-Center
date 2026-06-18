@@ -9,7 +9,7 @@ namespace PetCenterAPI.Profiles
     {
         public SupplierProfile()
         {
-            CreateMap<Supplier, ViewSupplierResponseDTO>();
+            CreateMap<Supplier, ReadSupplierResponseDTO>();
             CreateMap<CreateSupplierRequestDTO, Supplier>();
         }
     }

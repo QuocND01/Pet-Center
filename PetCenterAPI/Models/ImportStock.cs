@@ -15,7 +15,7 @@ public partial class ImportStock
 
     public DateTime ImportDate { get; set; }
 
-    public int? Status { get; set; }
+    public ImportStatus Status { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
@@ -30,4 +30,10 @@ public partial class ImportStock
     public virtual Staff Staff { get; set; } = null!;
 
     public virtual Supplier Supplier { get; set; } = null!;
+    public enum ImportStatus
+    {
+        Pending = 1,
+        Confirmed = 2,
+        Cancelled = 0
+    }
 }

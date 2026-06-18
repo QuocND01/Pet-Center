@@ -19,21 +19,21 @@ namespace PetCenterAPI.Service
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ViewSupplierResponseDTO>> GetAllAsync()
+        public async Task<IEnumerable<ReadSupplierResponseDTO>> GetAllAsync()
         {
             var suppliers = await _repository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ViewSupplierResponseDTO>>(suppliers);
+            return _mapper.Map<IEnumerable<ReadSupplierResponseDTO>>(suppliers);
         }
 
-        public async Task<ViewSupplierResponseDTO?> GetByIdAsync(Guid id)
+        public async Task<ReadSupplierResponseDTO?> GetByIdAsync(Guid id)
         {
             var supplier = await _repository.GetByIdAsync(id);
             if (supplier == null) return null;
 
-            return _mapper.Map<ViewSupplierResponseDTO>(supplier);
+            return _mapper.Map<ReadSupplierResponseDTO>(supplier);
         }
 
-        public async Task<ViewSupplierResponseDTO> CreateAsync(CreateSupplierRequestDTO dto)
+        public async Task<ReadSupplierResponseDTO> CreateAsync(CreateSupplierRequestDTO dto)
         {
             var supplier = _mapper.Map<Supplier>(dto);
 
@@ -43,7 +43,7 @@ namespace PetCenterAPI.Service
             await _repository.AddAsync(supplier);
             await _repository.SaveChangesAsync();
 
-            return _mapper.Map<ViewSupplierResponseDTO>(supplier);
+            return _mapper.Map<ReadSupplierResponseDTO>(supplier);
         }
 
         public async Task<bool> UpdateAsync(Guid id, CreateSupplierRequestDTO dto)
