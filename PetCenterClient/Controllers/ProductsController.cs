@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PetCenterClient.Common;
 using PetCenterClient.DTOs;
+using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.Brand;
 using PetCenterClient.ViewModels.Category;
@@ -175,25 +176,7 @@ namespace PetCenterClient.Controllers
             // Load feedbacks của sản phẩm này
             var feedbacks = await _feedbackService.GetFeedbacksByProductIdAsync(id.Value);
 
-            var customerIds = feedbacks
-        .Select(f => f.CustomerId)
-        .Distinct()
-        .ToList();
-
-            var customerNameTasks = customerIds
-                .ToDictionary(
-                    cid => cid,
-                    cid => _customerService.GetDisplayNameAsync(cid)
-                );
-
-            await Task.WhenAll(customerNameTasks.Values);
-
-            var customerNames = customerNameTasks.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.Result
-            );
-
-            // Thống kê rating
+            // Rating statistics
             var totalCount = feedbacks.Count;
             var avgRating = totalCount > 0
                 ? Math.Round(feedbacks.Average(f => f.Rating ?? 0), 1)
@@ -206,7 +189,6 @@ namespace PetCenterClient.Controllers
                 );
 
             ViewBag.Feedbacks = feedbacks;
-            ViewBag.CustomerNames = customerNames;
             ViewBag.TotalCount = totalCount;
             ViewBag.AvgRating = avgRating;
             ViewBag.RatingCounts = ratingCounts;
