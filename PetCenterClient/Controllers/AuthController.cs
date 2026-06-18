@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.Login;
@@ -66,6 +67,13 @@ namespace PetCenterClient.Controllers
 
                 var fullName = jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? "";
                 HttpContext.Session.SetString("FullName", fullName);
+
+                var role = jwt.Claims
+                    .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                                      || c.Type == ClaimTypes.Role)
+                    ?.Value ?? "Customer"; // Fallback mặc định là Customer
+
+                HttpContext.Session.SetString("Role", role);
             }
             catch
             {
