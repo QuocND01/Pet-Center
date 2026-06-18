@@ -68,12 +68,9 @@ namespace PetCenterClient.Controllers
                 var fullName = jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? "";
                 HttpContext.Session.SetString("FullName", fullName);
 
-                var role = jwt.Claims
-                    .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-                                      || c.Type == ClaimTypes.Role)
-                    ?.Value ?? "Customer"; // Fallback mặc định là Customer
-
-                HttpContext.Session.SetString("Role", role);
+                // Customers are not linked to the Roles table; mark them as "Customer"
+                // (used client-side by pages such as Orders).
+                HttpContext.Session.SetString("Role", "Customer");
             }
             catch
             {
