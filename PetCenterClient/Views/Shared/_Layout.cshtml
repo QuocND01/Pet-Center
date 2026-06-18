@@ -266,10 +266,18 @@
 
             <div class="auth-nav">
 
-                @if (User.Identity?.IsAuthenticated == true)
+                @{
+                    // Login state is tracked via Session (the client has no auth middleware,
+                    // so User.Identity is never authenticated). Customers have no role.
+                    var custToken = Context.Session.GetString("JWT");
+                    var custName = Context.Session.GetString("FullName")
+                                   ?? Context.Session.GetString("Name");
+                }
+
+                @if (!string.IsNullOrEmpty(custToken))
                 {
                     <span class="user-name">
-                        👋 @User.Identity.Name
+                        👋 @custName
                     </span>
                     <a asp-controller="Auth"
                        asp-action="Logout"
