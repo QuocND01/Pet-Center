@@ -172,6 +172,7 @@ builder.Services.AddScoped<IStaffAuthRepository, StaffAuthRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IAdminFeedbackRepository, AdminFeedbackRepository>();
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -190,6 +191,7 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAdminFeedbackService, AdminFeedbackService>();
 
 builder.Services.AddScoped<IOrderService, OrderService>();

@@ -9,7 +9,7 @@ namespace PetCenterClient.Services
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string Route = "orders/Cart";
+        private const string Route = "api/cart";
 
         public CartService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
