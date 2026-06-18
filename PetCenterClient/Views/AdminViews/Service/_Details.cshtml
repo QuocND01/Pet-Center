@@ -1,0 +1,182 @@
+﻿@model PetCenterClient.ViewModels.Service.ServiceViewModel.ReadServiceViewModel
+
+<style>
+
+    .detail-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 25px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #212529;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 13px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 15px;
+        color: #212529;
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #e9ecef;
+    }
+
+    .service-image {
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 14px;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,.08);
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+
+    .empty-text {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+</style>
+
+<div class="detail-card">
+
+    ```
+    <div class="section-title">
+        Service Information
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-12 mb-3 info-box">
+
+            <div class="info-label">
+                Service Name
+            </div>
+
+            <div class="info-value">
+                @Model.ServiceName
+            </div>
+
+        </div>
+
+        <div class="col-md-12 mb-3 info-box">
+
+            <div class="info-label">
+                Description
+            </div>
+
+            <div class="info-value">
+                @(string.IsNullOrWhiteSpace(Model.ServiceDescription)
+                                ? "No description"
+                                : Model.ServiceDescription)
+            </div>
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Price
+                </div>
+
+                <div class="info-value">
+                    @Model.Price.ToString("N0") ₫
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Duration
+                </div>
+
+                <div class="info-value">
+                    @Model.Duration minutes
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Service Type
+                </div>
+
+                <div class="info-value">
+                    @(Model.ServiceType == 1 ? "Grooming" : "Vet")
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Status
+                </div>
+
+                <div class="info-value">
+                    @Model.Status
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="section-title mt-3">
+        Service Images
+    </div>
+
+    <div class="d-flex flex-wrap">
+
+        @if (Model.ImageFiles != null && Model.ImageFiles.Any())
+        {
+            foreach (var image in Model.ImageFiles)
+            {
+                <img src="@image"
+                     class="service-image"
+                     alt="Service Image" />
+            }
+        }
+        else
+        {
+            <div class="empty-text">
+                No images
+            </div>
+        }
+
+    </div>
+    ```
+
+</div>

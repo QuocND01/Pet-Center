@@ -176,14 +176,23 @@ namespace PetCenterClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                foreach (var item in ModelState)
-                {
-                    foreach (var error in item.Value.Errors)
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .Select(x => new
                     {
-                        Console.WriteLine($"KEY: {item.Key}");
-                        Console.WriteLine($"ERROR: {error.ErrorMessage}");
+                        Key = x.Key,
+                        Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                    });
+
+                foreach (var err in errors)
+                {
+                    Console.WriteLine($"FIELD: {err.Key}");
+                    foreach (var msg in err.Errors)
+                    {
+                        Console.WriteLine($"  ERROR: {msg}");
                     }
                 }
+
                 return PartialView("~/Views/AdminViews/Service/_Edit.cshtml", model);
             }
 

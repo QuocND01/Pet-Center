@@ -1,0 +1,407 @@
+﻿@using PetCenterClient.Common
+@using PetCenterClient.ViewModels.Service
+@using static PetCenterClient.ViewModels.Service.ServiceViewModel
+@model IEnumerable<ReadServiceViewModel>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Manage Services";
+    var role = Context.Session.GetString("Role");
+    bool isAdmin = role == "Admin";
+}
+
+<link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
+
+<style>
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .page-btn {
+        padding: 6px 12px;
+        background: #eee;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+    .page-btn.active {
+        background: #4f46e5;
+        color: white;
+    }
+
+.desc-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+
+<div class="page-wrapper">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>Service Management</h1>
+            <p>Manage all services in system</p>
+        </div>
+
+        <div class="header-stat">
+            <span class="num">@Model.Count()</span>
+            <span class="label">Services</span>
+        </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <form asp-action="IndexAdmin" asp-controller="Service" method="get" class="toolbar">
+
+        <!-- Search -->
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text"
+                   name="search"
+                   value="@Context.Request.Query["search"]"
+                   class="search-input"
+                   placeholder="Search service name..." />
+        </div>
+
+        <!-- Sort -->
+        <select name="sortBy" class="filter-btn">
+            <option value="">Sort By</option>
+            <option value="ServiceName">Name</option>
+            <option value="Price">Price</option>
+            <option value="Duration">Duration</option>
+        </select>
+
+        <select name="sortOrder" class="filter-btn">
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+        </select>
+
+        <!-- Price -->
+        <input type="number" name="minPrice" class="filter-input" placeholder="Min price" />
+        <input type="number" name="maxPrice" class="filter-input" placeholder="Max price" />
+
+        <button type="submit" class="filter-btn active">Apply</button>
+
+        @if (isAdmin)
+        {
+            <button type="button"
+                    class="filter-btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#serviceModal"
+                    data-url="@Url.Action("Create", "Service")">
+                <i class="bi bi-plus"></i> Add
+            </button>
+        }
+
+    </form>
+
+    <!-- TABLE -->
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Service</th>
+                    <th>Price</th>
+                    <th>Duration</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th style="width:180px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    int i = 1;
+
+                    foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>@i</td>
+
+                            <td>
+                                <div class="customer-cell">
+                                    <img src="@s.ImageFiles?.FirstOrDefault()"
+                                         style="width:38px;height:38px;border-radius:8px;object-fit:cover" />
+                                    <div class="customer-name">
+                                        @s.ServiceName
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>@s.Price.ToString("N0") ₫</td>
+                            <td>@s.Duration mins</td>
+                            <td>@s.ServiceType</td>
+                            <td title="@s.ServiceDescription">
+                                <div class="desc-clamp">
+                                    @(string.IsNullOrEmpty(s.ServiceDescription)
+                                        ? "-"
+                                        : s.ServiceDescription)
+                                </div>
+                            </td>
+                            <td>@s.Status</td>
+
+                            <td>
+                                @if (isAdmin)
+                                {
+                                    <!-- VIEW -->
+                                    <button class="btn-detail"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#serviceModal"
+                                            data-url="@Url.Action("Details", "Service", new { id = s.ServiceId })">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+
+                                    <!-- EDIT -->
+                                    <button class="btn-detail"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#serviceModal"
+                                            data-url="@Url.Action("Edit", "Service", new { id = s.ServiceId })">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    <!-- TOGGLE STATUS -->
+                                    <button class="btn-detail @(s.Status == Status.Active ? "text-warning" : "text-success")"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#serviceModal"
+                                            data-url="@Url.Action("ChangeStatus", "Service", new {
+                                                id = s.ServiceId,
+                                                status = s.Status == Status.Active ? Status.Inactive : Status.Active
+                                            })">
+                                        @if (s.Status == Status.Active)
+                                        {
+                                            <i class="bi bi-slash-circle"></i>
+                                            <span>Deactivate</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-check-circle"></i>
+                                            <span>Activate</span>
+                                        }
+                                    </button>
+
+                                    <!-- DELETE -->
+                                    <button class="btn-detail text-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#serviceModal"
+                                            data-url="@Url.Action("ChangeStatus", "Service", new {
+                                                id = s.ServiceId,
+                                                status = Status.Deleted
+                                            })">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="bi bi-gear"></i>
+                                </div>
+                                <h3>No services found</h3>
+                                <p>Try adjusting filters</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- PAGINATION -->
+        @{
+            int currentPage = ViewBag.CurrentPage ?? 1;
+            int totalPages = ViewBag.TotalPages ?? 1;
+
+            var routeValues = new
+            {
+                search = Context.Request.Query["search"],
+                minPrice = Context.Request.Query["minPrice"],
+                maxPrice = Context.Request.Query["maxPrice"],
+                sortBy = Context.Request.Query["sortBy"],
+                sortOrder = Context.Request.Query["sortOrder"]
+            };
+        }
+
+        <div class="pagination">
+
+            <a class="page-btn"
+               href="@Url.Action("IndexAdmin", new {
+                    page = currentPage - 1,
+                    search = routeValues.search,
+                    minPrice = routeValues.minPrice,
+                    maxPrice = routeValues.maxPrice,
+                    sortBy = routeValues.sortBy,
+                    sortOrder = routeValues.sortOrder
+               })">
+                Prev
+            </a>
+
+            @for (int p = 1; p <= totalPages; p++)
+            {
+                <a class="page-btn @(p == currentPage ? "active" : "")"
+                   href="@Url.Action("IndexAdmin", new {
+                        page = p,
+                        search = routeValues.search,
+                        minPrice = routeValues.minPrice,
+                        maxPrice = routeValues.maxPrice,
+                        sortBy = routeValues.sortBy,
+                        sortOrder = routeValues.sortOrder
+                   })">
+                    @p
+                </a>
+            }
+
+            <a class="page-btn"
+               href="@Url.Action("IndexAdmin", new {
+                    page = currentPage + 1,
+                    search = routeValues.search,
+                    minPrice = routeValues.minPrice,
+                    maxPrice = routeValues.maxPrice,
+                    sortBy = routeValues.sortBy,
+                    sortOrder = routeValues.sortOrder
+               })">
+                Next
+            </a>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="serviceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="serviceModalBody"></div>
+
+        </div>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div id="pageLoadingOverlay"
+     style="display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background: rgba(255,255,255,0.7);
+            z-index:2000;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;">
+
+    <div class="spinner-border text-primary"
+         role="status"
+         style="width:3rem;height:3rem"></div>
+
+    <p class="mt-2">Processing, Please wait...</p>
+
+</div>
+
+
+
+<!-- TOAST -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+    <div id="liveToast" class="toast bg-success text-white">
+        <div class="toast-body"></div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+   $(document).on("click", "[data-bs-target='#serviceModal']", function () {
+
+    var url = $(this).data("url");
+
+    showLoading();
+
+    $("#serviceModalBody").load(url, function () {
+
+        hideLoading();
+
+        var form = $("#serviceModalBody").find("form");
+
+        $.validator.unobtrusive.parse(form);
+
+    });
+
+});
+
+    $('#serviceModal').on('submit', 'form', function (e) {
+        e.preventDefault();
+
+        var form = $(this);
+        var formData = new FormData(form[0]);
+
+      showLoading();
+
+        $.ajax({
+            url: form.attr('action'),
+            type: form.attr('method'),
+            data: formData,
+            contentType: false,
+            processData: false,
+
+            success: function (res) {
+               hideLoading();
+
+                if (res.success) {
+                    $('#serviceModal').modal('hide');
+                    showToast("Success");
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    $("#serviceModalBody").html(res);
+                }
+            },
+
+            error: function () {
+              hideLoading();
+                showToast("Error");
+            }
+        });
+    });
+
+    function showToast(msg) {
+        $('#liveToast .toast-body').text(msg);
+        new bootstrap.Toast(document.getElementById('liveToast')).show();
+    }
+
+    function showLoading() {
+    $("#pageLoadingOverlay").css("display", "flex");
+}
+
+function hideLoading() {
+    $("#pageLoadingOverlay").hide();
+}
+
+    document.querySelector(".toolbar").addEventListener("submit", function () {
+        this.querySelectorAll("input, select").forEach(el => {
+            if (!el.value) el.removeAttribute("name");
+        });
+    });
+
+    $(document).ajaxError(function () {
+    hideLoading();
+});
+</script>
+}

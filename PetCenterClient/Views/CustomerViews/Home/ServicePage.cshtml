@@ -720,18 +720,13 @@
             </h2>
 
             <p>
-                Get 20% off your first pet service booking.
+                Get 20% off your first pet service booking.🎉
             </p>
 
             <a href="#">
                 Claim Offer
             </a>
         </div>
-
-        <div class="promo-right">
-            🎉
-        </div>
-
     </div>
 
 
@@ -784,6 +779,7 @@
     <h2 class="section-title">
         Our Services
     </h2>
+<br>
     <div class="search-box">
 
         <div class="search-card">
@@ -837,6 +833,8 @@
 
     </div>
 
+    <br>
+
     @if (Model?.Values != null && Model.Values.Any())
     {
         <div id="services"
@@ -847,8 +845,8 @@
                 var img =
                 item.ImageFiles?.FirstOrDefault();
 
-                <a asp-action="Details"
-                   asp-controller="Services"
+                <a asp-action="DetailsForcustomer"
+                   asp-controller="Service"
                    asp-route-id="@item.ServiceId"
                    class="service-card">
 

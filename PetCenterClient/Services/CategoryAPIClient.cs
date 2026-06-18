@@ -132,7 +132,16 @@ namespace PetCenterClient.Services
                 for (int i = 0; i < updateCategory.Attributes.Count; i++)
                 {
                     form.Add(
-                        new StringContent(updateCategory.Attributes[i].AttributeName),
+                        new StringContent(
+                            updateCategory.Attributes[i].CategoryAttributeId.ToString()
+                        ),
+                        $"Attributes[{i}].CategoryAttributeId"
+                    );
+
+                    form.Add(
+                        new StringContent(
+                            updateCategory.Attributes[i].AttributeName
+                        ),
                         $"Attributes[{i}].AttributeName"
                     );
                 }
@@ -144,7 +153,9 @@ namespace PetCenterClient.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception(result);
+                throw new Exception(
+        $"Status: {response.StatusCode}\nResponse: {result}"
+    );
             }
         }
 

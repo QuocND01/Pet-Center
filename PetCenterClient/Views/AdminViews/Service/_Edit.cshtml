@@ -1,0 +1,359 @@
+﻿@model PetCenterClient.ViewModels.Service.ServiceViewModel.UpdateServiceViewModel
+
+<style>
+
+    .page-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 30px;
+    }
+
+    .section-card {
+        background: #f8f9fa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 48px;
+        border-radius: 12px;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .image-preview {
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 2px solid #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,.1);
+    }
+
+    .image-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        padding: 0;
+    }
+
+    .btn-update {
+        min-width: 180px;
+        height: 50px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+</style>
+
+<div class="page-card">
+
+    ```
+    <form asp-action="Edit"
+          asp-controller="Service"
+          method="post"
+          enctype="multipart/form-data">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="ServiceId" type="hidden" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
+        </div>
+
+        <div class="section-card">
+
+            <div class="section-title">
+                Service Information
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-12 mb-3">
+
+                    <label asp-for="ServiceName"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="ServiceName"
+                           class="form-control" />
+
+                    <span asp-validation-for="ServiceName"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-12 mb-3">
+
+                    <label asp-for="ServiceDescription"
+                           class="form-label">
+                    </label>
+
+                    <textarea asp-for="ServiceDescription"
+                              class="form-control">
+                </textarea>
+
+                    <span asp-validation-for="ServiceDescription"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="Price"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="Price"
+                           type="number"
+                           step="0.01"
+                           class="form-control" />
+
+                    <span asp-validation-for="Price"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="Duration"
+                           class="form-label">
+                        Duration (Minutes)
+                    </label>
+
+                    <input asp-for="Duration"
+                           type="number"
+                           class="form-control" />
+
+                    <span asp-validation-for="Duration"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label asp-for="ServiceType"
+                           class="form-label">
+                        Service Type
+                    </label>
+
+                    <select asp-for="ServiceType"
+                            class="form-select">
+
+                        <option value="1">
+                            Grooming
+                        </option>
+
+                        <option value="2">
+                            Vet
+                        </option>
+
+                    </select>
+
+                    <span asp-validation-for="ServiceType"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="section-card">
+
+            <div class="section-title">
+                Current Images
+            </div>
+
+            <div class="d-flex flex-wrap gap-3">
+
+                @if (Model.ExistingImages != null)
+                {
+                    foreach (var image in Model.ExistingImages)
+                    {
+                        <div class="image-wrapper">
+
+                            <img src="@image"
+                                 class="image-preview" />
+
+                            <button type="button"
+                                    class="btn btn-danger remove-btn"
+                                    onclick="removeOldImage(this)">
+                                ✖
+                            </button>
+
+                            <input type="hidden"
+                                   name="ExistingImages"
+                                   value="@image" />
+
+                        </div>
+                    }
+                }
+
+            </div>
+
+        </div>
+
+        <div class="section-card">
+
+            <div class="section-title">
+                Add New Images
+            </div>
+
+            <input type="file"
+                   id="newImages"
+                   multiple
+                   accept="image/*"
+                   class="form-control" />
+
+            <div id="previewNewImages"
+                 class="d-flex flex-wrap gap-3 mt-3">
+            </div>
+
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+
+            <button type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                Cancel
+
+            </button>
+
+            <button type="submit"
+                    class="btn btn-warning btn-update">
+
+                <i class="bi bi-pencil-square me-1"></i>
+                Update Service
+
+            </button>
+
+        </div>
+
+    </form>
+    ```
+
+</div>
+
+<script>
+
+    $("#newImages").change(function () {
+
+        const files = this.files;
+
+        for (let i = 0; i < files.length; i++) {
+
+            const file = files[i];
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                const id = "img_" + Date.now() + i;
+
+                const html = `
+                <div class="image-wrapper" id="${id}">
+
+                    <img src="${e.target.result}"
+                         class="image-preview"/>
+
+                    <button type="button"
+                            class="btn btn-danger remove-btn"
+                            onclick="removeNewImage('${id}')">
+                        ✖
+                    </button>
+
+                    <input type="file"
+                           name="ImageFiles"
+                           hidden />
+
+                </div>
+                `;
+
+                $("#previewNewImages").append(html);
+
+                const dt = new DataTransfer();
+
+                dt.items.add(file);
+
+                $("#" + id + " input")[0].files = dt.files;
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        $(this).val("");
+    });
+
+    function removeOldImage(btn) {
+
+        const wrapper = $(btn).closest(".image-wrapper");
+
+        wrapper.find("input[name='ExistingImages']")
+               .prop("disabled", true);
+
+        wrapper.hide();
+    }
+
+    function removeNewImage(id) {
+
+        $("#" + id).remove();
+    }
+
+    $("form").submit(function (e) {
+
+        const oldImages =
+            $("input[name='ExistingImages']:not(:disabled)").length;
+
+        const newImages =
+            $("#previewNewImages .image-wrapper").length;
+
+        if (oldImages + newImages === 0) {
+
+            alert("Service must have at least one image");
+
+            e.preventDefault();
+        }
+
+    });
+
+</script>
+
+@section Scripts {
+
+    ```
+    <partial name="_ValidationScriptsPartial" />
+    ```
+
+}
