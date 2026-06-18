@@ -58,7 +58,17 @@
     }
 
     /* ── Reset context ── */
-    .home-page { font-family: var(--font-body); color: var(--ink); }
+    .home-page {
+        font-family: var(--font-body);
+        color: var(--ink);
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 28px 24px 0;
+    }
+
+    @@media (max-width: 600px) {
+        .home-page { padding: 16px 14px 0; }
+    }
 
         /* ══════════════════════════════════════════
        FILTER BAR
