@@ -116,36 +116,56 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        // Tái sử dụng Ajax Load View Details
-        $(document).on("click", "[data-bs-target='#orderModal']", function () {
-            var url = $(this).data("url");
-            $("#orderModalBody").html("<div class='text-center my-4'><div class='spinner-border text-primary'></div><p class='mt-2'>Loading...</p></div>");
-            $("#orderModalBody").load(url);
-        });
+<script>
+    // 1. Gọi API để Load View Details bằng Fetch API (Thuần JS)
+    document.addEventListener("click", function (e) {
+        var btnView = e.target.closest("[data-bs-target='#orderModal']");
+        if (btnView) {
+            var url = btnView.getAttribute("data-url");
+            var modalBody = document.getElementById("orderModalBody");
 
-        // Ajax xử lý Hủy đơn cho Customer
-        $(document).on("click", ".btn-cancel-customer", function () {
-            var orderId = $(this).data("id");
+            modalBody.innerHTML = "<div class='text-center my-4'><div class='spinner-border text-primary'></div><p class='mt-2'>Loading...</p></div>";
+
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    modalBody.innerHTML = html;
+                })
+                .catch(err => {
+                    modalBody.innerHTML = "<div class='text-center text-danger'>Failed to load details.</div>";
+                });
+        }
+    });
+
+    // 2. Xử lý Hủy đơn cho Customer bằng Fetch API (Thuần JS)
+    document.addEventListener("click", function (e) {
+        var btnCancel = e.target.closest(".btn-cancel-customer");
+        if (btnCancel) {
+            var orderId = btnCancel.getAttribute("data-id");
+
             if (confirm("Are you sure you want to cancel this order?")) {
-                $.ajax({
-                    url: '@Url.Action("Cancel", "Orders")',
-                    type: 'POST',
-                    data: { id: orderId },
-                    success: function (res) {
-                        if (res.success) {
-                            alert("Your order has been cancelled successfully.");
-                            location.reload();
-                        } else {
-                            alert("Notice: " + res.message);
-                        }
+
+                // Fetch API thay cho $.ajax
+                fetch('@Url.Action("Cancel", "Orders")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    error: function () {
-                        alert("An error occurred while cancelling your order.");
+                    body: 'id=' + encodeURIComponent(orderId)
+                })
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        alert("Your order has been cancelled successfully.");
+                        location.reload();
+                    } else {
+                        alert("Notice: " + res.message);
                     }
+                })
+                .catch(err => {
+                    alert("An error occurred while cancelling your order.");
                 });
             }
-        });
-    </script>
-}
+        }
+    });
+</script>

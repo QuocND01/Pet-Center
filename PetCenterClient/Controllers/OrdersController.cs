@@ -81,15 +81,15 @@ namespace PetCenterClient.Controllers
 
         public async Task<IActionResult> History()
         {
-            // Lấy Role từ Session hoặc Claim để check (tuỳ cơ chế lưu đăng nhập bên Client của bạn)
             var role = HttpContext.Session.GetString("Role");
             if (role != "Customer")
             {
-                return RedirectToAction("Index", "Home"); // Hoặc đá ra trang Login
+                return RedirectToAction("Index", "Home");
             }
 
             var historyList = await _orderService.GetMyOrderHistoryAsync();
-            return View(historyList);
+
+            return View("~/Views/CustomerViews/Order/History.cshtml", historyList);
         }
     }
 }
