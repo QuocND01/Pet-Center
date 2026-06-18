@@ -1,9 +1,9 @@
 ﻿using PetCenterAPI.Models;
 
-namespace PetCenterAPI.DTOs
+namespace PetCenterAPI.DTOs.Responses.Import
+
 {
-    //For get by id
-    public class ReadImportStockDto
+    public class ReadImportResponseDTO
     {
         public Guid ImportId { get; set; }
 
@@ -21,22 +21,11 @@ namespace PetCenterAPI.DTOs
         public string? Note { get; set; }
         public ImportStock.ImportStatus Status { get; set; }
 
-        public List<ImportStockDetailDto> Details { get; set; }
+        public List<ReadImportDetailResponseDTO> Details { get; set; }
             = new();
     }
 
-    //For create
-    public class CreateImportStockDto
-    {
-        public Guid SupplierId { get; set; }
-        public Guid StaffId { get; set; }
-        public string InvoiceNumber { get; set; } = null!;
-        public string? Note { get; set; }
-        public List<CreateImportStockDetailDto> Details { get; set; } = new();
-    }
-
-    //For get all header import
-    public class ReadImportHeaderDto
+    public class ReadImportHeaderResponseDTO
     {
         public Guid ImportId { get; set; }
 
@@ -53,5 +42,10 @@ namespace PetCenterAPI.DTOs
         public DateTime? ImportDate { get; set; }
 
         public ImportStock.ImportStatus Status { get; set; }
+    }
+    public class ExportResponseDTO
+    {
+        public List<ReadImportHeaderResponseDTO> Imports { get; set; } = new();
+        public List<ReadImportDetailResponseDTO> Details { get; set; } = new();
     }
 }

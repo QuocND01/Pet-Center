@@ -6,9 +6,9 @@ namespace PetCenterAPI.Service.Interface
     
         public interface ISupplierService
         {
-            Task<IEnumerable<ViewSupplierResponseDTO>> GetAllAsync();
-            Task<ViewSupplierResponseDTO?> GetByIdAsync(Guid id);
-            Task<ViewSupplierResponseDTO> CreateAsync(CreateSupplierRequestDTO dto);
+            Task<IEnumerable<ReadSupplierResponseDTO>> GetAllAsync();
+            Task<ReadSupplierResponseDTO?> GetByIdAsync(Guid id);
+            Task<ReadSupplierResponseDTO> CreateAsync(CreateSupplierRequestDTO dto);
             Task<bool> UpdateAsync(Guid id, CreateSupplierRequestDTO dto);
             Task<bool> DeleteAsync(Guid id); // soft delete
         }

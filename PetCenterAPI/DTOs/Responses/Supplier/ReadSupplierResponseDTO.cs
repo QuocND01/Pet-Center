@@ -1,6 +1,6 @@
 ﻿namespace PetCenterAPI.DTOs.Responses.Supplier
 {
-    public class ViewSupplierResponseDTO
+    public class ReadSupplierResponseDTO
     {
         public Guid SupplierId { get; set; }
         public string? TaxId { get; set; }

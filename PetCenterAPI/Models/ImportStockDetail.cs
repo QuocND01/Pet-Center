@@ -11,11 +11,14 @@ public partial class ImportStockDetail
 
     public Guid ProductId { get; set; }
 
+    public string SKU { get; set; } = null!;
+
+    public string BatchCode { get; set; } = null!;
     public decimal ImportPrice { get; set; }
 
     public int Quantity { get; set; }
 
-    public int? StockLeft { get; set; }
+    public int StockLeft { get; set; }
 
     public virtual ImportStock Import { get; set; } = null!;
 

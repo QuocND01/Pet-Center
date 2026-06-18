@@ -1,0 +1,271 @@
+﻿using AutoMapper;
+using PetCenterAPI.DTOs;
+using PetCenterAPI.DTOs.Requests.Import;
+using PetCenterAPI.DTOs.Responses.Import;
+using PetCenterAPI.Models;
+using PetCenterAPI.Repository.Interface;
+using PetCenterAPI.Service.Interface;
+using static PetCenterAPI.Models.ImportStock;
+
+namespace PetCenterAPI.Service
+{
+    public class ImportStockService : IImportStockService
+    {
+        private readonly IImportStockRepository _repo;
+        private readonly PetCenterContext _context;
+        private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
+        public ImportStockService(
+            IImportStockRepository repo,
+            PetCenterContext context,
+            IMapper mapper,
+            IHttpClientFactory httpClientFactory)
+        {
+            _repo = repo;
+            _context = context;
+            _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<Guid> CreateAsync(
+    CreateImportRequestDTO dto,
+    Guid staffGuid)
+        {
+            using var transaction =
+                await _context.Database.BeginTransactionAsync();
+
+            // ============================================
+            // MAP IMPORT
+            // ============================================
+
+            var importStock =
+                _mapper.Map<ImportStock>(dto);
+
+            importStock.ImportId = Guid.NewGuid();
+
+            importStock.ImportDate = DateTime.UtcNow;
+
+            importStock.Status = ImportStatus.Pending;
+
+            importStock.StaffId = staffGuid;
+
+            importStock.TotalAmount =
+                importStock.ImportStockDetails
+                    .Sum(x => x.Quantity * x.ImportPrice);
+
+            // ============================================
+            // GET PRODUCT IDS
+            // ============================================
+
+            var productIds =
+                importStock.ImportStockDetails
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .ToList();
+
+            // ============================================
+            // CALL PRODUCT API
+            // ============================================
+
+            var client =
+                _httpClientFactory.CreateClient("ProductAPI");
+
+            var response =
+                await client.PostAsJsonAsync(
+                    "api/products/snapshot",
+                    new
+                    {
+                        productIds
+                    });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(
+                    "Cannot get product snapshots");
+            }
+
+            var snapshots = 
+                await response.Content.
+                    ReadFromJsonAsync<
+                        List<ProductSnapshotRequestDTO>>();
+
+            if (snapshots == null || !snapshots.Any())
+            {
+                throw new Exception(
+                    "Product snapshots not found");
+            }
+
+            var snapshotDict =
+                snapshots.ToDictionary(x => x.ProductId);
+
+            foreach (var detail in importStock.ImportStockDetails)
+            {
+                if (!snapshotDict.TryGetValue(
+                    detail.ProductId,
+                    out var snapshotDto))
+                {
+                    throw new Exception(
+                        $"Product {detail.ProductId} not found");
+                }
+
+                var snapshot =
+                    _mapper.Map<ImportProductSnapshot>(
+                        snapshotDto);
+
+                snapshot.ProductSnapshotId =
+                    Guid.NewGuid();
+
+                detail.ImportProductSnapshot =
+                    snapshot;
+            }
+            //save
+
+            await _repo.AddAsync(importStock);
+
+            await _repo.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            return importStock.ImportId;
+        }
+
+        public async Task<ReadImportResponseDTO?> GetByIdAsync(Guid id)
+        {
+            var entity = await _repo.GetWithDetailsAsync(id);
+
+            if (entity == null)
+                return null;
+
+            return _mapper.Map<ReadImportResponseDTO>(entity);
+        }
+
+        public async Task<List<IncreaseStockRequestDTO>> ConfirmAsync(Guid id)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var importStock = await _repo.GetWithDetailsAsync(id);
+
+            if (importStock == null)
+                throw new Exception("Import not found");
+
+            if (importStock.Status != ImportStatus.Pending)
+                throw new Exception("Only pending import can be confirmed");
+
+            // 🔥 map data TRƯỚC khi save
+            var items = importStock.ImportStockDetails
+            .GroupBy(x => x.ProductId)
+            .Select(g => new IncreaseStockRequestDTO
+            {
+                ProductId = g.Key,
+                Quantity = g.Sum(x => x.Quantity)
+            }).ToList();
+
+            // 🔥 update status
+            importStock.Status = ImportStatus.Confirmed;
+
+            await _repo.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            // 🔥 RETURN cho controller
+            return items;
+        }
+
+        public async Task CancelAsync(Guid id)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var importStock = await _repo.GetByIdAsync(id);
+
+            if (importStock == null)
+                throw new Exception("Import not found");
+
+            if (importStock.Status != ImportStatus.Pending)
+                throw new Exception("Only pending import can be cancelled");
+
+            importStock.Status = ImportStatus.Cancelled;
+
+            await _repo.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+
+        public async Task<List<ReadImportHeaderResponseDTO>> GetAllImportsAsync()
+        {
+            var imports = await _repo.GetAllAsync();
+
+            return _mapper.Map<List<ReadImportHeaderResponseDTO>>(imports);
+        }
+        public async Task<ExportResponseDTO> Export(DateTime? fromDate, DateTime? toDate)
+        {
+            var (imports, details) = await _repo.GetExportData(fromDate, toDate);
+
+            return new ExportResponseDTO
+            {
+                Imports = _mapper.Map<List<ReadImportHeaderResponseDTO>>(imports),
+                Details = _mapper.Map<List<ReadImportDetailResponseDTO>>(details)
+            };
+        }
+        // Trừ kho FIFO
+        public async Task<string> DeductFIFO(Guid productId, int quantity)
+        {
+            using var tran = await _context.Database.BeginTransactionAsync();
+
+            var stocks = await _repo.GetAvailableStock(productId);
+
+            int remain = quantity;
+            var map = new List<string>();
+
+            foreach (var s in stocks)
+            {
+                if (remain <= 0) break;
+
+                int take = Math.Min(s.StockLeft, remain);
+
+                s.StockLeft -= take;
+                remain -= take;
+
+                map.Add($"{s.ImportStockDetailsId}:{take}");
+            }
+
+            if (remain > 0)
+                throw new Exception("Not enough stock");
+
+            await _repo.SaveChangesAsync();
+            await tran.CommitAsync();
+
+            return string.Join(",", map);
+        }
+
+        //  Trả hàng
+        public async Task ReturnStock(string mapping)
+        {
+            if (string.IsNullOrEmpty(mapping)) return;
+
+            using var tran = await _context.Database.BeginTransactionAsync();
+
+            var items = mapping.Split(',');
+
+            foreach (var item in items)
+            {
+                var parts = item.Split(':');
+
+                var id = Guid.Parse(parts[0]);
+                var qty = int.Parse(parts[1]);
+
+                var stock = await _repo.GetById(id);
+
+                if (stock != null)
+                    stock.StockLeft += qty;
+            }
+
+            await _repo.SaveChangesAsync();
+            await tran.CommitAsync();
+        }
+
+
+        public async Task<bool> HasProductInImportsAsync(Guid productId)
+        {
+            return await _repo
+                .CheckProductInImportsAsync(productId);
+        }
+    }
+}
