@@ -11,9 +11,8 @@ const OrderFeedback = (function () {
     let cachedFeedbacks = [];
 
     function init(orderId, products) {
-        if (isInitialized) return;
         currentOrderId = orderId;
-        orderProducts = products;
+        orderProducts = products || [];
         isInitialized = true;
         checkAndRenderButton();
     }

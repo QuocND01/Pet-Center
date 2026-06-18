@@ -320,11 +320,11 @@ namespace PetCenterAPI.Service
                 ImageUrl = product.ProductImages.FirstOrDefault()?.ImageUrl
             };
         }
-        public async Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds)
-        {
-            var products = await _productRepository.GetProductsForSnapshotAsync(productIds);
+        //public async Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds)
+        //{
+        //    var products = await _productRepository.GetProductsForSnapshotAsync(productIds);
 
-            return _mapper.Map<List<ProductSnapshotResponseDto>>(products);
-        }
+        //    return _mapper.Map<List<ProductSnapshotResponseDto>>(products);
+        //}
     }
 }

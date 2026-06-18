@@ -27,6 +27,6 @@ namespace PetCenterAPI.Service.Interface
        
         // Code mới Hồ mới thêm
         Task<ProductInternalDto?> GetInternalAsync(Guid productId);
-        Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds);
+        // Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds);
     }
 }

@@ -27,6 +27,20 @@ namespace PetCenterAPI.Service
         }
 
         // ============================================================
+        // FEEDBACK — VIEW BY ORDER (CUSTOMER SIDE — ORDER DETAIL POPUP)
+        // ============================================================
+        public async Task<List<ProductFeedbackResponseDTO>> GetFeedbacksByOrderIdAsync(Guid orderId)
+        {
+            var feedbacks = await _productFeedbackRepository.GetFeedbacksByOrderIdAsync(orderId);
+            return feedbacks.Select(MapToResponse).ToList();
+        }
+
+        public async Task<bool> HasFeedbackForOrderAsync(Guid orderId, Guid customerId)
+        {
+            return await _productFeedbackRepository.HasFeedbackForOrderAsync(orderId, customerId);
+        }
+
+        // ============================================================
         // HELPER
         // ============================================================
         private static ProductFeedbackResponseDTO MapToResponse(ProductFeedback feedback)
@@ -55,11 +69,6 @@ namespace PetCenterAPI.Service
                     .ToList()
             };
         }
-
-        /// <summary>
-        /// Detect whether a Cloudinary URL points to a video or an image,
-        /// checking the resource type path first, then falling back to file extension
-        /// </summary>
         private static string DetectMediaType(string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -74,5 +83,7 @@ namespace PetCenterAPI.Service
             var extension = Path.GetExtension(url).ToLowerInvariant();
             return VideoExtensions.Contains(extension) ? "video" : "image";
         }
+
+
     }
 }

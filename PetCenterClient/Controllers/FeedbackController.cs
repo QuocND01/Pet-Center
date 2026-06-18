@@ -17,6 +17,10 @@ namespace PetCenterClient.Controllers
             _productService = productService;
         }
 
+        // ============================================================
+        // FEEDBACK — CHECK ORDER FEEDBACK STATUS
+        // ============================================================
+
         // GET: Feedback/CheckOrderFeedback?orderId=xxx
         // AJAX endpoint để kiểm tra order đã feedback chưa
         [HttpGet]
