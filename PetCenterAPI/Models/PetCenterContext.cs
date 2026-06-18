@@ -435,7 +435,7 @@ public partial class PetCenterContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
-            entity.Property(e => e.Status).HasDefaultValue(1);
+            entity.Property(e => e.Status).HasDefaultValue(ImportStock.ImportStatus.Pending);
             entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
