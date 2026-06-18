@@ -56,7 +56,7 @@ namespace PetCenterClient.ViewModels.Service
             [Range(0.01, 100000000, ErrorMessage = "Service price must be greater than 0")]
             public decimal Price { get; set; }
 
-            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
+            [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
             public string? ServiceDescription { get; set; }
 
             [Required]
@@ -64,11 +64,8 @@ namespace PetCenterClient.ViewModels.Service
             public int Duration { get; set; }
 
             [Required]
-            [Range(0, int.MaxValue)]
             public int ServiceType { get; set; }
 
-            [Required]
-            [MinLength(1, ErrorMessage = "At least one image is required.")]
             public List<IFormFile>? ImageFiles { get; set; } = new();
         }
 
@@ -85,7 +82,7 @@ namespace PetCenterClient.ViewModels.Service
             [Range(0.01, 100000000, ErrorMessage = "Service price must be greater than 0")]
             public decimal Price { get; set; }
 
-            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
+            [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
             public string? ServiceDescription { get; set; }
 
             [Required]
@@ -93,7 +90,6 @@ namespace PetCenterClient.ViewModels.Service
             public int Duration { get; set; }
 
             [Required]
-            [Range(0, int.MaxValue)]
             public int ServiceType { get; set; }
 
             public List<string>? ExistingImages { get; set; } = new();

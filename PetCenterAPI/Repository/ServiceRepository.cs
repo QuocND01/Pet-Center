@@ -77,7 +77,7 @@ namespace PetCenterAPI.Repository
         public async Task<(IEnumerable<Models.Service> Items, int Total)> GetAllServiceAdminAsync(
     ServiceSpecification spec)
         {
-            var query = _db.Services
+            var query = _db.Services.Where(s => s.Status != Status.Deleted)
                 .Include(p => p.ServiceImages.Where(i => i.IsActive == true))
                 .Where(spec.ToExpression());
 

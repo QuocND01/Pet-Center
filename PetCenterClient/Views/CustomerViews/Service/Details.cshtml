@@ -1,0 +1,269 @@
+﻿@using static PetCenterClient.ViewModels.Service.ServiceViewModel
+@model ReadServiceViewModel
+
+@{
+    ViewData["Title"] = "Service Details";
+
+    string serviceType = Model.ServiceType switch
+    {
+        1 => "Veterinary",
+        2 => "Grooming",
+        _ => "Other"
+    };
+}
+
+<style>
+    .service-details-container {
+        max-width: 1300px;
+        margin: 100px auto 50px;
+        padding: 0 20px;
+    }
+
+    .service-card {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(0,0,0,.08);
+    }
+
+    .main-image {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+
+    .thumbnail-container {
+        display: flex;
+        gap: 12px;
+        padding: 20px;
+        overflow-x: auto;
+    }
+
+    .thumbnail {
+        width: 110px;
+        height: 80px;
+        border-radius: 12px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: .3s;
+    }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #22c55e;
+        }
+
+    .info-section {
+        padding: 35px;
+    }
+
+    .service-name {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .service-type {
+        display: inline-block;
+        background: #dcfce7;
+        color: #166534;
+        padding: 8px 18px;
+        border-radius: 999px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .service-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    .meta-box {
+        flex: 1;
+        min-width: 180px;
+        background: #f8fafc;
+        border-radius: 18px;
+        padding: 20px;
+    }
+
+    .meta-title {
+        font-size: .9rem;
+        color: #64748b;
+        margin-bottom: 8px;
+    }
+
+    .meta-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .price {
+        color: #16a34a;
+    }
+
+    .description-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .description-content {
+        line-height: 1.9;
+        color: #475569;
+        white-space: pre-line;
+    }
+
+    .booking-section {
+        margin-top: 35px;
+    }
+
+    .btn-book {
+        background: #22c55e;
+        border: none;
+        color: white;
+        padding: 14px 35px;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: .3s;
+    }
+
+        .btn-book:hover {
+            background: #16a34a;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .empty-image {
+        height: 500px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 1.2rem;
+    }
+
+    @@media(max-width:768px) {
+        .main-image {
+            height: 280px;
+        }
+
+        .service-name {
+            font-size: 1.8rem;
+        }
+
+        .info-section {
+            padding: 25px;
+        }
+    }
+</style>
+
+<div class="service-details-container">
+
+    <div class="service-card">
+
+        <!-- Image Gallery -->
+        @if (Model.ImageFiles.Any())
+        {
+            <img id="mainImage"
+                 src="@Model.ImageFiles.First()"
+                 class="main-image" />
+
+            <div class="thumbnail-container">
+                @foreach (var image in Model.ImageFiles)
+                {
+                    <img src="@image"
+                         class="thumbnail"
+                         onclick="changeImage(this)" />
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-image">
+                No Image Available
+            </div>
+        }
+
+        <!-- Service Information -->
+        <div class="info-section">
+
+            <h1 class="service-name">@Model.ServiceName</h1>
+
+            <span class="service-type">
+                @serviceType
+            </span>
+
+            <div class="service-meta">
+
+                <div class="meta-box">
+                    <div class="meta-title">
+                        Price
+                    </div>
+                    <div class="meta-value price">
+                        @Model.Price.ToString("N0") VND
+                    </div>
+                </div>
+
+                <div class="meta-box">
+                    <div class="meta-title">
+                        Duration
+                    </div>
+                    <div class="meta-value">
+                        @Model.Duration Minutes
+                    </div>
+                </div>
+
+            </div>
+
+            <div>
+                <h3 class="description-title">
+                    Service Description
+                </h3>
+
+                <div class="description-content">
+                    @(string.IsNullOrWhiteSpace(Model.ServiceDescription)
+                                        ? "No description available."
+                                        : Model.ServiceDescription)
+                </div>
+            </div>
+
+            <div class="booking-section">
+                <a asp-controller="Booking"
+                   asp-action="Create"
+                   asp-route-serviceId="@Model.ServiceId"
+                   class="btn btn-book">
+                    Book Appointment
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function changeImage(element) {
+
+        document.getElementById("mainImage").src = element.src;
+
+        document.querySelectorAll(".thumbnail")
+            .forEach(x => x.classList.remove("active"));
+
+        element.classList.add("active");
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const firstThumb = document.querySelector(".thumbnail");
+
+        if (firstThumb) {
+            firstThumb.classList.add("active");
+        }
+    });
+</script>

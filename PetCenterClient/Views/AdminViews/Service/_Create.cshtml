@@ -1,0 +1,357 @@
+﻿@model PetCenterClient.ViewModels.Service.ServiceViewModel.CreateServiceViewModel
+
+<style>
+
+    .page-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 30px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        margin-bottom: 25px;
+    }
+
+    .section-card {
+        background: #f8f9fa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 48px;
+        border-radius: 12px;
+    }
+
+    textarea.form-control {
+        min-height: 140px;
+        resize: vertical;
+    }
+
+    .image-preview {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 16px;
+        border: 3px solid #fff;
+        box-shadow: 0 5px 20px rgba(0,0,0,.12);
+        cursor: pointer;
+        transition: .25s;
+    }
+
+        .image-preview:hover {
+            transform: scale(1.03);
+        }
+
+    .image-item {
+        position: relative;
+    }
+
+    .remove-image {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+    }
+
+    .btn-create {
+        min-width: 180px;
+        height: 50px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .add-image-btn {
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+</style>
+
+<div class="page-card">
+
+    ```
+    <h2 class="page-title">
+        Create Service
+    </h2>
+
+    <p class="page-subtitle">
+        Add a new service to your system
+    </p>
+
+    <form asp-action="Create"
+          asp-controller="Service"
+          method="post"
+          enctype="multipart/form-data">
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
+        </div>
+
+        <div class="section-card">
+
+            <div class="section-title">
+                Basic Information
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-12 mb-3">
+
+                    <label asp-for="ServiceName"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="ServiceName"
+                           class="form-control"
+                           placeholder="Enter service name" />
+
+                    <span asp-validation-for="ServiceName"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="Price"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="Price"
+                           type="number"
+                           step="0.01"
+                           min="0"
+                           class="form-control"
+                           placeholder="Enter service price" />
+
+                    <span asp-validation-for="Price"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="Duration"
+                           class="form-label">
+                        Duration (Minutes)
+                    </label>
+
+                    <input asp-for="Duration"
+                           type="number"
+                           min="1"
+                           class="form-control"
+                           placeholder="Enter duration in minutes" />
+
+                    <span asp-validation-for="Duration"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label asp-for="ServiceType"
+                           class="form-label">
+                        Service Type
+                    </label>
+
+                    <select asp-for="ServiceType"
+                            class="form-select">
+
+                        <option value="">
+                            -- Select Service Type --
+                        </option>
+
+                        <option value="1">
+                            Grooming
+                        </option>
+
+                        <option value="2">
+                            Vet
+                        </option>
+
+                    </select>
+
+                    <span asp-validation-for="ServiceType"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <div class="col-md-12 mb-3">
+
+                    <label asp-for="ServiceDescription"
+                           class="form-label">
+                    </label>
+
+                    <textarea asp-for="ServiceDescription"
+                              class="form-control"
+                              placeholder="Enter service description">
+                </textarea>
+
+                    <span asp-validation-for="ServiceDescription"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="section-card">
+
+            <div class="section-title">
+                Service Images
+            </div>
+
+            <div id="imageList"
+                 class="d-flex flex-wrap gap-3">
+
+                <div class="image-item">
+
+                    <input type="file"
+                           name="ImageFiles"
+                           accept="image/*"
+                           hidden
+                           onchange="previewSelectedImage(this,'preview_0')" />
+
+                    <img id="preview_0"
+                         src="https://via.placeholder.com/150"
+                         class="image-preview"
+                         onclick="this.previousElementSibling.click()" />
+
+                    <button type="button"
+                            class="btn btn-danger remove-image"
+                            onclick="removeImage(this)">
+                        ✖
+                    </button>
+
+                </div>
+
+            </div>
+
+            <button type="button"
+                    id="addImage"
+                    class="btn btn-success add-image-btn mt-3">
+
+                <i class="bi bi-plus-lg me-1"></i>
+                Add Image
+
+            </button>
+
+        </div>
+
+        <div class="text-end">
+
+            <button type="submit"
+                    class="btn btn-success btn-create">
+
+                <i class="bi bi-check-circle me-1"></i>
+                Create Service
+
+            </button>
+
+        </div>
+
+    </form>
+    ```
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+        ```
+    <script>
+
+        let imageIndex = 1;
+
+        $("#addImage").click(function () {
+
+            const html = `
+            <div class="image-item">
+
+                <input type="file"
+                       name="ImageFiles"
+                       accept="image/*"
+                       hidden
+                       onchange="previewSelectedImage(this,'preview_${imageIndex}')" />
+
+                <img id="preview_${imageIndex}"
+                     src="https://via.placeholder.com/150"
+                     class="image-preview"
+                     onclick="this.previousElementSibling.click()" />
+
+                <button type="button"
+                        class="btn btn-danger remove-image"
+                        onclick="removeImage(this)">
+                    ✖
+                </button>
+
+            </div>
+            `;
+
+            $("#imageList").append(html);
+
+            imageIndex++;
+        });
+
+        function removeImage(button) {
+
+            if ($(".image-item").length <= 1) {
+
+                alert("Service must have at least 1 image");
+
+                return;
+            }
+
+            $(button).closest(".image-item").remove();
+        }
+
+        function previewSelectedImage(input, previewId) {
+
+            const file = input.files[0];
+
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                document.getElementById(previewId).src = e.target.result;
+
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+    </script>
+        ```
+
+}

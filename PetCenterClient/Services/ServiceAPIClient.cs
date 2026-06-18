@@ -139,10 +139,14 @@ namespace PetCenterClient.Services
             var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(model.ServiceName), "ServiceName");
-            content.Add(new StringContent(model.Price.ToString()), "ServicePrice");
+            content.Add(new StringContent(model.Price.ToString()), "Price");
 
-            if (model.ServiceDescription != null)
+            if (!string.IsNullOrEmpty(model.ServiceDescription))
                 content.Add(new StringContent(model.ServiceDescription), "ServiceDescription");
+
+            content.Add(new StringContent(model.ServiceType.ToString()), "ServiceType");
+            content.Add(new StringContent(model.Duration.ToString()), "Duration");
+
 
 
             // gửi ảnh
@@ -174,10 +178,13 @@ namespace PetCenterClient.Services
             var form = new MultipartFormDataContent();
 
             form.Add(new StringContent(model.ServiceName), "ServiceName");
-            form.Add(new StringContent(model.Price.ToString()), "ServicePrice");
+            form.Add(new StringContent(model.Price.ToString()), "Price");
 
             if (!string.IsNullOrEmpty(model.ServiceDescription))
                 form.Add(new StringContent(model.ServiceDescription), "ServiceDescription");
+
+            form.Add(new StringContent(model.ServiceType.ToString()), "ServiceType");
+            form.Add(new StringContent(model.Duration.ToString()), "Duration");
 
 
             // Existing Images (ảnh còn giữ lại)

@@ -120,10 +120,11 @@ namespace PetCenterClient.Controllers
                 Status = category.Status,
 
                 Attributes = category.Attributes?
-                    .Select(a => new UpdateCategoryAttributeViewModel
-                    {
-                        AttributeName = a.AttributeName
-                    }).ToList()
+                .Select(a => new UpdateCategoryAttributeViewModel
+                {
+                    CategoryAttributeId = a.CategoryAttributeId,
+                    AttributeName = a.AttributeName
+                }).ToList()
             };
 
             return PartialView("~/Views/AdminViews/Category/_Edit.cshtml", model);
@@ -147,6 +148,7 @@ namespace PetCenterClient.Controllers
 
             return Json(new { success = true });
         }
+
 
 
         public async Task<IActionResult> ChangeStatusAsync(

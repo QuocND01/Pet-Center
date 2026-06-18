@@ -49,6 +49,8 @@ namespace PetCenterAPI.Controllers
             return Service;
         }
 
+
+
         // PUT: api/Services/5
         // [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
@@ -59,12 +61,23 @@ namespace PetCenterAPI.Controllers
 
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
+                var errors = ModelState
+        .Where(x => x.Value.Errors.Count > 0)
+        .SelectMany(x => x.Value.Errors)
+        .Select(e => e.ErrorMessage)
+        .ToList();
 
-                return BadRequest(new { message = string.Join(", ", errors) });
+                Console.WriteLine("MODEL STATE INVALID:");
+                foreach (var e in errors)
+                {
+                    Console.WriteLine(e);
+                }
+
+                return BadRequest(new
+                {
+                    message = "ModelState invalid",
+                    errors
+                });
             }
 
             try
