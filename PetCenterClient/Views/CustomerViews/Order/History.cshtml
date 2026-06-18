@@ -130,12 +130,34 @@
                 .then(response => response.text())
                 .then(html => {
                     modalBody.innerHTML = html;
+                    // innerHTML does not execute <script> tags by design,
+                    // so any script returned by the partial view (e.g. order-feedback.js
+                    // initialization) must be manually re-created and re-appended to run
+                    runInlineScripts(modalBody);
                 })
                 .catch(err => {
                     modalBody.innerHTML = "<div class='text-center text-danger'>Failed to load details.</div>";
                 });
         }
     });
+
+    // Re-execute any <script> tags that were injected via innerHTML,
+    // since the browser intentionally ignores them otherwise
+    function runInlineScripts(container) {
+        var oldScripts = container.querySelectorAll("script");
+        oldScripts.forEach(function (oldScript) {
+            var newScript = document.createElement("script");
+            if (oldScript.src) {
+                newScript.src = oldScript.src;
+            } else {
+                newScript.textContent = oldScript.textContent;
+            }
+            Array.from(oldScript.attributes).forEach(function (attr) {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
 
     // 2. Xử lý Hủy đơn cho Customer bằng Fetch API (Thuần JS)
     document.addEventListener("click", function (e) {
@@ -144,8 +166,6 @@
             var orderId = btnCancel.getAttribute("data-id");
 
             if (confirm("Are you sure you want to cancel this order?")) {
-
-                // Fetch API thay cho $.ajax
                 fetch('@Url.Action("Cancel", "Orders")', {
                     method: 'POST',
                     headers: {
