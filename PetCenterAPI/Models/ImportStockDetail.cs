@@ -14,12 +14,15 @@ public partial class ImportStockDetail
     public string SKU { get; set; } = null!;
 
     public string BatchCode { get; set; } = null!;
+
     public decimal ImportPrice { get; set; }
 
     public int Quantity { get; set; }
 
     public int StockLeft { get; set; }
 
+    public DateTime? ManufacturingDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
     public virtual ImportStock Import { get; set; } = null!;
 
     public virtual ImportProductSnapshot? ImportProductSnapshot { get; set; }

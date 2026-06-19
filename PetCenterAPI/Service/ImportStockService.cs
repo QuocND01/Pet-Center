@@ -57,68 +57,68 @@ namespace PetCenterAPI.Service
             // GET PRODUCT IDS
             // ============================================
 
-            var productIds =
-                importStock.ImportStockDetails
-                    .Select(x => x.ProductId)
-                    .Distinct()
-                    .ToList();
+            //var productIds =
+            //    importStock.ImportStockDetails
+            //        .Select(x => x.ProductId)
+            //        .Distinct()
+            //        .ToList();
 
-            // ============================================
-            // CALL PRODUCT API
-            // ============================================
+            //// ============================================
+            //// CALL PRODUCT API
+            //// ============================================
 
-            var client =
-                _httpClientFactory.CreateClient("ProductAPI");
+            //var client =
+            //    _httpClientFactory.CreateClient("ProductAPI");
 
-            var response =
-                await client.PostAsJsonAsync(
-                    "api/products/snapshot",
-                    new
-                    {
-                        productIds
-                    });
+            //var response =
+            //    await client.PostAsJsonAsync(
+            //        "api/products/snapshot",
+            //        new
+            //        {
+            //            productIds
+            //        });
 
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception(
-                    "Cannot get product snapshots");
-            }
+            //if (!response.IsSuccessStatusCode)
+            //{
+            //    throw new Exception(
+            //        "Cannot get product snapshots");
+            //}
 
-            var snapshots = 
-                await response.Content.
-                    ReadFromJsonAsync<
-                        List<ProductSnapshotRequestDTO>>();
+            //var snapshots = 
+            //    await response.Content.
+            //        ReadFromJsonAsync<
+            //            List<ProductSnapshotRequestDTO>>();
 
-            if (snapshots == null || !snapshots.Any())
-            {
-                throw new Exception(
-                    "Product snapshots not found");
-            }
+            //if (snapshots == null || !snapshots.Any())
+            //{
+            //    throw new Exception(
+            //        "Product snapshots not found");
+            //}
 
-            var snapshotDict =
-                snapshots.ToDictionary(x => x.ProductId);
+            //var snapshotDict =
+            //    snapshots.ToDictionary(x => x.ProductId);
 
-            foreach (var detail in importStock.ImportStockDetails)
-            {
-                if (!snapshotDict.TryGetValue(
-                    detail.ProductId,
-                    out var snapshotDto))
-                {
-                    throw new Exception(
-                        $"Product {detail.ProductId} not found");
-                }
+            //foreach (var detail in importStock.ImportStockDetails)
+            //{
+            //    if (!snapshotDict.TryGetValue(
+            //        detail.ProductId,
+            //        out var snapshotDto))
+            //    {
+            //        throw new Exception(
+            //            $"Product {detail.ProductId} not found");
+            //    }
 
-                var snapshot =
-                    _mapper.Map<ImportProductSnapshot>(
-                        snapshotDto);
+            //    var snapshot =
+            //        _mapper.Map<ImportProductSnapshot>(
+            //            snapshotDto);
 
-                snapshot.ProductSnapshotId =
-                    Guid.NewGuid();
+            //    snapshot.ProductSnapshotId =
+            //        Guid.NewGuid();
 
-                detail.ImportProductSnapshot =
-                    snapshot;
-            }
-            //save
+            //    detail.ImportProductSnapshot =
+            //        snapshot;
+            //}
+            ////save
 
             await _repo.AddAsync(importStock);
 

@@ -10,7 +10,8 @@
         public decimal ImportPrice { get; set; }
         public string SKU { get; set; } = null!;
         public string BatchCode { get; set; } = null!;
-
+        public DateTime? ManufacturingDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 
 }

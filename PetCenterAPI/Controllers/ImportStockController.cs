@@ -42,7 +42,7 @@ namespace PetCenterAPI.Controllers
             // var staffId = Guid.Parse(staffClaim);
 
             //=== TEST ===
-            var staffId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var staffId = dto.StaffId;
             //============
 
             var id = await _service.CreateAsync(dto, staffId);
