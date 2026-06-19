@@ -18,10 +18,14 @@ const OrderFeedback = (function () {
     }
 
     async function checkAndRenderButton() {
+        console.log('[DEBUG] checkAndRenderButton called, orderId =', currentOrderId);
         try {
             const response = await fetch(`/Feedback/CheckOrderFeedback?orderId=${currentOrderId}`);
+            console.log('[DEBUG] fetch status =', response.status);
             const result = await response.json();
+            console.log('[DEBUG] result =', result);
             const container = document.getElementById('feedback-button-container');
+            console.log('[DEBUG] container element =', container);
             if (!container) return;
 
             if (result.success && result.hasFeedback) {

@@ -101,6 +101,24 @@
         </table>
     </div>
 
+    @* ═══════════════════════════════════════════════════
+       ORDER FEEDBACK (Customer side only, completed orders only)
+    ════════════════════════════════════════════════════ *@
+    @if (Model.Status == 4 && !isStaffOrAdmin)
+    {
+        <div class="d-flex align-items-center justify-content-between rounded-3 px-3 py-3 mb-3"
+             style="background: linear-gradient(135deg, #fff8f5, #fffbf9); border: 1px solid #ffe3d6;">
+            <div class="d-flex align-items-center gap-2">
+                <span style="font-size: 22px;">⭐</span>
+                <div>
+                    <div class="fw-semibold" style="font-size: 14px; color: #222;">How was your experience?</div>
+                    <div class="text-muted" style="font-size: 12px;">Share your thoughts about the products in this order</div>
+                </div>
+            </div>
+            <div id="feedback-button-container"></div>
+        </div>
+    }
+
     <div class="row justify-content-end">
         <div class="col-md-5">
             <div class="d-flex justify-content-between mb-2">
@@ -114,40 +132,3 @@
         </div>
     </div>
 </div>
-
-@* ═══════════════════════════════════════════════════
-   ORDER FEEDBACK — script must be inline since this is a PartialView
-   loaded into a Bootstrap modal (no Layout to render @section Scripts into)
-════════════════════════════════════════════════════ *@
-@if (Model.Status == 4 && !isStaffOrAdmin)
-{
-    <meta name="customer-name" content="@customerDisplayName" id="meta-customer-name">
-
-    <script>
-        (function () {
-            // Remove any previously injected meta tag from an earlier modal load,
-            // so the customer name always reflects the current session correctly
-            document.querySelectorAll('meta[name="customer-name"]').forEach(function (el, idx) {
-                if (idx > 0) el.remove();
-            });
-
-            var orderProducts = @Html.Raw(Json.Serialize(Model.OrderItems.Select(i => new
-            {
-                productId = i.ProductId,
-                productName = i.ProductName,
-                imageUrl = i.ProductImage
-            })));
-
-            function startFeedback() {
-                if (typeof OrderFeedback === 'undefined') {
-                    // order-feedback.js not loaded yet, retry shortly
-                    setTimeout(startFeedback, 150);
-                    return;
-                }
-                OrderFeedback.init('@Model.OrderId', orderProducts);
-            }
-
-            startFeedback();
-        })();
-    </script>
-}

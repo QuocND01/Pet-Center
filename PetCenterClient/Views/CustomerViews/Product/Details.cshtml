@@ -556,6 +556,7 @@
 
             if (data.success) {
                 showToast(data.message || 'Added to cart successfully!', 'ok');
+                if (window.refreshCartBadge) window.refreshCartBadge();
             } else {
                 var msg = data.message || 'Failed to add to cart.';
                 showToast(msg, 'err');
