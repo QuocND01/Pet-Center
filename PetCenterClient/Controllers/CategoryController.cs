@@ -25,14 +25,15 @@ namespace PetCenterClient.Controllers
         }
 
         public async Task<IActionResult> IndexAdminAsync(
-            string? search, bool? isActive, int page = 1)
+            string? search, Status? status, int page = 1)
         {
-            var result = await _categoryService.GetAllCategoryAdminAsync(search, isActive, page);
+            var result = await _categoryService.GetAllCategoryAdminAsync(search, status, page);
 
             ViewBag.CurrentPage = result.CurrentPage;
+            ViewBag.TotalCategories = result.TotalCount;
             ViewBag.TotalPages = result.TotalPages;
             ViewBag.Search = search;
-            ViewBag.IsActive = isActive;
+            ViewBag.Status = status;
 
             return View("~/Views/AdminViews/Category/Index.cshtml", result.Data);
         }

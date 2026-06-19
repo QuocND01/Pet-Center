@@ -71,7 +71,7 @@
 
 <div class="page-card">
 
-    ```
+     
     <form asp-action="Edit"
           asp-controller="Service"
           method="post"
@@ -165,17 +165,14 @@
                         Service Type
                     </label>
 
-                    <select asp-for="ServiceType"
-                            class="form-select">
+                    <select asp-for="ServiceType" class="form-select">
+                        <option value="1" selected="@(Model.ServiceType == 1)">
+                            Veterinary
+                        </option>
 
-                        <option value="1">
+                        <option value="2" selected="@(Model.ServiceType == 2)">
                             Grooming
                         </option>
-
-                        <option value="2">
-                            Vet
-                        </option>
-
                     </select>
 
                     <span asp-validation-for="ServiceType"
@@ -262,7 +259,7 @@
         </div>
 
     </form>
-    ```
+     
 
 </div>
 
@@ -352,8 +349,8 @@
 
 @section Scripts {
 
-    ```
+     
     <partial name="_ValidationScriptsPartial" />
-    ```
+     
 
 }

@@ -1,4 +1,6 @@
 ﻿@using PetCenterClient.Common
+@using PetCenterClient.ViewModels.Brand
+@using PetCenterClient.ViewModels.Category
 @using PetCenterClient.ViewModels.Product
 @model IEnumerable<ReadProductViewModel>
 
@@ -28,6 +30,187 @@
             color: white;
         }
 
+
+  .filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-wrap,
+.filter-select,
+.filter-input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.search-wrap {
+    position: relative;
+}
+
+.search-wrap i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.search-input,
+.filter-select,
+.filter-input {
+    width: 100%;
+    height: 44px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    background: white;
+    padding: 0 14px;
+    transition: .2s;
+}
+
+.search-input {
+    padding-left: 38px;
+}
+
+.search-input:focus,
+.filter-select:focus,
+.filter-input:focus {
+    border-color: #4f46e5;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+}
+
+/* Apply */
+.btn-filter-apply {
+    height: 44px;
+    min-width: 120px;
+    border: none;
+    border-radius: 10px;
+    background: #4f46e5;
+    color: white;
+    font-weight: 600;
+    padding: 0 18px;
+    transition: .2s;
+}
+
+.btn-filter-apply:hover {
+    background: #4338ca;
+}
+
+/* Reset */
+.btn-filter-reset {
+    height: 44px;
+    min-width: 120px;
+    border-radius: 10px;
+    background: #e5e7eb;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .2s;
+}
+
+.btn-filter-reset:hover {
+    background: #d1d5db;
+    color: #111827;
+}
+
+/* Add Product */
+.btn-add-product {
+    border: none;
+    background: #16a34a;
+    color: white;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: .2s;
+}
+
+.btn-add-product:hover {
+    background: #15803d;
+}
+
+@@media(max-width:768px) {
+
+    .toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-wrap,
+    .filter-select,
+    .filter-input,
+    .btn-filter-apply,
+    .btn-filter-reset {
+        width: 100%;
+    }
+}
+
+/* Đồng bộ font toàn bộ filter */
+.filter-container,
+.filter-container input,
+.filter-container select,
+.filter-container button,
+.filter-container a {
+    font-family: inherit !important;
+    font-size: 14px !important;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* Đồng bộ chiều cao */
+.search-input,
+.filter-select,
+.filter-input,
+.btn-filter-apply,
+.btn-filter-reset {
+    height: 44px;
+    font-size: 14px !important;
+    font-weight: 500;
+}
+
+/* Date picker thường bị lệch font */
+.filter-input[type="date"] {
+    font-family: inherit !important;
+    font-size: 14px !important;
+}
+
+/* Select thường nhìn đậm hơn input */
+.filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+/* Apply */
+.btn-filter-apply {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Reset */
+.btn-filter-reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 </style>
 
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
@@ -35,87 +218,182 @@
 <div class="page-wrapper">
 
     <!-- HEADER -->
-    <div class="page-header">
+  <div class="page-header">
 
-        <div class="page-title-group">
-            <h1>Product Management</h1>
-            <p>Manage all products in system</p>
-        </div>
+    <div class="page-title-group">
+        <h1>Product Management</h1>
+        <p>Manage all products in system</p>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
 
         <div class="header-stat">
-          <span class="num">@Model.Count()</span>
+             <span class="num">@ViewBag.TotalProducts</span>
             <span class="label">Products</span>
         </div>
 
+        @if (isAdmin)
+        {
+            <button type="button"
+                    class="btn-add-product"
+                    data-bs-toggle="modal"
+                    data-bs-target="#productModal"
+                    data-url="@Url.Action("Create", "Products")">
+
+                <i class="bi bi-plus-lg"></i>
+                Add Product
+            </button>
+        }
+
     </div>
+
+</div>
 
 
     <!-- TOOLBAR -->
-    <form asp-action="IndexAdmin" asp-controller="Products" method="get" class="toolbar">
+   <form asp-action="IndexAdmin"
+      asp-controller="Products"
+      method="get"
+      class="filter-container">
 
-        <!-- Search -->
+    <!-- Row 1 -->
+    <div class="toolbar-row">
+
         <div class="search-wrap">
             <i class="bi bi-search"></i>
-
             <input type="text"
                    name="search"
-                   value="@Context.Request.Query["search"]"
+                   value="@ViewBag.Search"
                    class="search-input"
-                   placeholder="Search product name..." />
+                   placeholder="Search product..." />
         </div>
 
-        <!-- Sort -->
-        <select name="sortBy" class="filter-btn">
+      <select name="status" class="filter-select">
+    <option value="">All Status</option>
+
+    <option value="1"
+            selected="@(ViewBag.Status?.ToString() == "1")">
+        Active
+    </option>
+
+    <option value="2"
+            selected="@(ViewBag.Status?.ToString() == "2")">
+        Inactive
+    </option>
+</select>
+
+       <select name="categoryId" class="filter-select">
+            <option value="">All Categories</option>
+
+            @foreach (var item in (IEnumerable<ReadCategoryViewModel>)ViewBag.Categories)
+            {
+                if (ViewBag.CategoryId?.ToString() == item.CategoryId.ToString())
+                {
+                    <option value="@item.CategoryId" selected>
+                        @item.CategoryName
+                    </option>
+                }
+                else
+                {
+                    <option value="@item.CategoryId">
+                        @item.CategoryName
+                    </option>
+                }
+            }
+        </select>
+
+       <select name="brandId" class="filter-select">
+            <option value="">All Brands</option>
+
+            @foreach (var item in (IEnumerable<ReadBrandViewModel>)ViewBag.Brands)
+            {
+                if (ViewBag.BrandId?.ToString() == item.BrandId.ToString())
+                {
+                    <option value="@item.BrandId" selected>
+                        @item.BrandName
+                    </option>
+                }
+                else
+                {
+                    <option value="@item.BrandId">
+                        @item.BrandName
+                    </option>
+                }
+            }
+        </select>
+
+    </div>
+
+    <!-- Row 2 -->
+    <div class="toolbar-row">
+
+        <select name="sortBy" class="filter-select">
             <option value="">Sort By</option>
-            <option value="ProductName">Name</option>
-            <option value="ProductPrice">Price</option>
-            <option value="CreatedAt">Created</option>
+
+            <option value="ProductName"
+                    selected="@(ViewBag.SortBy == "ProductName")">
+                Name
+            </option>
+
+            <option value="ProductPrice"
+                    selected="@(ViewBag.SortBy == "ProductPrice")">
+                Price
+            </option>
+
+            <option value="CreatedAt"
+                    selected="@(ViewBag.SortBy == "CreatedAt")">
+                Created Date
+            </option>
         </select>
 
-        <select name="sortOrder" class="filter-btn">
-            <option value="asc">Asc</option>
-            <option value="desc">Desc</option>
+       <select name="sortOrder" class="filter-select">
+            <option value="asc"
+                    selected="@(ViewBag.SortOrder == "asc")">
+                Ascending
+            </option>
+
+            <option value="desc"
+                    selected="@(ViewBag.SortOrder == "desc")">
+                Descending
+            </option>
         </select>
 
-        <!-- Price -->
         <input type="number"
                name="minPrice"
-               value="@Context.Request.Query["minPrice"]"
+               value="@ViewBag.MinPrice"
                class="filter-input"
-               placeholder="Min price" />
+               placeholder="Min Price" />
 
         <input type="number"
                name="maxPrice"
-               value="@Context.Request.Query["maxPrice"]"
+               value="@ViewBag.MaxPrice"
                class="filter-input"
-               placeholder="Max price" />
+               placeholder="Max Price" />
 
-        <!-- Date -->
         <input type="date"
                name="fromDate"
-               value="@Context.Request.Query["fromDate"]"
+               value="@(ViewBag.FromDate != null ? ((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd") : "")"
                class="filter-input" />
 
         <input type="date"
                name="toDate"
-               value="@Context.Request.Query["toDate"]"
+               value="@(ViewBag.ToDate != null ? ((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd") : "")"
                class="filter-input" />
-        <!-- Buttons -->
-        <button type="submit" class="filter-btn active">
+
+       <button type="submit" class="btn-filter-apply">
+            <i class="bi bi-funnel"></i>
             Apply
         </button>
-        @if (isAdmin)
-            {
-                <button type="button"
-                class="filter-btn"
-                data-bs-toggle="modal"
-                data-bs-target="#productModal"
-                data-url="@Url.Action("Create", "Products")">
 
-                    <i class="bi bi-plus"></i> Add
-                </button>
-            }
-        </form>
+        <a asp-action="IndexAdmin"
+           asp-controller="Products"
+           class="btn-filter-reset">
+            Reset
+        </a>
+
+    </div>
+
+</form>
 
 
     <!-- TABLE -->
@@ -227,13 +505,11 @@
 
                                 @if (p.Status == Status.Active)
                                 {
-                                    <i class="bi bi-slash-circle"></i>
-                                    <span>Deactivate</span>
+                                    <i class="bi bi-toggle-on text-success"></i>
                                 }
                                 else
                                 {
-                                    <i class="bi bi-check-circle"></i>
-                                    <span>Activate</span>
+                                   <i class="bi bi-toggle-off text-warning"></i>
                                 }
                             </button>
 
@@ -247,7 +523,6 @@
                                     })">
 
                                 <i class="bi bi-trash"></i>
-                                <span>Delete</span>
                             </button>
                                 }
 
@@ -286,9 +561,14 @@
             int totalPages = ViewBag.TotalPages ?? 1;
             var routeValues = new
             {
-                search = Context.Request.Query["search"],
+                 search = Context.Request.Query["search"],
+                status = Context.Request.Query["status"],
+                categoryId = Context.Request.Query["categoryId"],
+                brandId = Context.Request.Query["brandId"],
                 minPrice = Context.Request.Query["minPrice"],
                 maxPrice = Context.Request.Query["maxPrice"],
+                fromDate = Context.Request.Query["fromDate"],
+                toDate = Context.Request.Query["toDate"],
                 sortBy = Context.Request.Query["sortBy"],
                 sortOrder = Context.Request.Query["sortOrder"]
             };
@@ -298,10 +578,15 @@
             <!-- Prev -->
            <a class="page-btn"
    href="@Url.Action("IndexAdmin", new {
-        page = currentPage - 1,
+         page = currentPage - 1,
         search = routeValues.search,
+        status = routeValues.status,
+        categoryId = routeValues.categoryId,
+        brandId = routeValues.brandId,
         minPrice = routeValues.minPrice,
         maxPrice = routeValues.maxPrice,
+        fromDate = routeValues.fromDate,
+        toDate = routeValues.toDate,
         sortBy = routeValues.sortBy,
         sortOrder = routeValues.sortOrder
    })">
@@ -316,8 +601,13 @@
                   href="@Url.Action("IndexAdmin", new {
                     page = i,
                     search = routeValues.search,
+                    status = routeValues.status,
+                    categoryId = routeValues.categoryId,
+                    brandId = routeValues.brandId,
                     minPrice = routeValues.minPrice,
                     maxPrice = routeValues.maxPrice,
+                    fromDate = routeValues.fromDate,
+                    toDate = routeValues.toDate,
                     sortBy = routeValues.sortBy,
                     sortOrder = routeValues.sortOrder
                 })">
@@ -329,11 +619,16 @@
             <a class="page-btn"
    href="@Url.Action("IndexAdmin", new {
         page = currentPage + 1,
-        search = routeValues.search,
-        minPrice = routeValues.minPrice,
-        maxPrice = routeValues.maxPrice,
-        sortBy = routeValues.sortBy,
-        sortOrder = routeValues.sortOrder
+            search = routeValues.search,
+            status = routeValues.status,
+            categoryId = routeValues.categoryId,
+            brandId = routeValues.brandId,
+            minPrice = routeValues.minPrice,
+            maxPrice = routeValues.maxPrice,
+            fromDate = routeValues.fromDate,
+            toDate = routeValues.toDate,
+            sortBy = routeValues.sortBy,
+            sortOrder = routeValues.sortOrder
    })">
     Next
 </a>
@@ -400,6 +695,8 @@
         <div class="toast-body"></div>
 
     </div>
+
+</div>
 
 </div>
 
@@ -501,15 +798,15 @@
                 }
 
 
-               document.querySelector(".toolbar").addEventListener("submit", function () {
+              document.querySelector(".filter-container")?.addEventListener("submit", function () {
 
-            this.querySelectorAll("input, select").forEach(el => {
-                if (!el.value) {
-                    el.removeAttribute("name");
-                }
-            });
+    this.querySelectorAll("input, select").forEach(el => {
+        if (!el.value) {
+            el.removeAttribute("name");
+        }
+    });
 
-        });
+});
     </script>
 
 }

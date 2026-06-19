@@ -9,7 +9,6 @@ namespace PetCenterClient.Services.Interface
     {
         Task<OdataResponse<ReadProductViewModelForCustomer>> GetAllProductAsync(
                 string? search,
-                bool? isActive,
                 decimal? minPrice,
                 decimal? maxPrice,
                 DateTime? fromDate,
@@ -22,7 +21,7 @@ namespace PetCenterClient.Services.Interface
 
         Task<PagedResponse<ReadProductViewModel>> GetAllProductAdminAsync(
        string? search,
-       bool? isActive,
+       Status? status,
        decimal? minPrice,
        decimal? maxPrice,
        Guid? categoryId,

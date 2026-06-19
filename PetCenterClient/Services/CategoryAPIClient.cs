@@ -77,7 +77,7 @@ namespace PetCenterClient.Services
 
 
         public async Task<PagedResponse<ReadCategoryViewModel>> GetAllCategoryAdminAsync(
-      string? search, bool? isActive, int page = 1, int pageSize = 10)
+      string? search, Status? status, int page = 1, int pageSize = 10)
         {
             if (page < 1)
                 page = 1;
@@ -90,8 +90,8 @@ namespace PetCenterClient.Services
                 query.Add($"search={search}");
             }
 
-            if (isActive.HasValue)
-                query.Add($"isActive={isActive}");
+            if (status.HasValue)
+                query.Add($"status={status}");
 
             query.Add($"page={page}");
             query.Add($"pageSize={pageSize}");
