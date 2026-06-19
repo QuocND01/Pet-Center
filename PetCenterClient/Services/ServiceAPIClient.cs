@@ -77,7 +77,7 @@ namespace PetCenterClient.Services
 
         public async Task<PagedResponse<ReadServiceViewModel>> GetAllServiceAdminAsync(
      string? search,
-     bool? isActive,
+     Status? status,
      decimal? minPrice,
      decimal? maxPrice,
      int? serviceType,
@@ -94,9 +94,9 @@ namespace PetCenterClient.Services
                 query.Add($"search={Uri.EscapeDataString(search)}");
             }
 
-            if (isActive.HasValue)
+            if (status.HasValue)
             {
-                query.Add($"isActive={isActive.Value}");
+                query.Add($"status={status.Value}");
             }
 
             if (minPrice.HasValue)

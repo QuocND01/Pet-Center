@@ -15,7 +15,7 @@ namespace PetCenterClient.Services.Interface
 
         Task<PagedResponse<ReadServiceViewModel>> GetAllServiceAdminAsync(
      string? search,
-     bool? isActive,
+     Status? status,
      decimal? minPrice,
      decimal? maxPrice,
      int? serviceType,

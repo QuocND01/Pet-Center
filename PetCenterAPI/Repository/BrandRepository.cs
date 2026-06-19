@@ -22,7 +22,7 @@ namespace PetCenterAPI.Repository
 
         public async Task<bool> CheckBrandExistAsync(string brandName, Guid? excludeId = null)
         {
-            return await _db.Brands.AnyAsync(b =>
+            return await _db.Brands.Where(b => b.Status != Status.Deleted).AnyAsync(b =>
                 b.BrandName == brandName &&
                 b.Status == Status.Active &&
                 (!excludeId.HasValue || b.BrandId != excludeId.Value));
@@ -53,7 +53,7 @@ namespace PetCenterAPI.Repository
         public async Task<(IEnumerable<Brand> Items, int Total)> GetAllBrandAdminAsync(
      BrandSpecification spec)
         {
-            var query = _db.Brands.Where(spec.ToExpression());
+            var query = _db.Brands.Where(b => b.Status != Status.Deleted).Where(spec.ToExpression());
 
             var total = await query.CountAsync();
             var items = await query

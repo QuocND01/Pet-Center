@@ -26,14 +26,15 @@ namespace PetCenterClient.Controllers
         }
 
         public async Task<IActionResult> IndexAdminAsync(
-            string? search, bool? isActive, int page = 1)
+            string? search, Status? status, int page = 1)
         {
-            var result = await _brandService.GetAllBrandAdminAsync(search, isActive, page);
+            var result = await _brandService.GetAllBrandAdminAsync(search, status, page);
 
             ViewBag.CurrentPage = result.CurrentPage;
             ViewBag.TotalPages = result.TotalPages;
+            ViewBag.TotalBrands = result.TotalCount;
             ViewBag.Search = search;
-            ViewBag.IsActive = isActive;
+            ViewBag.Status = status;
 
             return View("~/Views/AdminViews/Brand/Index.cshtml", result.Data);
         }

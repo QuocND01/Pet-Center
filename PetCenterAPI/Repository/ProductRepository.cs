@@ -66,7 +66,7 @@ namespace PetCenterAPI.Repository
         {
             try
             {
-                return _db.Products
+                return _db.Products.Where(p => p.Status == Status.Active)
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages.Where(i => i.IsActive == true))
@@ -81,18 +81,60 @@ namespace PetCenterAPI.Repository
         }
 
         public async Task<(IEnumerable<Product> Items, int Total)> GetAllProductAdminAsync(
-    ProductSpecification spec)
+      ProductSpecification spec)
         {
             var query = _db.Products
+                .Where(p => p.Status != Status.Deleted)
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages.Where(i => i.IsActive == true))
                 .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
-                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status != Status.Deleted)
+                    .ThenInclude(pa => pa.CategoryAttribute)
                 .Where(spec.ToExpression());
 
+            // Sorting
+            if (!string.IsNullOrWhiteSpace(spec.SortBy))
+            {
+                switch (spec.SortBy.ToLower())
+                {
+                    case "productname":
+                        query = spec.SortOrder.ToLower() == "desc"
+                            ? query.OrderByDescending(x => x.ProductName)
+                            : query.OrderBy(x => x.ProductName);
+                        break;
+
+                    case "productprice":
+                        query = spec.SortOrder.ToLower() == "desc"
+                            ? query.OrderByDescending(x => x.ProductPrice)
+                            : query.OrderBy(x => x.ProductPrice);
+                        break;
+
+                    case "addedat":
+                        query = spec.SortOrder.ToLower() == "desc"
+                            ? query.OrderByDescending(x => x.AddedAt)
+                            : query.OrderBy(x => x.AddedAt);
+                        break;
+
+                    case "updatedat":
+                        query = spec.SortOrder.ToLower() == "desc"
+                            ? query.OrderByDescending(x => x.UpdateAt)
+                            : query.OrderBy(x => x.UpdateAt);
+                        break;
+
+                    default:
+                        query = query.OrderByDescending(x => x.AddedAt);
+                        break;
+                }
+            }
+            else
+            {
+                // mặc định
+                query = query.OrderByDescending(x => x.AddedAt);
+            }
+
             var total = await query.CountAsync();
+
             var items = await query
                 .Skip((spec.Page - 1) * spec.PageSize)
                 .Take(spec.PageSize)
@@ -106,7 +148,7 @@ namespace PetCenterAPI.Repository
         {
             var threeMonthsAgo = DateTime.Now.AddMonths(-3);
 
-            return await _db.Products
+            return await _db.Products.Where(p => p.Status == Status.Active)
                 .Where(p => p.AddedAt >= threeMonthsAgo)
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
@@ -120,7 +162,7 @@ namespace PetCenterAPI.Repository
 
         public async Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids)
         {
-            return await _db.Products
+            return await _db.Products.Where(p => p.Status == Status.Active)
                 .Where(p => p.Status == Status.Active && ids.Contains(p.ProductId))
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
@@ -159,7 +201,7 @@ namespace PetCenterAPI.Repository
       Guid categoryId,
       Guid? excludeId = null)
         {
-            return await _db.Products.AnyAsync(p =>
+            return await _db.Products.Where(p => p.Status != Status.Deleted).AnyAsync(p =>
                 p.ProductName == productName &&
                 p.BrandId == brandId &&
                 p.CategoryId == categoryId &&

@@ -48,7 +48,6 @@ namespace PetCenterClient.Controllers
 
             var result = await _productService.GetAllProductAsync(
                 search,
-                isActive,
                 minPrice,
                 maxPrice,
                 fromDate,
@@ -112,7 +111,7 @@ namespace PetCenterClient.Controllers
 
         public async Task<IActionResult> IndexAdminAsync(
      string? search,
-     bool? isActive,
+    Status? status,
      decimal? minPrice,
      decimal? maxPrice,
      Guid? categoryId,
@@ -124,13 +123,14 @@ namespace PetCenterClient.Controllers
      int page = 1)
         {
             var result = await _productService.GetAllProductAdminAsync(
-                search, isActive, minPrice, maxPrice, categoryId, brandId,
+                search, status, minPrice, maxPrice, categoryId, brandId,
                 sortBy, fromDate, toDate, sortOrder, page);
 
             ViewBag.CurrentPage = result.CurrentPage;
             ViewBag.TotalPages = result.TotalPages;
+            ViewBag.TotalProducts = result.TotalCount;
             ViewBag.Search = search;
-            ViewBag.IsActive = isActive;
+            ViewBag.IsActive = status;
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
             ViewBag.CategoryId = categoryId;
@@ -139,6 +139,11 @@ namespace PetCenterClient.Controllers
             ViewBag.SortOrder = sortOrder;
             ViewBag.FromDate = fromDate;
             ViewBag.ToDate = toDate;
+            var categories = await _categoryService.GetAllCategoryAdminAsync(null,null);
+            ViewBag.Categories = categories.Data;
+
+            var brands = await _brandService.GetAllBrandAdminAsync(null,null);
+            ViewBag.Brands = brands.Data;
 
             return View("~/Views/AdminViews/Product/Index.cshtml", result.Data);
         }

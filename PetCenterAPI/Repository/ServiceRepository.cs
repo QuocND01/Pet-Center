@@ -64,7 +64,7 @@ namespace PetCenterAPI.Repository
         {
             try
             {
-                return _db.Services
+                return _db.Services.Where(s => s.Status == Status.Active)
                 .Include(p => p.ServiceImages.Where(i => i.IsActive == true))
                 .AsQueryable();
             }
@@ -111,7 +111,7 @@ namespace PetCenterAPI.Repository
       string ServiceName,
       Guid? excludeId = null)
         {
-            return await _db.Services.AnyAsync(p =>
+            return await _db.Services.Where(s => s.Status != Status.Deleted).AnyAsync(p =>
                 p.ServiceName == ServiceName &&
                 p.Status == Status.Active &&
                 (!excludeId.HasValue || p.ServiceId != excludeId.Value));

@@ -25,7 +25,7 @@ namespace PetCenterAPI.Repository
     string categoryName,
     Guid? excludeId = null)
         {
-            return await _db.Categories.AnyAsync(c =>
+            return await _db.Categories.Where(c => c.Status != Status.Deleted).AnyAsync(c =>
                 c.CategoryName == categoryName &&
                 c.Status == Status.Active &&
                 (!excludeId.HasValue || c.CategoryId != excludeId.Value));
@@ -70,7 +70,7 @@ namespace PetCenterAPI.Repository
         public async Task<(IEnumerable<Category> Items, int Total)> GetAllCategoryAdminAsync(
     CategorySpecification spec)
         {
-            var query = _db.Categories
+            var query = _db.Categories.Where(c => c.Status != Status.Deleted)
                 .Select(c => new Category
                 {
                     CategoryId = c.CategoryId,

@@ -37,22 +37,58 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+.btn-add-product {
+    border: none;
+    background: #16a34a;
+    color: white;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: .2s;
+}
+
+.btn-add-product:hover {
+    background: #15803d;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 </style>
 
 <div class="page-wrapper">
 
     <!-- HEADER -->
     <div class="page-header">
-        <div class="page-title-group">
-            <h1>Service Management</h1>
-            <p>Manage all services in system</p>
-        </div>
+    <div class="page-title-group">
+        <h1>Service Management</h1>
+        <p>Manage all services in system</p>
+    </div>
 
+    <div class="header-right">
         <div class="header-stat">
-            <span class="num">@Model.Count()</span>
+           <span class="num">@ViewBag.TotalServices</span>
             <span class="label">Services</span>
         </div>
+
+        @if (isAdmin)
+        {
+            <button type="button"
+                    class="btn-add-product"
+                    data-bs-toggle="modal"
+                    data-bs-target="#serviceModal"
+                    data-url="@Url.Action("Create", "Service")">
+                <i class="bi bi-plus"></i>
+                Add Service
+            </button>
+        }
     </div>
+</div>
 
     <!-- TOOLBAR -->
     <form asp-action="IndexAdmin" asp-controller="Service" method="get" class="toolbar">
@@ -81,22 +117,47 @@
         </select>
 
         <!-- Price -->
-        <input type="number" name="minPrice" class="filter-input" placeholder="Min price" />
-        <input type="number" name="maxPrice" class="filter-input" placeholder="Max price" />
+       <input type="number"
+       name="minPrice"
+       value="@Context.Request.Query["minPrice"]"
+       class="filter-input"
+       placeholder="Min price" />
 
-        <button type="submit" class="filter-btn active">Apply</button>
+<input type="number"
+       name="maxPrice"
+       value="@Context.Request.Query["maxPrice"]"
+       class="filter-input"
+       placeholder="Max price" />
 
-        @if (isAdmin)
-        {
-            <button type="button"
-                    class="filter-btn"
-                    data-bs-toggle="modal"
-                    data-bs-target="#serviceModal"
-                    data-url="@Url.Action("Create", "Service")">
-                <i class="bi bi-plus"></i> Add
-            </button>
-        }
+           <select name="status" class="filter-select">
+        <option value="">All Status</option>
 
+        <option value="1"
+                selected="@(Context.Request.Query["status"] == "1")">
+            Active
+        </option>
+
+        <option value="2"
+                selected="@(Context.Request.Query["status"] == "2")">
+            Inactive
+        </option>
+    </select>
+
+    <select name="serviceType" class="filter-select">
+    <option value="">All Types</option>
+
+    <option value="1"
+            selected="@(Context.Request.Query["serviceType"] == "1")">
+        Veterian
+    </option>
+
+    <option value="2"
+            selected="@(Context.Request.Query["serviceType"] == "2")">
+        Grooming
+    </option>
+</select>
+     
+            <button type="submit" class="filter-btn active">Apply</button>
     </form>
 
     <!-- TABLE -->
@@ -137,7 +198,7 @@
 
                             <td>@s.Price.ToString("N0") ₫</td>
                             <td>@s.Duration mins</td>
-                            <td>@s.ServiceType</td>
+                           <td>@(s.ServiceType == 1 ? "Veterian" : "Grooming")</td>
                             <td title="@s.ServiceDescription">
                                 <div class="desc-clamp">
                                     @(string.IsNullOrEmpty(s.ServiceDescription)
@@ -176,13 +237,11 @@
                                             })">
                                         @if (s.Status == Status.Active)
                                         {
-                                            <i class="bi bi-slash-circle"></i>
-                                            <span>Deactivate</span>
+                                           <i class="bi bi-toggle-on text-success"></i>
                                         }
                                         else
                                         {
-                                            <i class="bi bi-check-circle"></i>
-                                            <span>Activate</span>
+                                           <i class="bi bi-toggle-off text-warning"></i>
                                         }
                                     </button>
 
@@ -221,22 +280,29 @@
         </table>
 
         <!-- PAGINATION -->
-        @{
-            int currentPage = ViewBag.CurrentPage ?? 1;
-            int totalPages = ViewBag.TotalPages ?? 1;
+       <!-- PAGINATION -->
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
 
-            var routeValues = new
-            {
-                search = Context.Request.Query["search"],
-                minPrice = Context.Request.Query["minPrice"],
-                maxPrice = Context.Request.Query["maxPrice"],
-                sortBy = Context.Request.Query["sortBy"],
-                sortOrder = Context.Request.Query["sortOrder"]
-            };
-        }
+    var routeValues = new
+    {
+         search = Context.Request.Query["search"],
+        status = Context.Request.Query["status"],
+        serviceType = Context.Request.Query["serviceType"],
+        minPrice = Context.Request.Query["minPrice"],
+        maxPrice = Context.Request.Query["maxPrice"],
+        sortBy = Context.Request.Query["sortBy"],
+        sortOrder = Context.Request.Query["sortOrder"]
+    };
+}
 
-        <div class="pagination">
+@if (totalPages > 1)
+{
+    <div class="pagination">
 
+        @if (currentPage > 1)
+        {
             <a class="page-btn"
                href="@Url.Action("IndexAdmin", new {
                     page = currentPage - 1,
@@ -244,26 +310,34 @@
                     minPrice = routeValues.minPrice,
                     maxPrice = routeValues.maxPrice,
                     sortBy = routeValues.sortBy,
+                    status = routeValues.status,
+                    serviceType = routeValues.serviceType,
                     sortOrder = routeValues.sortOrder
+
                })">
                 Prev
             </a>
+        }
 
-            @for (int p = 1; p <= totalPages; p++)
-            {
-                <a class="page-btn @(p == currentPage ? "active" : "")"
-                   href="@Url.Action("IndexAdmin", new {
-                        page = p,
-                        search = routeValues.search,
-                        minPrice = routeValues.minPrice,
-                        maxPrice = routeValues.maxPrice,
-                        sortBy = routeValues.sortBy,
-                        sortOrder = routeValues.sortOrder
-                   })">
-                    @p
-                </a>
-            }
+        @for (int p = 1; p <= totalPages; p++)
+        {
+            <a class="page-btn @(p == currentPage ? "active" : "")"
+               href="@Url.Action("IndexAdmin", new {
+                    page = p,
+                    search = routeValues.search,
+                    minPrice = routeValues.minPrice,
+                    maxPrice = routeValues.maxPrice,
+                    sortBy = routeValues.sortBy,
+                    status = routeValues.status,
+                    serviceType = routeValues.serviceType,
+                    sortOrder = routeValues.sortOrder
+               })">
+                @p
+            </a>
+        }
 
+        @if (currentPage < totalPages)
+        {
             <a class="page-btn"
                href="@Url.Action("IndexAdmin", new {
                     page = currentPage + 1,
@@ -271,14 +345,16 @@
                     minPrice = routeValues.minPrice,
                     maxPrice = routeValues.maxPrice,
                     sortBy = routeValues.sortBy,
+                    status = routeValues.status,
+                    serviceType = routeValues.serviceType,
                     sortOrder = routeValues.sortOrder
                })">
                 Next
             </a>
+        }
 
-        </div>
     </div>
-</div>
+}
 
 <!-- MODAL -->
 <div class="modal fade" id="serviceModal" tabindex="-1">

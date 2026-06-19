@@ -49,7 +49,7 @@ namespace PetCenterClient.Controllers
 
         public async Task<IActionResult> IndexAdminAsync(
      string? search,
-    bool? isActive,
+    Status? status,
      decimal? minPrice,
      decimal? maxPrice,
      int? serviceType,
@@ -57,12 +57,13 @@ namespace PetCenterClient.Controllers
      int pageSize = 10)
         {
             var result = await _ServiceService.GetAllServiceAdminAsync(
-                search, isActive, minPrice, maxPrice, serviceType, page);
+                search, status, minPrice, maxPrice, serviceType, page);
 
             ViewBag.CurrentPage = result.CurrentPage;
+            ViewBag.TotalServices = result.TotalCount;
             ViewBag.TotalPages = result.TotalPages;
             ViewBag.Search = search;
-            ViewBag.IsActive = isActive;
+            ViewBag.status = status;
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
             ViewBag.ServiceType = serviceType;

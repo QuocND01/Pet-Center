@@ -95,7 +95,7 @@ namespace PetCenterAPI.Common
     {
         public string? Search { get; set; }
 
-        public bool? IsActive { get; set; }
+        public Status? Status { get; set; }
 
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
@@ -113,8 +113,7 @@ namespace PetCenterAPI.Common
 
                 &&
 
-                (!IsActive.HasValue ||
-                 (s.Status == Status.Active) == IsActive.Value)
+                (!Status.HasValue || s.Status == Status.Value)
 
                 &&
 
@@ -128,8 +127,7 @@ namespace PetCenterAPI.Common
 
                 &&
 
-                (!ServiceType.HasValue ||
-                 s.ServiceType == ServiceType.Value);
+              (!ServiceType.HasValue || (int)s.ServiceType == ServiceType.Value);
         }
     }
 }

@@ -23,7 +23,6 @@ namespace PetCenterClient.Services
 
         public async Task<OdataResponse<ReadProductViewModelForCustomer>> GetAllProductAsync(
      string? search,
-     bool? isActive,
      decimal? minPrice,
      decimal? maxPrice,
      DateTime? fromDate,
@@ -48,8 +47,6 @@ namespace PetCenterClient.Services
                 filters.Add($"contains(ProductName,'{search}')");
             }
 
-            if (isActive.HasValue)
-                filters.Add($"IsActive eq {isActive.Value.ToString().ToLower()}");
 
             if (minPrice.HasValue)
                 filters.Add($"ProductPrice ge {minPrice.Value}");
@@ -100,7 +97,7 @@ namespace PetCenterClient.Services
 
         public async Task<PagedResponse<ReadProductViewModel>> GetAllProductAdminAsync(
        string? search,
-       bool? isActive,
+      Status? status,
        decimal? minPrice,
        decimal? maxPrice,
        Guid? categoryId,
@@ -123,8 +120,8 @@ namespace PetCenterClient.Services
                 query.Add($"search={search}");
             }
 
-            if (isActive.HasValue)
-                query.Add($"isActive={isActive}");
+            if (status.HasValue)
+                query.Add($"status={status}");
 
             if (minPrice.HasValue)
                 query.Add($"minPrice={minPrice}");

@@ -5,6 +5,8 @@
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Brands";
+        var role = Context.Session.GetString("Role");
+    bool isAdmin = role == "Admin";
 }
 
 <style>
@@ -26,6 +28,35 @@
             color: white;
         }
 
+    .btn-add-product {
+    border: none;
+    background: #16a34a;
+    color: white;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: .2s;
+}
+
+.btn-add-product:hover {
+    background: #15803d;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 </style>
 
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
@@ -33,20 +64,35 @@
 <div class="page-wrapper">
 
     <!-- HEADER -->
-    <div class="page-header">
+  <div class="page-header">
 
-        <div class="page-title-group">
-            <h1>Brand Management</h1>
-            <p>Manage all brands in system</p>
-        </div>
+    <div class="page-title-group">
+        <h1>Brand Management</h1>
+        <p>Manage all brands in system</p>
+    </div>
+
+    <div class="header-actions">
 
         <div class="header-stat">
-            <span class="num">@Model.Count()</span>
+           <span class="num">@ViewBag.TotalBrands</span>
             <span class="label">Brands</span>
         </div>
 
+        @if (isAdmin)
+        {
+            <button type="button"
+                    class="btn-add-product"
+                    data-bs-toggle="modal"
+                    data-bs-target="#brandModal"
+                    data-url="@Url.Action("Create", "Brand")">
+                <i class="bi bi-plus-lg"></i>
+                Add Brand
+            </button>
+        }
+
     </div>
 
+</div>
 
     <!-- TOOLBAR -->
     <form asp-action="IndexAdmin" asp-controller="Brand" method="get" class="toolbar">
@@ -61,19 +107,25 @@
                    placeholder="Search brand name..." />
         </div>
 
+         <select name="status" class="filter-select">
+        <option value="">All Status</option>
+
+        <option value="1"
+                selected="@(Context.Request.Query["status"] == "1")">
+            Active
+        </option>
+
+        <option value="2"
+                selected="@(Context.Request.Query["status"] == "2")">
+            Inactive
+        </option>
+    </select>
+
         <button type="submit" class="filter-btn active">
             Apply
         </button>
 
-        <button type="button"
-                class="filter-btn"
-                data-bs-toggle="modal"
-                data-bs-target="#brandModal"
-                data-url="@Url.Action("Create", "Brand")">
-
-            <i class="bi bi-plus"></i> Add
-        </button>
-
+      
     </form>
 
 
@@ -150,11 +202,11 @@
 
                                     @if (b.Status == Status.Active)
                                     {
-                                        <i class="bi bi-slash-circle"></i> <span>Deactivate</span>
+                                        <i class="bi bi-toggle-on text-success"></i>
                                     }
                                     else
                                     {
-                                        <i class="bi bi-check-circle"></i> <span>Activate</span>
+                                        <i class="bi bi-toggle-off text-warning"></i>
                                     }
 
                                 </button>
@@ -169,7 +221,7 @@
                                             status = Status.Deleted
                                         })">
 
-                                    <i class="bi bi-trash"></i> <span>Delete</span>
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </td>
 
@@ -190,7 +242,7 @@
                                 </div>
 
                                 <h3>No brands found</h3>
-                                <p>Try adding a new brand</p>
+                                <p>Try adjusting filters</p>
 
                             </div>
 
@@ -219,7 +271,9 @@
         @if (currentPage > 1)
         {
             <a class="page-btn"
-               href="@Url.Action("IndexAdmin", new { page = currentPage - 1, search = ViewBag.Search })">
+               href="@Url.Action("IndexAdmin", new {  page = currentPage - 1,
+        search = Context.Request.Query["search"],
+        status = Context.Request.Query["status"] })">
                 Prev
             </a>
         }
@@ -228,7 +282,9 @@
         @for (int i = 1; i <= totalPages; i++)
         {
             <a class="page-btn @(i == currentPage ? "active" : "")"
-               href="@Url.Action("IndexAdmin", new { page = i, search = ViewBag.Search })">
+               href="@Url.Action("IndexAdmin", new {  page = i,
+        search = Context.Request.Query["search"],
+        status = Context.Request.Query["status"]})">
                 @i
             </a>
         }
@@ -237,7 +293,9 @@
         @if (currentPage < totalPages)
         {
             <a class="page-btn"
-               href="@Url.Action("IndexAdmin", new { page = currentPage + 1, search = ViewBag.Search })">
+               href="@Url.Action("IndexAdmin", new {  page = currentPage + 1,
+        search = Context.Request.Query["search"],
+        status = Context.Request.Query["status"]})">
                 Next
             </a>
         }

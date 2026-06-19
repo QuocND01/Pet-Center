@@ -58,17 +58,7 @@
     }
 
     /* ── Reset context ── */
-    .home-page {
-        font-family: var(--font-body);
-        color: var(--ink);
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 28px 24px 0;
-    }
-
-    @@media (max-width: 600px) {
-        .home-page { padding: 16px 14px 0; }
-    }
+    .home-page { font-family: var(--font-body); color: var(--ink); }
 
         /* ══════════════════════════════════════════
        FILTER BAR
@@ -81,6 +71,11 @@
         margin-bottom: 32px;
         box-shadow: var(--shadow);
     }
+.filter-select {
+    width: 180px !important;
+    max-width: 180px !important;
+    flex: 0 0 180px;
+}
     .filter-top {
         display: flex;
         align-items: center;
@@ -611,101 +606,85 @@
     line-height: 1.6;
     font-size: 14px;
 }
-
-/* =========================
-   CATEGORY CHIPS (under hero)
-========================= */
-.cat-chips {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-}
-.cat-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 100px;
-    border: 1.5px solid var(--border);
-    background: var(--surface);
-    color: var(--ink2);
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 13px;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: all .2s;
-}
-.cat-chip:hover {
-    border-color: var(--g3);
-    background: var(--g0);
-    color: var(--g5);
-    text-decoration: none;
-}
-.cat-chip.active {
-    background: var(--g3);
-    border-color: var(--g3);
-    color: #fff;
-}
-
-/* =========================
-   SHOP LAYOUT: sidebar + grid
-========================= */
-.shop-layout {
-    display: grid;
-    grid-template-columns: 264px 1fr;
-    gap: 24px;
-    align-items: start;
-    margin-bottom: 48px;
-}
-.shop-main { min-width: 0; }
-
-.filter-sidebar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 18px 20px;
-    box-shadow: var(--shadow);
-    position: sticky;
-    top: 88px;
-    align-self: start;
-}
-.filter-sidebar .sb-title {
-    font-family: var(--font-head);
-    font-size: 18px;
-    font-weight: 900;
-    color: var(--ink);
-    margin: 0 0 14px;
-}
-/* turn the existing horizontal filter into a vertical sidebar */
-.filter-sidebar .filter-top {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    margin-bottom: 14px;
-}
-.filter-sidebar .search-wrap { max-width: none; width: 100%; }
-.filter-sidebar .filter-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-}
-.filter-sidebar .filter-select { width: 100%; }
-.filter-sidebar .price-group { width: 100%; justify-content: space-between; }
-.filter-sidebar .price-input { flex: 1; width: auto; min-width: 0; }
-.filter-sidebar .btn-filter { width: 100%; justify-content: center; }
-.filter-sidebar .btn-reset { width: 100%; justify-content: center; }
-
-@@media (max-width: 900px) {
-    .shop-layout { grid-template-columns: 1fr; }
-    .filter-sidebar { position: static; }
-}
 </style>
 
 @{
     ViewData["Title"] = "Products";
 }
+
+@section ModuleNav
+{
+    <div class="module-nav">
+        <div class="module-nav-inner">
+
+            <a asp-controller="Products"
+               asp-action="Index">
+                Products
+            </a>
+
+            <a asp-controller="Cart"
+               asp-action="Index">
+                Cart
+            </a>
+
+            <a asp-controller="Orders"
+               asp-action="Index">
+                My Orders
+            </a>
+
+            <a asp-controller="Customer"
+               asp-action="Profile">
+                Profile
+            </a>
+
+              <!-- Category Dropdown -->
+    <div class="nav-dropdown">
+        <button type="button" class="dropdown-btn">
+            Categories ▼
+        </button>
+
+        <div class="dropdown-content">
+            @if (cats != null)
+            {
+                foreach (var c in cats)
+                {
+                    <a asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-categoryid="@c.CategoryId">
+                        @c.CategoryName
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Brand Dropdown -->
+    <div class="nav-dropdown">
+        <button type="button" class="dropdown-btn">
+            Brands ▼
+        </button>
+
+        <div class="dropdown-content">
+            @if (brands != null)
+            {
+                foreach (var b in brands)
+                {
+                    <a asp-controller="Products"
+                       asp-action="Index"
+                       asp-route-brandid="@b.BrandId">
+                        @b.BrandName
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+
+        </div>
+    </div>
+}
+
+<h1>Product Page</h1>
 
 <div id="toast-container"></div>
 
@@ -723,23 +702,6 @@
             </a>
         </div>
     </div>
-
-    <!-- ── CATEGORY CHIPS (quick filter) ── -->
-    @if (cats != null && cats.Any())
-    {
-        <div class="cat-chips">
-            <a asp-action="Index" asp-controller="Products"
-               class="cat-chip @(string.IsNullOrEmpty(currentCat) ? "active" : "")">🐾 All</a>
-            @foreach (var c in cats)
-            {
-                <a asp-action="Index" asp-controller="Products"
-                   asp-route-categoryid="@c.CategoryId"
-                   class="cat-chip @(currentCat == c.CategoryId.ToString() ? "active" : "")">
-                    @c.CategoryName
-                </a>
-            }
-        </div>
-    }
 
 
          @{
@@ -814,10 +776,8 @@
         <hr class="section-divider" />
     }
 
-  <!-- ── SHOP LAYOUT: sidebar filter + product grid ── -->
-<div class="shop-layout">
-<aside class="filter-sidebar" id="products">
-    <h3 class="sb-title">🔍 Filters</h3>
+  <!-- ── FILTER ── -->
+<div class="filter-card" id="products">
     <form asp-action="Index" asp-controller="Products" method="get" id="filterForm">
         <div class="filter-top">
             <span class="filter-label">🔍 Search</span>
@@ -928,16 +888,12 @@
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 Filter
             </button>
-
-            @if (!string.IsNullOrEmpty(currentSearch) || !string.IsNullOrEmpty(currentCat) || !string.IsNullOrEmpty(currentBrand) || !string.IsNullOrEmpty(currentMin) || !string.IsNullOrEmpty(currentMax))
-            {
+          
                 <a asp-action="" asp-controller="Products" class="btn-reset">✕ Clear filters</a>
-            }
         </div>
     </form>
-</aside>
+</div>
 
-<div class="shop-main">
 
 @if (hasFilter)
 {
@@ -1124,9 +1080,6 @@ else
     }
 
 </div>
-
-        </div><!-- /shop-main -->
-    </div><!-- /shop-layout -->
 
 </div>
 
