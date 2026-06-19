@@ -152,7 +152,7 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
-
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ImportStockProfile>());
 
 // Đăng ký Service và Repository
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -164,6 +164,7 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<IImportStockRepository, ImportStockRepository>();
 
 
 // ── 2. Repositories ──────────────────────────────────────────────────────────
@@ -196,6 +197,7 @@ builder.Services.AddScoped<IAdminFeedbackService, AdminFeedbackService>();
 
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IProductFeedbackService, ProductFeedbackService>();
+builder.Services.AddScoped<IImportStockService, ImportStockService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
