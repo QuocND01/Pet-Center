@@ -124,6 +124,19 @@ namespace PetCenterClient.Controllers
             var (success, message) = await _cartService.ClearCartAsync(customerId);
             return Json(new { success, message });
         }
+
+        // GET: /Cart/Count  (used by the header cart badge)
+        [HttpGet]
+        public async Task<IActionResult> Count()
+        {
+            var customerIdStr = HttpContext.Session.GetString("CustomerId");
+            if (string.IsNullOrEmpty(customerIdStr) || !Guid.TryParse(customerIdStr, out var customerId))
+                return Json(new { count = 0 });
+
+            var cart = await _cartService.GetCartAsync(customerId);
+            var count = cart?.CartDetails?.Count ?? 0;
+            return Json(new { count });
+        }
     }
 
     // Helper request DTOs used by controller actions
