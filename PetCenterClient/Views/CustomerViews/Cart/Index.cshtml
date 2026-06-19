@@ -664,6 +664,7 @@
                     }, 320);
                 }
                 showToast('Item removed.', 'success');
+                if (window.refreshCartBadge) window.refreshCartBadge();
             } else { showToast(data.message || 'Failed.', 'error'); }
         } catch(e) { showToast('Network error.', 'error'); }
     }
