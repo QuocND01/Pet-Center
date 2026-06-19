@@ -13,6 +13,8 @@
         public string BatchCode { get; set; } = null!;
         public decimal ImportPrice { get; set; }
         public int StockLeft { get; set; }
+        public DateTime? ManufacturingDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public ProductSnapshotRequestDTO? ImportProductSnapshot { get; set; }
 
     }
@@ -32,7 +34,6 @@
         public string ProductName { get; set; } = null!;
 
         public string ProductCategory { get; set; } = null!;
-
         public string ProductBrand { get; set; } = null!;
         public string ProductImage { get; set; } = null!;
     }

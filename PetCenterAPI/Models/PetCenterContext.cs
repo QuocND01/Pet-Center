@@ -461,6 +461,8 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ImportId).HasColumnName("ImportID");
             entity.Property(e => e.ImportPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
+            entity.Property(e => e.SKU).HasMaxLength(100);
+            entity.Property(e => e.BatchCode).HasMaxLength(100);
 
             entity.HasOne(d => d.Import).WithMany(p => p.ImportStockDetails)
                 .HasForeignKey(d => d.ImportId)
