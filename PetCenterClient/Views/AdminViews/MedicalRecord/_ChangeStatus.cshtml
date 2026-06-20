@@ -1,0 +1,53 @@
+@using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel
+@model ChangeStatusViewModel
+
+<style>
+    .confirm-card { background:#fff; border-radius:16px; padding:24px; }
+    .alert-icon { font-size:40px; margin-bottom:12px; }
+</style>
+
+<div class="confirm-card text-center">
+    @{
+        string icon = Model.TargetStatus switch {
+            2 => "✅",
+            1 => "↩️",
+            3 => "❌",
+            _ => "⚠️"
+        };
+        string colorClass = Model.TargetStatus switch {
+            2 => "text-success",
+            1 => "text-warning",
+            3 => "text-danger",
+            _ => "text-secondary"
+        };
+    }
+    <div class="alert-icon">@icon</div>
+    <h5 class="fw-bold @colorClass mb-2">
+        Change Status to "@Model.TargetStatusName"?
+    </h5>
+    <p class="text-muted mb-1">Record: <strong>@Model.Diagnosis</strong></p>
+    <p class="text-muted small">
+        Current status: <span class="fw-semibold">@Model.CurrentStatusName</span>
+        → New status: <span class="fw-semibold @colorClass">@Model.TargetStatusName</span>
+    </p>
+
+    @if (Model.TargetStatus == 1)
+    {
+        <div class="alert alert-warning text-start small mt-2">
+            <i class="bi bi-info-circle me-1"></i>
+            Record will revert to Drafted and remain visible in the list.
+        </div>
+    }
+
+    <form asp-action="ChangeStatusConfirmed" asp-controller="MedicalRecord" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.RecordId" />
+        <input type="hidden" name="status" value="@Model.TargetStatus" />
+        <div class="d-flex gap-2 justify-content-center mt-3">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn @(Model.TargetStatus == 3 ? "btn-danger" : Model.TargetStatus == 2 ? "btn-success" : "btn-warning")">
+                Confirm
+            </button>
+        </div>
+    </form>
+</div>

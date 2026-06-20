@@ -1,0 +1,20 @@
+@using static PetCenterClient.ViewModels.PrescriptionItem.PrescriptionItemViewModel
+@model DeletePrescriptionItemViewModel
+
+<div class="text-center p-3">
+    <div style="font-size:40px">🗑️</div>
+    <h6 class="fw-bold text-danger mt-2">Delete Prescription Item?</h6>
+    <p class="text-muted small mb-3">
+        Medicine: <strong>@Model.MedicineName</strong><br />
+        This action cannot be undone.
+    </p>
+
+    <form asp-action="DeleteConfirmed" asp-controller="PrescriptionItem" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.PrescriptionItemId" />
+        <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+    </form>
+</div>

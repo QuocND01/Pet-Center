@@ -1,0 +1,97 @@
+@using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel
+@model IEnumerable<ReadMedicalRecordListViewModel>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Medical Records";
+}
+
+<style>
+    .mr-page { max-width: 1100px; margin: 40px auto; padding: 0 16px; }
+    .mr-header { margin-bottom: 24px; }
+    .mr-title { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .mr-subtitle { color: #6c757d; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-bar input { flex: 1; padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
+    .search-bar button { padding: 10px 20px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+    .record-card { background: white; border-radius: 14px; border: 1px solid #e2e8f0; padding: 18px 22px; margin-bottom: 14px; transition: box-shadow .2s; }
+    .record-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+    .record-meta { font-size: 12px; color: #6c757d; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+    .record-diagnosis { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .record-treatment { font-size: 13px; color: #4b5563; }
+    .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .status-drafted { background: #fef3c7; color: #92400e; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .btn-view { background: none; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 14px; font-size: 13px; color: #374151; cursor: pointer; }
+    .btn-view:hover { background: #f3f4f6; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #6c757d; }
+    .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
+</style>
+
+<div class="mr-page">
+    <div class="mr-header">
+        <div class="mr-title">My Medical Records</div>
+        <div class="mr-subtitle">View all your pet's medical history</div>
+    </div>
+
+    <form asp-action="CustomerIndex" asp-controller="MedicalRecord" method="get" class="search-bar">
+        <input type="text" name="search" value="@ViewBag.Search" placeholder="Search by diagnosis..." />
+        <button type="submit"><i class="bi bi-search me-1"></i>Search</button>
+    </form>
+
+    @if (Model != null && Model.Any())
+    {
+        foreach (var r in Model)
+        {
+            <div class="record-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="record-meta">
+                        <span><i class="bi bi-calendar3 me-1"></i>@r.AppointmentStart.ToString("dd/MM/yyyy")</span>
+                        <span><i class="bi bi-person-heart me-1"></i>@r.VetName</span>
+                        <span><i class="bi bi-heart me-1"></i>@r.PetSpecies - @r.PetBreed</span>
+                    </div>
+                    <span class="status-badge status-@r.StatusName.ToLower()">@r.StatusName</span>
+                </div>
+                <div class="record-diagnosis">@r.Diagnosis</div>
+                <div class="record-treatment text-truncate mb-3">@r.Treatment</div>
+                <button class="btn-view"
+                        data-bs-toggle="modal"
+                        data-bs-target="#mrDetailModal"
+                        data-url="@Url.Action("CustomerDetails", "MedicalRecord", new { id = r.RecordId })">
+                    <i class="bi bi-eye me-1"></i> View Details
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-journal-medical"></i>
+            <h5>No medical records found</h5>
+            <p class="small">Your pet's medical records will appear here after each appointment</p>
+        </div>
+    }
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="mrDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Medical Record Details</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="mrDetailBody"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).on('click', "[data-bs-target='#mrDetailModal']", function () {
+        var url = $(this).data('url');
+        $('#mrDetailBody').load(url);
+    });
+</script>
+}

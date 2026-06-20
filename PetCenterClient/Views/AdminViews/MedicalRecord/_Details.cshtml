@@ -1,0 +1,242 @@
+@using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel
+@using static PetCenterClient.ViewModels.PrescriptionItem.PrescriptionItemViewModel
+@model ReadMedicalRecordDetailViewModel
+
+<style>
+    .detail-card { background: #fff; border-radius: 16px; padding: 24px; }
+    .info-box { background: #f8f9fa; border-radius: 10px; padding: 12px; border: 1px solid #e9ecef; margin-bottom: 10px; }
+    .info-label { font-weight: 600; color: #6c757d; font-size: 12px; text-transform: uppercase; margin-bottom: 3px; }
+    .info-value { font-size: 14px; color: #212529; }
+    .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; margin-top: 16px; }
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .status-drafted { background: #fef3c7; color: #92400e; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .rx-table th { font-size: 12px; font-weight: 600; color: #6c757d; text-transform: uppercase; }
+    .rx-table td { font-size: 13px; vertical-align: middle; }
+    .status-prescribing { background: #dbeafe; color: #1e40af; }
+    .status-complete { background: #d1fae5; color: #065f46; }
+</style>
+
+<div class="detail-card">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h5 class="fw-bold mb-1">Medical Record Detail</h5>
+            <p class="text-muted small mb-0">Created: @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+        <span class="status-badge status-@Model.StatusName.ToLower()">@Model.StatusName</span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-box">
+                <div class="info-label">Appointment Date</div>
+                <div class="info-value">@Model.AppointmentStart.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box">
+                <div class="info-label">Customer</div>
+                <div class="info-value">@Model.CustomerName</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box">
+                <div class="info-label">Pet</div>
+                <div class="info-value">@Model.PetSpecies - @Model.PetBreed</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box">
+                <div class="info-label">Veterinarian</div>
+                <div class="info-value">@Model.VetName</div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="info-box">
+                <div class="info-label">Diagnosis</div>
+                <div class="info-value">@Model.Diagnosis</div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="info-box">
+                <div class="info-label">Treatment</div>
+                <div class="info-value">@Model.Treatment</div>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Note))
+        {
+            <div class="col-12">
+                <div class="info-box">
+                    <div class="info-label">Note</div>
+                    <div class="info-value">@Model.Note</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Prescription Items Section -->
+    <div class="section-title d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-capsule me-1"></i>Prescription Items</span>
+        @{
+            var role = Context.Session.GetString("Role");
+            bool isVetOrAdmin = role == "Vet" || role == "Admin";
+        }
+        @if (isVetOrAdmin)
+        {
+            <button type="button"
+                    class="btn btn-sm btn-success"
+                    id="btnAddPrescription"
+                    data-record-id="@Model.RecordId"
+                    data-url="@Url.Action("Create", "PrescriptionItem", new { recordId = Model.RecordId })">
+                <i class="bi bi-plus"></i> Add Item
+            </button>
+        }
+    </div>
+
+    <div id="prescriptionContainer">
+        @if (Model.PrescriptionItems != null && Model.PrescriptionItems.Any())
+        {
+            <table class="table table-hover rx-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Duration</th>
+                        <th>Qty</th>
+                        <th>Note</th>
+                        <th>Status</th>
+                        @if (isVetOrAdmin)
+                        {
+                            <th>Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @{int pi = 1;}
+                    @foreach (var item in Model.PrescriptionItems)
+                    {
+                        <tr>
+                            <td>@pi</td>
+                            <td>@item.MedicineName</td>
+                            <td>@item.Dosage</td>
+                            <td>@item.Duration</td>
+                            <td>@item.Quantity</td>
+                            <td>@(item.Note ?? "-")</td>
+                            <td>
+                                <span class="status-badge status-@item.StatusName.ToLower()">
+                                    @item.StatusName
+                                </span>
+                            </td>
+                            @if (isVetOrAdmin)
+                            {
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary btn-rx-action"
+                                            data-url="@Url.Action("Details", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                            title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    @if (item.Status == 1)
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary btn-rx-action"
+                                                data-url="@Url.Action("Edit", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                                title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success btn-rx-complete"
+                                                data-id="@item.PrescriptionItemId"
+                                                data-url="@Url.Action("Complete", "PrescriptionItem")"
+                                                title="Mark Complete">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-rx-action"
+                                                data-url="@Url.Action("Delete", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                                title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                        pi++;
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center text-muted py-3">
+                <i class="bi bi-capsule fs-3 d-block mb-2"></i>
+                No prescription items yet
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+/* Script inline - runs when loaded via AJAX */
+(function () {
+    // Lấy rxModal ở page level (định nghĩa trong Index.cshtml)
+    var $rxModal = $('#rxModal');
+    var $rxModalBody = $('#rxModalBody');
+
+    // Add prescription item
+    $(document).off('click', '#btnAddPrescription').on('click', '#btnAddPrescription', function () {
+        var url = $(this).data('url');
+        $rxModalBody.html('<div class="text-center py-4"><div class="spinner-border text-success"></div></div>');
+        $rxModal.modal('show');
+        $rxModalBody.load(url, function () {
+            $.validator.unobtrusive.parse($rxModalBody.find('form'));
+        });
+    });
+
+    // View / Edit / Delete prescription item
+    $(document).off('click', '.btn-rx-action').on('click', '.btn-rx-action', function () {
+        var url = $(this).data('url');
+        $rxModalBody.html('<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>');
+        $rxModal.modal('show');
+        $rxModalBody.load(url, function () {
+            $.validator.unobtrusive.parse($rxModalBody.find('form'));
+        });
+    });
+
+    // Mark prescription item Complete
+    $(document).off('click', '.btn-rx-complete').on('click', '.btn-rx-complete', function () {
+        if (!confirm('Mark this prescription item as Complete?')) return;
+        var id = $(this).data('id');
+        var url = $(this).data('url');
+        var token = $('input[name="__RequestVerificationToken"]').first().val();
+        $.post(url, { id: id, __RequestVerificationToken: token }, function (res) {
+            if (res.success) location.reload();
+            else alert('Error: ' + (res.message || 'Unknown error'));
+        });
+    });
+
+    // Handle form submit inside rxModal
+    $rxModal.off('submit', 'form').on('submit', 'form', function (e) {
+        e.preventDefault();
+        var form = $(this);
+        var formData = new FormData(form[0]);
+        $.ajax({
+            url: form.attr('action'),
+            type: form.attr('method') || 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (res) {
+                if (res && res.success) {
+                    $rxModal.modal('hide');
+                    location.reload();
+                } else {
+                    $rxModalBody.html(res);
+                    $.validator.unobtrusive.parse($rxModalBody.find('form'));
+                }
+            },
+            error: function () {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+}());
+</script>

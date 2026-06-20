@@ -1,0 +1,51 @@
+@using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel
+@model UpdateMedicalRecordViewModel
+
+<style>
+    .page-card { background:#fff; border-radius:16px; padding:24px; }
+    .section-card { background:#f8f9fa; border-radius:12px; padding:18px; margin-bottom:16px; }
+    .form-control { min-height:44px; border-radius:10px; }
+    textarea.form-control { min-height:90px; resize:vertical; }
+</style>
+
+<div class="page-card">
+    <h5 class="fw-bold mb-1">Edit Medical Record</h5>
+    <p class="text-muted small mb-3">Update diagnosis, treatment and notes</p>
+
+    <form asp-action="Edit" asp-controller="MedicalRecord" asp-route-id="@Model.RecordId" method="post">
+        <input type="hidden" asp-for="RecordId" />
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="section-card">
+            <div class="mb-3">
+                <label asp-for="Diagnosis" class="form-label fw-semibold">
+                    Diagnosis <span class="text-danger">*</span>
+                </label>
+                <textarea asp-for="Diagnosis" class="form-control" placeholder="Enter diagnosis..."></textarea>
+                <span asp-validation-for="Diagnosis" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Treatment" class="form-label fw-semibold">
+                    Treatment <span class="text-danger">*</span>
+                </label>
+                <textarea asp-for="Treatment" class="form-control" placeholder="Enter treatment plan..."></textarea>
+                <span asp-validation-for="Treatment" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Note" class="form-label fw-semibold">Note</label>
+                <textarea asp-for="Note" class="form-control" placeholder="Additional notes (optional)..."></textarea>
+                <span asp-validation-for="Note" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check-circle me-1"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

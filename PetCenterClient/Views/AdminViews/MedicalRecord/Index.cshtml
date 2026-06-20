@@ -1,0 +1,297 @@
+@using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel
+@model IEnumerable<ReadMedicalRecordListViewModel>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Medical Record Management";
+    var role = Context.Session.GetString("Role");
+    bool isVetOrAdmin = role == "Vet" || role == "Admin";
+}
+
+<link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
+
+<style>
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-drafted { background: #fef3c7; color: #92400e; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .btn-add-record {
+        border: none;
+        background: #16a34a;
+        color: white;
+        border-radius: 10px;
+        padding: 11px 18px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: .2s;
+    }
+    .btn-add-record:hover { background: #15803d; }
+    .pagination { margin-top: 20px; display: flex; gap: 6px; }
+    .page-btn { padding: 6px 12px; background: #eee; border-radius: 6px; text-decoration: none; }
+    .page-btn.active { background: #4f46e5; color: white; }
+</style>
+
+@Html.AntiForgeryToken()
+
+<div class="page-wrapper">
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>Medical Record Management</h1>
+            <p>Manage all medical records in the system</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+            <div class="header-stat">
+                <span class="num">@ViewBag.TotalCount</span>
+                <span class="label">Records</span>
+            </div>
+            @if (isVetOrAdmin)
+            {
+                <button type="button"
+                        class="btn-add-record"
+                        data-bs-toggle="modal"
+                        data-bs-target="#mrModal"
+                        data-url="@Url.Action("Create", "MedicalRecord")">
+                    <i class="bi bi-plus"></i> Add Medical Record
+                </button>
+            }
+        </div>
+    </div>
+
+    <form asp-action="Index" asp-controller="MedicalRecord" method="get" class="toolbar">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" name="search" value="@ViewBag.Search"
+                   class="search-input" placeholder="Search diagnosis, customer..." />
+        </div>
+        <select name="status" class="filter-btn">
+            <option value="">All Status</option>
+            <option value="1" selected="@(Context.Request.Query["status"] == "1")">Drafted</option>
+            <option value="2" selected="@(Context.Request.Query["status"] == "2")">Completed</option>
+            <option value="3" selected="@(Context.Request.Query["status"] == "3")">Cancelled</option>
+        </select>
+        <button type="submit" class="filter-btn active">Apply</button>
+    </form>
+
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Pet</th>
+                    <th>Vet</th>
+                    <th>Diagnosis</th>
+                    <th>Status</th>
+                    <th style="width:160px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    int i = ((ViewBag.CurrentPage as int? ?? 1) - 1) * 10 + 1;
+                    foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>@i</td>
+                            <td>@r.AppointmentStart.ToString("dd/MM/yyyy")</td>
+                            <td>@r.CustomerName</td>
+                            <td>@r.PetSpecies - @r.PetBreed</td>
+                            <td>@r.VetName</td>
+                            <td title="@r.Diagnosis" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                                @r.Diagnosis
+                            </td>
+                            <td>
+                                <span class="status-badge status-@r.StatusName.ToLower()">
+                                    @r.StatusName
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-detail"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#mrModal"
+                                        data-url="@Url.Action("Details", "MedicalRecord", new { id = r.RecordId })"
+                                        title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                                @if (isVetOrAdmin && r.Status != 2)
+                                {
+                                    <button class="btn-detail"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#mrModal"
+                                            data-url="@Url.Action("Edit", "MedicalRecord", new { id = r.RecordId })"
+                                            title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                }
+
+                                @if (isVetOrAdmin)
+                                {
+                                    @if (r.Status != 2)
+                                    {
+                                        <button class="btn-detail text-success"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#mrModal"
+                                                data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 2 })"
+                                                title="Mark as Completed">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    }
+                                    @if (r.Status == 2)
+                                    {
+                                        <button class="btn-detail text-warning"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#mrModal"
+                                                data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 1 })"
+                                                title="Revert to Drafted">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    }
+                                    @if (r.Status != 3)
+                                    {
+                                        <button class="btn-detail text-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#mrModal"
+                                                data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 3 })"
+                                                title="Cancel">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon"><i class="bi bi-journal-medical"></i></div>
+                                <h3>No medical records found</h3>
+                                <p>Try adjusting your filters</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @{
+            int currentPage = ViewBag.CurrentPage ?? 1;
+            int totalPages = ViewBag.TotalPages ?? 1;
+        }
+        @if (totalPages > 1)
+        {
+            <div class="pagination">
+                @if (currentPage > 1)
+                {
+                    <a class="page-btn" href="@Url.Action("Index", new { page = currentPage - 1, search = ViewBag.Search, status = ViewBag.Status })">Prev</a>
+                }
+                @for (int p = 1; p <= totalPages; p++)
+                {
+                    <a class="page-btn @(p == currentPage ? "active" : "")"
+                       href="@Url.Action("Index", new { page = p, search = ViewBag.Search, status = ViewBag.Status })">@p</a>
+                }
+                @if (currentPage < totalPages)
+                {
+                    <a class="page-btn" href="@Url.Action("Index", new { page = currentPage + 1, search = ViewBag.Search, status = ViewBag.Status })">Next</a>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="mrModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Medical Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="mrModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- RX MODAL (prescription items - page level để tránh nested modal issues) -->
+<div class="modal fade" id="rxModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-bold">Prescription Item</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="rxModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div id="pageLoadingOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.7);z-index:2000;justify-content:center;align-items:center;flex-direction:column;">
+    <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem"></div>
+    <p class="mt-2">Processing...</p>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+    <div id="liveToast" class="toast bg-success text-white">
+        <div class="toast-body"></div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).on("click", "[data-bs-target='#mrModal']", function () {
+        var url = $(this).data("url");
+        showLoading();
+        $("#mrModalBody").load(url, function () { hideLoading(); $.validator.unobtrusive.parse($(this).find("form")); });
+    });
+
+    $('#mrModal').on('submit', 'form', function (e) {
+        e.preventDefault();
+        var form = $(this);
+        var formData = new FormData(form[0]);
+        showLoading();
+        $.ajax({
+            url: form.attr('action'),
+            type: form.attr('method'),
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (res) {
+                hideLoading();
+                if (res.success) {
+                    $('#mrModal').modal('hide');
+                    showToast("Success!");
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    $("#mrModalBody").html(res);
+                }
+            },
+            error: function () { hideLoading(); showToast("An error occurred", true); }
+        });
+    });
+
+    function showToast(msg, isError) {
+        var toast = document.getElementById('liveToast');
+        toast.className = 'toast ' + (isError ? 'bg-danger' : 'bg-success') + ' text-white';
+        $('#liveToast .toast-body').text(msg);
+        new bootstrap.Toast(toast).show();
+    }
+    function showLoading() { $("#pageLoadingOverlay").css("display", "flex"); }
+    function hideLoading() { $("#pageLoadingOverlay").hide(); }
+    document.querySelector(".toolbar")?.addEventListener("submit", function () {
+        this.querySelectorAll("input, select").forEach(el => { if (!el.value) el.removeAttribute("name"); });
+    });
+</script>
+}
