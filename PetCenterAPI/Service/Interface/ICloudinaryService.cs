@@ -8,5 +8,7 @@ namespace PetCenterAPI.Service.Interface
         Task<DeletionResult> DeleteImageAsync(string publicId);
 
         //string GetImageUrl(string publicId, int width = 0, int height = 0, bool crop = false);
+
+        Task<VideoUploadResult?> UploadVideoAsync(IFormFile file, string? folder = null);
     }
 }

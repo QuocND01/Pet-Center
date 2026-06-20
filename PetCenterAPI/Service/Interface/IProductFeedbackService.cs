@@ -1,4 +1,5 @@
-﻿using PetCenterAPI.DTOs.Responses.ManageFeedback;
+﻿using PetCenterAPI.DTOs.Requests.ManageFeedback;
+using PetCenterAPI.DTOs.Responses.ManageFeedback;
 
 namespace PetCenterAPI.Service.Interface
 {
@@ -14,6 +15,13 @@ namespace PetCenterAPI.Service.Interface
         // ============================================================
         Task<List<ProductFeedbackResponseDTO>> GetFeedbacksByOrderIdAsync(Guid orderId);
         Task<bool> HasFeedbackForOrderAsync(Guid orderId, Guid customerId);
+
+        // ============================================================
+        // FEEDBACK — CREATE BULK (CUSTOMER SIDE)
+        // ============================================================
+        Task<List<ProductFeedbackResponseDTO>> CreateBulkFeedbackAsync(
+            Guid customerId,
+            CreateBulkFeedbackRequestDTO request);
     }
 }
 

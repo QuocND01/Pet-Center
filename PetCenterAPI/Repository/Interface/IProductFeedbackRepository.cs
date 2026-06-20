@@ -14,5 +14,12 @@ namespace PetCenterAPI.Repository.Interface
         // ============================================================
         Task<List<ProductFeedback>> GetFeedbacksByOrderIdAsync(Guid orderId);
         Task<bool> HasFeedbackForOrderAsync(Guid orderId, Guid customerId);
+
+        // ============================================================
+        // FEEDBACK — CREATE BULK (CUSTOMER SIDE)
+        // ============================================================
+        Task<List<ProductFeedback>> CreateBulkAsync(List<ProductFeedback> feedbacks);
+        Task AddMediaRangeAsync(List<FeedbackImage> mediaList);
+        Task<List<FeedbackImage>> GetImagesByFeedbackIdAsync(Guid feedbackId);
     }
 }

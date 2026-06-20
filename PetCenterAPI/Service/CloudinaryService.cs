@@ -61,4 +61,17 @@ public class CloudinaryService : ICloudinaryService
 
     //    return _cloudinary.Api.UrlImgUp.Transform(transformation).BuildUrl(publicId);
     //}
+
+    public async Task<VideoUploadResult?> UploadVideoAsync(IFormFile file, string? folder = null)
+    {
+        if (file == null || file.Length == 0) return null;
+
+        using var stream = file.OpenReadStream();
+        var uploadParams = new VideoUploadParams
+        {
+            File = new FileDescription(file.FileName, stream),
+            Folder = folder
+        };
+        return await _cloudinary.UploadAsync(uploadParams);
+    }
 }

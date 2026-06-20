@@ -70,16 +70,29 @@ namespace PetCenterClient.Services
             catch { return new List<ProductFeedbackViewModel>(); }
         }
 
-        public async Task<bool> CreateBulkFeedbackAsync(MultipartFormDataContent formData)
+        // ============================================================
+        // FEEDBACK — CREATE BULK (CUSTOMER SIDE)
+        // ============================================================
+        public async Task<(bool Success, string Message)> CreateBulkFeedbackAsync(MultipartFormDataContent formData)
         {
             try
             {
                 AttachToken();
-                var response = await _http.PostAsync(
-                   "feedback-service/ProductFeedback/bulk", formData);
-                return response.IsSuccessStatusCode;
+                var response = await _http.PostAsync("api/ProductFeedbacks/bulk", formData);
+                var body = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<FeedbackApiResponseViewModel<object>>(body);
+                return (
+                    response.IsSuccessStatusCode,
+                    result?.Message ?? (response.IsSuccessStatusCode
+                        ? "Your review has been submitted successfully!"
+                        : "An error occurred. Please try again.")
+                );
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FeedbackApiService] CreateBulkFeedbackAsync error: {ex.Message}");
+                return (false, ex.Message);
+            }
         }
 
         public async Task<bool> UpdateFeedbackAsync(MultipartFormDataContent formData)
