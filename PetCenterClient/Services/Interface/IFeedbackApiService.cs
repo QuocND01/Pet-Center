@@ -16,7 +16,10 @@ namespace PetCenterClient.Services.Interface
         // ============================================================
         Task<List<ProductFeedbackViewModel>> GetFeedbacksByProductIdAsync(Guid productId);
 
-        Task<bool> CreateBulkFeedbackAsync(MultipartFormDataContent formData);
+        // ============================================================
+        // FEEDBACK — CREATE BULK (CUSTOMER SIDE)
+        // ============================================================
+        Task<(bool Success, string Message)> CreateBulkFeedbackAsync(MultipartFormDataContent formData);
         Task<bool> UpdateFeedbackAsync(MultipartFormDataContent formData);
     }
 }

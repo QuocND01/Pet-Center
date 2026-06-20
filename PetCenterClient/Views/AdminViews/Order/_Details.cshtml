@@ -5,7 +5,7 @@
     var isStaffOrAdmin = (role == "Sales" || role == "Admin");
     var customerDisplayName = HttpContextAccessor.HttpContext?.Session.GetString("FullName")
         ?? HttpContextAccessor.HttpContext?.Session.GetString("Name")
-        ?? "Bạn";
+        ?? "You";
 }
 
 <div class="container-fluid text-dark" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
@@ -115,7 +115,12 @@
                     <div class="text-muted" style="font-size: 12px;">Share your thoughts about the products in this order</div>
                 </div>
             </div>
-            <div id="feedback-button-container"></div>
+            <div id="feedback-button-container">
+                <span class="text-muted" style="font-size:12px;">
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Loading...
+                </span>
+            </div>
         </div>
     }
 
@@ -132,3 +137,39 @@
         </div>
     </div>
 </div>
+
+@* ═══════════════════════════════════════════════════
+   ORDER FEEDBACK SCRIPT
+════════════════════════════════════════════════════ *@
+@if (Model.Status == 4 && !isStaffOrAdmin)
+{
+    <meta name="customer-name" content="@customerDisplayName">
+
+    <script>
+        (function () {
+            // Clean up any stale customer-name meta from a previous modal load
+            var metas = document.querySelectorAll('meta[name="customer-name"]');
+            metas.forEach(function (el, idx) { if (idx > 0) el.remove(); });
+
+            // Pass product data from Razor to the JS feedback module
+            var orderProducts = @Html.Raw(Json.Serialize(Model.OrderItems.Select(i => new
+            {
+                productId = i.ProductId,
+                productName = i.ProductName,
+                imageUrl = i.ProductImage
+            })));
+
+            // OrderFeedback is loaded once from _Layout.cshtml via order-feedback.js.
+            // Retry briefly in case the script hasn't finished parsing yet on first load.
+            function startFeedback() {
+                if (typeof OrderFeedback === 'undefined') {
+                    setTimeout(startFeedback, 100);
+                    return;
+                }
+                OrderFeedback.init('@Model.OrderId', orderProducts);
+            }
+
+            startFeedback();
+        })();
+    </script>
+}

@@ -44,5 +44,28 @@ namespace PetCenterAPI.Repository
             return await _context.ProductFeedbacks
                 .AnyAsync(f => f.OrderId == orderId && f.CustomerId == customerId);
         }
+
+        // ============================================================
+        // FEEDBACK — CREATE BULK (CUSTOMER SIDE)
+        // ============================================================
+        public async Task<List<ProductFeedback>> CreateBulkAsync(List<ProductFeedback> feedbacks)
+        {
+            await _context.ProductFeedbacks.AddRangeAsync(feedbacks);
+            await _context.SaveChangesAsync();
+            return feedbacks;
+        }
+
+        public async Task AddMediaRangeAsync(List<FeedbackImage> mediaList)
+        {
+            await _context.FeedbackImages.AddRangeAsync(mediaList);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<FeedbackImage>> GetImagesByFeedbackIdAsync(Guid feedbackId)
+        {
+            return await _context.FeedbackImages
+                .Where(m => m.FeedbackId == feedbackId && m.IsActive == true)
+                .ToListAsync();
+        }
     }
 }

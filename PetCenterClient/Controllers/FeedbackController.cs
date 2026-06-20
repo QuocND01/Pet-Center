@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
+using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Controllers
@@ -39,6 +40,10 @@ namespace PetCenterClient.Controllers
             return Json(new { success = true, data = feedbacks });
         }
 
+        // ============================================================
+        // FEEDBACK — CREATE BULK (CUSTOMER SIDE)
+        // ============================================================
+
         // POST: Feedback/CreateBulk
         // AJAX endpoint để submit feedback nhiều sản phẩm
         [HttpPost]
@@ -47,23 +52,16 @@ namespace PetCenterClient.Controllers
             try
             {
                 var form = Request.Form;
-
                 if (!form.ContainsKey("Feedbacks[0].ProductId"))
-                    return Json(new { success = false, message = "Vui lòng nhập đánh giá." });
+                    return Json(new { success = false, message = "Please enter at least one review." });
 
-                // Build lại MultipartFormDataContent để forward sang FeedbackAPI
+                // Rebuild the multipart content to forward to backend
                 var forwardContent = new MultipartFormDataContent();
 
-                // Forward tất cả text fields (ProductId, OrderId, Rating, Comment)
                 foreach (var key in form.Keys)
-                {
                     foreach (var val in form[key])
-                    {
                         forwardContent.Add(new StringContent(val ?? ""), key);
-                    }
-                }
 
-                // Forward tất cả files
                 foreach (var file in form.Files)
                 {
                     var stream = file.OpenReadStream();
@@ -73,16 +71,9 @@ namespace PetCenterClient.Controllers
                     forwardContent.Add(fileContent, file.Name, file.FileName);
                 }
 
-                var success = await _feedbackService.CreateBulkFeedbackAsync(forwardContent);
+                var (success, message) = await _feedbackService.CreateBulkFeedbackAsync(forwardContent);
 
-                if (success)
-                    return Json(new
-                    {
-                        success = true,
-                        message = "Đánh giá của bạn đã được gửi thành công!"
-                    });
-
-                return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
+                return Json(new { success, message });
             }
             catch (Exception ex)
             {
