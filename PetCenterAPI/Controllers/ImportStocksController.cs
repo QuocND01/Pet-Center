@@ -10,11 +10,11 @@ namespace PetCenterAPI.Controllers
     //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class ImportStockController : ControllerBase
+    public class ImportStocksController : ControllerBase
     {
         private readonly IImportStockService _service;
 
-        public ImportStockController(IImportStockService service)
+        public ImportStocksController(IImportStockService service)
         {
             _service = service;
         }

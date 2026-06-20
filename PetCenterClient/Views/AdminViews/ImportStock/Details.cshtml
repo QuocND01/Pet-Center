@@ -1,5 +1,5 @@
-﻿@using PetCenterClient.DTOs
-@model ReadImportStockDetailDto
+﻿@using PetCenterClient.ViewModels
+@model ImportStockViewModel
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -102,10 +102,14 @@
             <thead>
                 <tr>
                     <th>Product</th>
+                    <th>SKU</th>
+                    <th>Batch</th>
                     <th>Quantity</th>
+                    <th>Stock Left</th>
+                    <th>Manufacturing Date</th>
+                    <th>Expiry Date</th>
                     <th>Import Price</th>
                     <th>Subtotal</th>
-                    <th>Stock Left</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,12 +125,16 @@
                                 <span>@productName</span>
                             </div>
                         </td>
-                        <td>@d.Quantity</td>
-                        <td class="price-text">@d.ImportPrice.ToString("N0") ₫</td>
-                        <td class="subtotal price-text">@subtotal.ToString("N0") ₫</td>
+                        <td>@d.SKU</td>
+                        <td>@d.BatchCode</td>
+                        <td>@d.Quantity</td>                     
                         <td>
                             <span class="row-num">@d.StockLeft</span>
                         </td>
+                        <td>@d.ManufacturingDate</td>
+                        <td>@d.ExpiryDate</td>
+                        <td class="price-text">@d.ImportPrice.ToString("N0") ₫</td>
+                        <td class="subtotal price-text">@subtotal.ToString("N0") ₫</td>
                     </tr>
                 }
             </tbody>

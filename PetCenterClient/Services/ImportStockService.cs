@@ -1,6 +1,6 @@
 ﻿
 using DocumentFormat.OpenXml.Office2010.Excel;
-using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels;
 using PetCenterClient.Services.Interface;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -38,34 +38,34 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<List<ReadImportHeaderDto>> GetAllAsync()
+        public async Task<List<ImportHeaderViewModel>> GetAllAsync()
         {
             AddAuthorizationHeader(); // Phải gọi trước khi Send/Get
-            var res = await _httpClient.GetAsync("import-service/importstock");
+            var res = await _httpClient.GetAsync("/api/importstocks");
 
-            if (!res.IsSuccessStatusCode) return new List<ReadImportHeaderDto>();
+            if (!res.IsSuccessStatusCode) return new List<ImportHeaderViewModel>();
 
             var json = await res.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<ReadImportHeaderDto>>(json,
+            return JsonSerializer.Deserialize<List<ImportHeaderViewModel>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
         }
 
-        public async Task<ReadImportStockDetailDto?> GetByIdAsync(Guid id)
+        public async Task<ImportStockViewModel?> GetByIdAsync(Guid id)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.GetAsync($"import-service/importstock/{id}");
+            var res = await _httpClient.GetAsync($"/api/importstocks/{id}");
 
             if (!res.IsSuccessStatusCode) return null;
 
             var json = await res.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<ReadImportStockDetailDto>(json,
+            return JsonSerializer.Deserialize<ImportStockViewModel>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
-        public async Task<Guid> CreateAsync(CreateImportStockDto dto)
+        public async Task<Guid> CreateAsync(CreateImportViewModel model)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PostAsJsonAsync("import-service/importstock", dto);
+            var res = await _httpClient.PostAsJsonAsync("/api/importstocks", model);
 
             res.EnsureSuccessStatusCode();
             var result = await res.Content.ReadAsStringAsync();
@@ -74,31 +74,31 @@ namespace PetCenterClient.Services
             return JsonSerializer.Deserialize<Guid>(result);
         }
 
-        public async Task ConfirmAsync(Guid id)
-        {
-            AddAuthorizationHeader();
-            var res = await _httpClient.PutAsync($"import-service/importstock/{id}/confirm", null);
+        //public async Task ConfirmAsync(Guid id)
+        //{
+        //    AddAuthorizationHeader();
+        //    var res = await _httpClient.PutAsync($"/api/importstocks/{id}/confirm", null);
 
-            res.EnsureSuccessStatusCode();
-            var items = await res.Content.ReadFromJsonAsync<List<IncreaseStockItemDto>>();
+        //    res.EnsureSuccessStatusCode();
+        //    var items = await res.Content.ReadFromJsonAsync<List<IncreaseStock>>();
 
-            await _productService.IncreaseStockBulkAsync(items);
-        }
+        //    await _productService.IncreaseStockBulkAsync(items);
+        //}
 
         public async Task CancelAsync(Guid id)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PutAsync($"import-service/importstock/{id}/cancel", null);
+            var res = await _httpClient.PutAsync($"/api/importstocks/{id}/cancel", null);
             res.EnsureSuccessStatusCode();
         }
-        public async Task<List<ImportDto>> GetAllByTimeAsync()
+        public async Task<List<ImportStockViewModel>> GetAllByTimeAsync()
         {
             AddAuthorizationHeader();
 
-            var res = await _httpClient.GetAsync("import-service/importstock/export");
+            var res = await _httpClient.GetAsync("/api/importstocks/export");
 
             if (!res.IsSuccessStatusCode)
-                return new List<ImportDto>();
+                return new List<ImportStockViewModel>();
 
             var json = await res.Content.ReadAsStringAsync();
             Console.WriteLine(json);
@@ -108,7 +108,7 @@ namespace PetCenterClient.Services
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             );
 
-            if (data == null) return new List<ImportDto>();
+            if (data == null) return new List<ImportStockViewModel>();
 
             // 🔥 GÁN DETAILS VÀO IMPORT
             foreach (var import in data.Imports)
@@ -121,22 +121,22 @@ namespace PetCenterClient.Services
             return data.Imports;
         }
         // 🔥 GỌI API TRỪ KHO
-        public async Task<string?> DeductFIFO(Guid productId, int quantity)
-        {
-            AddAuthorizationHeader();
-            var res = await _httpClient.PostAsJsonAsync($"import-service/importstock/deduct", new { productId, quantity });
-            if (!res.IsSuccessStatusCode) return null;
+        //public async Task<string?> DeductFIFO(Guid productId, int quantity)
+        //{
+        //    AddAuthorizationHeader();
+        //    var res = await _httpClient.PostAsJsonAsync($"/api/importstocks/deduct", new { productId, quantity });
+        //    if (!res.IsSuccessStatusCode) return null;
 
-            // Đọc JSON và chỉ lấy giá trị của trường "mapping"
-            var result = await res.Content.ReadFromJsonAsync<DeductStockResponse>();
-            return result?.Mapping; // Trả về "id:qty,id:qty" (chuỗi sạch)
-        }
+        //    // Đọc JSON và chỉ lấy giá trị của trường "mapping"
+        //    var result = await res.Content.ReadFromJsonAsync<DeductStockResponse>();
+        //    return result?.Mapping; // Trả về "id:qty,id:qty" (chuỗi sạch)
+        //}
 
         // 🔥 GỌI API HOÀN KHO
         public async Task<bool> ReturnStock(string mapping)
         {
             AddAuthorizationHeader();
-            var res = await _httpClient.PostAsJsonAsync($"import-service/importstock/return", new
+            var res = await _httpClient.PostAsJsonAsync($"/api/importstocks/return", new
             {
                 mapping
             });

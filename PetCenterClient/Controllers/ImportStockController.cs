@@ -1,23 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Data.SqlClient;
-using PetCenterClient.DTOs;
-using PetCenterClient.ViewModels.Supplier;
+using PetCenterClient.ViewModels;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Controllers
 {
-    public class ImportStocksController : Controller
+    public class ImportStockController : Controller
     {
         private readonly IImportStockService _service;
         private readonly ISupplierApiService _suppService;
         private readonly IProductAPIClient _productService;
         private readonly IStaffService _staffService;
-        private readonly ILogger<ImportStocksController> _logger;
+        private readonly ILogger<ImportStockController> _logger;
         private readonly ExcelService _excelService;
 
-        public ImportStocksController(IImportStockService service, ILogger<ImportStocksController> logger, ISupplierApiService suppService, ExcelService excelService, IProductAPIClient productService, IStaffService staffService)
+        public ImportStockController(IImportStockService service, ILogger<ImportStockController> logger, ISupplierApiService suppService, ExcelService excelService, IProductAPIClient productService, IStaffService staffService)
         {
             _service = service;
             _logger = logger;
@@ -34,7 +32,7 @@ namespace PetCenterClient.Controllers
             var imports = await _service.GetAllAsync();
             // 
             
-            var selectProducts = await _productService.GetProductSelectAsync();
+            
 
             //var staffName = await _staffService.GetStaffNameListAsync();
 
@@ -43,7 +41,7 @@ namespace PetCenterClient.Controllers
             //var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
             //ViewBag.StaffDict = staffDict;
 
-            ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
+           
             //
             ViewBag.IdSort = String.IsNullOrEmpty(sortOrder) ? "id_desc" : "";
             ViewBag.DateSort = sortOrder == "date" ? "date_desc" : "date";
@@ -90,39 +88,35 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Create()
         {   
 
-            //var selectSuppliers = await _suppService.GetSupplierSelectAsync();
-            var selectProducts = await _productService.GetProductSelectAsync();
-
-            //ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
-            ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
-            return View("~/Views/AdminViews/ImportStock/Create.cshtml", new CreateImportStockDto());
+            
+            return View("~/Views/AdminViews/ImportStock/Create.cshtml", new CreateImportViewModel ());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateImportStockDto dto)
+        public async Task<IActionResult> Create(CreateImportViewModel  model)
         {
             if (!ModelState.IsValid)
             {
                 var selectSuppliers = "ok";
-                var selectProducts = await _productService.GetProductSelectAsync();
+                
 
                 ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
-                ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
+                
 
-                return View("~/Views/AdminViews/ImportStock/Create.cshtml", dto);
+                return View("~/Views/AdminViews/ImportStock/Create.cshtml", model);
             }
 
-            await _service.CreateAsync(dto);
+            await _service.CreateAsync(model);
   
 
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Confirm(Guid id)
-        {
-            await _service.ConfirmAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
+        //public async Task<IActionResult> Confirm(Guid id)
+        //{
+        //    await _service.ConfirmAsync(id);
+        //    return RedirectToAction(nameof(Index));
+        //}
 
         public async Task<IActionResult> Cancel(Guid id)
         {

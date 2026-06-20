@@ -1,9 +1,9 @@
 ﻿
 
-namespace PetCenterClient.DTOs
+namespace PetCenterClient.ViewModels
 {   
     //For get by id
-    public class ReadImportStockViewModel
+    public class ImportStockViewModel
     {
         public Guid ImportId { get; set; }
         public Guid SupplierId { get; set; }
@@ -20,13 +20,13 @@ namespace PetCenterClient.DTOs
     }
 
     //For create
-    public class CreateImportViewModel 
+    public class CreateImportViewModel
     {
         public Guid SupplierId { get; set; }
         public string InvoiceNumber { get; set; } = null!;
         public string? Note { get; set; }
 
-        public List<CreateImportStockDetailDto> Details { get; set; } = new();
+        public List<CreateImportDetailViewModel> Details { get; set; } = new();
     }
 
     //For get all header import
@@ -43,30 +43,8 @@ namespace PetCenterClient.DTOs
     }
     public class ImportStockResponseDto
     {
-        public List<ImportDto> Imports { get; set; }
-        public List<ImportDetailDto> Details { get; set; }
-    }
-    // All import from api for export
-    public class ImportDto
-    {
-        public Guid ImportId { get; set; }
-        public Guid SupplierId { get; set; }
-        public string SupplierName { get; set; }
-        public Guid StaffId { get; set; }
-        public decimal TotalAmount { get; set; }
-        public DateTime ImportDate { get; set; }
-        public int Status { get; set; }
-
-        public List<ImportDetailDto> Details { get; set; } 
-    }
-
-    public class ImportDetailDto
-    {
-        public Guid ImportId { get; set; }
-        public Guid ProductId { get; set; }
-        public int Quantity { get; set; }
-        public decimal ImportPrice { get; set; }
-        public int StockLeft { get; set; }
+        public List<ImportStockViewModel> Imports { get; set; } = null!;
+        public List<ImportDetailViewModel> Details { get; set; } = null!;
     }
 
     //Export
