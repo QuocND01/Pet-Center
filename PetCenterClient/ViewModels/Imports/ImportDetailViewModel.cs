@@ -1,4 +1,4 @@
-﻿namespace PetCenterClient.DTOs
+﻿namespace PetCenterClient.ViewModels
 {
     public class ImportDetailViewModel
     {
@@ -8,21 +8,31 @@
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
         public decimal ImportPrice { get; set; }
+        public string SKU { get; set; } = null!;
+        public string BatchCode { get; set; } = null!;
         public int StockLeft { get; set; }
+        public DateTime? ManufacturingDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 
-    public class CreateImportStockDetailDto
+    public class CreateImportDetailViewModel
     {
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
         public decimal ImportPrice { get; set; }
+        public string SKU { get; set; } = null!;
+        public string BatchCode { get; set; } = null!;
+        public DateTime? ManufacturingDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+        
+
     }
-    public class IncreaseStockItemDto
+    public class IncreaseStock
     {
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
     }
-    public class DecreaseStockItemDto
+    public class DecreaseStock
     {
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }

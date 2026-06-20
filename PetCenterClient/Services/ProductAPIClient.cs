@@ -288,37 +288,9 @@ namespace PetCenterClient.Services
 
             response.EnsureSuccessStatusCode();
         }
-        public async Task<List<ProductSelectViewModel>> GetProductSelectAsync()
-        {
-            AddAuthorizationHeader();
+        
 
-            var res = await _http.GetAsync("api/products/select");
-
-            if (!res.IsSuccessStatusCode) 
-                return new List<ProductSelectViewModel>();
-
-            var json = await res.Content.ReadAsStringAsync();
-
-            return JsonSerializer.Deserialize<List<ProductSelectViewModel>>(json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                ?? new List<ProductSelectViewModel>();
-        }
-
-        public async Task<List<ProductSelectViewModel>> GetProductSelectToViewAsync()
-        {
-            AddAuthorizationHeader();
-
-            var res = await _http.GetAsync("api/products/selectToView");
-
-            if (!res.IsSuccessStatusCode)
-                return new List<ProductSelectViewModel>();
-
-            var json = await res.Content.ReadAsStringAsync();
-
-            return JsonSerializer.Deserialize<List<ProductSelectViewModel>>(json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                ?? new List<ProductSelectViewModel>();
-        }
+        
 
 
         public async Task<List<ReadProductViewModelForCustomer>> GetHotProductsAsync()
@@ -348,56 +320,6 @@ namespace PetCenterClient.Services
                     new AuthenticationHeaderValue("Bearer", token);
             }
         }
-        public async Task IncreaseStockBulkAsync(List<IncreaseStockItemDto> items)
-        {
-            AddAuthorizationHeader();
-            var res = await _http.PostAsJsonAsync("api/Products/increase-stock-bulk", items);
-
-            var content = await res.Content.ReadAsStringAsync();
-
-            if (!res.IsSuccessStatusCode)
-                throw new Exception($"IncreaseStockBulk failed: {res.StatusCode} - {content}");
-        }
-
-        public async Task<bool> DecreaseStockAsync(Guid productId, int quantity)
-        {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
-            if (!string.IsNullOrEmpty(token))
-            {
-                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-
-            try
-            {
-                var response = await _http.PutAsJsonAsync($"api/Products/decrease-stock/{productId}", quantity);
-
-                return response.IsSuccessStatusCode;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        public async Task<bool> IncreaseStockAsync(Guid productId, int quantity)
-        {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
-            if (!string.IsNullOrEmpty(token))
-            {
-                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-
-            try
-            {
-                // Gọi chuẩn đường dẫn qua API Gateway xuống ProductAPI
-                var response = await _http.PutAsJsonAsync($"api/Products/increase-stock/{productId}", quantity);
-                return response.IsSuccessStatusCode;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
         public async Task<ReadProductViewModel> GetProductByIdIncludeDeletedAsync(Guid? id)
         {
             try

@@ -42,11 +42,7 @@ namespace PetCenterClient.Services.Interface
 
         Task<List<ReadProductViewModelForCustomer>> GetHotProductsAsync();
         Task<List<ReadProductViewModelForCustomer>> GetNewProductsAsync();
-        Task<List<ProductSelectViewModel>> GetProductSelectAsync();
-        Task<List<ProductSelectViewModel>> GetProductSelectToViewAsync();
-        Task IncreaseStockBulkAsync(List<IncreaseStockItemDto> items);
-        Task<bool> DecreaseStockAsync(Guid productId, int quantity);
-        Task<bool> IncreaseStockAsync(Guid productId, int quantity);
+
         Task<ReadProductViewModel> GetProductByIdIncludeDeletedAsync(Guid? id);
     }
 }
