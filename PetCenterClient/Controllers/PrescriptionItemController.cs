@@ -14,7 +14,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: Create popup
-        public IActionResult CreateAsync(Guid recordId)
+        public IActionResult Create(Guid recordId)
         {
             var model = new CreatePrescriptionItemViewModel { RecordId = recordId };
             return PartialView("~/Views/AdminViews/PrescriptionItem/_Create.cshtml", model);
@@ -23,7 +23,7 @@ namespace PetCenterClient.Controllers
         // POST: Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAsync(CreatePrescriptionItemViewModel model)
+        public async Task<IActionResult> Create(CreatePrescriptionItemViewModel model)
         {
             if (!ModelState.IsValid)
                 return PartialView("~/Views/AdminViews/PrescriptionItem/_Create.cshtml", model);
@@ -41,7 +41,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: Details popup
-        public async Task<IActionResult> DetailsAsync(Guid id)
+        public async Task<IActionResult> Details(Guid id)
         {
             var item = await _service.GetByIdAsync(id);
             if (item == null) return NotFound();
@@ -49,7 +49,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: Edit popup
-        public async Task<IActionResult> EditAsync(Guid id)
+        public async Task<IActionResult> Edit(Guid id)
         {
             var item = await _service.GetByIdAsync(id);
             if (item == null) return NotFound();
@@ -69,7 +69,7 @@ namespace PetCenterClient.Controllers
         // POST: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(Guid id, UpdatePrescriptionItemViewModel model)
+        public async Task<IActionResult> Edit(Guid id, UpdatePrescriptionItemViewModel model)
         {
             if (!ModelState.IsValid)
                 return PartialView("~/Views/AdminViews/PrescriptionItem/_Edit.cshtml", model);
@@ -87,7 +87,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: Delete popup
-        public async Task<IActionResult> DeleteAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var item = await _service.GetByIdAsync(id);
             if (item == null) return NotFound();
@@ -96,8 +96,7 @@ namespace PetCenterClient.Controllers
             {
                 PrescriptionItemId = item.PrescriptionItemId,
                 RecordId = item.RecordId,
-                MedicineName = item.MedicineName,
-                Status = item.Status
+                MedicineName = item.MedicineName
             };
             return PartialView("~/Views/AdminViews/PrescriptionItem/_Delete.cshtml", model);
         }
@@ -105,27 +104,11 @@ namespace PetCenterClient.Controllers
         // POST: Delete confirmed
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmedAsync(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             try
             {
                 await _service.DeleteAsync(id);
-                return Json(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        // POST: Change to Complete
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CompleteAsync(Guid id)
-        {
-            try
-            {
-                await _service.ChangeStatusAsync(id, 2); // 2 = Complete
                 return Json(new { success = true });
             }
             catch (Exception ex)

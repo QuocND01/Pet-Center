@@ -757,7 +757,6 @@ public partial class PetCenterContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.RecordId).HasColumnName("RecordID");
-            entity.Property(e => e.Status).HasDefaultValue(1);
 
             entity.HasOne(d => d.Record).WithMany(p => p.PrescriptionItems)
                 .HasForeignKey(d => d.RecordId)

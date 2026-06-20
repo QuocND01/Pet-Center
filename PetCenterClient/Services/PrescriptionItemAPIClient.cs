@@ -80,16 +80,6 @@ namespace PetCenterClient.Services
                 throw new Exception(await response.Content.ReadAsStringAsync());
         }
 
-        public async Task ChangeStatusAsync(Guid id, int status)
-        {
-            AddAuthorizationHeader();
-            var json = JsonSerializer.Serialize(status);
-            var response = await _http.PatchAsync($"api/PrescriptionItems/{id}/status",
-                new StringContent(json, Encoding.UTF8, "application/json"));
-
-            response.EnsureSuccessStatusCode();
-        }
-
         private void AddAuthorizationHeader()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PetCenterAPI.Common;
 using PetCenterAPI.Service.Interface;
 using static PetCenterAPI.DTOs.Requests.PrescriptionItem.PrescriptionItemRequestDTO;
 
@@ -59,10 +58,6 @@ namespace PetCenterAPI.Controllers
                 await _service.UpdateAsync(id, dto);
                 return Ok(new { success = true, message = "Prescription item updated successfully" });
             }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(new { success = false, message = ex.Message });
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { success = false, message = ex.Message });
@@ -75,24 +70,6 @@ namespace PetCenterAPI.Controllers
             try
             {
                 await _service.DeleteAsync(id);
-                return Ok(new { success = true });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(new { success = false, message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpPatch("{id}/status")]
-        public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] PrescriptionItemStatus status)
-        {
-            try
-            {
-                await _service.ChangeStatusAsync(id, status);
                 return Ok(new { success = true });
             }
             catch (Exception ex)

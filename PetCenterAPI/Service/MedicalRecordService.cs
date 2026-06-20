@@ -61,9 +61,7 @@ namespace PetCenterAPI.Service
                     Dosage = p.Dosage,
                     Duration = p.Duration,
                     Quantity = p.Quantity,
-                    Note = p.Note,
-                    Status = p.Status,
-                    StatusName = p.Status == (int)PrescriptionItemStatus.Complete ? "Complete" : "Prescribing"
+                    Note = p.Note
                 }).ToList()
             };
         }

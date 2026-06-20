@@ -9,8 +9,6 @@
     .status-drafted { background: #fef3c7; color: #92400e; }
     .status-completed { background: #d1fae5; color: #065f46; }
     .status-cancelled { background: #fee2e2; color: #991b1b; }
-    .status-prescribing { background: #dbeafe; color: #1e40af; }
-    .status-complete { background: #d1fae5; color: #065f46; }
     .rx-table th { font-size: 12px; color: #6c757d; text-transform: uppercase; }
     .rx-table td { font-size: 13px; }
 </style>
@@ -70,7 +68,7 @@
                     <th>Dosage</th>
                     <th>Duration</th>
                     <th>Qty</th>
-                    <th>Status</th>
+                    <th>Note</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,11 +79,7 @@
                         <td>@item.Dosage</td>
                         <td>@item.Duration</td>
                         <td>@item.Quantity</td>
-                        <td>
-                            <span class="status-badge status-@item.StatusName.ToLower()">
-                                @item.StatusName
-                            </span>
-                        </td>
+                        <td>@(item.Note ?? "-")</td>
                     </tr>
                 }
             </tbody>

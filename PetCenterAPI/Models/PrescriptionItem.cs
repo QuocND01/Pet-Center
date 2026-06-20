@@ -19,7 +19,5 @@ public partial class PrescriptionItem
 
     public string? Note { get; set; }
 
-    public int Status { get; set; }
-
     public virtual MedicalRecord Record { get; set; } = null!;
 }

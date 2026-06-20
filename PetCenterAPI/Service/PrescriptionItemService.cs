@@ -1,4 +1,3 @@
-using PetCenterAPI.Common;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
@@ -38,8 +37,7 @@ namespace PetCenterAPI.Service
                 Dosage = dto.Dosage,
                 Duration = dto.Duration,
                 Quantity = dto.Quantity,
-                Note = dto.Note,
-                Status = (int)PrescriptionItemStatus.Prescribing
+                Note = dto.Note
             };
 
             await _repo.AddAsync(item);
@@ -49,9 +47,6 @@ namespace PetCenterAPI.Service
         {
             var item = await _repo.GetByIdAsync(id)
                 ?? throw new Exception("Prescription item not found");
-
-            if (item.Status != (int)PrescriptionItemStatus.Prescribing)
-                throw new InvalidOperationException("Can only update items with status 'Prescribing'");
 
             item.MedicineName = dto.MedicineName;
             item.Dosage = dto.Dosage;
@@ -67,18 +62,7 @@ namespace PetCenterAPI.Service
             var item = await _repo.GetByIdAsync(id)
                 ?? throw new Exception("Prescription item not found");
 
-            if (item.Status != (int)PrescriptionItemStatus.Prescribing)
-                throw new InvalidOperationException("Can only delete items with status 'Prescribing'");
-
             await _repo.DeleteAsync(id);
-        }
-
-        public async Task ChangeStatusAsync(Guid id, PrescriptionItemStatus status)
-        {
-            var item = await _repo.GetByIdAsync(id)
-                ?? throw new Exception("Prescription item not found");
-
-            await _repo.ChangeStatusAsync(id, status);
         }
 
         private static ReadPrescriptionItemDTO MapToDTO(PrescriptionItem p) => new()
@@ -89,9 +73,7 @@ namespace PetCenterAPI.Service
             Dosage = p.Dosage,
             Duration = p.Duration,
             Quantity = p.Quantity,
-            Note = p.Note,
-            Status = p.Status,
-            StatusName = p.Status == (int)PrescriptionItemStatus.Complete ? "Complete" : "Prescribing"
+            Note = p.Note
         };
     }
 }

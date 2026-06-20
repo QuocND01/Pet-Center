@@ -5,16 +5,10 @@
     .info-box { background:#f8f9fa; border-radius:10px; padding:12px; border:1px solid #e9ecef; margin-bottom:10px; }
     .info-label { font-weight:600; color:#6c757d; font-size:12px; text-transform:uppercase; margin-bottom:3px; }
     .info-value { font-size:14px; color:#212529; }
-    .status-badge { padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
-    .status-prescribing { background:#dbeafe; color:#1e40af; }
-    .status-complete { background:#d1fae5; color:#065f46; }
 </style>
 
 <div class="p-2">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold mb-0">Prescription Item Detail</h6>
-        <span class="status-badge status-@Model.StatusName.ToLower()">@Model.StatusName</span>
-    </div>
+    <h6 class="fw-bold mb-3">Prescription Item Detail</h6>
     <div class="row">
         <div class="col-12">
             <div class="info-box">

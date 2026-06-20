@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using PetCenterAPI.Common;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 
@@ -45,13 +44,6 @@ namespace PetCenterAPI.Repository
             await _db.PrescriptionItems
                 .Where(p => p.PrescriptionItemId == id)
                 .ExecuteDeleteAsync();
-        }
-
-        public async Task ChangeStatusAsync(Guid id, PrescriptionItemStatus status)
-        {
-            await _db.PrescriptionItems
-                .Where(p => p.PrescriptionItemId == id)
-                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, (int)status));
         }
     }
 }

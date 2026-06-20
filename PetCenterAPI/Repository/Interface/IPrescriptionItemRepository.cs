@@ -1,4 +1,3 @@
-using PetCenterAPI.Common;
 using PetCenterAPI.Models;
 
 namespace PetCenterAPI.Repository.Interface
@@ -10,6 +9,5 @@ namespace PetCenterAPI.Repository.Interface
         Task AddAsync(PrescriptionItem item);
         Task UpdateAsync(PrescriptionItem item);
         Task DeleteAsync(Guid id);
-        Task ChangeStatusAsync(Guid id, PrescriptionItemStatus status);
     }
 }
