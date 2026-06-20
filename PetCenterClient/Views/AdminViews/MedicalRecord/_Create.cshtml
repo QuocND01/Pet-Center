@@ -1,0 +1,70 @@
+@using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel
+@model CreateMedicalRecordViewModel
+
+<style>
+    .page-card { background: #fff; border-radius: 18px; padding: 28px; }
+    .section-card { background: #f8f9fa; border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+    .form-control, .form-select { min-height: 44px; border-radius: 10px; }
+    textarea.form-control { min-height: 90px; resize: vertical; }
+</style>
+
+<div class="page-card">
+    <h5 class="mb-1 fw-bold">Add Medical Record</h5>
+    <p class="text-muted small mb-3">Create a new medical record for a completed appointment</p>
+
+    <form asp-action="Create" asp-controller="MedicalRecord" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="section-card">
+            <div class="section-title">Appointment</div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Select Completed Appointment <span class="text-danger">*</span></label>
+                <select asp-for="AppointmentId" class="form-select">
+                    <option value="">-- Select an appointment --</option>
+                    @if (ViewBag.CompletedAppointments != null)
+                    {
+                        foreach (var a in (IEnumerable<CompletedAppointmentViewModel>)ViewBag.CompletedAppointments)
+                        {
+                            <option value="@a.AppointmentId">@a.DisplayText</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="AppointmentId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">Medical Information</div>
+            <div class="mb-3">
+                <label asp-for="Diagnosis" class="form-label fw-semibold">
+                    Diagnosis <span class="text-danger">*</span>
+                </label>
+                <textarea asp-for="Diagnosis" class="form-control" placeholder="Enter diagnosis..."></textarea>
+                <span asp-validation-for="Diagnosis" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Treatment" class="form-label fw-semibold">
+                    Treatment <span class="text-danger">*</span>
+                </label>
+                <textarea asp-for="Treatment" class="form-control" placeholder="Enter treatment plan..."></textarea>
+                <span asp-validation-for="Treatment" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Note" class="form-label fw-semibold">Note</label>
+                <textarea asp-for="Note" class="form-control" placeholder="Additional notes (optional)..."></textarea>
+                <span asp-validation-for="Note" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-success px-4">
+                <i class="bi bi-check-circle me-1"></i> Create Record
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

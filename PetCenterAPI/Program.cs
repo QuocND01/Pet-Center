@@ -175,9 +175,10 @@ builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IAdminFeedbackRepository, AdminFeedbackRepository>();
-
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductFeedbackRepository, ProductFeedbackRepository>();
+builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
+builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
@@ -194,10 +195,11 @@ builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAdminFeedbackService, AdminFeedbackService>();
-
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IProductFeedbackService, ProductFeedbackService>();
 builder.Services.AddScoped<IImportStockService, ImportStockService>();
+builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));

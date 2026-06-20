@@ -1,0 +1,98 @@
+@using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel
+@model ReadMedicalRecordDetailViewModel
+
+<style>
+    .info-box { background: #f8f9fa; border-radius: 10px; padding: 12px; border: 1px solid #e9ecef; margin-bottom: 10px; }
+    .info-label { font-weight: 600; color: #6c757d; font-size: 12px; text-transform: uppercase; margin-bottom: 3px; }
+    .info-value { font-size: 14px; color: #212529; }
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .status-drafted { background: #fef3c7; color: #92400e; }
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-prescribing { background: #dbeafe; color: #1e40af; }
+    .status-complete { background: #d1fae5; color: #065f46; }
+    .rx-table th { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+    .rx-table td { font-size: 13px; }
+</style>
+
+<div class="p-2">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="fw-bold mb-0">Medical Record</h6>
+            <small class="text-muted">@Model.AppointmentStart.ToString("dd/MM/yyyy HH:mm")</small>
+        </div>
+        <span class="status-badge status-@Model.StatusName.ToLower()">@Model.StatusName</span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-box">
+                <div class="info-label">Veterinarian</div>
+                <div class="info-value">@Model.VetName</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box">
+                <div class="info-label">Pet</div>
+                <div class="info-value">@Model.PetSpecies - @Model.PetBreed</div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="info-box">
+                <div class="info-label">Diagnosis</div>
+                <div class="info-value">@Model.Diagnosis</div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="info-box">
+                <div class="info-label">Treatment</div>
+                <div class="info-value">@Model.Treatment</div>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Note))
+        {
+            <div class="col-12">
+                <div class="info-box">
+                    <div class="info-label">Note</div>
+                    <div class="info-value">@Model.Note</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.PrescriptionItems != null && Model.PrescriptionItems.Any())
+    {
+        <h6 class="fw-bold mt-3 mb-2"><i class="bi bi-capsule me-1"></i>Prescription</h6>
+        <table class="table table-sm rx-table">
+            <thead>
+                <tr>
+                    <th>Medicine</th>
+                    <th>Dosage</th>
+                    <th>Duration</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.PrescriptionItems)
+                {
+                    <tr>
+                        <td>@item.MedicineName</td>
+                        <td>@item.Dosage</td>
+                        <td>@item.Duration</td>
+                        <td>@item.Quantity</td>
+                        <td>
+                            <span class="status-badge status-@item.StatusName.ToLower()">
+                                @item.StatusName
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted small mt-3">No prescription items for this record.</p>
+    }
+</div>

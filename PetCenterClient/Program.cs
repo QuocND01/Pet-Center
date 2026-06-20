@@ -105,6 +105,16 @@ builder.Services.AddHttpClient<IAdminFeedbackApiService, AdminFeedbackApiService
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+
+builder.Services.AddHttpClient<IMedicalRecordAPIClient, MedicalRecordAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
+builder.Services.AddHttpClient<IPrescriptionItemAPIClient, PrescriptionItemAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 //Excel service
 builder.Services.AddScoped<ExcelService>();
 
