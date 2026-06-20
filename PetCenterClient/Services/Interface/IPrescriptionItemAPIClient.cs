@@ -9,6 +9,5 @@ namespace PetCenterClient.Services.Interface
         Task CreateAsync(CreatePrescriptionItemViewModel model);
         Task UpdateAsync(Guid id, UpdatePrescriptionItemViewModel model);
         Task DeleteAsync(Guid id);
-        Task ChangeStatusAsync(Guid id, int status);
     }
 }

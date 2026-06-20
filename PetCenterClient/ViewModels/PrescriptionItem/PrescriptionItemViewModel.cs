@@ -13,8 +13,6 @@ namespace PetCenterClient.ViewModels.PrescriptionItem
             public string Duration { get; set; } = null!;
             public int Quantity { get; set; }
             public string? Note { get; set; }
-            public int Status { get; set; }
-            public string StatusName { get; set; } = null!;
         }
 
         public class CreatePrescriptionItemViewModel
@@ -81,7 +79,6 @@ namespace PetCenterClient.ViewModels.PrescriptionItem
             public Guid PrescriptionItemId { get; set; }
             public Guid RecordId { get; set; }
             public string MedicineName { get; set; } = null!;
-            public int Status { get; set; }
         }
     }
 }

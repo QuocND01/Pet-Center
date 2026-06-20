@@ -14,8 +14,6 @@
     .status-cancelled { background: #fee2e2; color: #991b1b; }
     .rx-table th { font-size: 12px; font-weight: 600; color: #6c757d; text-transform: uppercase; }
     .rx-table td { font-size: 13px; vertical-align: middle; }
-    .status-prescribing { background: #dbeafe; color: #1e40af; }
-    .status-complete { background: #d1fae5; color: #065f46; }
 </style>
 
 <div class="detail-card">
@@ -75,7 +73,7 @@
         }
     </div>
 
-    <!-- Prescription Items Section -->
+    <!-- Prescription Items -->
     <div class="section-title d-flex justify-content-between align-items-center">
         <span><i class="bi bi-capsule me-1"></i>Prescription Items</span>
         @{
@@ -87,97 +85,74 @@
             <button type="button"
                     class="btn btn-sm btn-success"
                     id="btnAddPrescription"
-                    data-record-id="@Model.RecordId"
                     data-url="@Url.Action("Create", "PrescriptionItem", new { recordId = Model.RecordId })">
                 <i class="bi bi-plus"></i> Add Item
             </button>
         }
     </div>
 
-    <div id="prescriptionContainer">
-        @if (Model.PrescriptionItems != null && Model.PrescriptionItems.Any())
-        {
-            <table class="table table-hover rx-table">
-                <thead>
+    @if (Model.PrescriptionItems != null && Model.PrescriptionItems.Any())
+    {
+        <table class="table table-hover rx-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Medicine</th>
+                    <th>Dosage</th>
+                    <th>Duration</th>
+                    <th>Qty</th>
+                    <th>Note</th>
+                    @if (isVetOrAdmin) { <th>Actions</th> }
+                </tr>
+            </thead>
+            <tbody>
+                @{ int pi = 1; }
+                @foreach (var item in Model.PrescriptionItems)
+                {
                     <tr>
-                        <th>#</th>
-                        <th>Medicine</th>
-                        <th>Dosage</th>
-                        <th>Duration</th>
-                        <th>Qty</th>
-                        <th>Note</th>
-                        <th>Status</th>
+                        <td>@pi</td>
+                        <td>@item.MedicineName</td>
+                        <td>@item.Dosage</td>
+                        <td>@item.Duration</td>
+                        <td>@item.Quantity</td>
+                        <td>@(item.Note ?? "-")</td>
                         @if (isVetOrAdmin)
                         {
-                            <th>Actions</th>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary btn-rx-action"
+                                        data-url="@Url.Action("Details", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                        title="View">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary btn-rx-action"
+                                        data-url="@Url.Action("Edit", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                        title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-rx-action"
+                                        data-url="@Url.Action("Delete", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                        title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
                         }
                     </tr>
-                </thead>
-                <tbody>
-                    @{int pi = 1;}
-                    @foreach (var item in Model.PrescriptionItems)
-                    {
-                        <tr>
-                            <td>@pi</td>
-                            <td>@item.MedicineName</td>
-                            <td>@item.Dosage</td>
-                            <td>@item.Duration</td>
-                            <td>@item.Quantity</td>
-                            <td>@(item.Note ?? "-")</td>
-                            <td>
-                                <span class="status-badge status-@item.StatusName.ToLower()">
-                                    @item.StatusName
-                                </span>
-                            </td>
-                            @if (isVetOrAdmin)
-                            {
-                                <td>
-                                    <button class="btn btn-sm btn-outline-secondary btn-rx-action"
-                                            data-url="@Url.Action("Details", "PrescriptionItem", new { id = item.PrescriptionItemId })"
-                                            title="View">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    @if (item.Status == 1)
-                                    {
-                                        <button class="btn btn-sm btn-outline-primary btn-rx-action"
-                                                data-url="@Url.Action("Edit", "PrescriptionItem", new { id = item.PrescriptionItemId })"
-                                                title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-success btn-rx-complete"
-                                                data-id="@item.PrescriptionItemId"
-                                                data-url="@Url.Action("Complete", "PrescriptionItem")"
-                                                title="Mark Complete">
-                                            <i class="bi bi-check-circle"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-rx-action"
-                                                data-url="@Url.Action("Delete", "PrescriptionItem", new { id = item.PrescriptionItemId })"
-                                                title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    }
-                                </td>
-                            }
-                        </tr>
-                        pi++;
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="text-center text-muted py-3">
-                <i class="bi bi-capsule fs-3 d-block mb-2"></i>
-                No prescription items yet
-            </div>
-        }
-    </div>
+                    pi++;
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="text-center text-muted py-3">
+            <i class="bi bi-capsule fs-3 d-block mb-2"></i>
+            No prescription items yet
+        </div>
+    }
 </div>
 
 <script>
-/* Script inline - runs when loaded via AJAX */
 (function () {
-    // Lấy rxModal ở page level (định nghĩa trong Index.cshtml)
     var $rxModal = $('#rxModal');
     var $rxModalBody = $('#rxModalBody');
 
@@ -191,7 +166,7 @@
         });
     });
 
-    // View / Edit / Delete prescription item
+    // View / Edit / Delete
     $(document).off('click', '.btn-rx-action').on('click', '.btn-rx-action', function () {
         var url = $(this).data('url');
         $rxModalBody.html('<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>');
@@ -201,27 +176,14 @@
         });
     });
 
-    // Mark prescription item Complete
-    $(document).off('click', '.btn-rx-complete').on('click', '.btn-rx-complete', function () {
-        if (!confirm('Mark this prescription item as Complete?')) return;
-        var id = $(this).data('id');
-        var url = $(this).data('url');
-        var token = $('input[name="__RequestVerificationToken"]').first().val();
-        $.post(url, { id: id, __RequestVerificationToken: token }, function (res) {
-            if (res.success) location.reload();
-            else alert('Error: ' + (res.message || 'Unknown error'));
-        });
-    });
-
     // Handle form submit inside rxModal
     $rxModal.off('submit', 'form').on('submit', 'form', function (e) {
         e.preventDefault();
         var form = $(this);
-        var formData = new FormData(form[0]);
         $.ajax({
             url: form.attr('action'),
             type: form.attr('method') || 'POST',
-            data: formData,
+            data: new FormData(form[0]),
             contentType: false,
             processData: false,
             success: function (res) {
@@ -233,9 +195,7 @@
                     $.validator.unobtrusive.parse($rxModalBody.find('form'));
                 }
             },
-            error: function () {
-                alert('An error occurred. Please try again.');
-            }
+            error: function () { alert('An error occurred. Please try again.'); }
         });
     });
 }());
