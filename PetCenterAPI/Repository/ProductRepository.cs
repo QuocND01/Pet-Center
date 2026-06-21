@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Common;
+using PetCenterAPI.Helpers;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using System.Collections;
@@ -22,7 +23,38 @@ namespace PetCenterAPI.Repository
 
 
         public async Task AddProductAsync(Product product)
-        {
+        {   
+            //Debug
+            Console.WriteLine($"Attributes Count: {product.ProductAttributes?.Count}");
+
+            if (product.ProductAttributes != null)
+            {
+                foreach (var item in product.ProductAttributes)
+                {
+                    Console.WriteLine($"Value = {item.AttributeValue}");
+                }
+            }
+            //Add inventory + gen SKU
+            var brand = await _db.Brands
+        .FirstAsync(x => x.BrandId == product.BrandId);
+
+            var category = await _db.Categories
+                .FirstAsync(x => x.CategoryId == product.CategoryId);
+
+            product.Brand = brand;
+            product.Category = category;
+
+            var inventory = new Inventory
+            {
+                InventoryId = Guid.NewGuid(),
+                ProductId = product.ProductId,
+                SKU = SkuGenerator.Generate(product),
+                QuantityAvailable = 0,
+                LastUpdated = DateTime.UtcNow
+            };
+
+            product.Inventory = inventory;
+            //Add product
             _db.Products.Add(product);
             await _db.SaveChangesAsync();
         }
