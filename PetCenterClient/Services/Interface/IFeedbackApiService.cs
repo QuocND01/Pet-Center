@@ -20,6 +20,10 @@ namespace PetCenterClient.Services.Interface
         // FEEDBACK — CREATE BULK (CUSTOMER SIDE)
         // ============================================================
         Task<(bool Success, string Message)> CreateBulkFeedbackAsync(MultipartFormDataContent formData);
-        Task<bool> UpdateFeedbackAsync(MultipartFormDataContent formData);
+
+        // ============================================================
+        // FEEDBACK — UPDATE (CUSTOMER SIDE)
+        // ============================================================
+        Task<(bool Success, string Message)> UpdateFeedbackAsync(MultipartFormDataContent formData);
     }
 }

@@ -74,4 +74,11 @@ public class CloudinaryService : ICloudinaryService
         };
         return await _cloudinary.UploadAsync(uploadParams);
     }
+
+    public async Task DeleteMediaAsync(string publicId, string mediaType)
+    {
+        var resourceType = mediaType == "video" ? ResourceType.Video : ResourceType.Image;
+        var deleteParams = new DeletionParams(publicId) { ResourceType = resourceType };
+        await _cloudinary.DestroyAsync(deleteParams);
+    }
 }
