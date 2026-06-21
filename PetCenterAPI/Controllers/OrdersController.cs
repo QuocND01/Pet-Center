@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
+using PetCenterAPI.DTOs.Requests.Order;
 using PetCenterAPI.Service.Interface;
 using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
 
@@ -12,10 +13,12 @@ namespace PetCenterAPI.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly ICheckoutService _checkoutService;
 
-        public OrdersController(IOrderService orderService)
+        public OrdersController(IOrderService orderService, ICheckoutService checkoutService)
         {
             _orderService = orderService;
+            _checkoutService = checkoutService;
         }
 
         // 👇 ĐỔI TÊN HÀM VÀ ROUTE Ở ĐÂY
@@ -100,15 +103,50 @@ namespace PetCenterAPI.Controllers
         {
             try
             {
-                // Lấy CustomerID an toàn từ Token mà AuthsController đã cấp
                 var customerIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (!Guid.TryParse(customerIdStr, out var customerId))
-                {
                     return Unauthorized(new { success = false, message = "Invalid token data." });
-                }
 
                 var orders = await _orderService.GetCustomerOrderHistoryAsync(customerId);
                 return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: api/Orders/Checkout  — đặt hàng COD
+        [HttpPost("Checkout")]
+        [AllowAnonymous]
+        public async Task<IActionResult> PlaceCodOrder([FromBody] PlaceCodOrderDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _checkoutService.PlaceCodOrderAsync(dto);
+                if (!result.Success)
+                    return BadRequest(new { success = false, message = result.Message });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET: api/Orders/Checkout/vouchers/{customerId}?orderAmount=X
+        [HttpGet("Checkout/vouchers/{customerId:guid}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAvailableVouchers(Guid customerId, [FromQuery] decimal orderAmount)
+        {
+            try
+            {
+                var vouchers = await _checkoutService.GetAvailableVouchersAsync(customerId, orderAmount);
+                return Ok(vouchers);
             }
             catch (Exception ex)
             {
