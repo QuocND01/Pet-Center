@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using PetCenterClient.ViewModels;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.Supplier;
 
 namespace PetCenterClient.Controllers
 {
@@ -86,9 +87,15 @@ namespace PetCenterClient.Controllers
         }
 
         public async Task<IActionResult> Create()
-        {   
+        {
+            var suppliers = await _suppService.GetAllAsync();
 
-            
+            if (suppliers == null)
+                suppliers = new List<ViewSupplierViewModel>();
+
+            ViewBag.SupplierList = new SelectList(suppliers, "SupplierId", "SupplierName");
+
+
             return View("~/Views/AdminViews/ImportStock/Create.cshtml", new CreateImportViewModel ());
         }
 
@@ -97,11 +104,9 @@ namespace PetCenterClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var selectSuppliers = "ok";
-                
+                var suppliers = await _suppService.GetAllAsync() ?? new List<ViewSupplierViewModel>();
+                ViewBag.SupplierList = new SelectList(suppliers, "SupplierId", "SupplierName");
 
-                ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
-                
 
                 return View("~/Views/AdminViews/ImportStock/Create.cshtml", model);
             }

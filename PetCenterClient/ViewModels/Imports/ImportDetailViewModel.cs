@@ -27,6 +27,7 @@
         
 
     }
+    
     public class IncreaseStock
     {
         public Guid ProductId { get; set; }

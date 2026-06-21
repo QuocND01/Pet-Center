@@ -490,7 +490,7 @@ public partial class PetCenterContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
-
+            entity.Property(e => e.SKU).HasMaxLength(100);
             entity.HasOne(d => d.Product).WithOne(p => p.Inventory)
                 .HasForeignKey<Inventory>(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
