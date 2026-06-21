@@ -201,7 +201,8 @@ builder.Services.AddScoped<IProductFeedbackService, ProductFeedbackService>();
 builder.Services.AddScoped<IImportStockService, ImportStockService>();
 builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
-
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
