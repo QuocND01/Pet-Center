@@ -112,7 +112,25 @@ namespace PetCenterAPI.Repository
                     StaffName = f.Staff != null ? f.Staff.FullName : null,
                     ReplyDate = f.ReplyDate,
                     CreatedDate = f.CreatedAt,
-                    IsVisible = f.Status == 1
+                    IsVisible = f.Status == 1,
+
+                    MediaFiles = f.FeedbackImages
+                        .Where(img => img.IsActive == true)
+                        .Select(img => new FeedbackMediaItemDTO
+                        {
+                            MediaId = img.ImageId,
+                            MediaUrl = img.ImageUrl,
+                            PublicId = img.PublicId,
+                            MediaType = img.ImageUrl.Contains("/video/upload/", StringComparison.OrdinalIgnoreCase)
+                                ? "video"
+                                : img.ImageUrl.Contains("/image/upload/", StringComparison.OrdinalIgnoreCase)
+                                    ? "image"
+                                    : (img.ImageUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+                                       img.ImageUrl.EndsWith(".mov", StringComparison.OrdinalIgnoreCase) ||
+                                       img.ImageUrl.EndsWith(".webm", StringComparison.OrdinalIgnoreCase)
+                                        ? "video" : "image")
+                        })
+                        .ToList()
                 })
                 .FirstOrDefaultAsync();
         }

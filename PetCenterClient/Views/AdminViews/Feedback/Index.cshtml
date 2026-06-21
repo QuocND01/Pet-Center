@@ -1028,14 +1028,56 @@
                     </div>
                 </div>
 
-                <div class="fb-detail-section">
-                    <div class="fb-detail-section-title">Feedback Content</div>
-                    <div style="font-size:13px;color:var(--fb-ink2);line-height:1.7;font-style:italic">
-                        "${escHtml(f.comment || 'No Content')}"
-                    </div>
-                </div>
+                        <div class="fb-detail-section">
+            <div class="fb-detail-section-title">Feedback Content</div>
+            <div style="font-size:13px;color:var(--fb-ink2);line-height:1.7;font-style:italic">
+                "${escHtml(f.comment || 'No Content')}"
+            </div>
 
-                ${replySection}`;
+            <!-- Media files (images + videos) -->
+            ${f.mediaFiles && f.mediaFiles.length > 0 ? `
+            <div style="margin-top:14px;">
+                <div style="font-size:10px;font-weight:900;color:var(--fb-muted);
+                            text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">
+                    Attached Media (${f.mediaFiles.length} file${f.mediaFiles.length > 1 ? 's' : ''})
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    ${f.mediaFiles.map(m => {
+                        if (m.mediaType === 'video') {
+                            return `
+                            <div style="position:relative;width:88px;height:88px;flex-shrink:0;
+                                        border-radius:8px;overflow:hidden;
+                                        border:1.5px solid var(--fb-border);cursor:pointer;"
+                                 onclick="window.open('${m.mediaUrl}', '_blank')">
+                                <video src="${m.mediaUrl}" muted
+                                       style="width:88px;height:88px;object-fit:cover;display:block;">
+                                </video>
+                                <div style="position:absolute;inset:0;display:flex;align-items:center;
+                                            justify-content:center;background:rgba(0,0,0,.25);">
+                                    <div style="background:rgba(0,0,0,.6);border-radius:50%;
+                                                width:28px;height:28px;display:flex;align-items:center;
+                                                justify-content:center;">
+                                        <span style="color:#fff;font-size:12px;">▶</span>
+                                    </div>
+                                </div>
+                                <div style="position:absolute;bottom:3px;right:4px;
+                                            background:rgba(0,0,0,.6);color:#fff;
+                                            font-size:9px;font-weight:800;padding:1px 5px;
+                                            border-radius:100px;">VIDEO</div>
+                            </div>`;
+                        }
+                        return `
+                        <img src="${m.mediaUrl}"
+                             onclick="window.open('${m.mediaUrl}', '_blank')"
+                             style="width:88px;height:88px;object-fit:cover;border-radius:8px;
+                                    border:1.5px solid var(--fb-border);cursor:pointer;flex-shrink:0;"
+                             onerror="this.parentElement.style.display='none'">`;
+                    }).join('')}
+                </div>
+            </div>` : ''}
+        </div>
+
+        ${replySection}`;
         }
 
         // ── REPLY MODAL ───────────────────────────────────────────────

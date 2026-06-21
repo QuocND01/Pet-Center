@@ -20,5 +20,15 @@
         public DateTime? ReplyDate { get; set; }
         public DateTime? CreatedDate { get; set; }
         public bool? IsVisible { get; set; }
+
+        public List<FeedbackMediaItemDTO> MediaFiles { get; set; } = new();
+    }
+
+    public class FeedbackMediaItemDTO
+    {
+        public Guid MediaId { get; set; }
+        public string MediaUrl { get; set; } = null!;
+        public string? PublicId { get; set; }
+        public string MediaType { get; set; } = "image";
     }
 }
