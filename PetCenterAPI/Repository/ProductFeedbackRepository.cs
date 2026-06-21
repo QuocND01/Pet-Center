@@ -67,5 +67,42 @@ namespace PetCenterAPI.Repository
                 .Where(m => m.FeedbackId == feedbackId && m.IsActive == true)
                 .ToListAsync();
         }
+
+        // ============================================================
+        // FEEDBACK — UPDATE (CUSTOMER SIDE)
+        // ============================================================
+        public async Task<ProductFeedback?> GetFeedbackByIdAsync(Guid feedbackId)
+        {
+            return await _context.ProductFeedbacks
+                .Include(f => f.FeedbackImages.Where(m => m.IsActive == true))
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId && f.Status == 1);
+        }
+
+        public async Task<ProductFeedback?> UpdateFeedbackAsync(ProductFeedback feedback)
+        {
+            var existing = await _context.ProductFeedbacks
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedback.FeedbackId);
+
+            if (existing == null) return null;
+
+            existing.Rating = feedback.Rating;
+            existing.Comment = feedback.Comment;
+            existing.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+
+        public async Task DeleteMediaByPublicIdsAsync(List<string> publicIds)
+        {
+            var mediaToDelete = await _context.FeedbackImages
+                .Where(m => publicIds.Contains(m.PublicId!) && m.IsActive == true)
+                .ToListAsync();
+
+            foreach (var media in mediaToDelete)
+                media.IsActive = false;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
