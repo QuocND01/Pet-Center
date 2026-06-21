@@ -22,6 +22,13 @@ namespace PetCenterAPI.Service.Interface
         Task<List<ProductFeedbackResponseDTO>> CreateBulkFeedbackAsync(
             Guid customerId,
             CreateBulkFeedbackRequestDTO request);
+
+        // ============================================================
+        // FEEDBACK — UPDATE (CUSTOMER SIDE)
+        // ============================================================
+        Task<ProductFeedbackResponseDTO?> UpdateFeedbackAsync(
+            Guid customerId,
+            UpdateFeedbackRequestDTO request);
     }
 }
 

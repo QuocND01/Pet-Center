@@ -8,6 +8,7 @@ public partial class Inventory
     public Guid InventoryId { get; set; }
 
     public Guid ProductId { get; set; }
+    public string SKU { get; set; } = null!;
 
     public int QuantityAvailable { get; set; }
 

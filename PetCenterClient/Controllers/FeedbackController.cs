@@ -81,6 +81,10 @@ namespace PetCenterClient.Controllers
             }
         }
 
+        // ============================================================
+        // FEEDBACK — UPDATE (CUSTOMER SIDE)
+        // ============================================================
+
         // POST: Feedback/Update
         // AJAX endpoint để cập nhật feedback
         [HttpPost]
@@ -89,23 +93,15 @@ namespace PetCenterClient.Controllers
             try
             {
                 var form = Request.Form;
-
                 if (!form.ContainsKey("FeedbackId"))
-                    return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+                    return Json(new { success = false, message = "Invalid request data." });
 
-                // Build lại MultipartFormDataContent để forward sang FeedbackAPI
                 var forwardContent = new MultipartFormDataContent();
 
-                // Forward text fields (FeedbackId, Rating, Comment, RemovedPublicIds)
                 foreach (var key in form.Keys)
-                {
                     foreach (var val in form[key])
-                    {
                         forwardContent.Add(new StringContent(val ?? ""), key);
-                    }
-                }
 
-                // Forward file mới nếu có
                 foreach (var file in form.Files)
                 {
                     var stream = file.OpenReadStream();
@@ -115,16 +111,8 @@ namespace PetCenterClient.Controllers
                     forwardContent.Add(fileContent, file.Name, file.FileName);
                 }
 
-                var success = await _feedbackService.UpdateFeedbackAsync(forwardContent);
-
-                if (success)
-                    return Json(new
-                    {
-                        success = true,
-                        message = "Cập nhật đánh giá thành công!"
-                    });
-
-                return Json(new { success = false, message = "Có lỗi xảy ra. Vui lòng thử lại." });
+                var (success, message) = await _feedbackService.UpdateFeedbackAsync(forwardContent);
+                return Json(new { success, message });
             }
             catch (Exception ex)
             {

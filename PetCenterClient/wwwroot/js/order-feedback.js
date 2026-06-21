@@ -502,8 +502,10 @@ const OrderFeedback = (function () {
                 formData.append(`Feedbacks[${i}].OrderId`, currentOrderId);
                 formData.append(`Feedbacks[${i}].Rating`, item.querySelector('.rating-value').value);
                 formData.append(`Feedbacks[${i}].Comment`, item.querySelector('.comment-input').value.trim());
-                item.querySelectorAll('.write-media-item').forEach(m => {
-                    if (m._file) formData.append(`Feedbacks[${i}].MediaFiles`, m._file, m._file.name);
+                document.querySelectorAll('#editNewMediaPreview .edit-new-media-item').forEach(item => {
+                    if (item._file && item._ready) {
+                        formData.append('NewMediaFiles', item._file, item._file.name);
+                    }
                 });
             });
 
@@ -764,14 +766,51 @@ const OrderFeedback = (function () {
         validateFiles(files).slice(0, remaining).forEach(file => addMediaThumb(file, container, 'write-media-item'));
     }
 
+    // ============================================================
+    // MEDIA THUMB — với loading spinner + ready tracking
+    // ============================================================
+
     function addMediaThumb(file, container, className) {
-        const url = URL.createObjectURL(file);
-        const isVideo = file.type.startsWith('video/');
         const div = document.createElement('div');
         div.className = className;
         div.style.cssText = 'position:relative;width:68px;height:68px;flex-shrink:0;';
-        div.innerHTML = isVideo
-            ? `<video src="${url}" muted playsinline
+        div._file = null;
+        div._ready = false;
+
+        div.innerHTML = `
+        <div style="width:68px;height:68px;border-radius:8px;
+                    border:1.5px solid #e2e8f0;background:#f8fafc;
+                    display:flex;align-items:center;justify-content:center;">
+            <div style="width:24px;height:24px;border-radius:50%;
+                        border:3px solid #e2e8f0;border-top-color:#6366f1;
+                        animation:fb-spin .7s linear infinite;"></div>
+        </div>`;
+
+        const rm = document.createElement('button');
+        rm.innerHTML = '✕';
+        rm.title = 'Remove';
+        rm.style.cssText = `position:absolute;top:-6px;right:-6px;width:18px;height:18px;
+        border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:10px;
+        cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;`;
+        rm.onclick = () => {
+            div.remove();
+            updateSubmitButtonState();
+        };
+        div.appendChild(rm);
+        container.appendChild(div);
+
+        updateSubmitButtonState();
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const blob = new Blob([e.target.result], { type: file.type });
+            const readyFile = new File([blob], file.name, { type: file.type });
+
+            const url = URL.createObjectURL(readyFile);
+            const isVideo = file.type.startsWith('video/');
+
+            div.innerHTML = isVideo
+                ? `<video src="${url}" muted playsinline
                       style="width:68px;height:68px;object-fit:cover;
                              border-radius:8px;border:1.5px solid #e2e8f0;"></video>
                <div style="position:absolute;inset:0;display:flex;align-items:center;
@@ -782,19 +821,41 @@ const OrderFeedback = (function () {
                        <span style="color:#fff;font-size:9px;">▶</span>
                    </div>
                </div>`
-            : `<img src="${url}"
+                : `<img src="${url}"
                     style="width:68px;height:68px;object-fit:cover;
                            border-radius:8px;border:1.5px solid #e2e8f0;">`;
-        const rm = document.createElement('button');
-        rm.innerHTML = '✕';
-        rm.title = 'Remove';
-        rm.style.cssText = `position:absolute;top:-6px;right:-6px;width:18px;height:18px;
-            border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:10px;
-            cursor:pointer;display:flex;align-items:center;justify-content:center;`;
-        rm.onclick = () => { div.remove(); URL.revokeObjectURL(url); };
-        div.appendChild(rm);
-        div._file = file;
-        container.appendChild(div);
+
+            const rm2 = document.createElement('button');
+            rm2.innerHTML = '✕';
+            rm2.title = 'Remove';
+            rm2.style.cssText = rm.style.cssText;
+            rm2.onclick = () => {
+                div.remove();
+                URL.revokeObjectURL(url);
+                updateSubmitButtonState();
+            };
+            div.appendChild(rm2);
+
+            div._file = readyFile;
+            div._ready = true;
+            updateSubmitButtonState();
+        };
+
+        reader.onerror = function () {
+            div.innerHTML = `
+            <div style="width:68px;height:68px;border-radius:8px;
+                        border:1.5px dashed #fca5a5;background:#fef2f2;
+                        display:flex;flex-direction:column;align-items:center;
+                        justify-content:center;gap:2px;">
+                <span style="font-size:18px;">⚠</span>
+                <span style="font-size:9px;color:#ef4444;font-weight:600;">Failed</span>
+            </div>`;
+            div._file = null;
+            div._ready = true;
+            updateSubmitButtonState();
+        };
+
+        reader.readAsArrayBuffer(file);
     }
 
     // ============================================================
@@ -855,6 +916,53 @@ const OrderFeedback = (function () {
 
     function cleanupModalBackdrops() {
         document.querySelectorAll('[id$="_backdrop"]').forEach(b => b.remove());
+    }
+
+    // ============================================================
+    // SUBMIT BUTTON STATE — disable while any file is still loading
+    // ============================================================
+
+    function updateSubmitButtonState() {
+        const writeBtn = document.getElementById('btnSubmitWrite');
+        const editBtn = document.getElementById('btnSubmitEdit');
+
+        const hasUnready = () => {
+            return document.querySelectorAll(
+                '.write-media-item:not([data-ready="true"]), .edit-new-media-item:not([data-ready="true"])'
+            ).length > 0;
+        };
+
+        document.querySelectorAll('.write-media-item, .edit-new-media-item').forEach(el => {
+            if (el._ready) el.setAttribute('data-ready', 'true');
+        });
+
+        const anyUnready = document.querySelectorAll(
+            '.write-media-item:not([data-ready="true"]), .edit-new-media-item:not([data-ready="true"])'
+        ).length > 0;
+
+        if (writeBtn) {
+            writeBtn.disabled = anyUnready;
+            writeBtn.title = anyUnready ? 'Please wait for all files to finish loading...' : '';
+            if (anyUnready) {
+                writeBtn.style.opacity = '0.6';
+                writeBtn.style.cursor = 'not-allowed';
+            } else {
+                writeBtn.style.opacity = '1';
+                writeBtn.style.cursor = 'pointer';
+            }
+        }
+
+        if (editBtn) {
+            editBtn.disabled = anyUnready;
+            editBtn.title = anyUnready ? 'Please wait for all files to finish loading...' : '';
+            if (anyUnready) {
+                editBtn.style.opacity = '0.6';
+                editBtn.style.cursor = 'not-allowed';
+            } else {
+                editBtn.style.opacity = '1';
+                editBtn.style.cursor = 'pointer';
+            }
+        }
     }
 
     // ============================================================

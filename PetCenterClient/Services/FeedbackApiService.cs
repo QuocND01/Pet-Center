@@ -95,16 +95,31 @@ namespace PetCenterClient.Services
             }
         }
 
-        public async Task<bool> UpdateFeedbackAsync(MultipartFormDataContent formData)
+        // ============================================================
+        // FEEDBACK — UPDATE (CUSTOMER SIDE)
+        // ============================================================
+        public async Task<(bool Success, string Message)> UpdateFeedbackAsync(MultipartFormDataContent formData)
         {
             try
             {
                 AttachToken();
-                var response = await _http.PutAsync(
-                    "feedback-service/ProductFeedback/update", formData);
-                return response.IsSuccessStatusCode;
+
+                var response = await _http.PostAsync("api/ProductFeedbacks/update", formData);
+                var body = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<FeedbackApiResponseViewModel<object>>(body);
+
+                return (
+                    response.IsSuccessStatusCode,
+                    result?.Message ?? (response.IsSuccessStatusCode
+                        ? "Review updated successfully!"
+                        : "An error occurred. Please try again.")
+                );
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FeedbackApiService] UpdateFeedbackAsync error: {ex.Message}");
+                return (false, ex.Message);
+            }
         }
 
         // ============================================================

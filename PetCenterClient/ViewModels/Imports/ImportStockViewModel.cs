@@ -27,6 +27,7 @@ namespace PetCenterClient.ViewModels
         public string? Note { get; set; }
 
         public List<CreateImportDetailViewModel> Details { get; set; } = new();
+
     }
 
     //For get all header import

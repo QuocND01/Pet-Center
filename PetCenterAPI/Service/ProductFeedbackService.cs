@@ -105,6 +105,61 @@ namespace PetCenterAPI.Service
         }
 
         // ============================================================
+        // FEEDBACK — UPDATE (CUSTOMER SIDE)
+        // ============================================================
+        public async Task<ProductFeedbackResponseDTO?> UpdateFeedbackAsync(
+            Guid customerId,
+            UpdateFeedbackRequestDTO request)
+        {
+            if (request.Rating < 1 || request.Rating > 5)
+                throw new ArgumentException("Rating must be between 1 and 5.");
+
+            var existing = await _productFeedbackRepository.GetFeedbackByIdAsync(request.FeedbackId);
+            if (existing == null) return null;
+
+            if (existing.CustomerId != customerId)
+                throw new UnauthorizedAccessException("You are not allowed to edit this feedback.");
+
+            existing.Rating = request.Rating;
+            existing.Comment = request.Comment;
+
+            var updated = await _productFeedbackRepository.UpdateFeedbackAsync(existing);
+            if (updated == null) return null;
+
+            if (request.RemovedPublicIds != null && request.RemovedPublicIds.Any())
+            {
+                var allMedia = await _productFeedbackRepository.GetImagesByFeedbackIdAsync(request.FeedbackId);
+
+                foreach (var publicId in request.RemovedPublicIds)
+                {
+                    var mediaItem = allMedia.FirstOrDefault(m => m.PublicId == publicId);
+                    var mediaType = DetectMediaType(mediaItem?.ImageUrl ?? "");
+                    await _cloudinaryService.DeleteMediaAsync(publicId, mediaType);
+                }
+
+                await _productFeedbackRepository.DeleteMediaByPublicIdsAsync(request.RemovedPublicIds);
+            }
+
+            if (request.NewMediaFiles != null && request.NewMediaFiles.Any())
+            {
+                var currentMedia = await _productFeedbackRepository.GetImagesByFeedbackIdAsync(request.FeedbackId);
+                var remainingSlots = MaxMediaPerFeedback - currentMedia.Count;
+
+                if (remainingSlots > 0)
+                {
+                    var toUpload = request.NewMediaFiles.Take(remainingSlots).ToList();
+                    var mediaList = await UploadMediaFilesAsync(toUpload, request.FeedbackId);
+                    if (mediaList.Any())
+                        await _productFeedbackRepository.AddMediaRangeAsync(mediaList);
+                }
+            }
+
+            var finalImages = await _productFeedbackRepository.GetImagesByFeedbackIdAsync(request.FeedbackId);
+            updated.FeedbackImages = finalImages;
+            return MapToResponse(updated);
+        }
+
+        // ============================================================
         // HELPER
         // ============================================================
         private static ProductFeedbackResponseDTO MapToResponse(ProductFeedback feedback)

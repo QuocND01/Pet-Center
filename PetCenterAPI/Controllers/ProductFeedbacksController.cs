@@ -103,6 +103,39 @@ namespace PetCenterAPI.Controllers
         }
 
         // ============================================================
+        // FEEDBACK — UPDATE (CUSTOMER SIDE)
+        // ============================================================
+        [HttpPost("update")]
+        [Authorize]
+        public async Task<IActionResult> UpdateFeedback([FromForm] UpdateFeedbackRequestDTO request)
+        {
+            try
+            {
+                var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (customerIdClaim == null || !Guid.TryParse(customerIdClaim, out var customerId))
+                    return Unauthorized(new { success = false, message = "Invalid token." });
+
+                var result = await _productFeedbackService.UpdateFeedbackAsync(customerId, request);
+                if (result == null)
+                    return NotFound(new { success = false, message = "Feedback not found." });
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // ============================================================
         // FEEDBACK — HELPER
         // ============================================================
         private static CreateBulkFeedbackRequestDTO MapFromForm(

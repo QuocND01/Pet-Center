@@ -492,6 +492,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.QuantityReserved).HasDefaultValue(0);
 
+            entity.Property(e => e.SKU).HasMaxLength(100);
             entity.HasOne(d => d.Product).WithOne(p => p.Inventory)
                 .HasForeignKey<Inventory>(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
