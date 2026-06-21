@@ -7,17 +7,18 @@
     var staffDict = ViewBag.StaffDict as Dictionary<Guid, string>;
     string statusText = Model.Status switch
     {
-        0 => "Pending",
-        1 => "Confirmed",
-        2 => "Canceled",
+        0 => "Cancel",
+        1 => "Pending",
+        2 => "Confirmed",
         _ => "Unknown"
     };
 
     string badgeClass = Model.Status switch
     {
-        1 => "badge-active",
-        2 => "badge-inactive",
-        _ => "badge-pending"
+        0 => "badge-inactive",
+        1 => "badge-pending",
+        2 => "badge-active",
+        _ => "badge-inactive"
     };
 }
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />

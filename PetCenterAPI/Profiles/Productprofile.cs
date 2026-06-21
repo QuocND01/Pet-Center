@@ -22,11 +22,17 @@ namespace PetCenterAPI.Profiles
                     opt => opt.MapFrom(src => src.ProductImages.Select(i => i.ImageUrl)))
                 .ForMember(dest => dest.Attributes,
                     opt => opt.MapFrom(src => src.ProductAttributes))
-                  .ForMember(dest => dest.StockQuantity,
-                        opt => opt.MapFrom(src =>
-                            src.Inventory != null
-                                ? src.Inventory.QuantityAvailable
-                                : 0));
+                .ForMember(dest => dest.StockQuantity,
+                    opt => opt.MapFrom(src =>
+                        src.Inventory != null
+                           ? src.Inventory.QuantityAvailable
+                                : 0))
+                //GET SKU-Vinh
+                .ForMember(dest => dest.SKU,
+                    opt => opt.MapFrom(src =>
+                        src.Inventory != null
+                            ? src.Inventory.SKU
+                :               string.Empty));
 
 
             CreateMap<Product, ReadProductDTOForCustomer>()
