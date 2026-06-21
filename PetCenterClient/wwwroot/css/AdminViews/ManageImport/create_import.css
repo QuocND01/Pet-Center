@@ -180,3 +180,129 @@
     color: var(--accent);
     font-family: 'Space Grotesk';
 }
+
+/* =========================
+   Product Modal
+========================= */
+
+#productModal .modal-content {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(15,23,42,.12);
+}
+
+#productModal .modal-header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+}
+
+#productModal .modal-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#productModal .modal-body {
+    padding: 20px 24px;
+}
+
+/* Search box trong modal */
+
+#productKeyword {
+    margin-bottom: 16px;
+}
+
+/* Scroll table */
+
+.product-table-wrapper {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+/* Table trong modal */
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+    .product-table thead th {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 5;
+        border-bottom: 1px solid var(--border);
+        font-size: 11px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 12px;
+    }
+
+    .product-table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    .product-table tbody tr {
+        transition: background .2s ease;
+    }
+
+        .product-table tbody tr:hover {
+            background: var(--surface-2);
+        }
+
+/* Product picker */
+
+.productPicker {
+    cursor: pointer;
+    background: white;
+}
+
+    .productPicker:hover {
+        border-color: var(--accent);
+    }
+
+/* SKU readonly */
+
+.sku[readonly] {
+    background: #f8fafc;
+    color: var(--text-secondary);
+}
+
+/* Nút select */
+
+.btn-select-product {
+    border: none;
+    background: var(--accent);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: .2s;
+}
+
+    .btn-select-product:hover {
+        background: #4f46e5;
+    }
+
+/* Empty state */
+
+.empty-product {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 32px;
+}
+.data-table tbody tr:hover {
+    background: #f8fafc;
+}
+.quantity,
+.price {
+    text-align: right;
+}

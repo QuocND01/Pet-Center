@@ -33,6 +33,9 @@ namespace PetCenterAPI.DTOs.Requests.Product
 
             // Attributes
             public List<ProductAttributeDTO>? Attributes { get; set; }
+
+            // SKU-vinh
+            public string SKU { get; set; } = null!;
         }
 
         public class ReadProductDTOForCustomer

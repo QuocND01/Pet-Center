@@ -32,18 +32,18 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateImportRequestDTO dto)
         {
-            // var staffClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var staffClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // if (string.IsNullOrEmpty(staffClaim))
-            // {
-            //     return Unauthorized("StaffId missing in token");
-            // }
+            if (string.IsNullOrEmpty(staffClaim))
+            {
+                return Unauthorized("StaffId missing in token");
+            }
 
-            // var staffId = Guid.Parse(staffClaim);
+            var staffId = Guid.Parse(staffClaim);
 
-            //=== TEST ===
-            var staffId = dto.StaffId;
-            //============
+            ////=== TEST ===
+            //var staffId = dto.StaffId;
+            ////============
 
             var id = await _service.CreateAsync(dto, staffId);
 

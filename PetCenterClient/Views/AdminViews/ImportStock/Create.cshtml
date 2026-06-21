@@ -67,16 +67,24 @@
                     <tbody>
                         <tr>
                             <td>
-                                <select name="Details[0].ProductId" class="search-input productSelect" style="padding-left: 14px;" required>
-                                    <option value="">-- Select Product --</option>
-                                    @* @foreach (var item in ViewBag.ProductList)
-                                    {
-                                        <option value="@item.Value">@item.Text</option>
-                                    } *@
-                                </select>
+                                <input type="hidden"
+                                       name="Details[0].ProductId"
+                                       class="productIdInput"
+                                       required />
+
+                                <input type="text"
+                                       class="search-input productPicker"
+                                       placeholder="Click to select product"
+                                       readonly
+                                       style="padding-left:14px;cursor:pointer;" />
                             </td>
+
                             <td>
-                                <input name="Details[0].SKU" class="search-input sku" type="text" placeholder="SKU" required />
+                                <input name="Details[0].SKU"
+                                       class="search-input sku"
+                                       type="text"
+                                       readonly
+                                       required />
                             </td>
                             <td>
                                 <input name="Details[0].BatchCode" class="search-input batch" type="text" placeholder="Batch" required />
@@ -112,111 +120,343 @@
             </button>
         </div>
     </form>
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Product</h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="text"
+                           id="productKeyword"
+                           class="form-control mb-3"
+                           placeholder="Search product..." />
+
+                    <div class="product-table-wrapper">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>SKU</th>
+                                    <th>Brand</th>
+                                    <th width="100"></th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="productTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+
+    const API_BASE = "https://localhost:7004";
+
     let rowIndex = 1;
+    let currentRow = null;
 
-    // Thêm dòng mới (Cập nhật giao diện HTML cho khớp với 8 cột)
-    document.getElementById("addRow").addEventListener("click", function () {
-        const tableBody = document.querySelector("#detailTable tbody");
-        const productOptions = document.querySelector('.productSelect').innerHTML;
+    const productModal = new bootstrap.Modal(
+        document.getElementById("productModal")
+    );
 
-        const newRow = `
+    function createRow(index) {
+
+        return `
             <tr>
+
                 <td>
-                    <select name="Details[${rowIndex}].ProductId" class="search-input productSelect" style="padding-left: 14px;" required>
-                        ${productOptions}
-                    </select>
+                    <input type="hidden"
+                           name="Details[${index}].ProductId"
+                           class="productIdInput"
+                           required />
+
+                    <input type="text"
+                           class="search-input productPicker"
+                           placeholder="Click to select product"
+                           readonly
+                           style="padding-left:14px;cursor:pointer;" />
                 </td>
+
                 <td>
-                    <input name="Details[${rowIndex}].SKU" class="search-input sku" type="text" placeholder="SKU" required />
+                    <input name="Details[${index}].SKU"
+                           class="search-input sku"
+                           type="text"
+                           readonly
+                           required />
                 </td>
+
                 <td>
-                    <input name="Details[${rowIndex}].BatchCode" class="search-input batch" type="text" placeholder="Batch" required />
+                    <input name="Details[${index}].BatchCode"
+                           class="search-input batch"
+                           type="text"
+                           placeholder="Batch"
+                           required />
                 </td>
+
                 <td>
-                    <input name="Details[${rowIndex}].ManufacturingDate" class="search-input mfg-date" type="date" />
+                    <input name="Details[${index}].ManufacturingDate"
+                           class="search-input mfg-date"
+                           type="date" />
                 </td>
+
                 <td>
-                    <input name="Details[${rowIndex}].ExpiryDate" class="search-input exp-date" type="date" />
+                    <input name="Details[${index}].ExpiryDate"
+                           class="search-input exp-date"
+                           type="date" />
                 </td>
+
                 <td>
-                    <input name="Details[${rowIndex}].Quantity" class="search-input quantity" type="number" min="1" placeholder="0" required />
+                    <input name="Details[${index}].Quantity"
+                           class="search-input quantity"
+                           type="number"
+                           min="1"
+                           placeholder="0"
+                           required />
                 </td>
+
                 <td>
-                    <input name="Details[${rowIndex}].ImportPrice" class="search-input price" type="number" min="0" placeholder="0.00" required />
+                    <input name="Details[${index}].ImportPrice"
+                           class="search-input price"
+                           type="number"
+                           min="0"
+                           placeholder="0.00"
+                           required />
                 </td>
-                <td style="text-align: center;">
-                    <button type="button" class="btn-action-danger removeRow">
+
+                <td style="text-align:center;">
+                    <button type="button"
+                            class="btn-action-danger removeRow">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
+
             </tr>
         `;
+    }
 
-        tableBody.insertAdjacentHTML("beforeend", newRow);
-        rowIndex++;
-    });
+    document.getElementById("addRow")
+        .addEventListener("click", function () {
 
-    // Xóa dòng và tính lại Index
-    document.addEventListener("click", function (e) {
-        if (e.target.closest(".removeRow")) {
-            const rows = document.querySelectorAll("#detailTable tbody tr");
-            if (rows.length > 1) {
-                e.target.closest("tr").remove();
-                reIndexRows(); // Cập nhật lại index cho name attribute
-                calculateTotal();
-            } else {
-                alert("At least one product is required.");
-            }
-        }
-    });
+            document.querySelector("#detailTable tbody")
+                .insertAdjacentHTML(
+                    "beforeend",
+                    createRow(rowIndex)
+                );
 
-    // Cập nhật hàm reIndexRows để bao gồm các cột mới
-    function reIndexRows() {
-        const rows = document.querySelectorAll("#detailTable tbody tr");
-        rows.forEach((row, index) => {
-            row.querySelector(".productSelect").name = `Details[${index}].ProductId`;
-            row.querySelector(".sku").name = `Details[${index}].SKU`;
-            row.querySelector(".batch").name = `Details[${index}].BatchCode`;
-            row.querySelector(".mfg-date").name = `Details[${index}].ManufacturingDate`;
-            row.querySelector(".exp-date").name = `Details[${index}].ExpiryDate`;
-            row.querySelector(".quantity").name = `Details[${index}].Quantity`;
-            row.querySelector(".price").name = `Details[${index}].ImportPrice`;
+            rowIndex++;
         });
+
+    document.addEventListener("click", function (e) {
+
+        const removeBtn = e.target.closest(".removeRow");
+
+        if (!removeBtn)
+            return;
+
+        const rows = document.querySelectorAll(
+            "#detailTable tbody tr"
+        );
+
+        if (rows.length <= 1) {
+            alert("At least one product is required.");
+            return;
+        }
+
+        removeBtn.closest("tr").remove();
+
+        reIndexRows();
+
+        calculateTotal();
+    });
+
+    function reIndexRows() {
+
+        const rows = document.querySelectorAll(
+            "#detailTable tbody tr"
+        );
+
+        rows.forEach((row, index) => {
+
+            row.querySelector(".productIdInput")
+                .name = `Details[${index}].ProductId`;
+
+            row.querySelector(".sku")
+                .name = `Details[${index}].SKU`;
+
+            row.querySelector(".batch")
+                .name = `Details[${index}].BatchCode`;
+
+            row.querySelector(".mfg-date")
+                .name = `Details[${index}].ManufacturingDate`;
+
+            row.querySelector(".exp-date")
+                .name = `Details[${index}].ExpiryDate`;
+
+            row.querySelector(".quantity")
+                .name = `Details[${index}].Quantity`;
+
+            row.querySelector(".price")
+                .name = `Details[${index}].ImportPrice`;
+        });
+
         rowIndex = rows.length;
     }
 
-    // Tính tổng tiền tự động
     document.addEventListener("input", function (e) {
-        if (e.target.classList.contains("quantity") || e.target.classList.contains("price")) {
+
+        if (
+            e.target.classList.contains("quantity") ||
+            e.target.classList.contains("price")
+        ) {
             calculateTotal();
         }
     });
 
     function calculateTotal() {
+
         let total = 0;
-        document.querySelectorAll("#detailTable tbody tr").forEach(row => {
-            const qty = parseFloat(row.querySelector(".quantity").value) || 0;
-            const price = parseFloat(row.querySelector(".price").value) || 0;
-            total += qty * price;
-        });
-        document.getElementById("totalAmount").innerText = total.toLocaleString('vi-VN');
+
+        document
+            .querySelectorAll("#detailTable tbody tr")
+            .forEach(row => {
+
+                const qty =
+                    parseFloat(
+                        row.querySelector(".quantity").value
+                    ) || 0;
+
+                const price =
+                    parseFloat(
+                        row.querySelector(".price").value
+                    ) || 0;
+
+                total += qty * price;
+            });
+
+        document.getElementById("totalAmount")
+            .innerText = total.toLocaleString("vi-VN");
     }
 
-    // Chặn trùng sản phẩm
-    document.addEventListener("change", function (e) {
-        if (e.target.classList.contains("productSelect")) {
-            const allSelects = document.querySelectorAll(".productSelect");
-            const values = Array.from(allSelects).map(s => s.value).filter(v => v !== "");
+    document.addEventListener("click", function (e) {
 
-            const hasDuplicate = values.some((v, i) => values.indexOf(v) !== i);
+        const picker = e.target.closest(".productPicker");
 
-            if (hasDuplicate) {
-                alert("This product is already in the list!");
-                e.target.value = "";
-            }
-        }
+        if (!picker)
+            return;
+
+        currentRow = picker.closest("tr");
+
+        loadProducts();
+
+        productModal.show();
     });
+
+    async function loadProducts(keyword = "") {
+
+            const response = await fetch(
+        `${API_BASE}/api/Products/admin?page=1&pageSize=999&search=${encodeURIComponent(keyword)}`
+    );
+
+        const result = await response.json();
+
+        let html = "";
+
+        result.data.forEach(p => {
+
+            html += `
+                <tr>
+
+                    <td>${p.productName}</td>
+
+                    <td>${p.sku ?? ""}</td>
+
+                    <td>${p.brandName ?? ""}</td>
+
+                    <td>
+                        <button
+                            type="button"
+                            class="btn-select-product btnSelectProduct"
+                            data-id="${p.productId}"
+                            data-name="${p.productName}"
+                            data-sku="${p.sku ?? ""}">
+                            Select
+                        </button>
+                    </td>
+
+                </tr>
+            `;
+        });
+
+        document.getElementById(
+            "productTableBody"
+        ).innerHTML = html;
+    }
+
+    let searchTimer;
+
+    document.getElementById("productKeyword")
+        .addEventListener("input", function () {
+
+            clearTimeout(searchTimer);
+
+            searchTimer = setTimeout(() => {
+                loadProducts(this.value);
+            }, 300);
+        });
+
+    document.addEventListener("click", function (e) {
+
+        const btn = e.target.closest(
+            ".btnSelectProduct"
+        );
+
+        if (!btn)
+            return;
+
+        const productId = btn.dataset.id;
+        const productName = btn.dataset.name;
+        const sku = btn.dataset.sku;
+
+        const selectedIds =
+            [...document.querySelectorAll(".productIdInput")]
+            .map(x => x.value)
+            .filter(Boolean);
+
+        if (
+            selectedIds.includes(productId) &&
+            currentRow.querySelector(".productIdInput").value !== productId
+        ) {
+            alert("This product is already selected.");
+            return;
+        }
+
+        currentRow.querySelector(".productIdInput")
+            .value = productId;
+
+        currentRow.querySelector(".productPicker")
+            .value = productName;
+
+        currentRow.querySelector(".sku")
+            .value = sku;
+
+        productModal.hide();
+    });
+
 </script>

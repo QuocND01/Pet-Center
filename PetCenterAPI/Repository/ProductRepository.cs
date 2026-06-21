@@ -105,6 +105,7 @@ namespace PetCenterAPI.Repository
                 .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status == Status.Active)
+                    
                 .AsQueryable();
             }
             catch (Exception ex) {
