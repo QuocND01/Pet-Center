@@ -1,167 +1,104 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PetCenterAPI.Models;
+using PetCenterAPI.Service.Interface;
+using System.Security.Claims;
+using static PetCenterAPI.DTOs.Requests.CustomerProfile.AddressRequestDTO;
 
 namespace PetCenterAPI.Controllers
 {
-    [Route("address-service/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Customer")] // Chốt chặn bảo mật: Chỉ Customer mới được vào
     public class AddressesController : ControllerBase
     {
-        private readonly PetCenterContext _db;
+        private readonly IAddressService _addressService;
 
-        public AddressesController(PetCenterContext db)
+        public AddressesController(IAddressService addressService)
         {
-            _db = db;
+            _addressService = addressService;
         }
 
-        // GET: address-service/Addresses/customer/{customerId}
-        // Trả về danh sách địa chỉ active của customer, default lên đầu
-        [HttpGet("customer/{customerId:guid}")]
-        public async Task<IActionResult> GetByCustomerId(Guid customerId)
+        // Hàm hỗ trợ bóc tách CustomerId từ JWT Token một cách an toàn
+        private Guid GetCustomerId()
         {
-            var addresses = await _db.Addresses
-                .Where(a => a.CustomerId == customerId && a.IsActive == true)
-                .OrderByDescending(a => a.IsDefault)
-                .Select(a => new
-                {
-                    a.AddressId,
-                    a.CustomerId,
-                    a.Province,
-                    a.District,
-                    a.Ward,
-                    a.AddressDetails,
-                    IsDefault = a.IsDefault ?? false,
-                    IsActive = a.IsActive ?? false
-                })
-                .ToListAsync();
-
-            return Ok(addresses);
+            var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.Parse(idClaim!);
         }
 
-        // GET: address-service/Addresses/{id}
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id)
+        // 1. LẤY DANH SÁCH ĐỊA CHỈ
+        [HttpGet("my-addresses")]
+        public async Task<IActionResult> GetMyAddresses()
         {
-            var address = await _db.Addresses
-                .Where(a => a.AddressId == id)
-                .Select(a => new
-                {
-                    a.AddressId,
-                    a.CustomerId,
-                    a.Province,
-                    a.District,
-                    a.Ward,
-                    a.AddressDetails,
-                    IsDefault = a.IsDefault ?? false,
-                    IsActive = a.IsActive ?? false
-                })
-                .FirstOrDefaultAsync();
-
-            if (address == null) return NotFound();
-            return Ok(address);
+            try
+            {
+                var addresses = await _addressService.GetCustomerAddressesAsync(GetCustomerId());
+                return Ok(addresses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
-        // GET: address-service/Addresses
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var addresses = await _db.Addresses
-                .Where(a => a.IsActive == true)
-                .Select(a => new
-                {
-                    a.AddressId,
-                    a.CustomerId,
-                    a.Province,
-                    a.District,
-                    a.Ward,
-                    a.AddressDetails,
-                    IsDefault = a.IsDefault ?? false,
-                    IsActive = a.IsActive ?? false
-                })
-                .ToListAsync();
-
-            return Ok(addresses);
-        }
-
-        // POST: address-service/Addresses
+        // 2. THÊM ĐỊA CHỈ MỚI
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] AddressCreateRequest dto)
+        public async Task<IActionResult> AddAddress([FromBody] MutateAddressDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            // Nếu đây là default → bỏ default của các địa chỉ khác
-            if (dto.IsDefault == true)
+            try
             {
-                var existing = await _db.Addresses
-                    .Where(a => a.CustomerId == dto.CustomerId && a.IsDefault == true)
-                    .ToListAsync();
-                existing.ForEach(a => a.IsDefault = false);
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var success = await _addressService.AddAddressAsync(GetCustomerId(), dto);
+
+                if (success)
+                    return Ok(new { success = true, message = "Address added successfully." });
+
+                return BadRequest(new { success = false, message = "Failed to add address." });
             }
-
-            var address = new Address
+            catch (Exception ex)
             {
-                AddressId = Guid.NewGuid(),
-                CustomerId = dto.CustomerId,
-                Province = dto.Province,
-                District = dto.District,
-                Ward = dto.Ward,
-                AddressDetails = dto.AddressDetails,
-                IsDefault = dto.IsDefault ?? false,
-                IsActive = true
-            };
-
-            _db.Addresses.Add(address);
-            await _db.SaveChangesAsync();
-
-            return Ok(new { success = true, addressId = address.AddressId });
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
-        // PUT: address-service/Addresses/{id}
+        // 3. CẬP NHẬT ĐỊA CHỈ
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] AddressCreateRequest dto)
+        public async Task<IActionResult> UpdateAddress(Guid id, [FromBody] MutateAddressDTO dto)
         {
-            var address = await _db.Addresses.FindAsync(id);
-            if (address == null) return NotFound();
-
-            if (dto.IsDefault == true)
+            try
             {
-                var existing = await _db.Addresses
-                    .Where(a => a.CustomerId == address.CustomerId && a.IsDefault == true && a.AddressId != id)
-                    .ToListAsync();
-                existing.ForEach(a => a.IsDefault = false);
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var success = await _addressService.UpdateAddressAsync(GetCustomerId(), id, dto);
+
+                if (success)
+                    return Ok(new { success = true, message = "Address updated successfully." });
+
+                return BadRequest(new { success = false, message = "Address not found or update failed." });
             }
-
-            address.Province = dto.Province;
-            address.District = dto.District;
-            address.Ward = dto.Ward;
-            address.AddressDetails = dto.AddressDetails;
-            address.IsDefault = dto.IsDefault ?? false;
-
-            await _db.SaveChangesAsync();
-            return Ok(new { success = true });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
-        // DELETE: address-service/Addresses/{id}
+        // 4. XÓA ĐỊA CHỈ
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> DeleteAddress(Guid id)
         {
-            var address = await _db.Addresses.FindAsync(id);
-            if (address == null) return NotFound();
+            try
+            {
+                var success = await _addressService.DeleteAddressAsync(GetCustomerId(), id);
 
-            address.IsActive = false;
-            await _db.SaveChangesAsync();
-            return Ok(new { success = true });
+                if (success)
+                    return Ok(new { success = true, message = "Address deleted successfully." });
+
+                return BadRequest(new { success = false, message = "Address not found or delete failed." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
-    }
-
-    public class AddressCreateRequest
-    {
-        public Guid CustomerId { get; set; }
-        public string? Province { get; set; }
-        public string? District { get; set; }
-        public string? Ward { get; set; }
-        public string? AddressDetails { get; set; }
-        public bool? IsDefault { get; set; }
     }
 }

@@ -60,7 +60,7 @@ builder.Services.AddHttpClient<ISupplierApiService, SupplierApiService>(client =
     client.BaseAddress = new Uri(apiUrl);
 });
 
-builder.Services.AddHttpClient<IAddressServiceClient, AddressServiceClient>(client =>
+builder.Services.AddHttpClient<IAddressAPIClient, AddressAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });

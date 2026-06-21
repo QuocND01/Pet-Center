@@ -1,0 +1,213 @@
+﻿@using PetCenterClient.DTOs
+@model IEnumerable<ReadAddressViewModel>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Address Book";
+}
+
+<style>
+    /* CSS trang trí cho đẹp */
+    .address-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.2s;
+        height: 100%;
+        position: relative;
+    }
+    .address-card:hover {
+        border-color: #2ecc71;
+        box-shadow: 0 4px 20px rgba(46, 204, 113, 0.1);
+    }
+    .badge-default {
+        background: #27ae60;
+        color: white;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: bold;
+    }
+    .dark-input {
+        background-color: #1f2937;
+        border: 1px solid #374151;
+        color: #f9fafb;
+    }
+    .dark-input:focus {
+        background-color: #111827;
+        border-color: #2ecc71;
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+        color: #ffffff;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="font-family: 'Segoe UI', sans-serif;">Address Book</h2>
+            <p class="text-muted mb-0">Manage your shipping addresses.</p>
+        </div>
+        <button class="btn btn-primary" style="background:#2ecc71; border:none;" onclick="openAddressModal()">
+            + Add New Address
+        </button>
+    </div>
+
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var addr in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="address-card">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-success"></i> Delivery Location</h6>
+                            @if (addr.IsDefault)
+                            {
+                                <span class="badge-default">DEFAULT</span>
+                            }
+                        </div>
+
+                        <p class="text-secondary small mb-3" style="line-height: 1.6; font-size: 14px;">
+                            @addr.FullAddress
+                        </p>
+
+                        <div class="border-top pt-3 d-flex justify-content-end gap-2">
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    onclick="openAddressModal('@addr.AddressId', '@addr.AddressDetails', '@addr.Ward', '@addr.District', '@addr.Province', @addr.IsDefault.ToString().ToLower())">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAddress('@addr.AddressId')">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-geo-alt fs-1 d-block mb-3"></i>
+                <h5>No addresses found.</h5>
+                <p>Add a delivery address to checkout faster.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-light" style="background-color: #111827; border: 1px solid #374151;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" id="modalTitle">Add Address</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="addrId" value="" />
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Street & House Number</label>
+                    <input type="text" id="addrDetails" class="form-control dark-input" placeholder="e.g. 123 Nguyen Van Cu" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label small text-muted">Ward</label>
+                        <input type="text" id="addrWard" class="form-control dark-input" placeholder="e.g. An Hoa" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label small text-muted">District</label>
+                        <input type="text" id="addrDistrict" class="form-control dark-input" placeholder="e.g. Ninh Kieu" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label small text-muted">Province / City</label>
+                        <input type="text" id="addrProvince" class="form-control dark-input" placeholder="e.g. Can Tho" />
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="addrDefault">
+                    <label class="form-check-label small" for="addrDefault">Set as default shipping address</label>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" style="background:#2ecc71; border:none;" onclick="saveAddress()">Save Address</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var currentModal = null;
+
+    // Khi trang load xong, chuẩn bị sẵn cái Modal
+    document.addEventListener("DOMContentLoaded", function() {
+        currentModal = new bootstrap.Modal(document.getElementById('addressModal'));
+    });
+
+    // Hàm mở Modal (dùng chung cho cả thêm mới và sửa)
+    function openAddressModal(id = '', details = '', ward = '', district = '', province = '', isDefault = false) {
+        document.getElementById('modalTitle').innerText = id ? "Edit Address" : "Add New Address";
+
+        document.getElementById('addrId').value = id;
+        document.getElementById('addrDetails').value = details;
+        document.getElementById('addrWard').value = ward;
+        document.getElementById('addrDistrict').value = district;
+        document.getElementById('addrProvince').value = province;
+        document.getElementById('addrDefault').checked = isDefault;
+
+        currentModal.show();
+    }
+
+    // Hàm gửi dữ liệu đi lưu
+    function saveAddress() {
+        var id = document.getElementById('addrId').value;
+
+        // Gói dữ liệu lại theo đúng hình dáng của MutateAddressViewModel
+        var dto = {
+            addressDetails: document.getElementById('addrDetails').value,
+            ward: document.getElementById('addrWard').value,
+            district: document.getElementById('addrDistrict').value,
+            province: document.getElementById('addrProvince').value,
+            isDefault: document.getElementById('addrDefault').checked
+        };
+
+        if (!dto.addressDetails || !dto.province) {
+            alert("Street details and Province are required.");
+            return;
+        }
+
+        // Nếu có ID thì gọi Edit, không có ID thì gọi Create
+        var url = id ? '/Addresses/Edit/' + id : '/Addresses/Create';
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dto)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // F5 lại trang nếu lưu thành công
+            } else {
+                alert("Action failed. Please try again.");
+            }
+        });
+    }
+
+    // Hàm xóa địa chỉ
+    function deleteAddress(id) {
+        if (confirm("Are you sure you want to remove this address?")) {
+            fetch('/Addresses/Delete/' + id, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Failed to delete the address.");
+                }
+            });
+        }
+    }
+</script>
