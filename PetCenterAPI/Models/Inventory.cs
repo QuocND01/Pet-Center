@@ -11,6 +11,8 @@ public partial class Inventory
 
     public int QuantityAvailable { get; set; }
 
+    public int QuantityReserved { get; set; }
+
     public DateTime LastUpdated { get; set; }
 
     public virtual ICollection<InventoryTransaction> InventoryTransactions { get; set; } = new List<InventoryTransaction>();

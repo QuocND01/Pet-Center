@@ -36,12 +36,24 @@ namespace PetCenterClient.Services
                     new AuthenticationHeaderValue("Bearer", token);
         }
 
-        // POST orders/Checkout
-        // BaseAddress + "orders/Checkout" = "https://localhost:5000/orders/Checkout"
+        // POST api/Orders/Checkout
         public async Task<CheckoutResponseDTO?> ProcessCheckoutAsync(CheckoutRequestDTO dto)
         {
             AddAuthHeader();
-            var response = await _http.PostAsJsonAsync("orders/Checkout", dto);
+            var apiDto = new
+            {
+                dto.CustomerId,
+                dto.AddressId,
+                dto.VoucherId,
+                Items = dto.Items.Select(i => new
+                {
+                    i.CartDetailId,
+                    i.ProductId,
+                    i.Quantity,
+                    i.UnitPrice
+                })
+            };
+            var response = await _http.PostAsJsonAsync("api/Orders/Checkout", apiDto);
             var json = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -60,15 +72,14 @@ namespace PetCenterClient.Services
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
-        // GET orders/Checkout/vouchers/{customerId}?orderAmount={amount}
+        // GET api/Orders/Checkout/vouchers/{customerId}?orderAmount={amount}
         public async Task<List<CustomerVoucherDTO>> GetAvailableVouchersAsync(
             Guid customerId, decimal orderAmount)
         {
             AddAuthHeader();
 
             var amount = orderAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
-            // Dùng relative path — HttpClient tự combine với BaseAddress
-            var relPath = $"orders/Checkout/vouchers/{customerId}?orderAmount={amount}";
+            var relPath = $"api/Orders/Checkout/vouchers/{customerId}?orderAmount={amount}";
 
             var response = await _http.GetAsync(relPath);
             var json = await response.Content.ReadAsStringAsync();
@@ -81,12 +92,12 @@ namespace PetCenterClient.Services
                 ?? new List<CustomerVoucherDTO>();
         }
 
-        // POST orders/Checkout/validate-voucher
+        // POST api/Orders/Checkout/validate-voucher
         public async Task<VoucherValidateResponseDTO?> ValidateVoucherAsync(
             VoucherValidateRequestDTO dto)
         {
             AddAuthHeader();
-            var response = await _http.PostAsJsonAsync("orders/Checkout/validate-voucher", dto);
+            var response = await _http.PostAsJsonAsync("api/Orders/Checkout/validate-voucher", dto);
             var json = await response.Content.ReadAsStringAsync();
 
             return JsonSerializer.Deserialize<VoucherValidateResponseDTO>(json,

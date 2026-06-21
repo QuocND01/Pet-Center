@@ -141,6 +141,7 @@ namespace PetCenterClient.Controllers
                 VoucherId = dto.VoucherId,
                 Items = dto.Items.Select(i => new CheckoutItemDTO
                 {
+                    CartDetailId = i.CartDetailId,
                     ProductId = i.ProductId,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice
@@ -192,6 +193,7 @@ namespace PetCenterClient.Controllers
 
     public class OrderLineItem
     {
+        public Guid CartDetailId { get; set; }
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }

@@ -478,6 +478,7 @@
                     @foreach (var item in Model.SelectedItems)
                     {
                         <input type="hidden" class="item-data"
+                               data-cart-detail-id="@item.CartDetailId"
                                data-product-id="@item.ProductId"
                                data-qty="@item.Quantity"
                                data-price="@item.UnitPrice.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)" />
@@ -510,8 +511,10 @@
                     @if (!Model.Addresses.Any())
                     {
                         <div class="no-address">
-                            <p>You have no saved addresses.</p>
-                            <a href="/Address/Create" style="color:var(--green);font-weight:600;">+ Add Address</a>
+                            <div style="font-size:36px;margin-bottom:8px;">📍</div>
+                            <p style="font-weight:600;color:#ef4444;">Bạn chưa có địa chỉ giao hàng.</p>
+                            <p style="font-size:13px;">Vui lòng thêm địa chỉ trước khi đặt hàng.</p>
+                            <a href="/Address/Create" class="btn btn-success btn-sm mt-2">+ Thêm địa chỉ</a>
                         </div>
                     }
                     else
@@ -618,11 +621,25 @@
                         <span class="label">Total</span>
                         <span class="amount" id="finalDisplay">@Model.SubTotal.ToString("N0") ₫</span>
                     </div>
-                    <button class="btn-place-order" id="placeBtn" type="button" onclick="placeOrder()">
+                    <div style="background:#f0f9ff;border-radius:10px;padding:10px 14px;margin-top:12px;display:flex;align-items:center;gap:10px;">
+                        <span style="font-size:22px;">🚚</span>
+                        <div>
+                            <div style="font-weight:700;font-size:13px;color:#1e2d3d;">Thanh toán khi nhận hàng (COD)</div>
+                            <div style="font-size:11px;color:var(--muted);">Bạn sẽ thanh toán khi nhận được đơn hàng</div>
+                        </div>
+                    </div>
+                    <button class="btn-place-order" id="placeBtn" type="button"
+                            onclick="placeOrder()" @(Model.Addresses.Any() ? "" : "disabled")>
                         <div class="btn-spinner" id="spinner"></div>
-                        <span id="placeText">🛍 Place Order</span>
+                        <span id="placeText">🛍 Đặt Hàng</span>
                     </button>
-                    <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--muted);">🔒 Secure checkout</p>
+                    @if (!Model.Addresses.Any())
+                    {
+                        <p style="text-align:center;margin-top:8px;font-size:12px;color:#ef4444;font-weight:600;">
+                            ⚠️ Vui lòng thêm địa chỉ giao hàng để tiếp tục
+                        </p>
+                    }
+                    <p style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted);">🔒 Giao dịch an toàn</p>
                 </div>
             </div>
         </div>
@@ -747,10 +764,11 @@
 
         var items = [];
         document.querySelectorAll('.item-data').forEach(function(inp) {
-            var pid   = inp.dataset.productId;
-            var qty   = parseInt(inp.dataset.qty)   || 1;
-            var price = parseFloat(inp.dataset.price) || 0;
-            if (pid && qty > 0) items.push({ productId:pid, quantity:qty, unitPrice:price });
+            var cartDetailId = inp.dataset.cartDetailId;
+            var pid          = inp.dataset.productId;
+            var qty          = parseInt(inp.dataset.qty)    || 1;
+            var price        = parseFloat(inp.dataset.price) || 0;
+            if (pid && qty > 0) items.push({ cartDetailId: cartDetailId, productId: pid, quantity: qty, unitPrice: price });
         });
 
         if (!items.length) { showToast('No items. Go back to cart.', 'e'); return; }
@@ -775,7 +793,7 @@
     function setLoading(on) {
         document.getElementById('placeBtn').disabled        = on;
         document.getElementById('spinner').style.display    = on ? 'block' : 'none';
-        document.getElementById('placeText').textContent    = on ? 'Placing Order...' : '🛍 Place Order';
+        document.getElementById('placeText').textContent    = on ? 'Placing Order...' : '🛍 Đặt Hàng';
     }
 
     // ─── Toast ───────────────────────────────────────────────────
