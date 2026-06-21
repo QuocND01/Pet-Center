@@ -502,9 +502,10 @@ const OrderFeedback = (function () {
                 formData.append(`Feedbacks[${i}].OrderId`, currentOrderId);
                 formData.append(`Feedbacks[${i}].Rating`, item.querySelector('.rating-value').value);
                 formData.append(`Feedbacks[${i}].Comment`, item.querySelector('.comment-input').value.trim());
-                document.querySelectorAll('#editNewMediaPreview .edit-new-media-item').forEach(item => {
-                    if (item._file && item._ready) {
-                        formData.append('NewMediaFiles', item._file, item._file.name);
+
+                item.querySelectorAll('.media-preview-row .write-media-item').forEach(m => {
+                    if (m._file && m._ready) {
+                        formData.append(`Feedbacks[${i}].MediaFiles`, m._file, m._file.name);
                     }
                 });
             });
@@ -561,8 +562,11 @@ const OrderFeedback = (function () {
             formData.append('Rating', rating);
             formData.append('Comment', comment);
             removedPublicIds.forEach(id => formData.append('RemovedPublicIds', id));
+
             document.querySelectorAll('#editNewMediaPreview .edit-new-media-item').forEach(item => {
-                if (item._file) formData.append('NewMediaFiles', item._file, item._file.name);
+                if (item._file && item._ready) {
+                    formData.append('NewMediaFiles', item._file, item._file.name);
+                }
             });
 
             const response = await fetch('/Feedback/Update', { method: 'POST', body: formData });
@@ -771,6 +775,14 @@ const OrderFeedback = (function () {
     // ============================================================
 
     function addMediaThumb(file, container, className) {
+        // Inject fb-spin keyframe once if not already present
+        if (!document.getElementById('fb-spin-style')) {
+            const styleEl = document.createElement('style');
+            styleEl.id = 'fb-spin-style';
+            styleEl.textContent = '@keyframes fb-spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }';
+            document.head.appendChild(styleEl);
+        }
+
         const div = document.createElement('div');
         div.className = className;
         div.style.cssText = 'position:relative;width:68px;height:68px;flex-shrink:0;';
@@ -778,13 +790,13 @@ const OrderFeedback = (function () {
         div._ready = false;
 
         div.innerHTML = `
-        <div style="width:68px;height:68px;border-radius:8px;
-                    border:1.5px solid #e2e8f0;background:#f8fafc;
-                    display:flex;align-items:center;justify-content:center;">
-            <div style="width:24px;height:24px;border-radius:50%;
-                        border:3px solid #e2e8f0;border-top-color:#6366f1;
-                        animation:fb-spin .7s linear infinite;"></div>
-        </div>`;
+    <div style="width:68px;height:68px;border-radius:8px;
+                border:1.5px solid #e2e8f0;background:#f8fafc;
+                display:flex;align-items:center;justify-content:center;">
+        <div style="width:24px;height:24px;border-radius:50%;
+                    border:3px solid #e2e8f0;border-top-color:#6366f1;
+                    animation:fb-spin .7s linear infinite;"></div>
+    </div>`;
 
         const rm = document.createElement('button');
         rm.innerHTML = '✕';
@@ -805,7 +817,6 @@ const OrderFeedback = (function () {
         reader.onload = function (e) {
             const blob = new Blob([e.target.result], { type: file.type });
             const readyFile = new File([blob], file.name, { type: file.type });
-
             const url = URL.createObjectURL(readyFile);
             const isVideo = file.type.startsWith('video/');
 
@@ -843,13 +854,13 @@ const OrderFeedback = (function () {
 
         reader.onerror = function () {
             div.innerHTML = `
-            <div style="width:68px;height:68px;border-radius:8px;
-                        border:1.5px dashed #fca5a5;background:#fef2f2;
-                        display:flex;flex-direction:column;align-items:center;
-                        justify-content:center;gap:2px;">
-                <span style="font-size:18px;">⚠</span>
-                <span style="font-size:9px;color:#ef4444;font-weight:600;">Failed</span>
-            </div>`;
+        <div style="width:68px;height:68px;border-radius:8px;
+                    border:1.5px dashed #fca5a5;background:#fef2f2;
+                    display:flex;flex-direction:column;align-items:center;
+                    justify-content:center;gap:2px;">
+            <span style="font-size:18px;">⚠</span>
+            <span style="font-size:9px;color:#ef4444;font-weight:600;">Failed</span>
+        </div>`;
             div._file = null;
             div._ready = true;
             updateSubmitButtonState();
@@ -895,7 +906,6 @@ const OrderFeedback = (function () {
                  style="position:fixed;inset:0;background:rgba(0,0,0,.5);
                         z-index:1150;"></div>`);
 
-        // Show using Bootstrap but suppress default backdrop
         const modalEl = document.getElementById(modalId);
         const bsModal = new bootstrap.Modal(modalEl, { backdrop: false, keyboard: false });
         bsModal.show();
