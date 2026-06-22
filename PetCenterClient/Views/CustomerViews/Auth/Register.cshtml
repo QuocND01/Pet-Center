@@ -171,9 +171,15 @@
     phoneInput.insertAdjacentElement("afterend", phoneMsg);
 
     function validatePhone(val) {
-        if (!val)                          return "Phone number is required";
-        if (!/^0[0-9]{9}$/.test(val))     return "Must start with 0 and be exactly 10 digits";
-        return "";
+    if (!val)
+       return "Phone number is required";
+    if (!/^\d+$/.test(val))
+       return "Phone number must contain digits only";
+    if (!/^0\d{9}$/.test(val))
+       return "Phone number must start with 0 and be exactly 10 digits";
+    if (!/^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$/.test(val))
+       return "Invalid Vietnamese phone number (e.g. 0912345678)";
+    return "";
     }
 
     phoneInput.addEventListener("input", function () {
@@ -195,6 +201,8 @@
     const today      = new Date();
     const minAgeDate = new Date();
     minAgeDate.setFullYear(minAgeDate.getFullYear() - 16);
+    const maxAgeDate = new Date();
+    maxAgeDate.setFullYear(maxAgeDate.getFullYear() - 100);
     birthdayInput.max = today.toISOString().split("T")[0];
 
     function validateBirthday(val) {
@@ -202,6 +210,7 @@
         const birth = new Date(val);
         if (birth > today)      return "Birthday cannot be in the future";
         if (birth > minAgeDate) return "You must be at least 16 years old to register";
+        if (birth < maxAgeDate) return "Date of birth cannot be more than 100 years ago";
         return "";
     }
 

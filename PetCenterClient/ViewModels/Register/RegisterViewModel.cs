@@ -14,8 +14,8 @@ namespace PetCenterClient.ViewModels.Register
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "Phone number is required")]
-        [RegularExpression(@"^0[0-9]{9}$",
-            ErrorMessage = "Phone number must start with 0 and be exactly 10 digits")]
+        [RegularExpression(@"^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$",
+            ErrorMessage = "Invalid Vietnamese phone number")]
         public string PhoneNumber { get; set; } = null!;
 
         [Required(ErrorMessage = "Password is required")]
@@ -32,17 +32,22 @@ namespace PetCenterClient.ViewModels.Register
 
         public static ValidationResult ValidateBirthDay(DateOnly? birthDay, ValidationContext context)
         {
-            if (birthDay == null) return ValidationResult.Success;
+            if (birthDay == null) return ValidationResult.Success!;
 
             var today = DateOnly.FromDateTime(DateTime.Today);
+
             if (birthDay > today)
                 return new ValidationResult("Birthday cannot be in the future");
 
-            var minAge = today.AddYears(-16);
-            if (birthDay > minAge)
-                return new ValidationResult("You must be at least 16 years old to register");
+            var age = today.Year - birthDay.Value.Year;
+            if (birthDay > today.AddYears(-age)) age--;
 
-            return ValidationResult.Success;
+            if (age < 16)
+                return new ValidationResult("You must be at least 16 years old to register");
+            if (age > 100)
+                return new ValidationResult("Date of birth cannot be more than 100 years ago");
+
+            return ValidationResult.Success!;
         }
     }
 

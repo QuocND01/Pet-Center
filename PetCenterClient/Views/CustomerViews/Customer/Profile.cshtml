@@ -686,12 +686,18 @@
                 return { valid: false, message: 'Full name must contain letters only and at least 2 characters' };
             if (fullName.trim().split(/\s+/).length < 2)
                 return { valid: false, message: 'Please enter your full name (first and last name)' };
-
+            
             if (!phoneNumber)
                 return { valid: false, message: 'Phone number is required' };
-            if (!/^0[0-9]{9}$/.test(phoneNumber))
+            if (!/^\d+$/.test(phoneNumber))
+                return { valid: false, message: 'Phone number must contain digits only' };
+            if (!/^0\d{9}$/.test(phoneNumber))
                 return { valid: false, message: 'Phone number must start with 0 and be exactly 10 digits' };
-
+        
+            const vnPhoneRegex = /^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$/;
+            if (!vnPhoneRegex.test(phoneNumber))
+                return { valid: false, message: 'Invalid Vietnamese phone number (e.g. 0912345678)' };
+            
             if (!birthDay)
                 return { valid: false, message: 'Date of birth is required' };
 
@@ -707,8 +713,8 @@
 
             if (age < 16)
                 return { valid: false, message: 'You must be at least 16 years old' };
-            if (age > 120)
-                return { valid: false, message: 'Invalid date of birth' };
+            if (age > 100)
+                return { valid: false, message: 'Date of birth cannot be more than 100 years ago' };
 
             if (!gender)
                 return { valid: false, message: 'Gender is required' };

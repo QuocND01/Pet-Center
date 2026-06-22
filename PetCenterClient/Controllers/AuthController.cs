@@ -212,8 +212,7 @@ namespace PetCenterClient.Controllers
 
             if (!result.Success)
             {
-                ViewBag.Error = result.Message;
-                return View("~/Views/CustomerViews/Auth/Register.cshtml", dto);
+                return Json(new { success = false, message = result.Message });
             }
 
             HttpContext.Session.SetString("PendingEmail", dto.Email);
