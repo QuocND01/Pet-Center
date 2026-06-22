@@ -8,25 +8,34 @@ namespace PetCenterAPI.Helpers
         public static string Generate(Product product)
         {
             string brandCode = GetCode(product.Brand?.BrandName);
-            string categoryCode = GetCode(product.Category?.CategoryName);
+            string nameCode = product.ProductName.Contains(' ')
+                ? GetShort(product.ProductName)
+                : GetCode(product.ProductName);
 
             string attributeCode = "GEN";
 
             if (product.ProductAttributes.Any())
             {
-                attributeCode = GetCode(
-                    product.ProductAttributes.First().AttributeValue
+                attributeCode = string.Concat(
+                    product.ProductAttributes
+                        .Where(x => !string.IsNullOrWhiteSpace(x.AttributeValue))
+                        .Select(x => GetCode(x.AttributeValue))
                 );
+
+                if (string.IsNullOrWhiteSpace(attributeCode))
+                {
+                    attributeCode = "GEN";
+                }
             }
 
-            string dateCode = DateTime.UtcNow.ToString("yyMMdd");
+            //string dateCode = DateTime.UtcNow.ToString("yyMMdd");
 
             string randomCode = Guid.NewGuid()
                 .ToString("N")
                 .Substring(0, 4)
                 .ToUpper();
 
-            return $"{brandCode}-{categoryCode}-{attributeCode}-{dateCode}-{randomCode}";
+            return $"{brandCode}-{nameCode}-{attributeCode}-{randomCode}";
         }
 
         private static string GetCode(string? value)
@@ -39,6 +48,13 @@ namespace PetCenterAPI.Helpers
             return value.Length <= 3
                 ? value
                 : value.Substring(0, 3);
+        }
+        private static string GetShort(string text)
+        {
+            return string.Concat(
+                text.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(word => char.ToUpper(word[0]))
+            );
         }
     }
 }
