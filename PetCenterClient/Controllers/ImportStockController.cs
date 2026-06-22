@@ -100,21 +100,35 @@ namespace PetCenterClient.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateImportViewModel  model)
+        public async Task<IActionResult> Create(CreateImportViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 var suppliers = await _suppService.GetAllAsync() ?? new List<ViewSupplierViewModel>();
                 ViewBag.SupplierList = new SelectList(suppliers, "SupplierId", "SupplierName");
 
+                TempData["Error"] = "Invalid data.";
 
                 return View("~/Views/AdminViews/ImportStock/Create.cshtml", model);
             }
 
-            await _service.CreateAsync(model);
-  
+            try
+            {
+                await _service.CreateAsync(model);
 
-            return RedirectToAction(nameof(Index));
+                TempData["Success"] = "Create import request successfully!";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+
+                var suppliers = await _suppService.GetAllAsync() ?? new List<ViewSupplierViewModel>();
+                ViewBag.SupplierList = new SelectList(suppliers, "SupplierId", "SupplierName");
+
+                return View("~/Views/AdminViews/ImportStock/Create.cshtml", model);
+            }
         }
 
         //public async Task<IActionResult> Confirm(Guid id)

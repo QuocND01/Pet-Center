@@ -1,0 +1,42 @@
+﻿
+
+@if (TempData["Success"] != null)
+{
+    <script>
+        toastr.success('@Html.Raw(TempData["Success"])');
+    </script>
+}
+
+@if (TempData["Error"] != null)
+{
+    <script>
+        toastr.error('@Html.Raw(TempData["Error"])');
+    </script>
+}
+
+@if (TempData["Warning"] != null)
+{
+    <script>
+        toastr.warning('@Html.Raw(TempData["Warning"])');
+    </script>
+}
+
+@if (TempData["Info"] != null)
+{
+    <script>
+        toastr.info('@Html.Raw(TempData["Info"])');
+    </script>
+}
+@* ==HTML==
+<body>
+    @RenderBody()
+
+    @await Html.PartialAsync("_Notification")
+</body>
+
+==CONTROLLER==
+Gọi từ Controller
+TempData["Success"] = "Thêm sản phẩm thành công!";
+TempData["Error"] = "Có lỗi xảy ra!";
+TempData["Warning"] = "Dữ liệu chưa đầy đủ!";
+TempData["Info"] = "Đã gửi email xác nhận!"; *@
