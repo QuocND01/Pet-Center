@@ -1,6 +1,6 @@
 ﻿@using PetCenterClient.ViewModels
 @model List<ImportHeaderViewModel>
-
+@await Html.PartialAsync("_Notification")
 @{
     var currentRole = Context.Session.GetString("Role");
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -12,6 +12,9 @@
 <link rel="stylesheet" href="~/css/AdminViews/ManageImport/manage_import.css" asp-append-version="true" />
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+
+
 <div class="page-wrapper">
     <div class="page-header">
         <div class="page-title-group">
@@ -129,6 +132,7 @@
         </table>
     </div>
 </div>
+
 <script>
     function filterTable() {
         // 1. Lấy giá trị từ các ô input

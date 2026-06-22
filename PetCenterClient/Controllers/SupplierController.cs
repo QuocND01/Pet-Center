@@ -42,14 +42,27 @@ namespace PetCenterClient.Controllers
                 return PartialView("~/Views/AdminViews/Supplier/Create.cshtml", dto);
             }
 
-            await _supplierService.CreateAsync(dto);
+            try
+            {
+                await _supplierService.CreateAsync(dto);
 
-            return Json(new { success = true });
-
+                return Json(new
+                {
+                    success = true,
+                    message = "Supplier created successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
 
         // GET: Edit
-        [HttpGet]
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -96,12 +109,26 @@ namespace PetCenterClient.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await _supplierService.DeleteAsync(id);
+            try
+            {
+                var result = await _supplierService.DeleteAsync(id);
 
-            if (result)
-                return Json(new { success = true });
-
-            return BadRequest();
+                return Json(new
+                {
+                    success = result,
+                    message = result
+                        ? "Supplier deleted successfully."
+                        : "Failed to delete supplier."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
     }
 }

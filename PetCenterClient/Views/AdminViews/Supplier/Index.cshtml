@@ -76,76 +76,176 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Khởi tạo modal từ thư viện bootstrap đã có trong Layout
-            var myModal = new bootstrap.Modal(document.getElementById('supplierModal'));
 
-            // 1. Mở Modal CREATE
+            // Bootstrap Modal
+            var myModal = new bootstrap.Modal(
+                document.getElementById('supplierModal')
+            );
+
+            // =========================
+            // CREATE
+            // =========================
             $("#btnCreate").click(function () {
+
                 $("#modalTitle").text("Create New Supplier");
+
                 $("#modalBody").load('/Supplier/Create', function () {
                     myModal.show();
                 });
             });
 
-            // 2. Mở Modal EDIT
+            // =========================
+            // EDIT
+            // =========================
             $(document).on("click", ".btn-edit", function () {
+
                 var id = $(this).data("id");
+
                 $("#modalTitle").text("Details and Edit Supplier");
+
                 $("#modalBody").load('/Supplier/Edit/' + id, function () {
                     myModal.show();
                 });
             });
 
-            // 3. Mở Modal DELETE (Đã làm đẹp giao diện xác nhận)
+            // =========================
+            // DELETE CONFIRM
+            // =========================
             $(document).on("click", ".btn-delete", function () {
+
                 var id = $(this).data("id");
                 var name = $(this).data("name");
+
                 $("#modalTitle").text("Confirm Delete");
+
                 $("#modalBody").html(`
                     <div class="text-center py-4">
-                        <i class="bi bi-exclamation-circle text-danger" style="font-size: 3rem;"></i>
-                        <p class="mt-3 fs-5">Are you sure you want to delete supplier:<br> <b class="text-dark">${name}</b>?</p>
+                        <i class="bi bi-exclamation-circle text-danger" style="font-size:3rem;"></i>
+                        <p class="mt-3 fs-5">
+                            Are you sure you want to delete supplier:<br>
+                            <b class="text-dark">${name}</b>?
+                        </p>
                     </div>
+
                     <div class="modal-footer border-0 justify-content-center">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
-                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" data-id="${id}" style="border-radius: 8px;">Delete Now</button>
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal"
+                                style="border-radius:8px;">
+                            Cancel
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-danger"
+                                id="confirmDeleteBtn"
+                                data-id="${id}"
+                                style="border-radius:8px;">
+                            Delete Now
+                        </button>
                     </div>
                 `);
+
                 myModal.show();
             });
 
-            // 4. Xử lý SUBMIT Form (Ajax)
+            // =========================
+            // CREATE / EDIT SUBMIT
+            // =========================
             $(document).on("submit", "#createForm, #editForm", function (e) {
+
                 e.preventDefault();
+
                 var form = $(this);
-                var url = form.attr('id') === "createForm" ? '/Supplier/Create' : '/Supplier/Edit';
+
+                var url =
+                    form.attr('id') === "createForm"
+                        ? '/Supplier/Create'
+                        : '/Supplier/Edit';
 
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: form.serialize(),
+
                     success: function (res) {
+
                         if (res.success) {
-                            location.reload();
+
+                            myModal.hide();
+
+                            toastr.success(
+                                res.message || "Operation completed successfully."
+                            );
+
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1200);
+
                         } else {
-                            $("#modalBody").html(res);
+
+                            // Nếu server trả JSON lỗi
+                            if (typeof res === "object" && res.message) {
+
+                                toastr.error(res.message);
+
+                            } else {
+
+                                // Nếu server trả PartialView chứa validation errors
+                                $("#modalBody").html(res);
+                            }
                         }
                     },
+
                     error: function (xhr) {
-                        alert("Error saving data. Please check connection.");
+
+                        let errorMessage =
+                            "Error saving data. Please check connection.";
+
+                        if (xhr.responseText) {
+                            console.log(xhr.responseText);
+                        }
+
+                        toastr.error(errorMessage);
                     }
                 });
             });
 
-            // 5. Xử lý xóa thực sự
+            // =========================
+            // DELETE
+            // =========================
             $(document).on("click", "#confirmDeleteBtn", function () {
+
                 var id = $(this).data("id");
-                $.post('/Supplier/Delete/' + id, function () {
-                    location.reload();
-                }).fail(function() {
-                    alert("Error deleting supplier!");
+
+                $.post('/Supplier/Delete/' + id, function (res) {
+
+                    if (res.success) {
+
+                        myModal.hide();
+
+                        toastr.success(
+                            res.message || "Supplier deleted successfully."
+                        );
+
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1200);
+
+                    } else {
+
+                        toastr.error(
+                            res.message || "Failed to delete supplier."
+                        );
+                    }
+
+                }).fail(function (xhr) {
+
+                    console.log(xhr.responseText);
+
+                    toastr.error("Error deleting supplier!");
                 });
             });
+
         });
     </script>
 }
