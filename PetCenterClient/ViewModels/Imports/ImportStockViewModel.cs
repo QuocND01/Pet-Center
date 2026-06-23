@@ -10,7 +10,7 @@ namespace PetCenterClient.ViewModels
 
         public string SupplierName { get; set; } = null!;
         public Guid StaffId { get; set; }
-        public string StaffName { get; set; }
+        public string StaffName { get; set; } = null!;
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }
         public int Status { get; set; }
@@ -37,6 +37,7 @@ namespace PetCenterClient.ViewModels
         public Guid ImportId { get; set; }
         public Guid SupplierId { get; set; }
         public Guid StaffId { get; set; }
+        public string StaffName { get; set; } = null!;
         public string SupplierName { get; set; } = null!;
         public decimal TotalAmount { get; set; }
         public DateTime? ImportDate { get; set; }

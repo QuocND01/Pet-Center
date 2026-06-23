@@ -14,13 +14,22 @@ namespace PetCenterAPI.Profiles
                 .ForMember(dest => dest.SupplierName,
                     opt => opt.MapFrom(src => src.Supplier.SupplierName))
                 .ForMember(dest => dest.Details,
-                    opt => opt.MapFrom(src => src.ImportStockDetails));
+                    opt => opt.MapFrom(src => src.ImportStockDetails))
+                .ForMember(dest => dest.StaffName,
+                    opt => opt.MapFrom(src =>
+                        src.Staff != null
+                            ? src.Staff.FullName
+                : string.Empty));
 
             // Header list
             CreateMap<ImportStock, ReadImportHeaderResponseDTO>()
                 .ForMember(dest => dest.SupplierName,
-                    opt => opt.MapFrom(src => src.Supplier.SupplierName));
-
+                    opt => opt.MapFrom(src => src.Supplier.SupplierName))
+                .ForMember(dest => dest.StaffName,
+                    opt => opt.MapFrom(src =>
+                        src.Staff != null
+                            ? src.Staff.FullName
+                : string.Empty));
             // Detail read
             CreateMap<ImportStockDetail, ReadImportDetailResponseDTO>();
 

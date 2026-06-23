@@ -25,6 +25,7 @@ namespace PetCenterAPI.Repository
             return await _context.ImportStocks
                 .Include(x => x.Supplier)
                 .Include(x => x.ImportStockDetails)
+                .Include (x => x.Staff)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
         }
 
@@ -32,6 +33,7 @@ namespace PetCenterAPI.Repository
         {
             return await _context.ImportStocks
                 .Include(x => x.Supplier)
+                .Include(x => x.Staff)
                 .Include(x => x.ImportStockDetails)
                     .ThenInclude(d => d.ImportProductSnapshot)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
@@ -40,7 +42,7 @@ namespace PetCenterAPI.Repository
         public async Task<List<ImportStock>> GetAllAsync()
         {
             return await _context.ImportStocks
-                .OrderByDescending(x => x.ImportDate).Include(x=>x.Supplier)
+                .OrderByDescending(x => x.ImportDate).Include(x=>x.Supplier).Include(x => x.Staff)
                 .ToListAsync();
         }
 

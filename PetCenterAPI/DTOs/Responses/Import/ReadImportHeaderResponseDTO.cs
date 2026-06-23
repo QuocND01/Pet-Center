@@ -13,6 +13,7 @@ namespace PetCenterAPI.DTOs.Responses.Import
 
         public Guid StaffId { get; set; }
 
+        public string StaffName { get; set; } = null!;
         public string InvoiceNumber { get; set; } = null!;
 
         public decimal TotalAmount { get; set; }
@@ -30,6 +31,7 @@ namespace PetCenterAPI.DTOs.Responses.Import
         public Guid ImportId { get; set; }
 
         public Guid SupplierId { get; set; }
+        public string StaffName { get; set; } = null!;
 
         public string SupplierName { get; set; } = null!;
 
