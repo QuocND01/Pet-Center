@@ -26,23 +26,21 @@
 <link rel="stylesheet" href="~/css/AdminViews/ManageImport/import_detail.css" asp-append-version="true" />
 <div class="page-wrapper">
     <div class="page-header">
+
         <div class="page-title-group">
             <h1>Import Detail</h1>
             <p>View detailed information of this stock import</p>
         </div>
 
-        <div class="header-stat">
-            <span class="label">Import Code</span>
-            <span class="num">#@Model.ImportId</span>
+        <div class="nav-actions">
+            <a asp-action="Index" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to Import List</span>
+            </a>
         </div>
     </div>
 
-    <div class="nav-actions">
-        <a asp-action="Index" class="btn-back">
-            <i class="bi bi-arrow-left"></i>
-            Back to Import List
-        </a>
-    </div>
+    
 
     <div class="info-card">
         <div class="info-grid">
@@ -54,14 +52,7 @@
             <div class="info-item">
                 <span class="label">Staff in charge</span>
                 <span class="value">
-                    @if (staffDict != null && staffDict.ContainsKey(Model.StaffId))
-                    {
-                        @staffDict[Model.StaffId]
-                    }
-                    else
-                    {
-                        @Model.StaffId
-                    }
+                    @Model.StaffName
                 </span>
             </div>
             <div class="info-item">
@@ -102,15 +93,10 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>SKU</th>
-                    <th>Batch</th>
-                    <th>Quantity</th>
-                    <th>Stock Left</th>
-                    <th>Manufacturing Date</th>
-                    <th>Expiry Date</th>
-                    <th>Import Price</th>
-                    <th>Subtotal</th>
+                    <th>Product Info</th>
+                    <th>Inventory</th>
+                    <th>Date Info</th>
+                    <th>Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,21 +107,60 @@
 
                     <tr>
                         <td>
-                            <div class="product-cell">
-                                <i class="bi bi-box"></i>
-                                <span>@productName</span>
+                            <div class="product-info">
+                                <div class="product-name">
+                                    <i class="bi bi-box"></i>
+                                    @productName
+                                </div>
+
+                                <div class="product-meta">
+                                    <span>SKU: @d.SKU</span>
+                                    <span>Batch: @d.BatchCode</span>
+                                </div>
                             </div>
                         </td>
-                        <td>@d.SKU</td>
-                        <td>@d.BatchCode</td>
-                        <td>@d.Quantity</td>                     
+
                         <td>
-                            <span class="row-num">@d.StockLeft</span>
+                            <div class="inventory-info">
+                                <div>
+                                    <span class="label">Quantity</span>
+                                    <strong>@d.Quantity</strong>
+                                </div>
+
+                                <div>
+                                    <span class="label">Stock Left</span>
+                                    <strong>@d.StockLeft</strong>
+                                </div>
+                            </div>
                         </td>
-                        <td>@d.ManufacturingDate</td>
-                        <td>@d.ExpiryDate</td>
-                        <td class="price-text">@d.ImportPrice.ToString("N0") ₫</td>
-                        <td class="subtotal price-text">@subtotal.ToString("N0") ₫</td>
+
+                        <td>
+                            <div class="date-info">
+                                <div>
+                                    <span class="label">MFG</span>
+                                    @d.ManufacturingDate?.ToString("dd/MM/yyyy")
+                                </div>
+
+                                <div>
+                                    <span class="label">EXP</span>
+                                    @d.ExpiryDate?.ToString("dd/MM/yyyy")
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="amount-info">
+                                <div>
+                                    <span class="label">Unit price</span>
+                                    @d.ImportPrice.ToString("N0") ₫
+                                </div>
+
+                                <div class="subtotal">
+                                    <span class="label">Subtotal</span>
+                                    @subtotal.ToString("N0") ₫
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 }
             </tbody>

@@ -91,9 +91,7 @@
                         <td class="row-num">@item.ImportId.ToString().Substring(0, 8)...</td>
                         <td class="customer-name">@item.SupplierName</td>
                         <td class="email-cell">
-                            @(staffDict != null && staffDict.ContainsKey(item.StaffId)
-                                                    ? staffDict[item.StaffId]
-                                                    : "Unknown Staff")
+                            @(item.StaffName)
                         </td>
                         <td class="price-text">@item.TotalAmount.ToString("N0") ₫</td>
                         <td class="email-cell" data-date="@item.ImportDate?.ToString("yyyy-MM-dd")">
