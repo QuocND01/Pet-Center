@@ -1,3 +1,4 @@
+using PetCenterAPI.Common;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
@@ -29,6 +30,8 @@ namespace PetCenterAPI.Service
 
         public async Task CreateAsync(CreatePrescriptionItemDTO dto)
         {
+            await EnsureRecordEditableAsync(dto.RecordId);
+
             var item = new PrescriptionItem
             {
                 PrescriptionItemId = Guid.NewGuid(),
@@ -48,6 +51,8 @@ namespace PetCenterAPI.Service
             var item = await _repo.GetByIdAsync(id)
                 ?? throw new Exception("Prescription item not found");
 
+            await EnsureRecordEditableAsync(item.RecordId);
+
             item.MedicineName = dto.MedicineName;
             item.Dosage = dto.Dosage;
             item.Duration = dto.Duration;
@@ -62,7 +67,22 @@ namespace PetCenterAPI.Service
             var item = await _repo.GetByIdAsync(id)
                 ?? throw new Exception("Prescription item not found");
 
+            await EnsureRecordEditableAsync(item.RecordId);
+
             await _repo.DeleteAsync(id);
+        }
+
+        // Prescription items can only be changed while the medical record is still
+        // editable. Once the record is Completed (approved) or Cancelled, items are locked.
+        private async Task EnsureRecordEditableAsync(Guid recordId)
+        {
+            var status = await _repo.GetRecordStatusAsync(recordId);
+
+            if (status == (int)MedicalRecordStatus.Completed)
+                throw new InvalidOperationException("Cannot modify prescription items of a completed medical record");
+
+            if (status == (int)MedicalRecordStatus.Cancelled)
+                throw new InvalidOperationException("Cannot modify prescription items of a cancelled medical record");
         }
 
         private static ReadPrescriptionItemDTO MapToDTO(PrescriptionItem p) => new()

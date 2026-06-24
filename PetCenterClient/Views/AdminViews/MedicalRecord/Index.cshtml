@@ -133,38 +133,23 @@
                                     </button>
                                 }
 
-                                @if (isVetOrAdmin)
+                                @if (isVetOrAdmin && r.Status == 1)
                                 {
-                                    @if (r.Status != 2)
-                                    {
-                                        <button class="btn-detail text-success"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#mrModal"
-                                                data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 2 })"
-                                                title="Mark as Completed">
-                                            <i class="bi bi-check-circle"></i>
-                                        </button>
-                                    }
-                                    @if (r.Status == 2)
-                                    {
-                                        <button class="btn-detail text-warning"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#mrModal"
-                                                data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 1 })"
-                                                title="Revert to Drafted">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
-                                        </button>
-                                    }
-                                    @if (r.Status != 3)
-                                    {
-                                        <button class="btn-detail text-danger"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#mrModal"
-                                                data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 3 })"
-                                                title="Cancel">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                    }
+                                    <button class="btn-detail text-success"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#mrModal"
+                                            data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 2 })"
+                                            title="Mark as Completed">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+
+                                    <button class="btn-detail text-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#mrModal"
+                                            data-url="@Url.Action("ChangeStatus", "MedicalRecord", new { id = r.RecordId, targetStatus = 3 })"
+                                            title="Cancel">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
                                 }
                             </td>
                         </tr>

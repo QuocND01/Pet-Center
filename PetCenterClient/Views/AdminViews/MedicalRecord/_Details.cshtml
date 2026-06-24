@@ -79,8 +79,10 @@
         @{
             var role = Context.Session.GetString("Role");
             bool isVetOrAdmin = role == "Vet" || role == "Admin";
+            // Items can only be changed while the record is still a draft.
+            bool canEditPrescriptions = Model.Status == 1;
         }
-        @if (isVetOrAdmin)
+        @if (isVetOrAdmin && canEditPrescriptions)
         {
             <button type="button"
                     class="btn btn-sm btn-success"
@@ -124,16 +126,19 @@
                                         title="View">
                                     <i class="bi bi-eye"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary btn-rx-action"
-                                        data-url="@Url.Action("Edit", "PrescriptionItem", new { id = item.PrescriptionItemId })"
-                                        title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger btn-rx-action"
-                                        data-url="@Url.Action("Delete", "PrescriptionItem", new { id = item.PrescriptionItemId })"
-                                        title="Delete">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                                @if (canEditPrescriptions)
+                                {
+                                    <button class="btn btn-sm btn-outline-primary btn-rx-action"
+                                            data-url="@Url.Action("Edit", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                            title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btn-rx-action"
+                                            data-url="@Url.Action("Delete", "PrescriptionItem", new { id = item.PrescriptionItemId })"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
                             </td>
                         }
                     </tr>

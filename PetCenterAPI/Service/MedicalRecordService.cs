@@ -126,6 +126,14 @@ namespace PetCenterAPI.Service
             var record = await _repo.GetByIdAsync(id)
                 ?? throw new Exception("Medical record not found");
 
+            // Completed and Cancelled are final states: no reverting backwards,
+            // and a completed record can no longer be cancelled.
+            if (record.Status == (int)MedicalRecordStatus.Completed)
+                throw new InvalidOperationException("Cannot change the status of a completed medical record");
+
+            if (record.Status == (int)MedicalRecordStatus.Cancelled)
+                throw new InvalidOperationException("Cannot change the status of a cancelled medical record");
+
             await _repo.ChangeStatusAsync(id, status);
         }
 
