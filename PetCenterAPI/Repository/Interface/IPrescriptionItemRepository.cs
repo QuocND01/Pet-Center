@@ -6,6 +6,7 @@ namespace PetCenterAPI.Repository.Interface
     {
         Task<IEnumerable<PrescriptionItem>> GetByRecordIdAsync(Guid recordId);
         Task<PrescriptionItem?> GetByIdAsync(Guid id);
+        Task<int?> GetRecordStatusAsync(Guid recordId);
         Task AddAsync(PrescriptionItem item);
         Task UpdateAsync(PrescriptionItem item);
         Task DeleteAsync(Guid id);

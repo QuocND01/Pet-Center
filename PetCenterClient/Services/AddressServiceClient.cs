@@ -8,7 +8,7 @@ namespace PetCenterClient.Services
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string Route = "address-service/Addresses";
+        private const string Route = "api/Addresses";
 
         public AddressServiceClient(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
@@ -31,11 +31,11 @@ namespace PetCenterClient.Services
                    ?? new List<AddressResponseDTO>();
         }
 
-        // Lấy tất cả address active của customer — dùng endpoint mới
+        // Lấy địa chỉ của customer — API xác định customer qua JWT (my-addresses)
         public async Task<List<AddressResponseDTO>> GetByCustomerIdAsync(Guid customerId)
         {
             AddAuthHeader();
-            var response = await _http.GetAsync($"{Route}/customer/{customerId}");
+            var response = await _http.GetAsync($"{Route}/my-addresses");
             if (!response.IsSuccessStatusCode)
                 return new List<AddressResponseDTO>();
             return await response.Content.ReadFromJsonAsync<List<AddressResponseDTO>>()

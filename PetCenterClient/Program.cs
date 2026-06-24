@@ -65,6 +65,11 @@ builder.Services.AddHttpClient<IAddressAPIClient, AddressAPIClient>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<IAddressServiceClient, AddressServiceClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
+
 builder.Services.AddHttpClient<IOrderAPIClient, OrderAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);

@@ -27,6 +27,14 @@ namespace PetCenterAPI.Repository
                 .FirstOrDefaultAsync(p => p.PrescriptionItemId == id);
         }
 
+        public async Task<int?> GetRecordStatusAsync(Guid recordId)
+        {
+            return await _db.MedicalRecords
+                .Where(r => r.RecordId == recordId)
+                .Select(r => r.Status)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task AddAsync(PrescriptionItem item)
         {
             _db.PrescriptionItems.Add(item);
