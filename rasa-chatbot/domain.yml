@@ -1,0 +1,140 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  DOMAIN — do SETUP khai báo "hợp đồng" giữa NLU và Actions.
+#  Người TRAINING viết ví dụ trong data/nlu/*.yml cho các intent bên dưới.
+# ════════════════════════════════════════════════════════════════════════════
+
+intents:
+  # — Cơ bản —
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - bot_challenge
+  - out_of_scope
+  # — Sản phẩm + giỏ hàng —
+  - tim_san_pham
+  - xem_san_pham_moi
+  - xem_san_pham_hot
+  - them_vao_gio_hang
+  - chon_san_pham
+  - xem_gio_hang
+  # — Đơn hàng + voucher —
+  - xem_don_hang_cua_toi
+  - xem_chi_tiet_don
+  - huy_don_hang
+  - xem_voucher
+  # — Dịch vụ —
+  - xem_dich_vu
+  - dat_lich_dich_vu
+  # — Tài khoản —
+  - xem_ho_so
+  - xem_dia_chi
+  - them_dia_chi
+  - xem_ho_so_y_te
+  # — Đánh giá —
+  - xem_danh_gia
+  - gui_danh_gia
+  # — Điều hướng (từ nút bấm) —
+  - goto_service_page
+  - goto_address_page
+  - goto_orders_page
+
+entities:
+  - tu_khoa
+  - so_luong
+  - product_id_chon
+  - product_name_chon
+  - order_id
+
+slots:
+  tu_khoa:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: tu_khoa
+
+  so_luong:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: so_luong
+
+  product_id_chon:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: product_id_chon
+
+  product_name_chon:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: product_name_chon
+
+  order_id:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: order_id
+
+  ket_qua_tim_kiem:
+    type: any
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+responses:
+  utter_greet:
+    - text: "Xin chào! 🐾 Tôi là trợ lý PetCenter.\nTôi có thể giúp bạn:\n• Tìm sản phẩm, xem hàng mới/bán chạy\n• Tra cứu đơn hàng, voucher\n• Xem dịch vụ, hồ sơ thú cưng\n\nBạn cần gì nào?"
+
+  utter_goodbye:
+    - text: "Tạm biệt! Hẹn gặp lại bạn tại PetCenter 🐾"
+
+  utter_bot_challenge:
+    - text: "Tôi là chatbot AI của PetCenter, được tạo để hỗ trợ bạn mua sắm thú cưng dễ dàng hơn! 🤖"
+
+  utter_khong_hieu:
+    - text: "Xin lỗi, tôi chưa hiểu ý bạn. Bạn thử hỏi: 'tìm thức ăn cho chó', 'đơn hàng của tôi', 'có voucher nào', 'dịch vụ spa'..."
+
+  utter_yeu_cau_tu_khoa:
+    - text: "Bạn muốn tìm sản phẩm gì? Ví dụ: thức ăn chó, đồ chơi mèo, vòng cổ..."
+
+  utter_xem_gio_hang:
+    - text: "Để xem giỏ hàng, bạn click vào icon 🛒 ở góc trên bên phải hoặc vào menu Profile > Cart nhé!"
+
+  utter_out_of_scope:
+    - text: "Xin lỗi, câu này ngoài khả năng của tôi. Bạn có thể liên hệ shop qua:\n📞 +84 123 456 789\n✉ support@petcenter.com"
+
+actions:
+  # Sản phẩm + giỏ hàng
+  - action_tim_san_pham
+  - action_xem_san_pham_moi
+  - action_xem_san_pham_hot
+  - action_them_vao_gio_hang
+  # Đơn hàng + voucher
+  - action_xem_don_hang
+  - action_chi_tiet_don
+  - action_huy_don_hang
+  - action_xem_voucher
+  # Dịch vụ
+  - action_xem_dich_vu
+  - action_dat_lich
+  # Tài khoản
+  - action_xem_ho_so
+  - action_xem_dia_chi
+  - action_them_dia_chi
+  - action_xem_ho_so_y_te
+  # Đánh giá
+  - action_xem_danh_gia
+  - action_gui_danh_gia
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

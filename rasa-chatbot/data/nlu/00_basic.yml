@@ -1,0 +1,94 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  NHÓM CƠ BẢN — chào hỏi, xác nhận, điều hướng.
+#  👤 TRAINING: có thể thêm ví dụ, nhưng nhóm này thường đã đủ dùng.
+# ════════════════════════════════════════════════════════════════════════════
+
+nlu:
+
+- intent: greet
+  examples: |
+    - xin chào
+    - chào shop
+    - hello
+    - hi
+    - chào bạn
+    - hey
+    - chào buổi sáng
+    - chào buổi chiều
+    - cho hỏi
+    - alo
+    - cho mình hỏi
+
+- intent: goodbye
+  examples: |
+    - tạm biệt
+    - bye
+    - goodbye
+    - thôi nhé
+    - cảm ơn nhé
+    - cảm ơn bạn
+    - hẹn gặp lại
+    - ok cảm ơn
+    - được rồi cảm ơn
+
+- intent: affirm
+  examples: |
+    - đồng ý
+    - ok
+    - được
+    - có
+    - đúng rồi
+    - vâng
+    - ừ
+    - chuẩn
+    - phải
+    - yes
+
+- intent: deny
+  examples: |
+    - không
+    - thôi
+    - không cần
+    - không muốn
+    - bỏ qua
+    - no
+    - hủy
+    - không thích
+
+- intent: bot_challenge
+  examples: |
+    - bạn là ai
+    - bạn là robot không
+    - mình đang nói chuyện với ai
+    - bạn có phải AI không
+    - bạn là người hay máy
+    - chatbot à
+    - bạn là bot không
+
+- intent: out_of_scope
+  examples: |
+    - hôm nay thời tiết thế nào
+    - kể chuyện cười đi
+    - bạn mấy tuổi
+    - tôi buồn quá
+    - giá vàng hôm nay
+    - 1 cộng 1 bằng mấy
+    - bạn ăn cơm chưa
+
+# — Điều hướng: payload từ nút bấm, không cần nhiều ví dụ —
+- intent: goto_service_page
+  examples: |
+    - mở trang dịch vụ
+    - đến trang dịch vụ
+
+- intent: goto_address_page
+  examples: |
+    - mở trang địa chỉ
+    - quản lý địa chỉ
+
+- intent: goto_orders_page
+  examples: |
+    - mở trang đơn hàng
+    - đến trang đơn hàng

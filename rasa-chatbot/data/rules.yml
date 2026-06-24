@@ -1,0 +1,129 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  RULES — luật cố định (1 intent → 1 hành động). Do SETUP dựng khung.
+#  👤 TRAINING: thường không cần sửa file này, chỉ thêm khi có intent mới.
+# ════════════════════════════════════════════════════════════════════════════
+
+rules:
+
+# — Cơ bản —
+- rule: Chào hỏi
+  steps:
+    - intent: greet
+    - action: utter_greet
+
+- rule: Tạm biệt
+  steps:
+    - intent: goodbye
+    - action: utter_goodbye
+
+- rule: Bot challenge
+  steps:
+    - intent: bot_challenge
+    - action: utter_bot_challenge
+
+- rule: Ngoài phạm vi
+  steps:
+    - intent: out_of_scope
+    - action: utter_out_of_scope
+
+- rule: Fallback khi không hiểu
+  steps:
+    - intent: nlu_fallback
+    - action: utter_khong_hieu
+
+# — Sản phẩm —
+- rule: Xem sản phẩm mới
+  steps:
+    - intent: xem_san_pham_moi
+    - action: action_xem_san_pham_moi
+
+- rule: Xem sản phẩm hot
+  steps:
+    - intent: xem_san_pham_hot
+    - action: action_xem_san_pham_hot
+
+- rule: Xem giỏ hàng
+  steps:
+    - intent: xem_gio_hang
+    - action: utter_xem_gio_hang
+
+# — Đơn hàng + voucher —
+- rule: Xem đơn hàng của tôi
+  steps:
+    - intent: xem_don_hang_cua_toi
+    - action: action_xem_don_hang
+
+- rule: Xem chi tiết đơn
+  steps:
+    - intent: xem_chi_tiet_don
+    - action: action_chi_tiet_don
+
+- rule: Hủy đơn hàng
+  steps:
+    - intent: huy_don_hang
+    - action: action_huy_don_hang
+
+- rule: Xem voucher
+  steps:
+    - intent: xem_voucher
+    - action: action_xem_voucher
+
+# — Dịch vụ —
+- rule: Xem dịch vụ
+  steps:
+    - intent: xem_dich_vu
+    - action: action_xem_dich_vu
+
+- rule: Đặt lịch dịch vụ
+  steps:
+    - intent: dat_lich_dich_vu
+    - action: action_dat_lich
+
+- rule: Điều hướng trang dịch vụ
+  steps:
+    - intent: goto_service_page
+    - action: action_dat_lich
+
+# — Tài khoản —
+- rule: Xem hồ sơ
+  steps:
+    - intent: xem_ho_so
+    - action: action_xem_ho_so
+
+- rule: Xem địa chỉ
+  steps:
+    - intent: xem_dia_chi
+    - action: action_xem_dia_chi
+
+- rule: Thêm địa chỉ
+  steps:
+    - intent: them_dia_chi
+    - action: action_them_dia_chi
+
+- rule: Điều hướng trang địa chỉ
+  steps:
+    - intent: goto_address_page
+    - action: action_them_dia_chi
+
+- rule: Xem hồ sơ y tế
+  steps:
+    - intent: xem_ho_so_y_te
+    - action: action_xem_ho_so_y_te
+
+# — Đánh giá —
+- rule: Xem đánh giá
+  steps:
+    - intent: xem_danh_gia
+    - action: action_xem_danh_gia
+
+- rule: Gửi đánh giá
+  steps:
+    - intent: gui_danh_gia
+    - action: action_gui_danh_gia
+
+- rule: Điều hướng trang đơn hàng
+  steps:
+    - intent: goto_orders_page
+    - action: action_gui_danh_gia

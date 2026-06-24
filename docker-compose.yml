@@ -194,5 +194,29 @@ services:
     networks:
       - backend
 
+  # ── RASA Chatbot ────────────────────────────────────────────────────────────
+  rasa:
+    image: rasa/rasa:3.6.21-full
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./rasa-chatbot:/app
+    command: run --enable-api --cors "*" --debug
+    depends_on:
+      - rasa-actions
+    networks:
+      - backend
+
+  rasa-actions:
+    build:
+      context: ./rasa-chatbot
+      dockerfile: Dockerfile
+    ports:
+      - "5055:5055"
+    environment:
+      - PETCENTER_API_URL=http://petcenterapi:80
+    networks:
+      - backend
+
 networks:
   backend:
