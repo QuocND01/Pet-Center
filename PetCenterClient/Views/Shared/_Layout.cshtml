@@ -579,5 +579,14 @@
     <script src="~/js/order-feedback.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
+    @* ── PetCenter Chatbot Widget ────────────────────────────────────────── *@
+    <script>
+        window.__RASA_URL    = 'http://localhost:5005';
+        window.__API_URL     = 'https://localhost:7004';
+        window.__JWT         = '@(custToken ?? "")';
+        window.__CUSTOMER_ID = '@(Context.Session.GetString("CustomerId") ?? "")';
+    </script>
+    <script src="~/js/chatbot.js"></script>
+
 </body>
 </html>

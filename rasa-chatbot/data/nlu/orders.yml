@@ -1,0 +1,53 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  NHÓM ĐƠN HÀNG + VOUCHER — SKELETON (có ví dụ mẫu để train được).
+#  👤 TRAINING: mở rộng mỗi intent lên ~15-20 câu cho chính xác.
+#  Lưu ý: order_id thường là mã GUID khó gõ — cân nhắc cách user nhập mã đơn.
+# ════════════════════════════════════════════════════════════════════════════
+
+nlu:
+
+- intent: xem_don_hang_cua_toi
+  examples: |
+    - đơn hàng của tôi
+    - xem đơn hàng
+    - tôi có đơn nào không
+    - lịch sử mua hàng
+    - đơn hàng đã đặt
+    - kiểm tra đơn hàng của tôi
+    - đơn hàng gần đây
+    - tôi đặt gì rồi
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: xem_chi_tiet_don
+  examples: |
+    - chi tiết đơn [a1b2c3d4](order_id)
+    - xem đơn [a1b2c3d4](order_id)
+    - đơn [a1b2c3d4](order_id) thế nào
+    - tình trạng đơn hàng
+    - đơn của tôi giao chưa
+    - đơn hàng giao tới đâu rồi
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: huy_don_hang
+  examples: |
+    - hủy đơn hàng
+    - tôi muốn hủy đơn
+    - hủy đơn [a1b2c3d4](order_id)
+    - cancel đơn hàng
+    - không muốn mua nữa hủy đơn
+    - hủy giúp tôi đơn này
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: xem_voucher
+  examples: |
+    - có voucher nào không
+    - mã giảm giá
+    - xem khuyến mãi
+    - tôi có mã giảm giá nào
+    - có mã giảm giá nào không
+    - voucher của tôi
+    - khuyến mãi hiện tại
+    - có ưu đãi gì không
+    # 👤 TRAINING: thêm ví dụ ở đây...

@@ -1,0 +1,67 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  STORIES — luồng hội thoại nhiều bước. SETUP dựng vài luồng mẫu.
+#  👤 TRAINING: thêm các luồng thực tế (vd: tìm SP → xem đánh giá → mua).
+# ════════════════════════════════════════════════════════════════════════════
+
+stories:
+
+# — Sản phẩm —
+- story: tìm sản phẩm rồi thêm giỏ
+  steps:
+    - intent: tim_san_pham
+    - action: action_tim_san_pham
+    - intent: chon_san_pham
+    - action: action_them_vao_gio_hang
+
+- story: tìm sản phẩm rồi thêm giỏ trực tiếp
+  steps:
+    - intent: tim_san_pham
+    - action: action_tim_san_pham
+    - intent: them_vao_gio_hang
+    - action: action_them_vao_gio_hang
+
+- story: tìm sản phẩm rồi xem đánh giá
+  steps:
+    - intent: tim_san_pham
+    - action: action_tim_san_pham
+    - intent: xem_danh_gia
+    - action: action_xem_danh_gia
+
+- story: xem hàng mới rồi thêm giỏ
+  steps:
+    - intent: xem_san_pham_moi
+    - action: action_xem_san_pham_moi
+    - intent: chon_san_pham
+    - action: action_them_vao_gio_hang
+
+# — Đơn hàng —
+- story: xem đơn rồi xem chi tiết
+  steps:
+    - intent: xem_don_hang_cua_toi
+    - action: action_xem_don_hang
+    - intent: xem_chi_tiet_don
+    - action: action_chi_tiet_don
+
+- story: xem đơn rồi hủy
+  steps:
+    - intent: xem_don_hang_cua_toi
+    - action: action_xem_don_hang
+    - intent: huy_don_hang
+    - action: action_huy_don_hang
+
+# — Chào rồi hỏi —
+- story: chào rồi tìm sản phẩm
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: tim_san_pham
+    - action: action_tim_san_pham
+
+- story: chào rồi xem đơn
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: xem_don_hang_cua_toi
+    - action: action_xem_don_hang

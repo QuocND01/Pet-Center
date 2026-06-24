@@ -1,0 +1,46 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  NHÓM TÀI KHOẢN — hồ sơ, địa chỉ, hồ sơ y tế thú cưng. SKELETON.
+#  👤 TRAINING: mở rộng mỗi intent lên ~15-20 câu.
+# ════════════════════════════════════════════════════════════════════════════
+
+nlu:
+
+- intent: xem_ho_so
+  examples: |
+    - xem hồ sơ của tôi
+    - thông tin tài khoản
+    - profile của tôi
+    - thông tin cá nhân
+    - tài khoản của tôi
+    - xem thông tin của tôi
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: xem_dia_chi
+  examples: |
+    - địa chỉ của tôi
+    - xem địa chỉ đã lưu
+    - địa chỉ giao hàng
+    - tôi đã lưu địa chỉ nào
+    - danh sách địa chỉ
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: them_dia_chi
+  examples: |
+    - thêm địa chỉ
+    - thêm địa chỉ mới
+    - tôi muốn thêm địa chỉ giao hàng
+    - lưu địa chỉ mới
+    - tạo địa chỉ
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: xem_ho_so_y_te
+  examples: |
+    - hồ sơ y tế thú cưng
+    - lịch sử khám của bé
+    - hồ sơ khám bệnh
+    - thú cưng của tôi khám gì rồi
+    - bệnh án thú cưng
+    - lịch sử tiêm phòng
+    # 👤 TRAINING: thêm ví dụ ở đây...

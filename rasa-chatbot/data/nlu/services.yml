@@ -1,0 +1,30 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  NHÓM DỊCH VỤ — SKELETON.
+#  👤 TRAINING: mở rộng mỗi intent lên ~15-20 câu.
+# ════════════════════════════════════════════════════════════════════════════
+
+nlu:
+
+- intent: xem_dich_vu
+  examples: |
+    - shop có dịch vụ gì
+    - xem dịch vụ
+    - dịch vụ spa thú cưng
+    - có dịch vụ tắm cho chó không
+    - các dịch vụ tại cửa hàng
+    - dịch vụ cắt tỉa lông
+    - giá dịch vụ grooming
+    - khám thú y giá bao nhiêu
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: dat_lich_dich_vu
+  examples: |
+    - đặt lịch
+    - tôi muốn đặt lịch spa
+    - book lịch tắm cho chó
+    - đặt lịch khám thú y
+    - hẹn lịch cắt tỉa lông
+    - đặt dịch vụ
+    # 👤 TRAINING: thêm ví dụ ở đây...

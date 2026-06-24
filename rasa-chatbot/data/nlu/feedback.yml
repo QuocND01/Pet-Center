@@ -1,0 +1,27 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  NHÓM ĐÁNH GIÁ SẢN PHẨM — SKELETON.
+#  👤 TRAINING: mở rộng mỗi intent lên ~15-20 câu.
+# ════════════════════════════════════════════════════════════════════════════
+
+nlu:
+
+- intent: xem_danh_gia
+  examples: |
+    - sản phẩm này đánh giá sao
+    - xem review sản phẩm
+    - đánh giá của khách
+    - sản phẩm này có tốt không
+    - review thế nào
+    - bao nhiêu sao
+    # 👤 TRAINING: thêm ví dụ ở đây...
+
+- intent: gui_danh_gia
+  examples: |
+    - tôi muốn đánh giá sản phẩm
+    - viết đánh giá
+    - đánh giá sản phẩm đã mua
+    - cho sản phẩm 5 sao
+    - gửi nhận xét
+    # 👤 TRAINING: thêm ví dụ ở đây...

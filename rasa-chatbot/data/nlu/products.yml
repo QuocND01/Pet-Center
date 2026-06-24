@@ -1,0 +1,103 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  NHÓM SẢN PHẨM + GIỎ HÀNG — ĐÃ HOÀN THIỆN (đang chạy tốt).
+#  👤 TRAINING: có thể bổ sung từ khóa sản phẩm thực tế trong DB.
+# ════════════════════════════════════════════════════════════════════════════
+
+nlu:
+
+- intent: tim_san_pham
+  examples: |
+    - tìm [thức ăn cho chó](tu_khoa)
+    - tìm [thức ăn mèo](tu_khoa)
+    - tìm [đồ chơi thú cưng](tu_khoa)
+    - tìm [vòng cổ mèo](tu_khoa)
+    - tìm [sữa tắm chó](tu_khoa)
+    - tìm [cát vệ sinh mèo](tu_khoa)
+    - tìm [balo vận chuyển thú cưng](tu_khoa)
+    - tìm [thuốc ve rận](tu_khoa)
+    - tìm [bát ăn mèo](tu_khoa)
+    - tìm [chuồng chó](tu_khoa)
+    - cho tôi xem [thức ăn Royal Canin](tu_khoa)
+    - cho mình xem [đồ chơi cho mèo](tu_khoa)
+    - tôi muốn mua [thức ăn cho mèo](tu_khoa)
+    - tôi cần [vắc xin chó](tu_khoa)
+    - shop có [quần áo thú cưng](tu_khoa) không
+    - bán [sữa tắm mèo](tu_khoa) không
+    - có [đồ chơi kéo](tu_khoa) không
+    - cho tôi hỏi về [thức ăn hạt](tu_khoa)
+    - tìm kiếm [phụ kiện thú cưng](tu_khoa)
+    - [thức ăn chó](tu_khoa)
+    - [vòng cổ mèo](tu_khoa)
+    - [đồ chơi](tu_khoa)
+    - [sữa tắm](tu_khoa)
+    - [cát vệ sinh](tu_khoa)
+    - [thức ăn hạt cho mèo](tu_khoa)
+    - tìm sản phẩm
+    - tôi muốn tìm đồ
+    - shop có gì bán không
+    - tìm kiếm
+    - cho xem sản phẩm
+
+- intent: xem_san_pham_moi
+  examples: |
+    - sản phẩm mới
+    - hàng mới về
+    - sản phẩm mới nhất
+    - hàng mới
+    - có gì mới không
+    - mới nhập gì vậy
+    - sản phẩm vừa ra
+    - đồ mới
+    - cho xem hàng mới
+    - sản phẩm mới về shop
+
+- intent: xem_san_pham_hot
+  examples: |
+    - sản phẩm bán chạy
+    - hàng hot
+    - sản phẩm hot
+    - bán chạy nhất
+    - sản phẩm được ưa chuộng
+    - cái gì bán nhiều nhất
+    - top sản phẩm
+    - sản phẩm nổi bật
+    - được mua nhiều nhất
+    - hàng bán chạy
+    - best seller
+
+- intent: them_vao_gio_hang
+  examples: |
+    - thêm vào giỏ hàng
+    - thêm vào giỏ
+    - mua cái này
+    - tôi muốn mua
+    - thêm sản phẩm này
+    - cho tôi mua cái này
+    - add to cart
+    - mua đi
+    - thêm [2](so_luong) cái vào giỏ
+    - mua [1](so_luong) cái
+    - thêm [3](so_luong) hộp
+    - cho mình [2](so_luong) cái
+
+- intent: xem_gio_hang
+  examples: |
+    - xem giỏ hàng
+    - giỏ hàng của tôi
+    - giỏ của mình
+    - giỏ có gì vậy
+    - xem giỏ
+    - cart của tôi
+    - tôi đã thêm gì vào giỏ
+    - giỏ hàng
+
+- intent: chon_san_pham
+  examples: |
+    - cái 1
+    - cái 2
+    - sản phẩm 1
+    - sản phẩm thứ nhất
+    - chọn cái này
+    - mua cái đó

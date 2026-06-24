@@ -151,6 +151,15 @@ builder.Services.AddCors(options =>
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
+
+    // Allow RASA chatbot widget (browser) + action server to call PetCenterAPI
+    options.AddPolicy("AllowRasa",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5005", "http://localhost:5055")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 });
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ImportStockProfile>());
 
@@ -224,6 +233,7 @@ if (app.Environment.IsDevelopment())
 if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
 
 app.UseCors("AllowClient");
+app.UseCors("AllowRasa");
 
 app.UseAuthentication();
 app.UseAuthorization();

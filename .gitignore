@@ -16,3 +16,11 @@
 ## OS
 .DS_Store
 Thumbs.db
+
+## RASA — khong push venv, model da train, cache (file rac, rat nang)
+rasa-chatbot/venv/
+rasa-chatbot/models/
+rasa-chatbot/.rasa/
+rasa-chatbot/**/__pycache__/
+rasa-chatbot/**/*.pyc
+rasa-chatbot/*.log
