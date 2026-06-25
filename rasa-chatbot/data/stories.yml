@@ -29,6 +29,30 @@ stories:
     - intent: xem_danh_gia
     - action: action_xem_danh_gia
 
+# — Giỏ hàng (READ-UPDATE-DELETE) —
+- story: xem giỏ rồi đổi số lượng
+  steps:
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+    - intent: chon_dong_gio_hang
+    - action: action_chon_dong_gio_hang
+    - intent: cap_nhat_so_luong_gio_hang
+    - action: action_cap_nhat_so_luong_gio_hang
+
+- story: xem giỏ rồi xóa 1 sản phẩm
+  steps:
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+    - intent: xoa_san_pham_gio_hang
+    - action: action_xoa_san_pham_gio_hang
+
+- story: xem giỏ rồi xóa toàn bộ
+  steps:
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+    - intent: xoa_toan_bo_gio_hang
+    - action: action_xoa_toan_bo_gio_hang
+
 - story: xem hàng mới rồi thêm giỏ
   steps:
     - intent: xem_san_pham_moi

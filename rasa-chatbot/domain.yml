@@ -20,6 +20,10 @@ intents:
   - them_vao_gio_hang
   - chon_san_pham
   - xem_gio_hang
+  - chon_dong_gio_hang
+  - cap_nhat_so_luong_gio_hang
+  - xoa_san_pham_gio_hang
+  - xoa_toan_bo_gio_hang
   # — Đơn hàng + voucher —
   - xem_don_hang_cua_toi
   - xem_chi_tiet_don
@@ -46,6 +50,7 @@ entities:
   - so_luong
   - product_id_chon
   - product_name_chon
+  - cart_detail_id_chon
   - order_id
 
 slots:
@@ -77,6 +82,13 @@ slots:
       - type: from_entity
         entity: product_name_chon
 
+  cart_detail_id_chon:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: cart_detail_id_chon
+
   order_id:
     type: text
     influence_conversation: false
@@ -85,6 +97,12 @@ slots:
         entity: order_id
 
   ket_qua_tim_kiem:
+    type: any
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  ket_qua_gio_hang:
     type: any
     influence_conversation: false
     mappings:
@@ -118,6 +136,11 @@ actions:
   - action_xem_san_pham_moi
   - action_xem_san_pham_hot
   - action_them_vao_gio_hang
+  - action_xem_gio_hang
+  - action_chon_dong_gio_hang
+  - action_cap_nhat_so_luong_gio_hang
+  - action_xoa_san_pham_gio_hang
+  - action_xoa_toan_bo_gio_hang
   # Đơn hàng + voucher
   - action_xem_don_hang
   - action_chi_tiet_don

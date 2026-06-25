@@ -27,7 +27,7 @@ namespace PetCenterAPI.Service
                                            && a.IsActive == true);
 
                 if (address == null)
-                    throw new InvalidOperationException("Địa chỉ không hợp lệ hoặc không thuộc về tài khoản này.");
+                    throw new InvalidOperationException("The address is invalid or does not belong to this account.");
 
                 var addrParts = new[] { address.AddressDetails, address.Ward, address.District, address.Province };
                 var addressSnapshot = string.Join(", ", addrParts.Where(s => !string.IsNullOrEmpty(s)));
@@ -37,6 +37,7 @@ namespace PetCenterAPI.Service
 
                 // ── 3. Voucher discount ──────────────────────────────────────
                 decimal discountAmount = 0;
+                Voucher? voucher = null;
                 if (dto.VoucherId.HasValue)
                 {
                     var alreadyUsed = await _db.CustomerVouchers
@@ -44,27 +45,22 @@ namespace PetCenterAPI.Service
                                      && cv.VoucherId == dto.VoucherId.Value
                                      && cv.IsUsed == true);
                     if (alreadyUsed)
-                        throw new InvalidOperationException("Bạn đã sử dụng voucher này rồi.");
+                        throw new InvalidOperationException("You have already used this voucher.");
 
-                    var voucher = await _db.Vouchers
+                    voucher = await _db.Vouchers
                         .FirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId.Value);
 
                     if (voucher == null || voucher.IsActive != true)
-                        throw new InvalidOperationException("Voucher không hợp lệ hoặc đã bị vô hiệu hóa.");
+                        throw new InvalidOperationException("The voucher is invalid or has been deactivated.");
 
                     if (voucher.ExpiredDate.HasValue && voucher.ExpiredDate.Value < DateTime.Now)
-                        throw new InvalidOperationException("Voucher đã hết hạn.");
+                        throw new InvalidOperationException("The voucher has expired.");
 
                     if (voucher.MinOrderAmount.HasValue && subtotal < voucher.MinOrderAmount.Value)
-                        throw new InvalidOperationException($"Đơn hàng tối thiểu {voucher.MinOrderAmount.Value:N0} ₫ để áp dụng voucher này.");
+                        throw new InvalidOperationException($"A minimum order of {voucher.MinOrderAmount.Value:N0} ₫ is required to apply this voucher.");
 
-                    if (voucher.UseageLimit.HasValue)
-                    {
-                        var usedCount = await _db.CustomerVouchers
-                            .CountAsync(cv => cv.VoucherId == dto.VoucherId.Value && cv.IsUsed == true);
-                        if (usedCount >= voucher.UseageLimit.Value)
-                            throw new InvalidOperationException("Voucher đã đạt giới hạn số lượt sử dụng.");
-                    }
+                    if (voucher.UseageLimit.HasValue && voucher.UseageLimit.Value <= 0)
+                        throw new InvalidOperationException("The voucher has reached its usage limit.");
 
                     discountAmount = subtotal * (voucher.DiscountPercent ?? 0) / 100m;
                     if (voucher.MaxDiscountAmount.HasValue && discountAmount > voucher.MaxDiscountAmount.Value)
@@ -84,13 +80,13 @@ namespace PetCenterAPI.Service
                 {
                     var inv = inventories.FirstOrDefault(i => i.ProductId == item.ProductId);
                     if (inv == null)
-                        throw new InvalidOperationException("Không tìm thấy thông tin tồn kho cho sản phẩm.");
+                        throw new InvalidOperationException("Inventory information for the product was not found.");
 
                     var available = inv.QuantityAvailable - inv.QuantityReserved;
                     if (available < item.Quantity)
                         throw new InvalidOperationException(
-                            $"Sản phẩm '{inv.Product.ProductName}' không đủ số lượng tồn. " +
-                            $"(Còn: {available}, Yêu cầu: {item.Quantity})");
+                            $"Product '{inv.Product.ProductName}' does not have enough stock. " +
+                            $"(Available: {available}, Requested: {item.Quantity})");
                 }
 
                 // ── 5. Create Order ──────────────────────────────────────────
@@ -153,8 +149,8 @@ namespace PetCenterAPI.Service
                     inv.LastUpdated = DateTime.Now;
                 }
 
-                // ── 8. Mark voucher used ─────────────────────────────────────
-                if (dto.VoucherId.HasValue)
+                // ── 8. Mark voucher used + decrement usage limit ─────────────
+                if (dto.VoucherId.HasValue && voucher != null)
                 {
                     _db.CustomerVouchers.Add(new CustomerVoucher
                     {
@@ -162,6 +158,9 @@ namespace PetCenterAPI.Service
                         VoucherId = dto.VoucherId.Value,
                         IsUsed = true
                     });
+
+                    if (voucher.UseageLimit.HasValue)
+                        voucher.UseageLimit = voucher.UseageLimit.Value - 1;
                 }
 
                 // ── 9. Clear cart ────────────────────────────────────────────
@@ -179,7 +178,7 @@ namespace PetCenterAPI.Service
                 return new PlaceOrderResponseDTO
                 {
                     Success = true,
-                    Message = "Đặt hàng thành công!",
+                    Message = "Order placed successfully!",
                     OrderId = order.OrderId,
                     TotalAmount = subtotal,
                     DiscountAmount = discountAmount,
@@ -211,6 +210,7 @@ namespace PetCenterAPI.Service
                 .Where(v => v.IsActive == true
                          && (v.ExpiredDate == null || v.ExpiredDate >= now)
                          && (v.MinOrderAmount == null || v.MinOrderAmount <= orderAmount)
+                         && (v.UseageLimit == null || v.UseageLimit > 0)
                          && !usedVoucherIds.Contains(v.VoucherId))
                 .Select(v => new AvailableVoucherDTO
                 {

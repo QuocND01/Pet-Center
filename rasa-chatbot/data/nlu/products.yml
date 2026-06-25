@@ -92,6 +92,17 @@ nlu:
     - cart của tôi
     - tôi đã thêm gì vào giỏ
     - giỏ hàng
+    - sản phẩm trong giỏ hàng của tôi
+    - sản phẩm trong giỏ
+    - có gì trong giỏ hàng
+    - giỏ hàng có những gì
+    - kiểm tra giỏ hàng
+    - xem những sản phẩm trong giỏ
+    - giỏ hàng của tôi có gì
+    - liệt kê giỏ hàng
+    - mở giỏ hàng
+    - gio hang cua toi
+    - xem gio hang cua toi
 
 - intent: chon_san_pham
   examples: |
@@ -101,3 +112,58 @@ nlu:
     - sản phẩm thứ nhất
     - chọn cái này
     - mua cái đó
+
+- intent: chon_dong_gio_hang
+  examples: |
+    - đổi số lượng sản phẩm này
+    - tôi muốn đổi số lượng
+    - sửa số lượng món này
+    - chỉnh số lượng trong giỏ
+    - cập nhật số lượng sản phẩm
+    - đổi số lượng cái này
+    - muốn sửa số lượng
+    - thay đổi số lượng món hàng
+    - doi so luong san pham
+    - sua so luong
+
+- intent: cap_nhat_so_luong_gio_hang
+  examples: |
+    - đổi thành [3](so_luong) cái
+    - cập nhật thành [5](so_luong)
+    - đổi thành [2](so_luong)
+    - lấy [4](so_luong) cái
+    - cho [10](so_luong) cái
+    - sửa thành [1](so_luong) cái
+    - [3](so_luong) cái
+    - [5](so_luong)
+    - đổi số lượng thành [7](so_luong)
+    - tôi muốn [2](so_luong) cái thôi
+    - doi thanh [3](so_luong)
+    - thanh [6](so_luong) cai
+
+- intent: xoa_san_pham_gio_hang
+  examples: |
+    - xóa sản phẩm này khỏi giỏ
+    - bỏ món này ra khỏi giỏ
+    - xóa cái này đi
+    - loại sản phẩm này ra
+    - bỏ cái này khỏi giỏ hàng
+    - xóa món hàng này
+    - không muốn mua cái này nữa
+    - gỡ sản phẩm này khỏi giỏ
+    - xoa san pham nay
+    - bo cai nay ra
+
+- intent: xoa_toan_bo_gio_hang
+  examples: |
+    - xóa hết giỏ hàng
+    - làm rỗng giỏ
+    - xóa toàn bộ giỏ hàng
+    - bỏ hết đồ trong giỏ
+    - xóa sạch giỏ hàng
+    - dọn sạch giỏ hàng
+    - xóa tất cả trong giỏ
+    - làm trống giỏ hàng
+    - xoa het gio hang
+    - lam rong gio hang
+    - clear giỏ hàng
