@@ -586,7 +586,7 @@
         window.__JWT         = '@(custToken ?? "")';
         window.__CUSTOMER_ID = '@(Context.Session.GetString("CustomerId") ?? "")';
     </script>
-    <script src="~/js/chatbot.js"></script>
+    <script src="~/js/chatbot.js" asp-append-version="true"></script>
 
 </body>
 </html>

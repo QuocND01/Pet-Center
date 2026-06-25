@@ -12,8 +12,6 @@ Chatbot AI hỗ trợ khách hàng.
 5. [Chạy chatbot hằng ngày](#5-chạy-chatbot-hằng-ngày)
 6. [Kiến trúc hệ thống](#6-kiến-trúc-hệ-thống)
 7. [Giải thích từng file](#7-giải-thích-từng-file)
-8. [Test chatbot](#8-test-chatbot)
-9. [Xử lý lỗi thường gặp](#9-xử-lý-lỗi-thường-gặp)
 10. [Lưu ý về Git](#10-lưu-ý-về-git)
 
 ## 2. YÊU CẦU MÔI TRƯỜNG
@@ -159,61 +157,6 @@ hồ sơ, địa chỉ...) đều dùng được mà không phải làm lại.
 | `PetCenterClient/Views/Shared/_Layout.cshtml` | Nhúng widget + truyền JWT & customerId |
 | `PetCenterAPI/Program.cs` | CORS cho phép RASA gọi API (policy `AllowRasa`) |
 | `docker-compose.yml` | 2 service `rasa` + `rasa-actions` |
-
-### Các intent hiện có (theo nhóm)
-
-| Nhóm | Intent | Bot làm gì |
-|------|--------|------------|
-| SP | `tim_san_pham`, `xem_san_pham_moi`, `xem_san_pham_hot` | Tìm / liệt kê sản phẩm |
-| SP | `them_vao_gio_hang`, `chon_san_pham` | Thêm vào giỏ (qua browser) |
-| Đơn | `xem_don_hang_cua_toi` | Liệt kê đơn của tôi (cần login) |
-| Đơn | `xem_chi_tiet_don`, `huy_don_hang` | Chi tiết / hủy đơn |
-| Đơn | `xem_voucher` | Mã giảm giá khả dụng |
-| DV | `xem_dich_vu`, `dat_lich_dich_vu` | Liệt kê / dẫn tới đặt lịch |
-| TK | `xem_ho_so`, `xem_dia_chi`, `them_dia_chi` | Hồ sơ + địa chỉ |
-| TK | `xem_ho_so_y_te` | Hồ sơ y tế thú cưng |
-| ĐG | `xem_danh_gia`, `gui_danh_gia` | Xem / gửi đánh giá |
-| Cơ bản | `greet`, `goodbye`, `bot_challenge`, `out_of_scope` | Chào / ngoài phạm vi |
-
----
-
-## 8. TEST CHATBOT
-
-Sau khi cả 3 đang chạy (API + 2 cửa sổ RASA + Website), test theo nhóm:
-
-| Gõ vào chat | Kết quả mong đợi |
-|-------------|------------------|
-| `tìm thức ăn cho mèo` | Danh sách sản phẩm + nút 🛒 Mua |
-| Bấm nút **🛒 Mua** (đã login) | "✅ Đã thêm vào giỏ" + badge tăng |
-| `đơn hàng của tôi` (đã login) | Liệt kê các đơn gần đây |
-| `có voucher nào không` (đã login) | Liệt kê mã giảm giá |
-| `shop có dịch vụ gì` | Liệt kê dịch vụ |
-| `hồ sơ của tôi` (đã login) | Hiện tên/email/SĐT |
-| `địa chỉ của tôi` (đã login) | Liệt kê địa chỉ đã lưu |
-| `hồ sơ y tế thú cưng` (đã login) | Lịch sử khám |
-| `asdfghjkl` | "Xin lỗi, tôi chưa hiểu..." |
-
-> ⚠️ Các chức năng "(đã login)" cần đăng nhập trước trên website thì mới có JWT/customerId.
-
-**Kiểm tra API riêng** (mở trên trình duyệt):
-- `https://localhost:7004/api/products/hot-products` → phải trả về JSON
-
----
-
-## 9. XỬ LÝ LỖI THƯỜNG GẶP
-
-| Lỗi | Nguyên nhân | Cách sửa |
-|-----|-------------|----------|
-| `'rasa' is not recognized` | venv chưa cài đúng | Chạy lại `1_install.bat` |
-| "Không thể kết nối đến chatbot" | RASA Server chưa chạy | Chạy `3_start.bat`, chờ "up and running" |
-| "Không thể tìm sản phẩm lúc này" | PetCenterAPI chưa chạy / sai port | Kiểm tra `https://localhost:7004/swagger` |
-| Bot trả lời sai intent | Chưa train lại sau khi sửa NLU | Chạy `2_train.bat` rồi `3_start.bat` |
-| Bấm 🛒 không thêm được giỏ | Lỗi CORS hoặc chưa login | F12 → Network → xem request `/api/cart/add` |
-| Tìm sản phẩm luôn ra 0 kết quả | DB chưa có sản phẩm | Kiểm tra API trả data, hoặc thử từ khóa tiếng Anh |
-| Python sai version | Đang dùng 3.11/3.12 | Cài thêm Python 3.10 |
-
-**Cách debug nhanh:** Nhìn vào cửa sổ đen **Action Server** — mỗi lần chat sẽ in log,
-nếu có dòng `ERROR` thì đọc để biết lỗi gì.
 
 ---
 

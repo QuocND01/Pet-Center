@@ -19,7 +19,7 @@ if not defined PYCMD (
 if not defined PYCMD (
     echo [LOI] Khong tim thay Python 3.10!
     echo.
-    echo RASA 3.6 CHI chay voi Python 3.10 (khong dung 3.11/3.12).
+    echo RASA 3.6 CHI chay voi Python 3.10, KHONG dung 3.11 hoac 3.12.
     echo Tai tai: https://www.python.org/downloads/release/python-31011/
     echo Khi cai nho TICK "Add python.exe to PATH".
     echo.

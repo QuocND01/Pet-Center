@@ -47,7 +47,27 @@ rules:
 - rule: Xem giỏ hàng
   steps:
     - intent: xem_gio_hang
-    - action: utter_xem_gio_hang
+    - action: action_xem_gio_hang
+
+- rule: Chọn dòng giỏ hàng để đổi số lượng
+  steps:
+    - intent: chon_dong_gio_hang
+    - action: action_chon_dong_gio_hang
+
+- rule: Cập nhật số lượng giỏ hàng
+  steps:
+    - intent: cap_nhat_so_luong_gio_hang
+    - action: action_cap_nhat_so_luong_gio_hang
+
+- rule: Xóa 1 sản phẩm khỏi giỏ
+  steps:
+    - intent: xoa_san_pham_gio_hang
+    - action: action_xoa_san_pham_gio_hang
+
+- rule: Xóa toàn bộ giỏ hàng
+  steps:
+    - intent: xoa_toan_bo_gio_hang
+    - action: action_xoa_toan_bo_gio_hang
 
 # — Đơn hàng + voucher —
 - rule: Xem đơn hàng của tôi

@@ -276,6 +276,80 @@
     }
   }
 
+  // ── Cart UPDATE/DELETE (Pattern B: JWT ở browser) ─────────────────────────
+  async function updateCartQuantity(cartDetailId, quantity, productName) {
+    var jwt = getJwt();
+    if (!jwt) {
+      addMsg('🔒 Bạn cần đăng nhập để cập nhật giỏ hàng!', 'pc-system');
+      return;
+    }
+    try {
+      var resp = await fetch(API_URL + '/api/cart/details/' + cartDetailId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + jwt
+        },
+        body: JSON.stringify({ quantity: quantity })
+      });
+      var data = await resp.json();
+      if (resp.ok) {
+        addMsg('✅ Đã đổi số lượng "' + productName + '" thành ' + quantity + '!', 'pc-system');
+        if (window.refreshCartBadge) window.refreshCartBadge();
+      } else {
+        addMsg('❌ ' + (data.message || 'Cập nhật số lượng thất bại.'), 'pc-err');
+      }
+    } catch (e) {
+      addMsg('❌ Không thể kết nối. Vui lòng thử lại!', 'pc-err');
+    }
+  }
+
+  async function removeCartItem(cartDetailId, productName) {
+    var jwt = getJwt();
+    if (!jwt) {
+      addMsg('🔒 Bạn cần đăng nhập để xóa sản phẩm khỏi giỏ!', 'pc-system');
+      return;
+    }
+    try {
+      var resp = await fetch(API_URL + '/api/cart/details/' + cartDetailId, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + jwt }
+      });
+      var data = await resp.json();
+      if (resp.ok) {
+        addMsg('✅ Đã xóa "' + productName + '" khỏi giỏ hàng!', 'pc-system');
+        if (window.refreshCartBadge) window.refreshCartBadge();
+      } else {
+        addMsg('❌ ' + (data.message || 'Xóa sản phẩm thất bại.'), 'pc-err');
+      }
+    } catch (e) {
+      addMsg('❌ Không thể kết nối. Vui lòng thử lại!', 'pc-err');
+    }
+  }
+
+  async function clearCart() {
+    var jwt = getJwt();
+    if (!jwt) {
+      addMsg('🔒 Bạn cần đăng nhập để thao tác với giỏ hàng!', 'pc-system');
+      return;
+    }
+    try {
+      var resp = await fetch(API_URL + '/api/cart/clear/' + getCustomerId(), {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + jwt }
+      });
+      var data = await resp.json();
+      if (resp.ok) {
+        addMsg('✅ Đã xóa toàn bộ giỏ hàng!', 'pc-system');
+        if (window.refreshCartBadge) window.refreshCartBadge();
+      } else {
+        addMsg('❌ ' + (data.message || 'Xóa giỏ hàng thất bại.'), 'pc-err');
+      }
+    } catch (e) {
+      addMsg('❌ Không thể kết nối. Vui lòng thử lại!', 'pc-err');
+    }
+  }
+
   // ── Cancel order (Pattern B: JWT ở browser) ───────────────────────────────
   async function cancelOrder(orderId) {
     var jwt = getJwt();
@@ -305,6 +379,12 @@
       if (r.custom) {
         if (r.custom.type === 'add_to_cart') {
           await addToCart(r.custom.productId, r.custom.productName, r.custom.quantity);
+        } else if (r.custom.type === 'update_cart_quantity') {
+          await updateCartQuantity(r.custom.cartDetailId, r.custom.quantity, r.custom.productName);
+        } else if (r.custom.type === 'remove_cart_item') {
+          await removeCartItem(r.custom.cartDetailId, r.custom.productName);
+        } else if (r.custom.type === 'clear_cart') {
+          await clearCart();
         } else if (r.custom.type === 'cancel_order') {
           await cancelOrder(r.custom.orderId);
         } else if (r.custom.type === 'navigate' && r.custom.url) {
