@@ -48,6 +48,20 @@ namespace PetCenterClient.Controllers
             return View("~/Views/AdminViews/ManageCustomer/Detail.cshtml", customer);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetDetail(Guid id)
+        {
+            var token = HttpContext.Session.GetString("JWT");
+            if (string.IsNullOrEmpty(token))
+                return Json(new { success = false, message = "Unauthorized." });
+
+            var customer = await _customerService.GetCustomerByIdAsync(id);
+            if (customer == null)
+                return Json(new { success = false, message = "Customer not found." });
+
+            return Json(new { success = true, data = customer });
+        }
+
         // ============================================================
         // STAFF / ADMIN — SEARCH CUSTOMER
         // ============================================================
