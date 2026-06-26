@@ -69,7 +69,7 @@ namespace PetCenterClient.Services
 
             res.EnsureSuccessStatusCode();
             var result = await res.Content.ReadAsStringAsync();
-
+            Console.WriteLine(result);
             // Xử lý nếu Guid trả về dạng chuỗi có ngoặc kép
             return JsonSerializer.Deserialize<Guid>(result);
         }

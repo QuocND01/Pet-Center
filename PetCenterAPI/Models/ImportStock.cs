@@ -13,7 +13,7 @@ public partial class ImportStock
 
     public decimal TotalAmount { get; set; }
 
-    public DateOnly ImportDate { get; set; }
+    public DateTime ImportDate { get; set; }
 
     public ImportStatus Status { get; set; }
 
