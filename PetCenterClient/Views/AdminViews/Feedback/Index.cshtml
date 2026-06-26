@@ -52,44 +52,7 @@
         font-size: 13px;
         color: var(--fb-muted);
         margin: 0;
-    }
-
-    /* ── STAT CARDS ──────────────────────────────────────── */
-    .fb-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-        margin-bottom: 24px;
-    }
-    .fb-stat {
-        background: var(--fb-card);
-        border: 1px solid var(--fb-border);
-        border-radius: var(--radius);
-        padding: 16px 18px;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        box-shadow: var(--shadow);
-    }
-    .fb-stat-icon {
-        width: 42px; height: 42px;
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 18px; flex-shrink: 0;
-    }
-    .fb-stat-icon.green  { background: var(--fb-green-bg);  color: var(--fb-green2); }
-    .fb-stat-icon.yellow { background: var(--fb-yellow-bg); color: var(--fb-yellow); }
-    .fb-stat-icon.blue   { background: var(--fb-blue-bg);   color: var(--fb-blue);   }
-    .fb-stat-icon.purple { background: var(--fb-purple-bg); color: var(--fb-purple); }
-    .fb-stat-val {
-        font-size: 22px; font-weight: 800;
-        color: var(--fb-ink); line-height: 1;
-    }
-    .fb-stat-lbl {
-        font-size: 11px; font-weight: 700;
-        color: var(--fb-muted); text-transform: uppercase;
-        letter-spacing: .05em; margin-top: 2px;
-    }
+    }    
 
     /* ── FILTER BAR ──────────────────────────────────────── */
     .fb-filter-card {
@@ -466,56 +429,74 @@
         to   { transform: translateX(0);    opacity: 1; }
     }
 
-    @@media (max-width: 900px) {
-        .fb-stats { grid-template-columns: repeat(2, 1fr); }
+    /* ── PAGE HEADER ── */
+    .fb-page-header {
+        background: #fff;
+        border-bottom: 1px solid var(--fb-border);
+        padding: 24px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        gap: 16px;
+        flex-wrap: wrap;
     }
-    @@media (max-width: 600px) {
-        .fb-stats { grid-template-columns: 1fr; }
-        .fb-filter-card { flex-direction: column; }
-        .fb-filter-group select,
-        .fb-filter-group input { min-width: 100%; }
+
+    .fb-page-title-group h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--fb-ink);
+        margin: 0 0 4px;
+        letter-spacing: -0.3px;
     }
+
+    .fb-page-title-group p {
+        font-size: 13px;
+        color: var(--fb-muted);
+        margin: 0;
+    }
+
+    .fb-header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .fb-header-stat {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #eef2ff;
+        padding: 10px 20px;
+        border-radius: 40px;
+    }
+
+        .fb-header-stat .num {
+            font-size: 20px;
+            font-weight: 700;
+            color: #6366f1;
+        }
+
+        .fb-header-stat .label {
+            font-size: 13px;
+            color: #6366f1;
+            font-weight: 500;
+        }
 </style>
 
 <!-- ══ TOAST CONTAINER ═══════════════════════════════════════ -->
 <div class="fb-toast-wrap" id="fbToastWrap"></div>
 
-<!-- ══ PAGE HEADER ═══════════════════════════════════════════ -->
-<div class="fb-header">
-    <div class="fb-header-left">
-        <h1><i class="bi bi-chat-left-text me-2" style="color:var(--g3)"></i>Feedback Management</h1>
+<!-- ══ PAGE HEADER ══════════════════════════════════════════ -->
+<div class="fb-page-header">
+    <div class="fb-page-title-group">
+        <h1><i class="bi bi-chat-left-text me-2" style="color:#6366f1"></i>Feedback Management</h1>
         <p>Manage and respond to customer product reviews and feedback.</p>
     </div>
-</div>
-
-<!-- ══ STAT CARDS ════════════════════════════════════════════ -->
-<div class="fb-stats">
-    <div class="fb-stat">
-        <div class="fb-stat-icon green"><i class="bi bi-chat-square-text"></i></div>
-        <div>
-            <div class="fb-stat-val" id="statTotal">–</div>
-            <div class="fb-stat-lbl">Total Feedback</div>
-        </div>
-    </div>
-    <div class="fb-stat">
-        <div class="fb-stat-icon yellow"><i class="bi bi-clock-history"></i></div>
-        <div>
-            <div class="fb-stat-val" id="statPending">–</div>
-            <div class="fb-stat-lbl">No reply yet</div>
-        </div>
-    </div>
-    <div class="fb-stat">
-        <div class="fb-stat-icon blue"><i class="bi bi-check2-circle"></i></div>
-        <div>
-            <div class="fb-stat-val" id="statReplied">–</div>
-            <div class="fb-stat-lbl">Replied</div>
-        </div>
-    </div>
-    <div class="fb-stat">
-        <div class="fb-stat-icon purple"><i class="bi bi-star-half"></i></div>
-        <div>
-            <div class="fb-stat-val" id="statAvgRating">–</div>
-            <div class="fb-stat-lbl">stars average</div>
+    <div class="fb-header-right">
+        <div class="fb-header-stat">
+            <span class="num" id="statTotal">—</span>
+            <span class="label">Total Feedback</span>
         </div>
     </div>
 </div>
@@ -902,19 +883,7 @@
 
         // ── STATS ─────────────────────────────────────────────────────
         function updateStats(items, total) {
-            document.getElementById('statTotal').textContent = total;
-
-            // Load all to compute pending/replied/avg using filter trick
-            const pending = items.filter(f => !f.hasReply).length;
-            const replied = items.filter(f =>  f.hasReply).length;
-            const ratings = items.map(f => f.rating || 0).filter(r => r > 0);
-            const avg     = ratings.length
-                ? (ratings.reduce((a,b) => a+b, 0) / ratings.length).toFixed(1)
-                : '–';
-
-            document.getElementById('statPending').textContent   = pending;
-            document.getElementById('statReplied').textContent   = replied;
-            document.getElementById('statAvgRating').textContent = avg === '–' ? '–' : avg + ' ★';
+            document.getElementById('statTotal').textContent = total;           
             document.getElementById('totalBadge').textContent    = `${total} Result`;
         }
 

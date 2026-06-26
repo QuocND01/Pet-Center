@@ -20,57 +20,80 @@
         --radius: 14px;
     }
 
-    /* ── STAT CARDS ── */
-    .voucher-stat-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 28px;
-    }
-
-    .vstat-card {
+    .page-header-v {
         background: #fff;
-        border-radius: var(--radius);
-        padding: 20px 22px;
+        border-bottom: 1px solid var(--border);
+        padding: 24px 32px;
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
         gap: 16px;
-        border: 1.5px solid var(--border);
-        transition: box-shadow .2s, transform .2s;
+        flex-wrap: wrap;
     }
 
-        .vstat-card:hover {
-            box-shadow: 0 8px 24px rgba(0,0,0,.08);
-            transform: translateY(-2px);
+    .page-title-group-v h1 {
+        font-size: 22px;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0 0 4px;
+        letter-spacing: -0.3px;
+    }
+
+    .page-title-group-v p {
+        font-size: 13px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    .header-right-v {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-stat-v {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #eef2ff;
+        padding: 10px 20px;
+        border-radius: 40px;
+    }
+
+        .header-stat-v .num {
+            font-size: 20px;
+            font-weight: 700;
+            color: #6366f1;
         }
 
-    .vstat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        .header-stat-v .label {
+            font-size: 13px;
+            color: #6366f1;
+            font-weight: 500;
+        }
+
+    /* ── NÚT ADD (màu xanh lá theo yêu cầu) ── */
+    .btn-add-voucher {
+        border: none;
+        background: #16a34a;
+        color: white;
+        border-radius: 10px;
+        padding: 11px 18px;
+        font-weight: 600;
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
+        gap: 8px;
+        transition: .2s;
+        cursor: pointer;
+        font-size: 13px;
+        white-space: nowrap;
     }
 
-    .vstat-label {
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: var(--muted);
-        margin-bottom: 3px;
-    }
-
-    .vstat-val {
-        font-size: 26px;
-        font-weight: 900;
-        color: var(--ink);
-        line-height: 1;
-        font-family: var(--font-head);
-    }
+        .btn-add-voucher:hover {
+            background: #15803d;
+            transform: translateY(-1px);
+        }
 
     /* ── MAIN CARD ── */
     .voucher-card {
@@ -150,29 +173,6 @@
 
         .vfilter-select:focus {
             border-color: var(--v-gold);
-        }
-
-    /* ── ADD BUTTON ── */
-    .btn-add-voucher {
-        background: linear-gradient(135deg, var(--v-gold), var(--v-gold-dark));
-        color: #fff;
-        border: none;
-        border-radius: 100px;
-        padding: 9px 20px;
-        font-family: var(--font);
-        font-size: 13px;
-        font-weight: 800;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        transition: opacity .2s, transform .15s;
-        white-space: nowrap;
-    }
-
-        .btn-add-voucher:hover {
-            opacity: .9;
-            transform: translateY(-1px);
         }
 
     /* ── TABLE ── */
@@ -862,35 +862,20 @@
     }
 </style>
 
-<!-- ══ STAT CARDS ════════════════════════════════════════════ -->
-<div class="voucher-stat-grid">
-    <div class="vstat-card">
-        <div class="vstat-icon" style="background:#fef3c7"><span style="font-size:22px">🎟️</span></div>
-        <div>
-            <div class="vstat-label">Total Vouchers</div>
-            <div class="vstat-val" id="statTotal">—</div>
-        </div>
+<!-- ══ PAGE HEADER ══════════════════════════════════════════ -->
+<div class="page-header-v">
+    <div class="page-title-group-v">
+        <h1>Voucher Management</h1>
+        <p>View and manage all discount vouchers</p>
     </div>
-    <div class="vstat-card">
-        <div class="vstat-icon" style="background:#d1fae5"><span style="font-size:22px">✅</span></div>
-        <div>
-            <div class="vstat-label">Active</div>
-            <div class="vstat-val" id="statActive">—</div>
+    <div class="header-right-v">
+        <div class="header-stat-v">
+            <span class="num" id="statTotal">—</span>
+            <span class="label">Total Vouchers</span>
         </div>
-    </div>
-    <div class="vstat-card">
-        <div class="vstat-icon" style="background:#fee2e2"><span style="font-size:22px">⏰</span></div>
-        <div>
-            <div class="vstat-label">Expired</div>
-            <div class="vstat-val" id="statExpired">—</div>
-        </div>
-    </div>
-    <div class="vstat-card">
-        <div class="vstat-icon" style="background:#ede9fe"><span style="font-size:22px">📊</span></div>
-        <div>
-            <div class="vstat-label">Avg. Discount</div>
-            <div class="vstat-val" id="statAvgDiscount">—</div>
-        </div>
+        <button class="btn-add-voucher" onclick="openAddModal()">
+            <i class="bi bi-plus-lg"></i> Add Voucher
+        </button>
     </div>
 </div>
 
@@ -912,9 +897,6 @@
                 <option value="inactive">Inactive</option>
                 <option value="expired">Expired</option>
             </select>
-            <button class="btn-add-voucher" onclick="openAddModal()">
-                <i class="bi bi-plus-circle-fill"></i> Add Voucher
-            </button>
         </div>
     </div>
 
@@ -1162,16 +1144,8 @@
     function renderStats() {
         const now       = new Date();
         const total     = allVouchers.length;
-        const active    = allVouchers.filter(v => getStatus(v, now) === 'active').length;
-        const expired   = allVouchers.filter(v => getStatus(v, now) === 'expired').length;
-        const discounts = allVouchers.map(v => v.discountPercent || 0).filter(d => d > 0);
-        const avg       = discounts.length
-            ? Math.round(discounts.reduce((a, b) => a + b, 0) / discounts.length) : 0;
 
         document.getElementById('statTotal').textContent       = total;
-        document.getElementById('statActive').textContent      = active;
-        document.getElementById('statExpired').textContent     = expired;
-        document.getElementById('statAvgDiscount').textContent = avg + '%';
     }
 
     /* ── TABLE RENDER ── */
