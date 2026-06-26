@@ -131,11 +131,11 @@ namespace PetCenterClient.Controllers
             }
         }
 
-        //public async Task<IActionResult> Confirm(Guid id)
-        //{
-        //    await _service.ConfirmAsync(id);
-        //    return RedirectToAction(nameof(Index));
-        //}
+        public async Task<IActionResult> Confirm(Guid id)
+        {
+            await _service.ConfirmAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
 
         public async Task<IActionResult> Cancel(Guid id)
         {

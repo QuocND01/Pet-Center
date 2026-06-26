@@ -68,9 +68,18 @@ namespace PetCenterAPI.Controllers
         [HttpPut("{id}/confirm")]
         public async Task<IActionResult> Confirm(Guid id)
         {
-            var items = await _service.ConfirmAsync(id);
+            var staffClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            return Ok(items);
+            if (string.IsNullOrEmpty(staffClaim))
+            {
+                return Unauthorized("StaffId missing in token");
+            }
+
+            var staffId = Guid.Parse(staffClaim);
+
+            await _service.ConfirmAsync(id, staffId);
+
+            return NoContent();
         }
 
         // PUT: api/importstock/{id}/cancel

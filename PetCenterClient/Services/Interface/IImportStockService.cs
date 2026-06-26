@@ -7,7 +7,7 @@ namespace PetCenterClient.Services.Interface
         Task<List<ImportHeaderViewModel>> GetAllAsync();
         Task<ImportStockViewModel?> GetByIdAsync(Guid id);
         Task<Guid> CreateAsync(CreateImportViewModel dto);
-        //Task ConfirmAsync(Guid id);
+        Task ConfirmAsync(Guid id);
         Task CancelAsync(Guid id);
 
         Task<List<ImportStockViewModel>> GetAllByTimeAsync();

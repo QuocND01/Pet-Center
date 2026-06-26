@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.DTOs.Requests.Import;
 using PetCenterAPI.DTOs.Responses.Import;
@@ -139,35 +140,98 @@ namespace PetCenterAPI.Service
             return _mapper.Map<ReadImportResponseDTO>(entity);
         }
 
-        public async Task<List<IncreaseStockRequestDTO>> ConfirmAsync(Guid id)
+        public async Task ConfirmAsync(Guid importId, Guid staffId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
 
-            var importStock = await _repo.GetWithDetailsAsync(id);
+            var importStock = await _repo.GetWithDetailsAsync(importId);
 
             if (importStock == null)
                 throw new Exception("Import not found");
 
             if (importStock.Status != ImportStatus.Pending)
-                throw new Exception("Only pending import can be confirmed");
+                throw new Exception("Only pending imports can be confirmed");
 
-            // 🔥 map data TRƯỚC khi save
-            var items = importStock.ImportStockDetails
-            .GroupBy(x => x.ProductId)
-            .Select(g => new IncreaseStockRequestDTO
+            // Lấy toàn bộ ProductId cần xử lý
+            var productIds = importStock.ImportStockDetails
+                .Select(x => x.ProductId)
+                .Distinct()
+                .ToList();
+
+            // Load inventory một lần để tránh N+1 query
+            var inventories = await _context.Inventories
+                .Where(x => productIds.Contains(x.ProductId))
+                .ToDictionaryAsync(x => x.ProductId);
+
+            foreach (var detail in importStock.ImportStockDetails)
             {
-                ProductId = g.Key,
-                Quantity = g.Sum(x => x.Quantity)
-            }).ToList();
+                // Draft batch -> batch thật
+                detail.StockLeft = detail.Quantity;
+                detail.QuantitySold = 0;
+                detail.BatchStatus = BatchStatus.Active;
+                detail.CreatedAt = DateTime.UtcNow;
 
-            // 🔥 update status
-            importStock.Status = ImportStatus.Confirmed;
+                // Tìm inventory theo Product
+                if (!inventories.TryGetValue(detail.ProductId, out var inventory))
+                {
+                    inventory = new Inventory
+                    {
+                        InventoryId = Guid.NewGuid(),
+                        ProductId = detail.ProductId,
+                        SKU = detail.SKU,
 
-            await _repo.SaveChangesAsync();
+                        QuantityAvailable = 0,
+                        QuantityReserved = 0,
+                        QuantityDamaged = 0,
+
+                        LastUpdated = DateTime.UtcNow,
+                        UpdatedBy = staffId
+                    };
+
+                    inventories.Add(detail.ProductId, inventory);
+                    _context.Inventories.Add(inventory);
+                }
+
+                var quantityBefore = inventory.QuantityAvailable;
+
+                // Tăng tồn kho tổng
+                inventory.QuantityAvailable += detail.Quantity;
+                inventory.LastUpdated = DateTime.UtcNow;
+                inventory.UpdatedBy = staffId;
+
+                // Audit transaction theo từng batch
+                _context.InventoryTransactions.Add(
+                    new InventoryTransaction
+                    {
+                        TransactionId = Guid.NewGuid(),
+
+                        InventoryId = inventory.InventoryId,
+
+                        QuantityChange = detail.Quantity,
+                        QuantityBefore = quantityBefore,
+                        QuantityAfter = inventory.QuantityAvailable,
+
+                        TransactionType = TransactionType.StockIn,
+
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = staffId,
+
+                        ReferenceId = importStock.ImportId,
+                        ReferenceType = ReferenceType.ImportStock,
+
+                        ImportStockDetailId = detail.ImportStockDetailsId,
+
+                        Note =
+                            $"Import {importStock.InvoiceNumber} - Batch {detail.BatchCode}"
+                    });
+            }
+
+            importStock.Status = ImportStock.ImportStatus.Confirmed;
+            importStock.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-
-            // 🔥 RETURN cho controller
-            return items;
         }
 
         public async Task CancelAsync(Guid id)
