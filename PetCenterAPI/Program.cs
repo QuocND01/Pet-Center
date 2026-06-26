@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PetCenterAPI.Models;
-using PetCenterAPI.Models;
 using PetCenterAPI.Odata;
 using PetCenterAPI.Profiles;
 using PetCenterAPI.Repository;
@@ -95,7 +94,7 @@ builder.Services.AddSwaggerGen(c =>
             {
                 Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
             },

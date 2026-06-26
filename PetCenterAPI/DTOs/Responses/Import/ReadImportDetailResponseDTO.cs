@@ -13,8 +13,8 @@
         public string BatchCode { get; set; } = null!;
         public decimal ImportPrice { get; set; }
         public int StockLeft { get; set; }
-        public DateTime? ManufacturingDate { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public DateOnly? ManufacturingDate { get; set; }
+        public DateOnly? ExpiryDate { get; set; }
         public ProductSnapshotRequestDTO? ImportProductSnapshot { get; set; }
 
     }

@@ -14,15 +14,19 @@ public partial class ImportStockDetail
     public string SKU { get; set; } = null!;
 
     public string BatchCode { get; set; } = null!;
+    public BatchStatus BatchStatus { get; set; } = BatchStatus.Active;
 
     public decimal ImportPrice { get; set; }
 
     public int Quantity { get; set; }
 
     public int StockLeft { get; set; }
+    public int QuantitySold { get; set; }
 
-    public DateTime? ManufacturingDate { get; set; }
-    public DateTime? ExpiryDate { get; set; }
+    public DateOnly? ManufacturingDate { get; set; }
+    public DateOnly? ExpiryDate { get; set; }
+    public bool IsPreferredForPickup { get; set; } = true;
+    public DateTime CreatedAt { get; set; }
     public virtual ImportStock Import { get; set; } = null!;
 
     public virtual ImportProductSnapshot? ImportProductSnapshot { get; set; }
@@ -30,4 +34,12 @@ public partial class ImportStockDetail
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
     public virtual Product Product { get; set; } = null!;
+
+}
+public enum BatchStatus
+{
+    Active,
+    Exhausted,
+    Expired,
+    Quarantine
 }

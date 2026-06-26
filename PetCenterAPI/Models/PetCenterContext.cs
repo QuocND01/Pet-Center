@@ -461,14 +461,36 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ImportId).HasColumnName("ImportID");
             entity.Property(e => e.ImportPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
-            entity.Property(e => e.SKU).HasMaxLength(100);
+            entity.Property(e => e.SKU).HasMaxLength(100).IsUnicode(false);
             entity.Property(e => e.BatchCode).HasMaxLength(100);
+            entity.Property(e => e.BatchStatus)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue(BatchStatus.Active);
+            entity.Property(e => e.ManufacturingDate)
+                .HasColumnType("date")
+                .IsRequired(false);
 
+            
+            entity.Property(e => e.ExpiryDate)
+                .HasColumnType("date")
+                .IsRequired(false);
+            entity.Property(e => e.IsPreferredForPickup)
+                .IsRequired()
+                .HasDefaultValue(true);
+
+            // 🆕 thiếu trong config cũ
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime2");
             entity.HasOne(d => d.Import).WithMany(p => p.ImportStockDetails)
                 .HasForeignKey(d => d.ImportId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ImportStockDetails_ImportStocks");
-
+            entity.Property(e => e.QuantitySold)
+                .IsRequired()
+                .HasDefaultValue(0);
             entity.HasOne(d => d.Product).WithMany(p => p.ImportStockDetails)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -487,12 +509,17 @@ public partial class PetCenterContext : DbContext
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("InventoryID");
             entity.Property(e => e.LastUpdated)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime2");
+            entity.Property(e => e.UpdatedBy)
+                .HasColumnName("UpdatedBy")
+                .IsRequired(false);
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.QuantityReserved).HasDefaultValue(0);
-
-            entity.Property(e => e.SKU).HasMaxLength(100);
+            entity.Property(e => e.QuantityDamaged)
+                .IsRequired()
+                .HasDefaultValue(0);
+            entity.Property(e => e.SKU).HasMaxLength(100).IsUnicode(false);
             entity.HasOne(d => d.Product).WithOne(p => p.Inventory)
                 .HasForeignKey<Inventory>(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -504,24 +531,75 @@ public partial class PetCenterContext : DbContext
             entity.HasKey(e => e.TransactionId).HasName("PK__Inventor__55433A4BDA4D74B5");
 
             entity.Property(e => e.TransactionId)
-                .HasDefaultValueSql("(newid())")
-                .HasColumnName("TransactionID");
+        .HasDefaultValueSql("(newid())")
+        .HasColumnName("TransactionID");
+
+            // ✅ giữ column name — FIX: datetime → datetime2, getdate() → getutcdate()
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.InventoryId).HasColumnName("InventoryID");
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime2");
+
+            entity.Property(e => e.InventoryId)
+                .HasColumnName("InventoryID");
+
+            // 🆕 TransactionType — map sang string, ASCII đủ
+            entity.Property(e => e.TransactionType)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .IsRequired();
+
+            // 🆕 QuantityBefore / QuantityAfter
+            entity.Property(e => e.QuantityBefore).IsRequired();
+            entity.Property(e => e.QuantityAfter).IsRequired();
+
+            // 🆕 CreatedBy
+            entity.Property(e => e.CreatedBy)
+                .HasColumnName("CreatedBy")
+                .IsRequired();
+
+            // ✅ giữ column name — FIX: thêm IsRequired(false)
+            entity.Property(e => e.ReferenceId)
+                .HasColumnName("ReferenceID")
+                .IsRequired(false);
+
+            // ✅ giữ MaxLength + IsUnicode — FIX: thêm conversion + IsRequired(false)
+            entity.Property(e => e.ReferenceType)
+                .HasConversion<string>()
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .IsRequired(false);
+
+            // ✅ giữ MaxLength — FIX: IsUnicode false → true để lưu tiếng Việt
             entity.Property(e => e.Note)
                 .HasMaxLength(500)
-                .IsUnicode(false);
-            entity.Property(e => e.ReferenceId).HasColumnName("ReferenceID");
-            entity.Property(e => e.ReferenceType)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
-            entity.HasOne(d => d.Inventory).WithMany(p => p.InventoryTransactions)
+            // 🆕 ImportStockDetailId
+            entity.Property(e => e.ImportStockDetailId)
+                .IsRequired(false);
+
+            // ✅ giữ nguyên FK Inventory
+            entity.HasOne(d => d.Inventory)
+                .WithMany(p => p.InventoryTransactions)
                 .HasForeignKey(d => d.InventoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_InventoryTransactions_Inventory");
+
+            // 🆕 FK ImportStockDetail
+            entity.HasOne(d => d.ImportStockDetail)
+                .WithMany()
+                .HasForeignKey(d => d.ImportStockDetailId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .IsRequired(false)
+                .HasConstraintName("FK_InventoryTransactions_ImportStockDetail");
+
+            // 🆕 Index
+            entity.HasIndex(e => e.InventoryId)
+                .HasDatabaseName("IX_InventoryTransactions_InventoryId");
+
+            entity.HasIndex(e => new { e.InventoryId, e.CreatedAt })
+                .HasDatabaseName("IX_InventoryTransactions_InventoryId_CreatedAt");
         });
 
         modelBuilder.Entity<MedicalRecord>(entity =>
