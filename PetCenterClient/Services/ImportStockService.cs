@@ -74,16 +74,16 @@ namespace PetCenterClient.Services
             return JsonSerializer.Deserialize<Guid>(result);
         }
 
-        //public async Task ConfirmAsync(Guid id)
-        //{
-        //    AddAuthorizationHeader();
-        //    var res = await _httpClient.PutAsync($"/api/importstocks/{id}/confirm", null);
+        public async Task ConfirmAsync(Guid id)
+        {
+            AddAuthorizationHeader();
 
-        //    res.EnsureSuccessStatusCode();
-        //    var items = await res.Content.ReadFromJsonAsync<List<IncreaseStock>>();
+            var res = await _httpClient.PutAsync(
+                $"/api/importstocks/{id}/confirm",
+                null);
 
-        //    await _productService.IncreaseStockBulkAsync(items);
-        //}
+            res.EnsureSuccessStatusCode();
+        }
 
         public async Task CancelAsync(Guid id)
         {

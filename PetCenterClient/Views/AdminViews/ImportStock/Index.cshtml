@@ -109,13 +109,13 @@
                                     <i class="bi bi-eye"></i>
                                 </a>
 
-                                @if (item.Status == 0 && currentRole == "Admin")
+                                @if (item.Status == 1 && currentRole == "Admin")
                                 {
                                     <a asp-action="Confirm" asp-route-id="@item.ImportId" class="btn-action-success" title="Confirm">
                                         <i class="bi bi-check-lg"></i>
                                     </a>
                                 }
-                                @if (item.Status != 2 || item.Status != 1)
+                                @if (item.Status != 2 || item.Status != 0)
                                 {
                                     <a asp-action="Cancel" asp-route-id="@item.ImportId" class="btn-action-danger" title="Cancel">
                                         <i class="bi bi-x-lg"></i>

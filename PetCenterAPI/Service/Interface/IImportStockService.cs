@@ -7,7 +7,7 @@ namespace PetCenterAPI.Service.Interface
     {
         Task<Guid> CreateAsync(CreateImportRequestDTO dto, Guid staffGuid);
         Task<ReadImportResponseDTO?> GetByIdAsync(Guid id);
-        Task<List<IncreaseStockRequestDTO>> ConfirmAsync(Guid id);
+        Task ConfirmAsync(Guid id, Guid staffId);
         Task CancelAsync(Guid id);
 
         Task<List<ReadImportHeaderResponseDTO>> GetAllImportsAsync();
