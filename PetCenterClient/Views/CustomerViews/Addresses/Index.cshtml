@@ -210,4 +210,37 @@
             });
         }
     }
+
+    const regexSafeAddress = /[^\p{L}\p{N}\s,.\-\/]/gu;
+    // Hàm làm sạch input
+    function sanitizeInput(event) {
+        const inputElement = event.target;
+        const originalValue = inputElement.value;
+        const sanitizedValue = originalValue.replace(regexSafeAddress, '');
+
+        if (originalValue !== sanitizedValue) {
+            inputElement.value = sanitizedValue;
+        }
+    }
+
+    // Gắn sự kiện 'input' (bắt ngay lúc đang gõ) cho các ô text
+    document.addEventListener("DOMContentLoaded", function() {
+        // Gắn modal
+        currentModal = new bootstrap.Modal(document.getElementById('addressModal'));
+
+        // Lấy tất cả các input cần kiểm tra
+        const addressInputs = [
+            document.getElementById('addrDetails'),
+            document.getElementById('addrWard'),
+            document.getElementById('addrDistrict'),
+            document.getElementById('addrProvince')
+        ];
+
+        // Lặp qua từng ô và gắn sự kiện
+        addressInputs.forEach(input => {
+            if(input) {
+                input.addEventListener('input', sanitizeInput);
+            }
+        });
+    });
 </script>
