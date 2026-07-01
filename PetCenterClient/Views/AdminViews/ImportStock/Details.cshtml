@@ -92,7 +92,7 @@
 
         <table class="data-table">
             <thead>
-                <tr>
+                <tr >
                     <th>Product Info</th>
                     <th>Inventory</th>
                     <th>Date Info</th>
@@ -102,16 +102,26 @@
             <tbody>
                 @foreach (var d in Model.Details)
                 {
-                    var productName = productList?.FirstOrDefault(p => p.Value == d.ProductId.ToString())?.Text;
+                    
                     var subtotal = d.Quantity * d.ImportPrice;
 
-                    <tr>
+                <tr class="detail-row">
                         <td>
                             <div class="product-info">
-                                <div class="product-name">
-                                    <i class="bi bi-box"></i>
-                                    @productName
-                                </div>
+                            <div class="product-name">
+                                <i class="bi bi-box"></i>
+
+                                <a href="javascript:void(0)"
+                                   class="product-link"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#productSnapshotModal"
+                                   data-name="@d.ImportProductSnapshot?.ProductName"
+                                   data-category="@d.ImportProductSnapshot?.ProductCategory"
+                                   data-brand="@d.ImportProductSnapshot?.ProductBrand"
+                                   data-image="@d.ImportProductSnapshot?.ProductImage">
+                                    @d.ImportProductSnapshot?.ProductName
+                                </a>
+                            </div>
 
                                 <div class="product-meta">
                                     <span>SKU: @d.SKU</span>
@@ -165,5 +175,168 @@
                 }
             </tbody>
         </table>
+    <div class="table-pagination">
+        <div class="pagination-info">
+            Showing
+            <span id="startItem">1</span> -
+            <span id="endItem">1</span>
+            of
+            <span id="totalItems">@Model.Details.Count</span>
+            products
+        </div>
+
+        <div class="pagination-controls">
+            <button type="button" id="prevPage" class="page-btn">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <span id="pageInfo"></span>
+
+            <button type="button" id="nextPage" class="page-btn">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
     </div>
 </div>
+@* Model product *@
+<div class="modal fade" id="productSnapshotModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Product Snapshot</h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="text-center mb-3">
+                    <img id="snapshotImage"
+                         src=""
+                         class="img-fluid rounded"
+                         style="max-height:220px;" />
+                </div>
+
+                <table class="table table-borderless">
+                    <tr>
+                        <th>Name</th>
+                        <td id="snapshotName"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Category</th>
+                        <td id="snapshotCategory"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Brand</th>
+                        <td id="snapshotBrand"></td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+@* Script *@
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const modal = document.getElementById("productSnapshotModal");
+
+        modal.addEventListener("show.bs.modal", function (event) {
+
+            const button = event.relatedTarget;
+
+            document.getElementById("snapshotName").textContent =
+                button.dataset.name;
+
+            document.getElementById("snapshotCategory").textContent =
+                button.dataset.category;
+
+            document.getElementById("snapshotBrand").textContent =
+                button.dataset.brand;
+
+            document.getElementById("snapshotImage").src =
+                button.dataset.image;
+        });
+
+    });
+
+    //Pagging    
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const rows = [...document.querySelectorAll(".detail-row")];
+
+        const pageSize = 5;
+
+        let currentPage = 1;
+
+        const totalPages = Math.ceil(rows.length / pageSize);
+
+        function render() {
+
+            rows.forEach((row, index) => {
+
+                row.style.display =
+                    (index >= (currentPage - 1) * pageSize &&
+                     index < currentPage * pageSize)
+                    ? ""
+                    : "none";
+
+            });
+
+            const start = rows.length === 0
+                ? 0
+                : (currentPage - 1) * pageSize + 1;
+
+            const end = Math.min(currentPage * pageSize, rows.length);
+
+            document.getElementById("startItem").textContent = start;
+            document.getElementById("endItem").textContent = end;
+
+            document.getElementById("pageInfo").textContent =
+                `${currentPage} / ${totalPages}`;
+
+            document.getElementById("prevPage").disabled =
+                currentPage === 1;
+
+            document.getElementById("nextPage").disabled =
+                currentPage === totalPages;
+        }
+
+        document.getElementById("prevPage")
+            .addEventListener("click", function () {
+
+                if (currentPage > 1) {
+
+                    currentPage--;
+
+                    render();
+
+                }
+
+            });
+
+        document.getElementById("nextPage")
+            .addEventListener("click", function () {
+
+                if (currentPage < totalPages) {
+
+                    currentPage++;
+
+                    render();
+
+                }
+
+            });
+
+        render();
+
+    });
+
+</script>
