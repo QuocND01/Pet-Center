@@ -141,6 +141,7 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>()
 builder.Services.AddAutoMapper(cfg =>{cfg.AddProfile<CustomerMappingProfile>();});
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<OrderProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<InventoryProfile>());
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient",
@@ -188,6 +189,7 @@ builder.Services.AddScoped<IProductFeedbackRepository, ProductFeedbackRepository
 builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 builder.Services.AddScoped<IChatbotRepository, ChatbotRepository>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
