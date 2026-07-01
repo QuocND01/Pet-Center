@@ -35,6 +35,7 @@ namespace PetCenterAPI.Profiles
 
             // Map snapshot to dto 
             CreateMap<ImportProductSnapshot, ProductSnapshotResponseDTO>();
+            
 
             // Create import
             CreateMap<CreateImportRequestDTO, ImportStock>()

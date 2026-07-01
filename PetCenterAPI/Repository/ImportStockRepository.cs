@@ -24,8 +24,9 @@ namespace PetCenterAPI.Repository
         {
             return await _context.ImportStocks
                 .Include(x => x.Supplier)
+                .Include(x => x.Staff)
                 .Include(x => x.ImportStockDetails)
-                .Include (x => x.Staff)
+                    .ThenInclude(d => d.ImportProductSnapshot)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
         }
 

@@ -35,9 +35,18 @@ namespace PetCenterAPI.Service
             using var transaction =
                 await _context.Database.BeginTransactionAsync();
 
-            // ============================================
-            // MAP IMPORT
-            // ============================================
+            //Get product details 
+            var productIds = dto.Details
+                .Select(x => x.ProductId)
+                .Distinct()
+                .ToList();
+
+            var products = await _context.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.ProductImages)
+                .Where(p => productIds.Contains(p.ProductId))
+                .ToDictionaryAsync(p => p.ProductId);
 
             var importStock =
                 _mapper.Map<ImportStock>(dto);
@@ -53,73 +62,25 @@ namespace PetCenterAPI.Service
             importStock.TotalAmount =
                 importStock.ImportStockDetails
                     .Sum(x => x.Quantity * x.ImportPrice);
+            foreach (var detail in importStock.ImportStockDetails)
+            {
+                var product = products[detail.ProductId];
 
-            // ============================================
-            // GET PRODUCT IDS
-            // ============================================
+                detail.ImportProductSnapshot = new ImportProductSnapshot
+                {
+                    ProductSnapshotId = Guid.NewGuid(),
 
-            //var productIds =
-            //    importStock.ImportStockDetails
-            //        .Select(x => x.ProductId)
-            //        .Distinct()
-            //        .ToList();
+                    ProductName = product.ProductName,
 
-            //// ============================================
-            //// CALL PRODUCT API
-            //// ============================================
+                    ProductBrand = product.Brand.BrandName,
 
-            //var client =
-            //    _httpClientFactory.CreateClient("ProductAPI");
+                    ProductCategory = product.Category.CategoryName,
 
-            //var response =
-            //    await client.PostAsJsonAsync(
-            //        "api/products/snapshot",
-            //        new
-            //        {
-            //            productIds
-            //        });
-
-            //if (!response.IsSuccessStatusCode)
-            //{
-            //    throw new Exception(
-            //        "Cannot get product snapshots");
-            //}
-
-            //var snapshots = 
-            //    await response.Content.
-            //        ReadFromJsonAsync<
-            //            List<ProductSnapshotRequestDTO>>();
-
-            //if (snapshots == null || !snapshots.Any())
-            //{
-            //    throw new Exception(
-            //        "Product snapshots not found");
-            //}
-
-            //var snapshotDict =
-            //    snapshots.ToDictionary(x => x.ProductId);
-
-            //foreach (var detail in importStock.ImportStockDetails)
-            //{
-            //    if (!snapshotDict.TryGetValue(
-            //        detail.ProductId,
-            //        out var snapshotDto))
-            //    {
-            //        throw new Exception(
-            //            $"Product {detail.ProductId} not found");
-            //    }
-
-            //    var snapshot =
-            //        _mapper.Map<ImportProductSnapshot>(
-            //            snapshotDto);
-
-            //    snapshot.ProductSnapshotId =
-            //        Guid.NewGuid();
-
-            //    detail.ImportProductSnapshot =
-            //        snapshot;
-            //}
-            ////save
+                    ProductImage = product.ProductImages
+                        .FirstOrDefault(i => i.IsActive == true)?
+                        .ImageUrl ?? string.Empty
+                };
+            }
 
             await _repo.AddAsync(importStock);
 

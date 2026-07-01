@@ -351,3 +351,293 @@
     .btn-back:active {
         transform: translateY(0);
     }
+/* ==========================================
+   PRODUCT DETAIL
+========================================== */
+
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.product-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+    .product-name i {
+        color: var(--accent);
+        font-size: 18px;
+    }
+
+.product-link {
+    color: var(--accent);
+    text-decoration: none;
+    transition: all .2s ease;
+}
+
+    .product-link:hover {
+        color: #4338ca;
+        text-decoration: underline;
+    }
+
+.product-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+    .product-meta span {
+        background: #eef2ff;
+        color: var(--accent);
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+
+/* ==========================================
+   INVENTORY
+========================================== */
+
+.inventory-info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+    .inventory-info > div {
+        padding: 8px 10px;
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+    .inventory-info .label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .inventory-info strong {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+
+/* ==========================================
+   DATE INFORMATION
+========================================== */
+
+.date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+    .date-info > div {
+        padding: 8px 10px;
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+    .date-info .label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .date-info div {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+
+/* ==========================================
+   PRICE
+========================================== */
+
+.amount-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+    .amount-info > div {
+        padding: 8px 8px;
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+    .amount-info .label {
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .amount-info div {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .amount-info .subtotal {
+        background: var(--accent-light);
+        border: 1px solid rgba(99,102,241,.12);
+        color: var(--accent);
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+
+/* ==========================================
+   TABLE IMPROVEMENT
+========================================== */
+
+.data-table thead th {
+    background: #f8fafc;
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border);
+}
+
+.data-table tbody td {
+    padding: 24px;
+    font-size: 12px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.data-table tbody tr {
+    transition: all .25s ease;
+    animation: rowIn .3s ease both;
+}
+
+    .data-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f8fafc;
+        transform: scale(1.002);
+    }
+
+
+/* ==========================================
+   BACK BUTTON
+========================================== */
+
+.nav-actions {
+    padding: 0 32px;
+    margin-bottom: 20px;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px solid rgba(99,102,241,.15);
+    transition: all .25s ease;
+}
+
+    .btn-back i {
+        font-size: 14px;
+        transition: transform .25s ease;
+    }
+
+    .btn-back:hover {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99,102,241,.25);
+    }
+
+        .btn-back:hover i {
+            transform: translateX(-3px);
+        }
+
+    .btn-back:active {
+        transform: translateY(0);
+    }
+
+/* ==========================
+   Pagination
+========================== */
+
+.table-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    border-top: 1px solid var(--border);
+    background: #fff;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+    .page-btn:hover:not(:disabled) {
+        background: var(--accent);
+        color: white;
+    }
+
+    .page-btn:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+
+#pageInfo {
+    font-weight: 600;
+    min-width: 70px;
+    text-align: center;
+}
