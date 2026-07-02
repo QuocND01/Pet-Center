@@ -95,6 +95,9 @@ builder.Services.AddHttpClient<IFeedbackApiService, FeedbackApiService>(client =
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+builder.Services.AddHttpClient<InventoryApiService>();
+
+
 
 // ✅ Register CheckoutService.
 // ✅ Register CheckoutServiceABC
