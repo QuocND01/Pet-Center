@@ -10,13 +10,16 @@ namespace PetCenterAPI.Service
     {
         private readonly IProductFeedbackRepository _productFeedbackRepository;
         private readonly ICloudinaryService _cloudinaryService;
-        
-        private const int MaxMediaPerFeedback = 5;
-        private const long MaxImageSizeBytes = 5 * 1024 * 1024;
-        private const long MaxVideoSizeBytes = 50 * 1024 * 1024;
 
-        private static readonly string[] VideoExtensions =
-            { ".mp4", ".mov", ".webm", ".avi", ".mkv" };
+        private const int MaxImagesPerFeedback = 2;
+        private const int MaxVideosPerFeedback = 1;
+        private const int MaxMediaPerFeedback = MaxImagesPerFeedback + MaxVideosPerFeedback;
+        private const long MaxImageSizeBytes = 5 * 1024 * 1024;   
+        private const long MaxVideoSizeBytes = 30 * 1024 * 1024;
+
+        private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+        private static readonly string[] AllowedVideoExtensions = { ".mp4", ".mov", ".webm" };
+        private static readonly string[] VideoExtensions = AllowedVideoExtensions;
 
         public ProductFeedbackService(IProductFeedbackRepository productFeedbackRepository, ICloudinaryService cloudinaryService)
         {
@@ -143,14 +146,31 @@ namespace PetCenterAPI.Service
             if (request.NewMediaFiles != null && request.NewMediaFiles.Any())
             {
                 var currentMedia = await _productFeedbackRepository.GetImagesByFeedbackIdAsync(request.FeedbackId);
-                var remainingSlots = MaxMediaPerFeedback - currentMedia.Count;
 
-                if (remainingSlots > 0)
+                var currentImages = currentMedia.Count(m => DetectMediaType(m.ImageUrl) == "image");
+                var currentVideos = currentMedia.Count(m => DetectMediaType(m.ImageUrl) == "video");
+
+                var remainingImageSlots = MaxImagesPerFeedback - currentImages;
+                var remainingVideoSlots = MaxVideosPerFeedback - currentVideos;
+
+                if (remainingImageSlots > 0 || remainingVideoSlots > 0)
                 {
-                    var toUpload = request.NewMediaFiles.Take(remainingSlots).ToList();
-                    var mediaList = await UploadMediaFilesAsync(toUpload, request.FeedbackId);
-                    if (mediaList.Any())
-                        await _productFeedbackRepository.AddMediaRangeAsync(mediaList);
+                    var newImages = request.NewMediaFiles
+                        .Where(f => f.ContentType.StartsWith("image/"))
+                        .Take(remainingImageSlots)
+                        .ToList();
+                    var newVideos = request.NewMediaFiles
+                        .Where(f => f.ContentType.StartsWith("video/"))
+                        .Take(remainingVideoSlots)
+                        .ToList();
+
+                    var toUpload = newImages.Concat(newVideos).ToList();
+                    if (toUpload.Any())
+                    {
+                        var mediaList = await UploadMediaFilesAsync(toUpload, request.FeedbackId);
+                        if (mediaList.Any())
+                            await _productFeedbackRepository.AddMediaRangeAsync(mediaList);
+                    }
                 }
             }
 
@@ -207,48 +227,58 @@ namespace PetCenterAPI.Service
     List<IFormFile> files, Guid feedbackId)
         {
             var mediaList = new List<FeedbackImage>();
-            foreach (var file in files.Take(MaxMediaPerFeedback))
+
+            var imageFiles = new List<IFormFile>();
+            var videoFiles = new List<IFormFile>();
+
+            foreach (var file in files)
             {
                 var contentType = file.ContentType.ToLower();
-                var isVideo = contentType.StartsWith("video/");
-                var isImage = contentType.StartsWith("image/");
-                if (!isImage && !isVideo) continue;
-                if (isImage && file.Length > MaxImageSizeBytes) continue;
-                if (isVideo && file.Length > MaxVideoSizeBytes) continue;
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-                string? mediaUrl = null;
-                string? publicId = null;
+                if (contentType.StartsWith("image/") && AllowedImageExtensions.Contains(ext))
+                    imageFiles.Add(file);
+                else if (contentType.StartsWith("video/") && AllowedVideoExtensions.Contains(ext))
+                    videoFiles.Add(file);
+            }
 
-                if (isImage)
-                {
-                    var uploadResult = await _cloudinaryService.UploadImageAsync(file, "feedbacks");
-                    if (uploadResult?.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        mediaUrl = uploadResult.SecureUrl.ToString();
-                        publicId = uploadResult.PublicId;
-                    }
-                }
-                else
-                {
-                    var uploadResult = await _cloudinaryService.UploadVideoAsync(file, "feedbacks");
-                    if (uploadResult?.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        mediaUrl = uploadResult.SecureUrl.ToString();
-                        publicId = uploadResult.PublicId;
-                    }
-                }
+            var imagesToProcess = imageFiles.Take(MaxImagesPerFeedback).ToList();
+            var videosToProcess = videoFiles.Take(MaxVideosPerFeedback).ToList();
 
-                if (mediaUrl == null) continue;
+            foreach (var file in imagesToProcess)
+            {
+                if (file.Length > MaxImageSizeBytes) continue;
+
+                var uploadResult = await _cloudinaryService.UploadImageAsync(file, "feedbacks");
+                if (uploadResult?.StatusCode != System.Net.HttpStatusCode.OK) continue;
 
                 mediaList.Add(new FeedbackImage
                 {
                     ImageId = Guid.NewGuid(),
                     FeedbackId = feedbackId,
-                    ImageUrl = mediaUrl,
-                    PublicId = publicId,
+                    ImageUrl = uploadResult.SecureUrl.ToString(),
+                    PublicId = uploadResult.PublicId,
                     IsActive = true
                 });
             }
+
+            foreach (var file in videosToProcess)
+            {
+                if (file.Length > MaxVideoSizeBytes) continue;
+
+                var uploadResult = await _cloudinaryService.UploadVideoAsync(file, "feedbacks");
+                if (uploadResult?.StatusCode != System.Net.HttpStatusCode.OK) continue;
+
+                mediaList.Add(new FeedbackImage
+                {
+                    ImageId = Guid.NewGuid(),
+                    FeedbackId = feedbackId,
+                    ImageUrl = uploadResult.SecureUrl.ToString(),
+                    PublicId = uploadResult.PublicId,
+                    IsActive = true
+                });
+            }
+
             return mediaList;
         }
     }

@@ -1,4 +1,6 @@
-﻿namespace PetCenterClient.ViewModels.ManageVoucher
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PetCenterClient.ViewModels.ManageVoucher
 {
     public class VoucherViewModel
     {
@@ -19,6 +21,7 @@
     {
         public string Code { get; set; } = null!;
         public int DiscountPercent { get; set; }
+        [StringLength(100)]
         public string? Description { get; set; }
         public decimal MinOrderAmount { get; set; }
         public decimal MaxDiscountAmount { get; set; }
