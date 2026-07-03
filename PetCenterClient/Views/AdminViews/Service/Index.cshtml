@@ -59,6 +59,13 @@
     align-items: center;
     gap: 10px;
 }
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 40px);
+    gap: 8px;
+    justify-content: center;
+}
 </style>
 
 <div class="page-wrapper">
@@ -209,6 +216,7 @@
                             <td>@s.Status</td>
 
                             <td>
+                                     <div class="action-grid">
                                 @if (isAdmin)
                                 {
                                     <!-- VIEW -->
@@ -256,6 +264,7 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 }
+                                </div>
                             </td>
                         </tr>
 

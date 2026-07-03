@@ -97,17 +97,23 @@ namespace PetCenterAPI.Service
 
                 case Status.Deleted:
                     {
-                        // 1️⃣ update product status only
-                        await _productRepository.ChangeProductStatusAsync(id, Status.Deleted);
-
-                        // 2️⃣ mark images for cleanup (NO DELETE)
-                        foreach (var image in product.ProductImages)
+                        bool InOrder = await _productRepository.IsProductInOrderAsync(id);
+                        if (!InOrder)
                         {
-                            image.IsActive = false;
-                            image.InactiveAt = DateTime.UtcNow;
-                        }
-                        await _productRepository.SaveAsync();
+                            await _productRepository.ChangeProductStatusAsync(id, Status.Deleted);
 
+                            // 2️⃣ mark images for cleanup (NO DELETE)
+                            foreach (var image in product.ProductImages)
+                            {
+                                image.IsActive = false;
+                                image.InactiveAt = DateTime.UtcNow;
+                            }
+                            await _productRepository.SaveAsync();
+                        }
+                        else
+                        {
+                            throw new BadHttpRequestException("Product is being used in an uncomplete order need complete order before deleted.");
+                        }
                         break;
                     }
 

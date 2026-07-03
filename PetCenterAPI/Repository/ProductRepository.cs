@@ -177,6 +177,14 @@ namespace PetCenterAPI.Repository
         }
 
 
+        public async Task<bool> IsProductInOrderAsync(Guid productId)
+        {
+            return await _db.OrderDetails
+                .AnyAsync(od =>
+                    od.ProductId == productId &&
+                    od.Order.Status != 4);
+        }
+
         public async Task<IEnumerable<Product>> GetNewProductAsync()
         {
             var threeMonthsAgo = DateTime.Now.AddMonths(-3);

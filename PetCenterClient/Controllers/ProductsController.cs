@@ -45,67 +45,67 @@ namespace PetCenterClient.Controllers
         int page = 1)
         {
             int pagesize = 24;
+                var result = await _productService.GetAllProductAsync(
+                    search,
+                    minPrice,
+                    maxPrice,
+                    fromDate,
+                    toDate,
+                    sortBy,
+                    categoryid,
+                    brandid,
+                    sortOrder,
+                    page);
 
-            var result = await _productService.GetAllProductAsync(
-                search,
-                minPrice,
-                maxPrice,
-                fromDate,
-                toDate,
-                sortBy,
-                categoryid,
-                brandid,
-                sortOrder,
-                page);
+                int totalItems = result?.Count ?? 0;
+                var totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
 
-            int totalItems = result?.Count ?? 0;
-            var totalPages = (int)Math.Ceiling((double)totalItems / pagesize);
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.PageSize = pagesize;
 
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.PageSize = pagesize;
+                ViewBag.Search = search;
+                ViewBag.MinPrice = minPrice;
+                ViewBag.MaxPrice = maxPrice;
+                ViewBag.CategoryId = categoryid;
+                ViewBag.BrandId = brandid;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortOrder = sortOrder;
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
 
-            ViewBag.Search = search;
-            ViewBag.MinPrice = minPrice;
-            ViewBag.MaxPrice = maxPrice;
-            ViewBag.CategoryId = categoryid;
-            ViewBag.BrandId = brandid;
-            ViewBag.SortBy = sortBy;
-            ViewBag.SortOrder = sortOrder;
-            ViewBag.FromDate = fromDate;
-            ViewBag.ToDate = toDate;
+                // Hot/New
+                ViewBag.HotProducts = await _productService.GetHotProductsAsync();
+                ViewBag.NewProducts = await _productService.GetNewProductsAsync();
 
-            // Hot/New
-            ViewBag.HotProducts = await _productService.GetHotProductsAsync();
-            ViewBag.NewProducts = await _productService.GetNewProductsAsync();
+                // Categories
+                var categoriesResponse = await _categoryService.GetAllCategoryAsync();
+                ViewBag.Categories = categoriesResponse.Values;
 
-            // Categories
-            var categoriesResponse = await _categoryService.GetAllCategoryAsync();
-            ViewBag.Categories = categoriesResponse.Values;
+                // Brands
+                var brandsResponse = await _brandService.GetAllBrandAsync();
+                ViewBag.Brands = brandsResponse.Values;
 
-            // Brands
-            var brandsResponse = await _brandService.GetAllBrandAsync();
-            ViewBag.Brands = brandsResponse.Values;
+                // Category đang được chọn
+                if (categoryid.HasValue)
+                {
+                    ViewBag.SelectedCategory =
+                        categoriesResponse.Values
+                        .FirstOrDefault(x => x.CategoryId == categoryid.Value);
+                }
 
-            // Category đang được chọn
-            if (categoryid.HasValue)
-            {
-                ViewBag.SelectedCategory =
-                    categoriesResponse.Values
-                    .FirstOrDefault(x => x.CategoryId == categoryid.Value);
-            }
+                // Brand đang được chọn
+                if (brandid.HasValue)
+                {
+                    ViewBag.SelectedBrand =
+                        brandsResponse.Values
+                        .FirstOrDefault(x => x.BrandId == brandid.Value);
+                }
 
-            // Brand đang được chọn
-            if (brandid.HasValue)
-            {
-                ViewBag.SelectedBrand =
-                    brandsResponse.Values
-                    .FirstOrDefault(x => x.BrandId == brandid.Value);
-            }
-
-            return View(
-                "~/Views/CustomerViews/Home/ProductPage.cshtml",
-                result);
+                return View(
+                    "~/Views/CustomerViews/Home/ProductPage.cshtml",
+                    result);
+           
         }
 
 

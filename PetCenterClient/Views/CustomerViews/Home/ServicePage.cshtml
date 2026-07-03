@@ -592,6 +592,109 @@
                 font-size: 28px;
             }
     }
+
+    .ai-banner {
+        margin: 80px 0;
+        background: linear-gradient(135deg,#4f46e5,#2563eb);
+        border-radius: 30px;
+        padding: 60px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 50px;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .ai-banner::before {
+            content: "";
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.08);
+            right: -120px;
+            top: -120px;
+        }
+
+    .ai-content {
+        max-width: 650px;
+        z-index: 2;
+    }
+
+    .ai-tag {
+        display: inline-block;
+        background: rgba(255,255,255,.18);
+        padding: 8px 18px;
+        border-radius: 999px;
+        font-weight: 700;
+        margin-bottom: 18px;
+    }
+
+    .ai-content h2 {
+        font-size: 44px;
+        font-weight: 900;
+        margin-bottom: 20px;
+    }
+
+    .ai-content p {
+        font-size: 18px;
+        opacity: .95;
+        line-height: 1.8;
+    }
+
+    .ai-features {
+        margin-top: 25px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+        .ai-features span {
+            background: rgba(255,255,255,.15);
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+    .ai-btn {
+        display: inline-block;
+        margin-top: 35px;
+        background: white;
+        color: #2563eb;
+        padding: 16px 34px;
+        border-radius: 999px;
+        font-weight: 800;
+        text-decoration: none;
+        transition: .3s;
+    }
+
+        .ai-btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .ai-image {
+        font-size: 150px;
+        z-index: 2;
+    }
+
+    @@media(max-width:768px) {
+
+        .ai-banner {
+            flex-direction: column;
+            text-align: center;
+            padding: 40px 25px;
+        }
+
+        .ai-content h2 {
+            font-size: 32px;
+        }
+
+        .ai-image {
+            font-size: 90px;
+        }
+    }
 </style>
 
 <div class="service-page">
@@ -917,6 +1020,50 @@
     }
 
 </div>
+
+<section class="ai-banner">
+
+    <div class="ai-content">
+
+        <div class="ai-tag">
+            🤖 AI Skin Disease Detection
+        </div>
+
+        <h2>
+            Upload a Photo and Let AI Detect Your Pet's Skin Disease
+        </h2>
+
+        <p>
+            Simply upload a clear photo of your dog's or cat's skin.
+            Our AI analyzes the image within seconds and provides a preliminary
+            prediction of possible skin diseases to help you decide whether your pet
+            should visit a veterinarian.
+        </p>
+
+        <div class="ai-features">
+
+            <span>📸 Upload Image</span>
+            <span>⚡ Results in Seconds</span>
+            <span>🐶 Dogs & Cats</span>
+            <span>🩺 Veterinary Recommendation</span>
+
+        </div>
+
+        <a asp-controller="AiDetection"
+           asp-action="Index"
+           class="ai-btn">
+            Try AI Detection →
+        </a>
+
+    </div>
+
+    <div class="ai-image">
+        <img src="C:\Users\DONG QUOC\OneDrive\Pictures\ringworm.jpg"
+             style="max-width:420px;width:100%;">
+    </div>
+
+</section>
+
 
 <section class="cta-section">
 

@@ -1,4 +1,5 @@
-﻿using PetCenterClient.DTOs;
+﻿using PetCenterClient.Common;
+using PetCenterClient.DTOs;
 using PetCenterClient.Services;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.Login;
@@ -138,7 +139,10 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Lax; // quan trọng cho Google OAuth popup
 });
 builder.Services.AddAuthorization();
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<ApiExceptionFilter>();
+});
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

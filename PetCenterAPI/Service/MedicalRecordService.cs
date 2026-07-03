@@ -40,7 +40,7 @@ namespace PetCenterAPI.Service
             return new ReadMedicalRecordDTO
             {
                 RecordId = record.RecordId,
-                AppointmentId = record.AppointmentId,
+               // AppointmentId = record.AppointmentId,
                 Diagnosis = record.Diagnosis,
                 Treatment = record.Treatment,
                 Note = record.Note,
@@ -143,7 +143,7 @@ namespace PetCenterAPI.Service
             return new ReadMedicalRecordListDTO
             {
                 RecordId = r.RecordId,
-                AppointmentId = r.AppointmentId,
+               // AppointmentId = r.AppointmentId,
                 Diagnosis = r.Diagnosis,
                 Treatment = r.Treatment,
                 Note = r.Note,

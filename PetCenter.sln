@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36603.0 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11426.168 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetCenterClient", "PetCenterClient\PetCenterClient.csproj", "{53806FB9-0674-3256-C18C-3D8E4F9433C8}"
 EndProject
@@ -18,8 +18,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookingAPI", "BookingAPI\BookingAPI.csproj", "{F3717938-C947-48AA-8BF9-4E8D58481711}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerAPI", "CustomerAPI\CustomerAPI.csproj", "{DB20C400-DEC1-4E6A-BEC6-86281896B851}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportAPI", "ImportAPI\ImportAPI.csproj", "{A300AA64-F22D-43F7-8A26-CCEDE1D1B9CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayrollAPI", "PayrollAPI\PayrollAPI.csproj", "{3A187C00-A03A-4BCE-AF23-1809EB73E18D}"
 EndProject
@@ -72,10 +70,6 @@ Global
 		{DB20C400-DEC1-4E6A-BEC6-86281896B851}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB20C400-DEC1-4E6A-BEC6-86281896B851}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB20C400-DEC1-4E6A-BEC6-86281896B851}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A300AA64-F22D-43F7-8A26-CCEDE1D1B9CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A300AA64-F22D-43F7-8A26-CCEDE1D1B9CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A300AA64-F22D-43F7-8A26-CCEDE1D1B9CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A300AA64-F22D-43F7-8A26-CCEDE1D1B9CA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A187C00-A03A-4BCE-AF23-1809EB73E18D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3A187C00-A03A-4BCE-AF23-1809EB73E18D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A187C00-A03A-4BCE-AF23-1809EB73E18D}.Release|Any CPU.ActiveCfg = Release|Any CPU

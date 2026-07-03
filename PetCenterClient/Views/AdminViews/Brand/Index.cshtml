@@ -57,6 +57,13 @@
     gap: 10px;
 }
 
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 40px);
+    gap: 8px;
+    justify-content: center;
+}
+
 </style>
 
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
@@ -171,7 +178,7 @@
                             </td>
 
                             <td>
-
+                                    <div class="action-grid">
                                 <!-- VIEW -->
                                 <button class="btn-detail"
                                         data-bs-toggle="modal"
@@ -223,6 +230,7 @@
 
                                     <i class="bi bi-trash"></i>
                                 </button>
+                                </div>
                             </td>
 
                         </tr>

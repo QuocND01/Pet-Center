@@ -29,5 +29,8 @@ public partial class Pet
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
+    public virtual ICollection<MedicalRecord> MedicalRecords { get; set; }
+    = new List<MedicalRecord>();
+
     public virtual Customer Customer { get; set; } = null!;
 }
