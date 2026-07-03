@@ -1,0 +1,343 @@
+﻿@using PetCenterClient.ViewModels.AI
+@{
+    ViewData["Title"] = "AI Skin Disease Detection";
+}
+
+@model AIResultViewModel
+
+<style>
+
+    :root{
+        --primary:#2ecc71;
+        --primary-dark:#27ae60;
+        --bg:#f7faf8;
+    }
+
+    body{
+        background:var(--bg);
+    }
+
+    .ai-page{
+        max-width:1200px;
+        margin:auto;
+        padding:50px 20px;
+    }
+
+    .ai-card{
+
+        background:white;
+        border-radius:30px;
+        padding:50px;
+        box-shadow:0 20px 60px rgba(0,0,0,.08);
+    }
+
+    .ai-header{
+        text-align:center;
+        margin-bottom:50px;
+    }
+
+    .ai-header h1{
+
+        font-size:48px;
+        font-weight:900;
+    }
+
+    .ai-header p{
+
+        color:#777;
+        font-size:18px;
+    }
+
+    .upload-box{
+
+        border:3px dashed #cbd5e1;
+        border-radius:25px;
+        padding:50px;
+        text-align:center;
+        transition:.3s;
+    }
+
+    .upload-box:hover{
+
+        border-color:var(--primary);
+    }
+
+    .upload-box img{
+
+        width:320px;
+        height:320px;
+        object-fit:cover;
+        border-radius:20px;
+        display:none;
+        margin:auto;
+    }
+
+    .upload-icon{
+
+        font-size:70px;
+    }
+
+    input[type=file]{
+
+        display:none;
+    }
+
+    .upload-btn{
+
+        display:inline-block;
+        margin-top:20px;
+        background:#2ecc71;
+        color:white;
+        padding:15px 30px;
+        border-radius:999px;
+        cursor:pointer;
+        font-weight:bold;
+    }
+
+    .detect-btn{
+
+        margin-top:30px;
+        border:none;
+        background:#2563eb;
+        color:white;
+        padding:16px 40px;
+        border-radius:999px;
+        font-size:18px;
+        font-weight:bold;
+    }
+
+    .result-card{
+
+        margin-top:50px;
+        display:none;
+        background:#f8fafc;
+        border-radius:25px;
+        padding:35px;
+    }
+
+    .result-title{
+
+        font-size:30px;
+        font-weight:900;
+        margin-bottom:20px;
+    }
+
+    .result-grid{
+
+        display:grid;
+        grid-template-columns:180px 1fr;
+        gap:20px;
+    }
+
+    .result-label{
+
+        font-weight:bold;
+    }
+
+    .save-area{
+
+        margin-top:40px;
+        text-align:center;
+    }
+
+    .save-btn{
+
+        background:#2ecc71;
+        color:white;
+        border:none;
+        padding:16px 35px;
+        border-radius:999px;
+        font-weight:bold;
+        margin-right:15px;
+    }
+
+    .cancel-btn{
+
+        background:#e5e7eb;
+        border:none;
+        padding:16px 35px;
+        border-radius:999px;
+        font-weight:bold;
+    }
+
+</style>
+
+<div class="ai-page">
+
+    <div class="ai-card">
+
+        <div class="ai-header">
+
+            <h1>🐶 AI Skin Disease Detection</h1>
+
+            <p>
+                Upload a clear photo of your pet's skin and receive an AI prediction in seconds.
+            </p>
+
+        </div>
+
+        <form asp-controller="AIClassifyController"
+              asp-action="ClassifyAI"
+              method="post"
+              enctype="multipart/form-data">
+
+            <div class="upload-box">
+
+                <img id="preview" />
+
+                <div id="placeholder">
+
+                    <div class="upload-icon">
+                        📸
+                    </div>
+
+                    <h3>Select an image</h3>
+
+                    <p>JPG, PNG or JPEG</p>
+
+                </div>
+
+                <label class="upload-btn">
+
+                    Choose Image
+
+                    <input type="file"
+                           name="image"
+                           id="imageInput"
+                           accept="image/*" />
+
+                </label>
+
+                <br />
+
+                <button class="detect-btn">
+
+                    Detect Disease
+
+                </button>
+
+            </div>
+
+        </form>
+
+        @if (Model != null)
+        {
+
+            <div class="result-card"
+                 style="display:block;">
+
+                <div class="result-title">
+
+                    Prediction Result
+
+                </div>
+
+                <div class="result-grid">
+
+                    <div class="result-label">
+                        Disease
+                    </div>
+
+                    <div>
+                        @Model.DiseaseName
+                    </div>
+
+                    <div class="result-label">
+                        Confidence
+                    </div>
+
+                    <div>
+                        @Model.Confidence %
+                    </div>
+
+                    <div class="result-label">
+                        Description
+                    </div>
+
+                    <div>
+                        @Model.Description
+                    </div>
+
+                    <div class="result-label">
+                        Recommendation
+                    </div>
+
+                    <div>
+                        @Model.Recommendation
+                    </div>
+
+                </div>
+
+                <div class="save-area">
+
+                    <h4>
+
+                        Do you want to save this prediction as a Medical Record?
+
+                    </h4>
+
+                    <form asp-controller="MedicalRecord"
+                          asp-action="SaveFromAI"
+                          method="post">
+
+                        <input type="hidden"
+                               name="DiseaseName"
+                               value="@Model.DiseaseName" />
+
+                        <input type="hidden"
+                               name="Confidence"
+                               value="@Model.Confidence" />
+
+                        <input type="hidden"
+                               name="ImageUrl"
+                               value="@Model.ImageUrl" />
+
+                        <button class="save-btn">
+
+                            Yes, Save Medical Record
+
+                        </button>
+
+                        <a asp-action="Index"
+                           asp-controller="Home"
+                           class="cancel-btn">
+
+                            No Thanks
+
+                        </a>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        }
+
+    </div>
+
+</div>
+
+<script>
+
+    const input=document.getElementById("imageInput");
+
+    const preview=document.getElementById("preview");
+
+    const holder=document.getElementById("placeholder");
+
+    input.addEventListener("change",function(){
+
+    const file=this.files[0];
+
+    if(!file) return;
+
+    preview.src=URL.createObjectURL(file);
+
+    preview.style.display="block";
+
+    holder.style.display="none";
+
+    });
+
+</script>

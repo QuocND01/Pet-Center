@@ -33,7 +33,8 @@ public partial class Appointment
 
     public virtual Customer Customer { get; set; } = null!;
 
-    public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } = new List<MedicalRecord>();
+    public virtual ICollection<MedicalRecord> MedicalRecords { get; set; }
+        = new List<MedicalRecord>();
 
     public virtual Pet Pet { get; set; } = null!;
 

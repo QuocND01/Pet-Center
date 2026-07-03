@@ -32,6 +32,8 @@ namespace PetCenterAPI.Repository.Interface
 
         Task<List<Product>> GetProductsForSnapshotAsync(List<Guid> productIds);
 
+        Task<bool> IsProductInOrderAsync(Guid productId);
+
         Task SaveAsync();
     }
 }

@@ -7,7 +7,13 @@ public partial class MedicalRecord
 {
     public Guid RecordId { get; set; }
 
-    public Guid AppointmentId { get; set; }
+    public Guid PetId { get; set; }
+
+    public Guid? AppointmentId { get; set; }
+
+    public Guid? DiseaseId { get; set; }
+
+    public string DiseaseNameSnapshot { get; set; } = null!;
 
     public string Diagnosis { get; set; } = null!;
 
@@ -19,7 +25,13 @@ public partial class MedicalRecord
 
     public int? Status { get; set; }
 
-    public virtual Appointment Appointment { get; set; } = null!;
+    // Navigation Properties
+    public virtual Pet Pet { get; set; } = null!;
 
-    public virtual ICollection<PrescriptionItem> PrescriptionItems { get; set; } = new List<PrescriptionItem>();
+    public virtual Appointment? Appointment { get; set; }
+
+    public virtual Disease? Disease { get; set; }
+
+    public virtual ICollection<PrescriptionItem> PrescriptionItems { get; set; }
+        = new List<PrescriptionItem>();
 }

@@ -90,9 +90,7 @@ public partial class PetCenterContext : DbContext
 
     public virtual DbSet<Voucher> Vouchers { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=127.0.0.1,1433;Database=PetCenter;User Id=sa;Password=123456;TrustServerCertificate=True;Encrypt=False;");
+    public virtual DbSet<Disease> Diseases { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -602,6 +600,38 @@ public partial class PetCenterContext : DbContext
                 .HasDatabaseName("IX_InventoryTransactions_InventoryId_CreatedAt");
         });
 
+        modelBuilder.Entity<Disease>(entity =>
+        {
+            entity.HasKey(e => e.DiseaseId);
+
+            entity.Property(e => e.DiseaseId)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("DiseaseID");
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(200)
+                .IsUnicode();
+
+            entity.Property(e => e.Description)
+                .IsUnicode();
+
+            entity.Property(e => e.Recommendation)
+                .IsUnicode();
+
+            entity.Property(e => e.Species);
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime2");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime2");
+        });
+
+
         modelBuilder.Entity<MedicalRecord>(entity =>
         {
             entity.HasKey(e => e.RecordId).HasName("PK__MedicalR__FBDF78C9F5DE9996");
@@ -609,25 +639,55 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.RecordId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("RecordID");
-            entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
+
+            entity.Property(e => e.PetId)
+                .HasColumnName("PetID");
+
+            entity.Property(e => e.AppointmentId)
+                .HasColumnName("AppointmentID");
+
+            entity.Property(e => e.DiseaseId)
+                .HasColumnName("DiseaseID");
+
+            entity.Property(e => e.DiseaseNameSnapshot)
+                .HasMaxLength(200)
+                .IsUnicode();
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Diagnosis)
-                .HasMaxLength(500)
-                .IsUnicode(false);
-            entity.Property(e => e.Note)
-                .HasMaxLength(500)
-                .IsUnicode(false);
-            entity.Property(e => e.Status).HasDefaultValue(1);
-            entity.Property(e => e.Treatment)
-                .HasMaxLength(500)
-                .IsUnicode(false);
+                .HasColumnType("datetime2");
 
-            entity.HasOne(d => d.Appointment).WithMany(p => p.MedicalRecords)
+            entity.Property(e => e.Diagnosis)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.Treatment)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.Note)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.Status)
+                .HasDefaultValue(1);
+
+            // Appointment (0..1)
+            entity.HasOne(d => d.Appointment)
+                .WithMany(p => p.MedicalRecords)
                 .HasForeignKey(d => d.AppointmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_MedicalRecords_Appointments");
+
+            // Disease (1 - N)
+            entity.HasOne(d => d.Disease)
+                .WithMany(p => p.MedicalRecords)
+                .HasForeignKey(d => d.DiseaseId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_MedicalRecords_Diseases");
+
+            entity.HasOne(d => d.Pet)
+      .WithMany(p => p.MedicalRecords)
+      .HasForeignKey(d => d.PetId)
+      .OnDelete(DeleteBehavior.ClientSetNull)
+      .HasConstraintName("FK_MedicalRecords_Pets");
         });
 
         modelBuilder.Entity<Order>(entity =>
