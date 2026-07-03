@@ -13,5 +13,14 @@
         public DateOnly? ManufacturingDate { get; set; }
         public DateOnly? ExpiryDate { get; set; }
     }
+    public class ProductSnapshotRequestDTO
+    {
+        public Guid ProductId { get; set; }
 
+        public string ProductName { get; set; } = null!;
+
+        public string ProductCategory { get; set; } = null!;
+        public string ProductBrand { get; set; } = null!;
+        public string ProductImage { get; set; } = null!;
+    }
 }

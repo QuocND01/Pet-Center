@@ -1,8 +1,11 @@
 ﻿const STAR_COLOR = '#ffc107';
-const MAX_MEDIA = 5;
+const MAX_IMAGES = 2;
+const MAX_VIDEOS = 1;
 const MAX_IMAGE_MB = 5;
-const MAX_VIDEO_MB = 50;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
+const MAX_VIDEO_MB = 30;
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/mov', 'video/webm'];
+const ACCEPTED_TYPES = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES];
 const STAR_LABELS = ['', 'Terrible', 'Poor', 'Average', 'Good', 'Excellent'];
 
 const OrderFeedback = (function () {
@@ -272,7 +275,7 @@ const OrderFeedback = (function () {
                                 text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
                         Photos / Videos
                         <span style="font-weight:400;color:#94a3b8;">
-                            (optional · max ${MAX_MEDIA} files · img ≤${MAX_IMAGE_MB}MB · video ≤${MAX_VIDEO_MB}MB)
+                            (optional · max ${MAX_IMAGES} photos + ${MAX_VIDEOS} video · img ≤${MAX_IMAGE_MB}MB · video ≤${MAX_VIDEO_MB}MB)
                         </span>
                     </div>
                     <div class="media-drop-zone"
@@ -419,7 +422,7 @@ const OrderFeedback = (function () {
                         text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
                 Add New Photos / Videos
                 <span style="font-weight:400;color:#94a3b8;">
-                    (max ${MAX_MEDIA} total · img ≤${MAX_IMAGE_MB}MB · video ≤${MAX_VIDEO_MB}MB)
+                    (max ${MAX_IMAGES} photos + ${MAX_VIDEOS} video · img ≤${MAX_IMAGE_MB}MB · video ≤${MAX_VIDEO_MB}MB)
                 </span>
             </div>
             <div id="editMediaUploadArea"
@@ -548,6 +551,45 @@ const OrderFeedback = (function () {
         if (!feedbackId || rating < 1 || rating > 5) {
             showAlert('Please select a star rating.', 'warning');
             return;
+        }
+
+        const newMediaItems = document.querySelectorAll('#editNewMediaPreview .edit-new-media-item');
+        const hasNewFiles = Array.from(newMediaItems).some(el => el._file && el._ready);
+
+        if (hasNewFiles) {
+            // Đếm existing còn lại sau khi đã remove
+            let existingImageCount = 0;
+            let existingVideoCount = 0;
+            const existingContainer = document.getElementById('existingMediaContainer');
+            if (existingContainer) {
+                existingContainer.querySelectorAll('[id^="media_"]').forEach(el => {
+                    if (el.style.display === 'none') return;
+                    if (el.querySelector('video')) existingVideoCount++;
+                    else existingImageCount++;
+                });
+            }
+
+            // Đếm file mới sẽ upload
+            let newImageCount = 0;
+            let newVideoCount = 0;
+            newMediaItems.forEach(el => {
+                if (!el._file || !el._ready) return;
+                if (el._file.type.startsWith('video/')) newVideoCount++;
+                else newImageCount++;
+            });
+
+            const overImages = (existingImageCount + newImageCount) > MAX_IMAGES;
+            const overVideos = (existingVideoCount + newVideoCount) > MAX_VIDEOS;
+
+            if (overImages || overVideos) {
+                let msg = 'Cannot save: ';
+                const parts = [];
+                if (overImages) parts.push(`max ${MAX_IMAGES} photos allowed (you have ${existingImageCount} existing + ${newImageCount} new)`);
+                if (overVideos) parts.push(`max ${MAX_VIDEOS} video allowed (you have ${existingVideoCount} existing + ${newVideoCount} new)`);
+                msg += parts.join(', ') + '. Please remove some files first.';
+                showAlert(msg, 'danger');
+                return;
+            }
         }
 
         const submitBtn = document.getElementById('btnSubmitEdit');
@@ -742,10 +784,64 @@ const OrderFeedback = (function () {
     function addEditNewFiles(files) {
         const preview = document.getElementById('editNewMediaPreview');
         if (!preview) return;
-        const existing = preview.querySelectorAll('.edit-new-media-item').length;
-        const remaining = MAX_MEDIA - existing;
-        if (remaining <= 0) { showAlert(`Maximum ${MAX_MEDIA} files allowed.`, 'warning'); return; }
-        validateFiles(files).slice(0, remaining).forEach(file => addMediaThumb(file, preview, 'edit-new-media-item'));
+
+        let newImageCount = 0;
+        let newVideoCount = 0;
+        preview.querySelectorAll('.edit-new-media-item').forEach(el => {
+            if (el._file?.type?.startsWith('video/')) newVideoCount++;
+            else newImageCount++;
+        });
+
+        let existingImageCount = 0;
+        let existingVideoCount = 0;
+        const existingContainer = document.getElementById('existingMediaContainer');
+        if (existingContainer) {
+            existingContainer.querySelectorAll('[id^="media_"]').forEach(el => {
+                if (el.style.display === 'none') return;
+                if (el.querySelector('video')) existingVideoCount++;
+                else existingImageCount++;
+            });
+        }
+
+        let totalImages = existingImageCount + newImageCount;
+        let totalVideos = existingVideoCount + newVideoCount;
+
+        const validFiles = validateFiles(files);
+        const skippedImages = [];
+        const skippedVideos = [];
+
+        validFiles.forEach(file => {
+            const isVideo = file.type.startsWith('video/');
+            if (isVideo) {
+                if (totalVideos >= MAX_VIDEOS) {
+                    skippedVideos.push(file.name);
+                    return;
+                }
+                totalVideos++; 
+            } else {
+                if (totalImages >= MAX_IMAGES) {
+                    skippedImages.push(file.name);
+                    return;
+                }
+                totalImages++;
+            }
+            addMediaThumb(file, preview, 'edit-new-media-item');
+        });
+
+        if (skippedVideos.length > 0) {
+            showAlert(
+                `Video limit reached (max ${MAX_VIDEOS}). ` +
+                `Remove the current video first before adding a new one.`,
+                'warning'
+            );
+        }
+        if (skippedImages.length > 0) {
+            showAlert(
+                `Photo limit reached (max ${MAX_IMAGES} photos per review). ` +
+                `Remove an existing photo first to add a new one.`,
+                'warning'
+            );
+        }
     }
 
     function handleWriteFileSelect(input, idx) {
@@ -764,10 +860,50 @@ const OrderFeedback = (function () {
     function addWriteFiles(files, idx) {
         const container = document.querySelector(`.fb-product-item[data-index="${idx}"] .media-preview-row`);
         if (!container) return;
-        const existing = container.querySelectorAll('.write-media-item').length;
-        const remaining = MAX_MEDIA - existing;
-        if (remaining <= 0) { showAlert(`Maximum ${MAX_MEDIA} files allowed.`, 'warning'); return; }
-        validateFiles(files).slice(0, remaining).forEach(file => addMediaThumb(file, container, 'write-media-item'));
+
+        let imageCount = 0;
+        let videoCount = 0;
+        container.querySelectorAll('.write-media-item').forEach(el => {
+            if (el._file?.type?.startsWith('video/')) videoCount++;
+            else imageCount++;
+        });
+
+        const validFiles = validateFiles(files);
+        const skippedImages = [];
+        const skippedVideos = [];
+
+        validFiles.forEach(file => {
+            const isVideo = file.type.startsWith('video/');
+            if (isVideo) {
+                if (videoCount >= MAX_VIDEOS) {
+                    skippedVideos.push(file.name);
+                    return;
+                }
+                videoCount++; 
+            } else {
+                if (imageCount >= MAX_IMAGES) {
+                    skippedImages.push(file.name);
+                    return;
+                }
+                imageCount++;
+            }
+            addMediaThumb(file, container, 'write-media-item');
+        });
+
+        if (skippedVideos.length > 0) {
+            showAlert(
+                `Video limit reached (max ${MAX_VIDEOS} per product). ` +
+                `Remove the current video first before adding a new one.`,
+                'warning'
+            );
+        }
+        if (skippedImages.length > 0) {
+            showAlert(
+                `Photo limit reached (max ${MAX_IMAGES} per product). ` +
+                `Remove an existing photo first to add a new one.`,
+                'warning'
+            );
+        }
     }
 
     // ============================================================
@@ -788,6 +924,7 @@ const OrderFeedback = (function () {
         div.style.cssText = 'position:relative;width:68px;height:68px;flex-shrink:0;';
         div._file = null;
         div._ready = false;
+        div._fileType = file.type;
 
         div.innerHTML = `
     <div style="width:68px;height:68px;border-radius:8px;
@@ -981,7 +1118,7 @@ const OrderFeedback = (function () {
     function validateFiles(files) {
         return files.filter(file => {
             if (!ACCEPTED_TYPES.includes(file.type)) {
-                showAlert(`"${file.name}" is not a valid file type. Only images and videos are allowed.`, 'warning');
+                showAlert(`"${file.name}" is not supported. Accepted: jpg, png, webp, mp4, mov, webm.`, 'warning');
                 return false;
             }
             const isVideo = file.type.startsWith('video/');

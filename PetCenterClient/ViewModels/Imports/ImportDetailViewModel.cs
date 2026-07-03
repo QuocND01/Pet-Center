@@ -13,6 +13,7 @@
         public int StockLeft { get; set; }
         public DateOnly? ManufacturingDate { get; set; }
         public DateOnly? ExpiryDate { get; set; }
+        public ProductSnapshotViewModel? ImportProductSnapshot { get; set; }
     }
 
     public class CreateImportDetailViewModel
@@ -24,7 +25,7 @@
         public string BatchCode { get; set; } = null!;
         public DateOnly? ManufacturingDate { get; set; }
         public DateOnly? ExpiryDate { get; set; }
-
+       
 
     }
     
@@ -37,5 +38,15 @@
     {
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
+    }
+    public class ProductSnapshotViewModel
+    {
+        public Guid ProductId { get; set; }
+
+        public string ProductName { get; set; } = null!;
+
+        public string ProductCategory { get; set; } = null!;
+        public string ProductBrand { get; set; } = null!;
+        public string ProductImage { get; set; } = null!;
     }
 }
