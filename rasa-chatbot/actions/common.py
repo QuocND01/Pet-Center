@@ -9,6 +9,7 @@ CƠ CHẾ JWT / customerId (do SETUP dựng — KHÔNG cần sửa khi thêm int
 """
 
 import os
+import re
 import logging
 import requests
 import urllib3
@@ -106,6 +107,37 @@ def format_price(price) -> str:
         return f"{int(price):,}".replace(",", ".") + "₫"
     except Exception:
         return str(price)
+
+
+def parse_vn_price(text):
+    """Chuẩn hóa chuỗi giá tiếng Việt -> int VND. Trả None nếu không parse được.
+
+    Ví dụ: '200k'->200000, '2 triệu'/'2tr'->2000000, '300 nghìn'->300000,
+           '2.5 triệu'->2500000, '150.000'->150000, '500000'->500000.
+    """
+    if text is None:
+        return None
+    s = str(text).strip().lower().replace(" ", "")
+    if not s:
+        return None
+
+    m = re.search(r"[\d.,]+", s)
+    if not m:
+        return None
+    num = m.group(0)
+
+    has_trieu = ("triệu" in s) or ("trieu" in s) or bool(re.search(r"\dtr", s))
+    has_k = ("k" in s) or ("nghìn" in s) or ("nghin" in s) or ("ngàn" in s) or ("ngan" in s)
+
+    try:
+        if has_trieu:
+            return int(float(num.replace(",", ".")) * 1_000_000)
+        if has_k:
+            return int(float(num.replace(",", ".")) * 1_000)
+        digits = num.replace(".", "").replace(",", "")
+        return int(digits) if digits.isdigit() else None
+    except ValueError:
+        return None
 
 
 # Map trạng thái đơn hàng (int -> nhãn tiếng Việt).

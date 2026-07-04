@@ -81,6 +81,17 @@ nlu:
     - mua [1](so_luong) cái
     - thêm [3](so_luong) hộp
     - cho mình [2](so_luong) cái
+    - thêm [thức ăn cho mèo](tu_khoa) vào giỏ
+    - thêm giúp tôi sản phẩm [Royal Canin](tu_khoa) vào giỏ hàng
+    - thêm [pate mèo](tu_khoa) vào giỏ hàng
+    - mua [vòng cổ mèo](tu_khoa)
+    - cho tôi mua [đồ chơi cho chó](tu_khoa)
+    - tôi muốn mua [sữa tắm cho chó](tu_khoa)
+    - thêm sản phẩm [cát vệ sinh](tu_khoa) vào giỏ
+    - thêm [2](so_luong) [thức ăn cho chó](tu_khoa) vào giỏ
+    - mua [3](so_luong) [hộp pate](tu_khoa)
+    - them [thuc an cho meo](tu_khoa) vao gio
+    - thêm giúp mình [bát ăn cho chó](tu_khoa)
 
 - intent: xem_gio_hang
   examples: |
@@ -167,3 +178,89 @@ nlu:
     - xoa het gio hang
     - lam rong gio hang
     - clear giỏ hàng
+
+- intent: tim_san_pham_theo_danh_muc
+  examples: |
+    - tìm danh mục [thức ăn](danh_muc)
+    - cho xem [đồ chơi](danh_muc)
+    - sản phẩm thuộc danh mục [phụ kiện](danh_muc)
+    - có [thức ăn](danh_muc) không
+    - shop bán [đồ chơi](danh_muc) gì
+    - xem loại [vệ sinh](danh_muc)
+    - tìm sản phẩm danh mục [thuốc](danh_muc)
+    - danh mục [phụ kiện](danh_muc) có gì
+    - cho mình xem [thức ăn](danh_muc)
+    - tim danh muc [do choi](danh_muc)
+    - loại [phụ kiện](danh_muc)
+
+- intent: tim_san_pham_theo_thuong_hieu
+  examples: |
+    - thương hiệu [Royal Canin](thuong_hieu)
+    - sản phẩm của [Whiskas](thuong_hieu)
+    - shop có [Pedigree](thuong_hieu) không
+    - tìm hãng [Royal Canin](thuong_hieu)
+    - xem sản phẩm [Whiskas](thuong_hieu)
+    - brand [Pedigree](thuong_hieu) có gì
+    - cho xem hàng [Royal Canin](thuong_hieu)
+    - đồ của hãng [Whiskas](thuong_hieu)
+    - thuong hieu [Royal Canin](thuong_hieu)
+    - san pham [Pedigree](thuong_hieu)
+    - hãng [Me-O](thuong_hieu)
+
+- intent: tim_san_pham_theo_gia
+  examples: |
+    - sản phẩm dưới [300k](gia_den)
+    - đồ dưới [200k](gia_den)
+    - sản phẩm từ [100k](gia_tu) đến [500k](gia_den)
+    - giá từ [200k](gia_tu) tới [600k](gia_den)
+    - sản phẩm trên [500k](gia_tu)
+    - hàng giá dưới [150 nghìn](gia_den)
+    - tìm sản phẩm khoảng [100k](gia_tu) đến [300k](gia_den)
+    - đồ giá rẻ dưới [100k](gia_den)
+    - sản phẩm từ [1 triệu](gia_tu)
+    - gia duoi [200k](gia_den)
+    - tu [100k](gia_tu) den [400k](gia_den)
+    - sản phẩm tầm giá [500k](gia_den)
+
+- intent: xem_danh_muc_san_pham
+  examples: |
+    - shop có những loại sản phẩm gì
+    - danh mục sản phẩm
+    - có những loại nào
+    - xem các danh mục
+    - shop bán những loại gì
+    - liệt kê danh mục
+    - các loại sản phẩm
+    - có danh mục nào không
+    - phân loại sản phẩm
+    - danh muc san pham
+    - co loai nao khong
+
+- intent: xem_thuong_hieu
+  examples: |
+    - shop bán thương hiệu nào
+    - có hãng nào
+    - brand nào đang bán
+    - các thương hiệu
+    - liệt kê thương hiệu
+    - shop có những hãng gì
+    - xem các nhãn hàng
+    - thương hiệu nào có sẵn
+    - có những brand nào
+    - thuong hieu nao
+    - cac hang dang ban
+
+- intent: xem_chi_tiet_san_pham
+  examples: |
+    - xem chi tiết sản phẩm này
+    - mô tả sản phẩm thế nào
+    - sản phẩm này còn hàng không
+    - giá sản phẩm này bao nhiêu
+    - thông tin sản phẩm
+    - chi tiết sản phẩm
+    - sản phẩm này có gì đặc biệt
+    - cho xem thông tin chi tiết
+    - sản phẩm này thế nào
+    - còn hàng không
+    - xem chi tiet san pham
+    - thong tin san pham nay

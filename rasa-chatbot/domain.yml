@@ -24,6 +24,12 @@ intents:
   - cap_nhat_so_luong_gio_hang
   - xoa_san_pham_gio_hang
   - xoa_toan_bo_gio_hang
+  - tim_san_pham_theo_danh_muc
+  - tim_san_pham_theo_thuong_hieu
+  - tim_san_pham_theo_gia
+  - xem_danh_muc_san_pham
+  - xem_thuong_hieu
+  - xem_chi_tiet_san_pham
   # — Đơn hàng + voucher —
   - xem_don_hang_cua_toi
   - xem_chi_tiet_don
@@ -51,6 +57,10 @@ entities:
   - product_id_chon
   - product_name_chon
   - cart_detail_id_chon
+  - danh_muc
+  - thuong_hieu
+  - gia_tu
+  - gia_den
   - order_id
 
 slots:
@@ -88,6 +98,34 @@ slots:
     mappings:
       - type: from_entity
         entity: cart_detail_id_chon
+
+  danh_muc:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: danh_muc
+
+  thuong_hieu:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: thuong_hieu
+
+  gia_tu:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: gia_tu
+
+  gia_den:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: gia_den
 
   order_id:
     type: text
@@ -141,6 +179,12 @@ actions:
   - action_cap_nhat_so_luong_gio_hang
   - action_xoa_san_pham_gio_hang
   - action_xoa_toan_bo_gio_hang
+  - action_tim_san_pham_theo_danh_muc
+  - action_tim_san_pham_theo_thuong_hieu
+  - action_tim_san_pham_theo_gia
+  - action_xem_danh_muc
+  - action_xem_thuong_hieu
+  - action_xem_chi_tiet_san_pham
   # Đơn hàng + voucher
   - action_xem_don_hang
   - action_chi_tiet_don

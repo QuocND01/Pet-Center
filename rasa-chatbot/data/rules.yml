@@ -69,6 +69,36 @@ rules:
     - intent: xoa_toan_bo_gio_hang
     - action: action_xoa_toan_bo_gio_hang
 
+- rule: Tìm sản phẩm theo danh mục
+  steps:
+    - intent: tim_san_pham_theo_danh_muc
+    - action: action_tim_san_pham_theo_danh_muc
+
+- rule: Tìm sản phẩm theo thương hiệu
+  steps:
+    - intent: tim_san_pham_theo_thuong_hieu
+    - action: action_tim_san_pham_theo_thuong_hieu
+
+- rule: Tìm sản phẩm theo giá
+  steps:
+    - intent: tim_san_pham_theo_gia
+    - action: action_tim_san_pham_theo_gia
+
+- rule: Xem danh mục sản phẩm
+  steps:
+    - intent: xem_danh_muc_san_pham
+    - action: action_xem_danh_muc
+
+- rule: Xem thương hiệu
+  steps:
+    - intent: xem_thuong_hieu
+    - action: action_xem_thuong_hieu
+
+- rule: Xem chi tiết sản phẩm
+  steps:
+    - intent: xem_chi_tiet_san_pham
+    - action: action_xem_chi_tiet_san_pham
+
 # — Đơn hàng + voucher —
 - rule: Xem đơn hàng của tôi
   steps:

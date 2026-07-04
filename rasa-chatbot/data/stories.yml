@@ -29,6 +29,22 @@ stories:
     - intent: xem_danh_gia
     - action: action_xem_danh_gia
 
+- story: xem danh mục rồi tìm theo danh mục
+  steps:
+    - intent: xem_danh_muc_san_pham
+    - action: action_xem_danh_muc
+    - intent: tim_san_pham_theo_danh_muc
+    - action: action_tim_san_pham_theo_danh_muc
+
+- story: tìm sản phẩm rồi xem chi tiết rồi mua
+  steps:
+    - intent: tim_san_pham
+    - action: action_tim_san_pham
+    - intent: xem_chi_tiet_san_pham
+    - action: action_xem_chi_tiet_san_pham
+    - intent: chon_san_pham
+    - action: action_them_vao_gio_hang
+
 # — Giỏ hàng (READ-UPDATE-DELETE) —
 - story: xem giỏ rồi đổi số lượng
   steps:
