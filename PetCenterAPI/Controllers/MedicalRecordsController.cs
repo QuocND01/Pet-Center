@@ -108,5 +108,12 @@ namespace PetCenterAPI.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        [HttpGet("diseases")]
+        public async Task<IActionResult> GetDiseases([FromQuery] int? species)
+        {
+            var list = await _service.GetActiveDiseasesAsync(species);
+            return Ok(list);
+        }
     }
 }

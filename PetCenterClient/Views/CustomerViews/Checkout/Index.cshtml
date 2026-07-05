@@ -1,4 +1,4 @@
-﻿@using PetCenterClient.DTOs
+@using PetCenterClient.DTOs
 @model CheckoutViewModel
 @{
     ViewData["Title"] = "Checkout";
@@ -465,6 +465,18 @@
     <a href="/Cart" class="back-link">← Back to Cart</a>
     <div class="co-title">📦 Checkout</div>
 
+    @if (string.IsNullOrEmpty(Model.PhoneNumber))
+    {
+        <div class="alert alert-danger" role="alert" style="border-radius:12px; display:flex; align-items:center; gap:12px; padding:14px 20px; margin-bottom:24px; font-size:14px; font-weight:600; background:#fef2f2; border:1px solid #fee2e2; color:#ef4444;">
+            <span style="font-size:18px;">⚠️</span>
+            <div style="flex:1;">
+                Your account is missing a contact phone number. Please 
+                <a href="/Customer/Profile" style="color:#b91c1c; text-decoration:underline; font-weight:700;">update your profile</a> 
+                before placing your order.
+            </div>
+        </div>
+    }
+
     <div class="co-layout">
         <div>
 
@@ -629,7 +641,7 @@
                         </div>
                     </div>
                     <button class="btn-place-order" id="placeBtn" type="button"
-                            onclick="placeOrder()" @(Model.Addresses.Any() ? "" : "disabled")>
+                            onclick="placeOrder()" @(Model.Addresses.Any() && !string.IsNullOrEmpty(Model.PhoneNumber) ? "" : "disabled")>
                         <div class="btn-spinner" id="spinner"></div>
                         <span id="placeText">🛍 Place Order</span>
                     </button>
@@ -637,6 +649,12 @@
                     {
                         <p style="text-align:center;margin-top:8px;font-size:12px;color:#ef4444;font-weight:600;">
                             ⚠️ Please add a delivery address to continue
+                        </p>
+                    }
+                    else if (string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <p style="text-align:center;margin-top:8px;font-size:12px;color:#ef4444;font-weight:600;">
+                            ⚠️ Please update your phone number in your profile to continue
                         </p>
                     }
                     <p style="text-align:center;margin-top:8px;font-size:12px;color:var(--muted);">🔒 Secure transaction</p>

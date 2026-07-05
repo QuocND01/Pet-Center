@@ -103,7 +103,6 @@
                     <th>Dosage</th>
                     <th>Duration</th>
                     <th>Qty</th>
-                    <th>Note</th>
                     @if (isVetOrAdmin) { <th>Actions</th> }
                 </tr>
             </thead>
@@ -117,7 +116,6 @@
                         <td>@item.Dosage</td>
                         <td>@item.Duration</td>
                         <td>@item.Quantity</td>
-                        <td>@(item.Note ?? "-")</td>
                         @if (isVetOrAdmin)
                         {
                             <td>

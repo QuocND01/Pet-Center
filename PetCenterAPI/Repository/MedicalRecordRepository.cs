@@ -55,7 +55,7 @@ namespace PetCenterAPI.Repository
                 .Include(r => r.Appointment)
                     .ThenInclude(a => a.AppointmentSnapshot)
                 .Include(r => r.PrescriptionItems)
-                .Where(r => r.Appointment.CustomerId == customerId)
+                .Where(r => r.Appointment.CustomerId == customerId && r.Status == (int)MedicalRecordStatus.Completed)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -82,18 +82,26 @@ namespace PetCenterAPI.Repository
 
         public async Task<IEnumerable<Appointment>> GetCompletedAppointmentsAsync()
         {
-            // Status 4 = Completed appointment
+            // Status 4 = Completed appointment, exclude those already having a medical record
             return await _db.Appointments
                 .Include(a => a.Customer)
                 .Include(a => a.Pet)
                 .Include(a => a.AppointmentSnapshot)
-                .Where(a => a.Status == 4)
+                .Where(a => a.Status == 4 && !_db.MedicalRecords.Any(mr => mr.AppointmentId == a.AppointmentId))
                 .OrderByDescending(a => a.AppointmentStart)
                 .ToListAsync();
         }
 
         public async Task AddAsync(MedicalRecord record)
         {
+            if (record.AppointmentId.HasValue)
+            {
+                var appointment = await _db.Appointments.FindAsync(record.AppointmentId.Value);
+                if (appointment != null)
+                {
+                    record.PetId = appointment.PetId;
+                }
+            }
             _db.MedicalRecords.Add(record);
             await _db.SaveChangesAsync();
         }
@@ -109,6 +117,21 @@ namespace PetCenterAPI.Repository
             await _db.MedicalRecords
                 .Where(r => r.RecordId == id)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, (int)status));
+        }
+
+        public async Task<Disease?> GetDiseaseByIdAsync(Guid id)
+        {
+            return await _db.Diseases.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<Disease>> GetActiveDiseasesAsync(int? species)
+        {
+            var query = _db.Diseases.Where(d => d.IsActive);
+            if (species.HasValue)
+            {
+                query = query.Where(d => d.Species == species.Value);
+            }
+            return await query.OrderBy(d => d.Name).ToListAsync();
         }
     }
 }

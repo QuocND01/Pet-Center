@@ -7,15 +7,25 @@ namespace PetCenterClient.Controllers
     public class PrescriptionItemController : Controller
     {
         private readonly IPrescriptionItemAPIClient _service;
+        private readonly IMedicalRecordAPIClient _medicalRecordService;
 
-        public PrescriptionItemController(IPrescriptionItemAPIClient service)
+        public PrescriptionItemController(
+            IPrescriptionItemAPIClient service,
+            IMedicalRecordAPIClient medicalRecordService)
         {
             _service = service;
+            _medicalRecordService = medicalRecordService;
         }
 
         // GET: Create popup
-        public IActionResult Create(Guid recordId)
+        public async Task<IActionResult> Create(Guid recordId)
         {
+            var record = await _medicalRecordService.GetByIdAsync(recordId);
+            if (record == null || record.Status != 1)
+            {
+                return Content("<div class='alert alert-danger m-3'>Cannot add prescription items. The medical record is completed or cancelled.</div>");
+            }
+
             var model = new CreatePrescriptionItemViewModel { RecordId = recordId };
             return PartialView("~/Views/AdminViews/PrescriptionItem/_Create.cshtml", model);
         }
@@ -54,6 +64,12 @@ namespace PetCenterClient.Controllers
             var item = await _service.GetByIdAsync(id);
             if (item == null) return NotFound();
 
+            var record = await _medicalRecordService.GetByIdAsync(item.RecordId);
+            if (record == null || record.Status != 1)
+            {
+                return Content("<div class='alert alert-danger m-3'>Cannot edit this prescription item. The medical record is completed or cancelled.</div>");
+            }
+
             var model = new UpdatePrescriptionItemViewModel
             {
                 PrescriptionItemId = item.PrescriptionItemId,
@@ -91,6 +107,12 @@ namespace PetCenterClient.Controllers
         {
             var item = await _service.GetByIdAsync(id);
             if (item == null) return NotFound();
+
+            var record = await _medicalRecordService.GetByIdAsync(item.RecordId);
+            if (record == null || record.Status != 1)
+            {
+                return Content("<div class='alert alert-danger m-3'>Cannot delete this prescription item. The medical record is completed or cancelled.</div>");
+            }
 
             var model = new DeletePrescriptionItemViewModel
             {

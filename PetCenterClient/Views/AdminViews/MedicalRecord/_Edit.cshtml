@@ -18,12 +18,33 @@
 
         <div class="section-card">
             <div class="mb-3">
+                <label class="form-label fw-semibold">Disease</label>
+                <select asp-for="DiseaseId" class="form-select" id="diseaseSelect">
+                    <option value="">-- Other / Custom Disease --</option>
+                    @if (ViewBag.Diseases != null)
+                    {
+                        foreach (var d in (IEnumerable<ReadDiseaseViewModel>)ViewBag.Diseases)
+                        {
+                            <option value="@d.DiseaseId" data-species="@d.Species" data-rec="@d.Recommendation">@d.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3" id="customDiseaseGroup">
+                <label asp-for="CustomDiseaseName" class="form-label fw-semibold">Custom Disease Name</label>
+                <input asp-for="CustomDiseaseName" class="form-control" placeholder="Enter custom disease name..." />
+                <span asp-validation-for="CustomDiseaseName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="Diagnosis" class="form-label fw-semibold">
                     Diagnosis <span class="text-danger">*</span>
                 </label>
                 <textarea asp-for="Diagnosis" class="form-control" placeholder="Enter diagnosis..."></textarea>
                 <span asp-validation-for="Diagnosis" class="text-danger"></span>
             </div>
+            
             <div class="mb-3">
                 <label asp-for="Treatment" class="form-label fw-semibold">
                     Treatment <span class="text-danger">*</span>
@@ -31,6 +52,7 @@
                 <textarea asp-for="Treatment" class="form-control" placeholder="Enter treatment plan..."></textarea>
                 <span asp-validation-for="Treatment" class="text-danger"></span>
             </div>
+            
             <div class="mb-3">
                 <label asp-for="Note" class="form-label fw-semibold">Note</label>
                 <textarea asp-for="Note" class="form-control" placeholder="Additional notes (optional)..."></textarea>
@@ -46,6 +68,54 @@
     </form>
 </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+<script>
+$(document).ready(function() {
+    var $diseaseSelect = $('#diseaseSelect');
+    var $customDiseaseGroup = $('#customDiseaseGroup');
+    var $treatment = $('#Treatment');
+    
+    var speciesStr = "@(ViewBag.PetSpecies ?? "")";
+    var species = speciesStr.toLowerCase().indexOf("dog") !== -1 ? 1 : (speciesStr.toLowerCase().indexOf("cat") !== -1 ? 2 : 0);
+
+    function filterDiseases() {
+        $diseaseSelect.find('option').each(function() {
+            var $opt = $(this);
+            var optSpecies = $opt.data('species');
+            
+            if (!optSpecies || !species || optSpecies == species) {
+                $opt.show();
+            } else {
+                $opt.hide();
+            }
+        });
+    }
+
+    function handleDiseaseChange() {
+        var selectedDisease = $diseaseSelect.find('option:selected');
+        var rec = selectedDisease.data('rec');
+        var val = $diseaseSelect.val();
+
+        if (val) {
+            $customDiseaseGroup.hide();
+            $('#CustomDiseaseName').val('');
+            if (rec) {
+                $treatment.val(rec);
+            }
+        } else {
+            $customDiseaseGroup.show();
+        }
+    }
+
+    $diseaseSelect.on('change', handleDiseaseChange);
+
+    filterDiseases();
+    
+    // On edit, only set initial visibility, don't overwrite current treatment
+    var initialVal = $diseaseSelect.val();
+    if (initialVal) {
+        $customDiseaseGroup.hide();
+    } else {
+        $customDiseaseGroup.show();
+    }
+});
+</script>

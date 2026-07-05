@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.Product;
@@ -10,17 +10,20 @@ namespace PetCenterClient.Controllers
         private readonly ICheckoutService _checkoutService;
         private readonly IProductAPIClient _productService;
         private readonly IAddressServiceClient _addressService;
+        private readonly ICustomerApiService _customerService;
         private readonly ILogger<CheckoutController> _logger;
 
         public CheckoutController(
             ICheckoutService checkoutService,
             IProductAPIClient productService,
             IAddressServiceClient addressService,
+            ICustomerApiService customerService,
             ILogger<CheckoutController> logger)
         {
             _checkoutService = checkoutService;
             _productService = productService;
             _addressService = addressService;
+            _customerService = customerService;
             _logger = logger;
         }
 
@@ -100,12 +103,24 @@ namespace PetCenterClient.Controllers
                 _logger.LogError(ex, "[Checkout] Failed to load vouchers");
             }
 
+            string? phone = null;
+            try
+            {
+                var profile = await _customerService.GetProfileAsync();
+                phone = profile?.PhoneNumber;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Checkout] Failed to load profile");
+            }
+
             var vm = new CheckoutViewModel
             {
                 SelectedItems = selectedItems,
                 Addresses = customerAddresses,
                 AvailableVouchers = vouchers,
-                CustomerId = customerId
+                CustomerId = customerId,
+                PhoneNumber = phone
             };
 
             return View("~/Views/CustomerViews/Checkout/Index.cshtml", vm);
@@ -123,6 +138,20 @@ namespace PetCenterClient.Controllers
             var customerIdStr = HttpContext.Session.GetString("CustomerId");
             if (string.IsNullOrEmpty(customerIdStr) || !Guid.TryParse(customerIdStr, out var customerId))
                 return Json(new { success = false, message = "Invalid session. Please login again." });
+
+            try
+            {
+                var profile = await _customerService.GetProfileAsync();
+                if (string.IsNullOrEmpty(profile?.PhoneNumber))
+                {
+                    return Json(new { success = false, message = "Please update your phone number in your profile before placing an order." });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Checkout.PlaceOrder] Failed to verify phone");
+                return Json(new { success = false, message = "Could not verify profile details." });
+            }
 
             if (dto == null)
                 return Json(new { success = false, message = "Invalid request." });

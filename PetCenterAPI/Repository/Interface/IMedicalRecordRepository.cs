@@ -12,5 +12,7 @@ namespace PetCenterAPI.Repository.Interface
         Task AddAsync(MedicalRecord record);
         Task UpdateAsync(MedicalRecord record);
         Task ChangeStatusAsync(Guid id, MedicalRecordStatus status);
+        Task<Disease?> GetDiseaseByIdAsync(Guid id);
+        Task<IEnumerable<Disease>> GetActiveDiseasesAsync(int? species);
     }
 }

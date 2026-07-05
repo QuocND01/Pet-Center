@@ -57,8 +57,18 @@ namespace PetCenterClient.Controllers
         // GET: Customer details popup
         public async Task<IActionResult> CustomerDetailsAsync(Guid id)
         {
+            var customerIdStr = HttpContext.Session.GetString("CustomerId");
+            if (string.IsNullOrEmpty(customerIdStr))
+                return RedirectToAction("Login", "Auth");
+
             var record = await _service.GetByIdAsync(id);
             if (record == null) return NotFound();
+
+            if (record.CustomerId != Guid.Parse(customerIdStr) || record.Status != 2)
+            {
+                return Forbid();
+            }
+
             return PartialView("~/Views/CustomerViews/MedicalRecord/_Details.cshtml", record);
         }
 
@@ -67,6 +77,7 @@ namespace PetCenterClient.Controllers
         {
             var appointments = await _service.GetCompletedAppointmentsAsync();
             ViewBag.CompletedAppointments = appointments;
+            ViewBag.Diseases = await _service.GetDiseasesAsync(null);
             return PartialView("~/Views/AdminViews/MedicalRecord/_Create.cshtml",
                 new CreateMedicalRecordViewModel());
         }
@@ -80,6 +91,7 @@ namespace PetCenterClient.Controllers
             {
                 var appointments = await _service.GetCompletedAppointmentsAsync();
                 ViewBag.CompletedAppointments = appointments;
+                ViewBag.Diseases = await _service.GetDiseasesAsync(null);
                 return PartialView("~/Views/AdminViews/MedicalRecord/_Create.cshtml", model);
             }
 
@@ -93,6 +105,7 @@ namespace PetCenterClient.Controllers
                 ModelState.AddModelError("", ex.Message);
                 var appointments = await _service.GetCompletedAppointmentsAsync();
                 ViewBag.CompletedAppointments = appointments;
+                ViewBag.Diseases = await _service.GetDiseasesAsync(null);
                 return PartialView("~/Views/AdminViews/MedicalRecord/_Create.cshtml", model);
             }
         }
@@ -109,10 +122,14 @@ namespace PetCenterClient.Controllers
             var model = new UpdateMedicalRecordViewModel
             {
                 RecordId = record.RecordId,
+                DiseaseId = record.DiseaseId,
+                CustomDiseaseName = record.DiseaseId == null ? record.DiseaseNameSnapshot : null,
                 Diagnosis = record.Diagnosis,
                 Treatment = record.Treatment,
                 Note = record.Note
             };
+            ViewBag.PetSpecies = record.PetSpecies;
+            ViewBag.Diseases = await _service.GetDiseasesAsync(null);
             return PartialView("~/Views/AdminViews/MedicalRecord/_Edit.cshtml", model);
         }
 
@@ -122,7 +139,10 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> EditAsync(Guid id, UpdateMedicalRecordViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Diseases = await _service.GetDiseasesAsync(null);
                 return PartialView("~/Views/AdminViews/MedicalRecord/_Edit.cshtml", model);
+            }
 
             try
             {
@@ -132,6 +152,7 @@ namespace PetCenterClient.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
+                ViewBag.Diseases = await _service.GetDiseasesAsync(null);
                 return PartialView("~/Views/AdminViews/MedicalRecord/_Edit.cshtml", model);
             }
         }

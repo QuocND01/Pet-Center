@@ -40,7 +40,10 @@ namespace PetCenterAPI.Service
             return new ReadMedicalRecordDTO
             {
                 RecordId = record.RecordId,
-               // AppointmentId = record.AppointmentId,
+                AppointmentId = record.AppointmentId,
+                CustomerId = record.Appointment?.CustomerId ?? Guid.Empty,
+                DiseaseId = record.DiseaseId,
+                DiseaseNameSnapshot = record.DiseaseNameSnapshot,
                 Diagnosis = record.Diagnosis,
                 Treatment = record.Treatment,
                 Note = record.Note,
@@ -92,14 +95,27 @@ namespace PetCenterAPI.Service
 
         public async Task CreateAsync(CreateMedicalRecordDTO dto)
         {
+            string diseaseName = "";
+            if (dto.DiseaseId.HasValue)
+            {
+                var disease = await _repo.GetDiseaseByIdAsync(dto.DiseaseId.Value);
+                diseaseName = disease?.Name ?? "Unknown Disease";
+            }
+            else
+            {
+                diseaseName = dto.CustomDiseaseName ?? "General Checkup";
+            }
+
             var record = new MedicalRecord
             {
                 RecordId = Guid.NewGuid(),
                 AppointmentId = dto.AppointmentId,
+                DiseaseId = dto.DiseaseId,
+                DiseaseNameSnapshot = diseaseName,
                 Diagnosis = dto.Diagnosis,
                 Treatment = dto.Treatment,
                 Note = dto.Note,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 Status = (int)MedicalRecordStatus.Drafted
             };
 
@@ -111,9 +127,22 @@ namespace PetCenterAPI.Service
             var record = await _repo.GetByIdAsync(id)
                 ?? throw new Exception("Medical record not found");
 
-            if (record.Status == (int)MedicalRecordStatus.Completed)
-                throw new InvalidOperationException("Cannot update a completed medical record");
+            if (record.Status != (int)MedicalRecordStatus.Drafted)
+                throw new InvalidOperationException("Cannot update a medical record that is not in Drafted status");
 
+            string diseaseName = "";
+            if (dto.DiseaseId.HasValue)
+            {
+                var disease = await _repo.GetDiseaseByIdAsync(dto.DiseaseId.Value);
+                diseaseName = disease?.Name ?? "Unknown Disease";
+            }
+            else
+            {
+                diseaseName = dto.CustomDiseaseName ?? "General Checkup";
+            }
+
+            record.DiseaseId = dto.DiseaseId;
+            record.DiseaseNameSnapshot = diseaseName;
             record.Diagnosis = dto.Diagnosis;
             record.Treatment = dto.Treatment;
             record.Note = dto.Note;
@@ -143,7 +172,10 @@ namespace PetCenterAPI.Service
             return new ReadMedicalRecordListDTO
             {
                 RecordId = r.RecordId,
-               // AppointmentId = r.AppointmentId,
+                AppointmentId = r.AppointmentId,
+                CustomerId = r.Appointment?.CustomerId ?? Guid.Empty,
+                DiseaseId = r.DiseaseId,
+                DiseaseNameSnapshot = r.DiseaseNameSnapshot,
                 Diagnosis = r.Diagnosis,
                 Treatment = r.Treatment,
                 Note = r.Note,
@@ -156,6 +188,19 @@ namespace PetCenterAPI.Service
                 PetBreed = snapshot?.Breed ?? "-",
                 VetName = snapshot?.VetName ?? "-"
             };
+        }
+
+        public async Task<IEnumerable<ReadDiseaseDTO>> GetActiveDiseasesAsync(int? species)
+        {
+            var list = await _repo.GetActiveDiseasesAsync(species);
+            return list.Select(d => new ReadDiseaseDTO
+            {
+                DiseaseId = d.DiseaseId,
+                Name = d.Name,
+                Description = d.Description,
+                Recommendation = d.Recommendation,
+                Species = d.Species
+            });
         }
 
         private static string GetStatusName(int? status) => status switch

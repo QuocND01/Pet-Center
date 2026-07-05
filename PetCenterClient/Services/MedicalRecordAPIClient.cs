@@ -67,6 +67,8 @@ namespace PetCenterClient.Services
             var json = JsonSerializer.Serialize(new
             {
                 model.AppointmentId,
+                model.DiseaseId,
+                model.CustomDiseaseName,
                 model.Diagnosis,
                 model.Treatment,
                 model.Note
@@ -83,6 +85,8 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
             var json = JsonSerializer.Serialize(new
             {
+                model.DiseaseId,
+                model.CustomDiseaseName,
                 model.Diagnosis,
                 model.Treatment,
                 model.Note
@@ -102,6 +106,14 @@ namespace PetCenterClient.Services
                 new StringContent(json, Encoding.UTF8, "application/json"));
 
             response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<IEnumerable<ReadDiseaseViewModel>> GetDiseasesAsync(int? species)
+        {
+            var url = "api/MedicalRecords/diseases";
+            if (species.HasValue) url += $"?species={species.Value}";
+            return await _http.GetFromJsonAsync<IEnumerable<ReadDiseaseViewModel>>(url, _jsonOptions)
+                ?? Enumerable.Empty<ReadDiseaseViewModel>();
         }
 
         private void AddAuthorizationHeader()
