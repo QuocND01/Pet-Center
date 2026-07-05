@@ -13,5 +13,6 @@ namespace PetCenterAPI.Service.Interface
         Task CreateAsync(CreateMedicalRecordDTO dto);
         Task UpdateAsync(Guid id, UpdateMedicalRecordDTO dto);
         Task ChangeStatusAsync(Guid id, MedicalRecordStatus status);
+        Task<IEnumerable<ReadDiseaseDTO>> GetActiveDiseasesAsync(int? species);
     }
 }

@@ -9,6 +9,11 @@ namespace PetCenterAPI.DTOs.Requests.MedicalRecord
             [Required]
             public Guid AppointmentId { get; set; }
 
+            public Guid? DiseaseId { get; set; }
+
+            [MaxLength(200)]
+            public string? CustomDiseaseName { get; set; }
+
             [Required]
             [MaxLength(500)]
             public string Diagnosis { get; set; } = null!;
@@ -23,6 +28,11 @@ namespace PetCenterAPI.DTOs.Requests.MedicalRecord
 
         public class UpdateMedicalRecordDTO
         {
+            public Guid? DiseaseId { get; set; }
+
+            [MaxLength(200)]
+            public string? CustomDiseaseName { get; set; }
+
             [Required]
             [MaxLength(500)]
             public string Diagnosis { get; set; } = null!;

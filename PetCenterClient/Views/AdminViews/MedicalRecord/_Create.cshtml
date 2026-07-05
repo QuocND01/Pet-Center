@@ -26,7 +26,7 @@
                     {
                         foreach (var a in (IEnumerable<CompletedAppointmentViewModel>)ViewBag.CompletedAppointments)
                         {
-                            <option value="@a.AppointmentId">@a.DisplayText</option>
+                            <option value="@a.AppointmentId" data-species="@(a.PetSpecies.ToLower().Contains("dog") ? 1 : a.PetSpecies.ToLower().Contains("cat") ? 2 : 0)">@a.DisplayText</option>
                         }
                     }
                 </select>
@@ -36,6 +36,27 @@
 
         <div class="section-card">
             <div class="section-title">Medical Information</div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Disease</label>
+                <select asp-for="DiseaseId" class="form-select" id="diseaseSelect">
+                    <option value="">-- Other / Custom Disease --</option>
+                    @if (ViewBag.Diseases != null)
+                    {
+                        foreach (var d in (IEnumerable<ReadDiseaseViewModel>)ViewBag.Diseases)
+                        {
+                            <option value="@d.DiseaseId" data-species="@d.Species" data-rec="@d.Recommendation">@d.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3" id="customDiseaseGroup">
+                <label asp-for="CustomDiseaseName" class="form-label fw-semibold">Custom Disease Name</label>
+                <input asp-for="CustomDiseaseName" class="form-control" placeholder="Enter custom disease name..." />
+                <span asp-validation-for="CustomDiseaseName" class="text-danger"></span>
+            </div>
+
             <div class="mb-3">
                 <label asp-for="Diagnosis" class="form-label fw-semibold">
                     Diagnosis <span class="text-danger">*</span>
@@ -43,6 +64,7 @@
                 <textarea asp-for="Diagnosis" class="form-control" placeholder="Enter diagnosis..."></textarea>
                 <span asp-validation-for="Diagnosis" class="text-danger"></span>
             </div>
+            
             <div class="mb-3">
                 <label asp-for="Treatment" class="form-label fw-semibold">
                     Treatment <span class="text-danger">*</span>
@@ -50,6 +72,7 @@
                 <textarea asp-for="Treatment" class="form-control" placeholder="Enter treatment plan..."></textarea>
                 <span asp-validation-for="Treatment" class="text-danger"></span>
             </div>
+            
             <div class="mb-3">
                 <label asp-for="Note" class="form-label fw-semibold">Note</label>
                 <textarea asp-for="Note" class="form-control" placeholder="Additional notes (optional)..."></textarea>
@@ -65,6 +88,55 @@
     </form>
 </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+<script>
+$(document).ready(function() {
+    var $appSelect = $('#AppointmentId');
+    var $diseaseSelect = $('#diseaseSelect');
+    var $customDiseaseGroup = $('#customDiseaseGroup');
+    var $treatment = $('#Treatment');
+
+    function filterDiseases() {
+        var selectedApp = $appSelect.find('option:selected');
+        var species = selectedApp.data('species');
+
+        $diseaseSelect.find('option').each(function() {
+            var $opt = $(this);
+            var optSpecies = $opt.data('species');
+            
+            if (!optSpecies || !species || optSpecies == species) {
+                $opt.show();
+            } else {
+                $opt.hide();
+            }
+        });
+
+        var selectedDisease = $diseaseSelect.find('option:selected');
+        if (selectedDisease.css('display') === 'none') {
+            $diseaseSelect.val('');
+            $customDiseaseGroup.show();
+        }
+    }
+
+    function handleDiseaseChange() {
+        var selectedDisease = $diseaseSelect.find('option:selected');
+        var rec = selectedDisease.data('rec');
+        var val = $diseaseSelect.val();
+
+        if (val) {
+            $customDiseaseGroup.hide();
+            $('#CustomDiseaseName').val('');
+            if (rec) {
+                $treatment.val(rec);
+            }
+        } else {
+            $customDiseaseGroup.show();
+        }
+    }
+
+    $appSelect.on('change', filterDiseases);
+    $diseaseSelect.on('change', handleDiseaseChange);
+
+    filterDiseases();
+    handleDiseaseChange();
+});
+</script>

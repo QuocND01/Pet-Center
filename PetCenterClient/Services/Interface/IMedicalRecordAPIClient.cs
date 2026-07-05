@@ -13,5 +13,6 @@ namespace PetCenterClient.Services.Interface
         Task CreateAsync(CreateMedicalRecordViewModel model);
         Task UpdateAsync(Guid id, UpdateMedicalRecordViewModel model);
         Task ChangeStatusAsync(Guid id, int status);
+        Task<IEnumerable<ReadDiseaseViewModel>> GetDiseasesAsync(int? species);
     }
 }

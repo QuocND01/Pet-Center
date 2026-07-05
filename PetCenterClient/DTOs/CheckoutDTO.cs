@@ -1,4 +1,4 @@
-﻿namespace PetCenterClient.DTOs
+namespace PetCenterClient.DTOs
 {
     public class CheckoutRequestDTO
     {
@@ -66,6 +66,7 @@
         public List<AddressResponseDTO> Addresses { get; set; } = new();
         public List<CustomerVoucherDTO> AvailableVouchers { get; set; } = new();
         public Guid CustomerId { get; set; }
+        public string? PhoneNumber { get; set; }
         public decimal SubTotal => SelectedItems.Sum(i => i.SubTotal);
     }
 
