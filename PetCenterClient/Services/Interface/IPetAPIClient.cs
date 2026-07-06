@@ -24,5 +24,9 @@ namespace PetCenterClient.Services.Interface
         Task<List<ReadVetPetListViewModel>?> GetAllPetsForVetAsync(string query = "");
 
         Task<ReadVetPetDetailViewModel?> GetPetDetailsForVetAsync(Guid id);
+
+        Task<bool> AddPetForVetAsync(Guid customerId, MutatePetViewModel dto);
+        Task<bool> UpdatePetForVetAsync(Guid id, MutatePetViewModel dto);
+        Task<bool> DeletePetForVetAsync(Guid id);
     }
 }

@@ -83,5 +83,26 @@ namespace PetCenterClient.Services
             var res = await _http.GetAsync($"api/vet/pets/{id}");
             return res.IsSuccessStatusCode ? await res.Content.ReadFromJsonAsync<ReadVetPetDetailViewModel>() : null;
         }
+
+        public async Task<bool> AddPetForVetAsync(Guid customerId, MutatePetViewModel dto)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.PostAsJsonAsync($"api/vet/pets/add-for-customer/{customerId}", dto);
+            return res.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> UpdatePetForVetAsync(Guid id, MutatePetViewModel dto)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.PutAsJsonAsync($"api/vet/pets/{id}", dto);
+            return res.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> DeletePetForVetAsync(Guid id)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.DeleteAsync($"api/vet/pets/{id}");
+            return res.IsSuccessStatusCode;
+        }
     }
 }
