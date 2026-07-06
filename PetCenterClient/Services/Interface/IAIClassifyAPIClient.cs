@@ -2,7 +2,7 @@
 
 namespace PetCenterClient.Services.Interface
 {
-    public interface IAIClassifyService
+    public interface IAIClassifyAPIClient
     {
         Task<AIResultViewModel?> ClassifyAsync(IFormFile image);
     }

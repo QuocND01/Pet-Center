@@ -17,6 +17,7 @@ namespace PetCenterAPI.DTOs.Responses.Category
             public string CategoryName { get; set; } = null!;
 
             public IFormFile? CategoryLogo { get; set; }
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? CategoryDescription { get; set; }
             public Status Status { get; set; }
             public List<CreateCategoryAttributeDTO>? Attributes { get; set; }
@@ -31,6 +32,7 @@ namespace PetCenterAPI.DTOs.Responses.Category
             public string CategoryName { get; set; } = null!;
 
             public IFormFile? CategoryLogo { get; set; }
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? CategoryDescription { get; set; }
 
             public List<UpdateCategoryAttributeDTO>? Attributes { get; set; }

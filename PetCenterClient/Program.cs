@@ -30,6 +30,10 @@ builder.Services.AddHttpClient<ICategoryAPIClient, CategoryAPIClient>(client =>
     client.BaseAddress = new Uri(apiUrl);
 });
 
+builder.Services.AddHttpClient<IAIClassifyAPIClient, AIClassifyAPIClient>(client =>
+{
+    client.BaseAddress = new Uri("http://127.0.0.1:5000/");
+});
 
 builder.Services.AddHttpClient<IServiceAPIClient, ServiceAPIClient>(client =>
 {

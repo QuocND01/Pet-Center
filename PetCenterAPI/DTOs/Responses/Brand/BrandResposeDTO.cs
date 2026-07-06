@@ -14,6 +14,7 @@ namespace PetCenterAPI.DTOs.Responses.Brand
             [RegularExpression(@"^[a-zA-Z0-9\s]+$",
                ErrorMessage = "Brand name cannot contain special characters")]
             public string BrandName { get; set; } = null!;
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? BrandDescription { get; set; }
             public IFormFile? BrandLogo { get; set; }
         }
@@ -25,6 +26,7 @@ namespace PetCenterAPI.DTOs.Responses.Brand
             [RegularExpression(@"^[a-zA-Z0-9\s]+$",
                ErrorMessage = "Brand name cannot contain special characters")]
             public string BrandName { get; set; } = null!;
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? BrandDescription { get; set; }
 
             public IFormFile? BrandLogo { get; set; }

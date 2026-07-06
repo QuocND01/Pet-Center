@@ -4,11 +4,11 @@ using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
 {
-    public class AIClassifyService : IAIClassifyService
+    public class AIClassifyAPIClient : IAIClassifyAPIClient
     {
         private readonly HttpClient _httpClient;
 
-        public AIClassifyService(HttpClient httpClient)
+        public AIClassifyAPIClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
@@ -25,8 +25,7 @@ namespace PetCenterClient.Services
                 new MediaTypeHeaderValue(image.ContentType);
 
             form.Add(content, "file", image.FileName);
-
-            var response = await _httpClient.PostAsync("http://127.0.0.1:5000/predict", form);
+            var response = await _httpClient.PostAsync("predict", form);
 
             response.EnsureSuccessStatusCode();
 

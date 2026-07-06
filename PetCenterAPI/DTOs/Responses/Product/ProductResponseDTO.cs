@@ -51,10 +51,10 @@ namespace PetCenterAPI.DTOs.Responses.Product
 
 
             [Required(ErrorMessage = "Brand is required")]
-            public Guid BrandId { get; set; }
+            public Guid? BrandId { get; set; }
 
             [Required(ErrorMessage = "Category is required")]
-            public Guid CategoryId { get; set; }
+            public Guid? CategoryId { get; set; }
 
             public List<IFormFile>? ImageFiles { get; set; }
 

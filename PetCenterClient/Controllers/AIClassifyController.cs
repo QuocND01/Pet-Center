@@ -1,16 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels.AI;
+using static PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel;
 
 namespace PetCenterClient.Controllers
 {
     public class AIClassifyController : Controller
     {
-        private readonly IAIClassifyService _aIClassifyService;
+        private readonly IAIClassifyAPIClient _aIClassifyService;
 
-        public AIClassifyController(IAIClassifyService aIClassifyService)
+        public AIClassifyController(IAIClassifyAPIClient aIClassifyService)
         {
             _aIClassifyService = aIClassifyService;
-           
+
+        }
+
+        public IActionResult ClassifyAI()
+        {
+            return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml");
         }
 
         [HttpPost]
@@ -19,7 +27,7 @@ namespace PetCenterClient.Controllers
             if (image == null || image.Length == 0)
             {
                 ModelState.AddModelError("", "Please select an image.");
-                return View("Index");
+                return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml");
             }
 
             var result = await _aIClassifyService.ClassifyAsync(image);
@@ -27,24 +35,17 @@ namespace PetCenterClient.Controllers
             if (result == null)
             {
                 ModelState.AddModelError("", "Unable to classify image.");
-                return View("Index");
+                return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml");
             }
 
-            //var disease = await _diseaseService.GetByNameAsync(result.DiseaseName);
+            if (AIDiseaseData.Diseases.TryGetValue(result.DiseaseName, out var diseaseInfo))
+            {
+                result.Description = diseaseInfo.Diagnosis;
+                result.Recommendation = diseaseInfo.Treatment;
+            }
 
-            //if (disease != null)
-            //{
-            //    result.Description = disease.Description;
-            //    result.Recommendation = disease.Recommendation;
-            //    result.DiseaseId = disease.DiseaseId;
-            //}
-            //else
-            //{
-            //    result.Description = "No description available.";
-            //    result.Recommendation = "Please consult a veterinarian.";
-            //}
-
-            return View("Index", result);
+            return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml", result);
         }
     }
-}
+
+    }
