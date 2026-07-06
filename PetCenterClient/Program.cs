@@ -96,6 +96,10 @@ builder.Services.AddHttpClient<IFeedbackApiService, FeedbackApiService>(client =
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+builder.Services.AddHttpClient<IPetAPIClient, PetAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 builder.Services.AddHttpClient<InventoryApiService>();
 
 
