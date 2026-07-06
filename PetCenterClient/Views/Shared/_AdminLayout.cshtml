@@ -522,6 +522,11 @@
             @if (isVet || isAdmin)
             {
                 <div class="sb-section-label">Clinic</div>
+
+                <a asp-controller="VetPets" asp-action="Index" class="sb-link">
+                    <i class="bi bi-paw"></i> Pet Directory
+                </a>
+
                 <a asp-controller="MedicalRecord" asp-action="Index" class="sb-link">
                     <i class="bi bi-journal-medical"></i> Medical Records
                 </a>

@@ -1,0 +1,100 @@
+﻿@using PetCenterClient.DTOs
+@model IEnumerable<ReadVetPetListViewModel>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml"; // Dùng layout của Admin
+    ViewData["Title"] = "Pet Directory";
+}
+
+<div class="container-fluid py-4">
+    <h3 class="fw-bold mb-4">🐾 Pet Directory (Clinic Patients)</h3>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Pet Info</th>
+                        <th>Species & Breed</th>
+                        <th>Gender/Age</th>
+                        <th>Owner Info</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var pet in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div style="width:45px; height:45px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                            @if (!string.IsNullOrEmpty(pet.PetAvatar))
+                                            {
+                                                <img src="@pet.PetAvatar" style="width:100%; height:100%; object-fit:cover;" />
+                                            }
+                                            else
+                                            {
+                                                <span class="fs-5">@(pet.Species.ToLower() == "cat" ? "🐱" : "🐶")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@pet.Breed</div>
+                                    <small class="text-muted">@pet.Species</small>
+                                </td>
+                                <td>
+                                    <div>@pet.Gender</div>
+                                    <span class="badge bg-secondary">@pet.Age</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">👤 @pet.OwnerName</div>
+                                    <small class="text-muted">📞 @pet.OwnerPhone</small>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary btn-view-vet-pet" data-id="@pet.PetId">
+                                        View Medical Profile
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center py-4 text-muted">No pets registered in the clinic yet.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="vetPetDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border:none;">
+            <div class="modal-body p-0" id="vetPetModalBody">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("click", function (e) {
+        var btnView = e.target.closest(".btn-view-vet-pet");
+        if (btnView) {
+            var petId = btnView.getAttribute("data-id");
+            var modalBody = document.getElementById("vetPetModalBody");
+            var modal = new bootstrap.Modal(document.getElementById('vetPetDetailModal'));
+
+            modalBody.innerHTML = "<div class='text-center py-5'><div class='spinner-border text-primary'></div><p class='mt-2'>Loading medical profile...</p></div>";
+            modal.show();
+
+            fetch('/VetPets/Details/' + petId)
+                .then(response => response.text())
+                .then(html => { modalBody.innerHTML = html; })
+                .catch(err => { modalBody.innerHTML = "<div class='text-center text-danger py-5'>Failed to load data.</div>"; });
+        }
+    });
+</script>
