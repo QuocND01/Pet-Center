@@ -22,5 +22,21 @@ namespace PetCenterAPI.Repository
             return await _db.Pets
                 .FirstOrDefaultAsync(p => p.PetId == petId && p.CustomerId == customerId && p.IsActive == true);
         }
+
+        public async Task<List<Pet>> GetAllPetsWithOwnersAsync()
+        {
+            return await _db.Pets
+                .Include(p => p.Customer) // Join bảng Customer để lấy tên & sđt chủ
+                .Where(p => p.IsActive == true)
+                .OrderByDescending(p => p.DateOfBirth)
+                .ToListAsync();
+        }
+
+        public async Task<Pet?> GetPetByIdWithOwnerAsync(Guid petId)
+        {
+            return await _db.Pets
+                .Include(p => p.Customer)
+                .FirstOrDefaultAsync(p => p.PetId == petId && p.IsActive == true);
+        }
     }
 }

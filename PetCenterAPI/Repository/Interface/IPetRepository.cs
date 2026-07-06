@@ -6,5 +6,8 @@ namespace PetCenterAPI.Repository.Interface
     {
         Task<List<Pet>> GetPetsByCustomerIdAsync(Guid customerId);
         Task<Pet?> GetPetByIdAsync(Guid petId, Guid customerId);
+
+        Task<List<Pet>> GetAllPetsWithOwnersAsync();
+        Task<Pet?> GetPetByIdWithOwnerAsync(Guid petId);
     }
 }

@@ -1,4 +1,5 @@
-﻿using PetCenterAPI.Repository.Interface;
+﻿using PetCenterAPI.DTOs.Requests;
+using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
 using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
 
@@ -50,6 +51,42 @@ namespace PetCenterAPI.Service
                 PetAvatar = p.PetAvatar,
                 Age = CalculateAge(p.DateOfBirth),
                 IsActive = p.IsActive ?? true,
+                Weight = p.Weight,
+                Note = p.Note,
+                DateOfBirth = p.DateOfBirth
+            };
+        }
+        public async Task<List<VetPetRequestDTO.ReadVetPetListDTO>> GetAllPetsForVetAsync()
+        {
+            var pets = await _petRepository.GetAllPetsWithOwnersAsync();
+            return pets.Select(p => new VetPetRequestDTO.ReadVetPetListDTO
+            {
+                PetId = p.PetId,
+                Species = p.Species ?? "Unknown",
+                Breed = p.Breed ?? "Unknown",
+                Gender = p.Gender ?? "Unknown",
+                Age = CalculateAge(p.DateOfBirth),
+                PetAvatar = p.PetAvatar,
+                OwnerName = p.Customer?.FullName ?? "Unknown",
+                OwnerPhone = p.Customer?.PhoneNumber ?? "Unknown"
+            }).ToList();
+        }
+
+        public async Task<VetPetRequestDTO.ReadVetPetDetailDTO?> GetPetDetailForVetAsync(Guid petId)
+        {
+            var p = await _petRepository.GetPetByIdWithOwnerAsync(petId);
+            if (p == null) return null;
+
+            return new VetPetRequestDTO.ReadVetPetDetailDTO
+            {
+                PetId = p.PetId,
+                Species = p.Species ?? "Unknown",
+                Breed = p.Breed ?? "Unknown",
+                Gender = p.Gender ?? "Unknown",
+                Age = CalculateAge(p.DateOfBirth),
+                PetAvatar = p.PetAvatar,
+                OwnerName = p.Customer?.FullName ?? "Unknown",
+                OwnerPhone = p.Customer?.PhoneNumber ?? "Unknown",
                 Weight = p.Weight,
                 Note = p.Note,
                 DateOfBirth = p.DateOfBirth
