@@ -1,0 +1,99 @@
+﻿@using PetCenterClient.DTOs
+@model IEnumerable<ReadPetListViewModel>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Pets";
+}
+
+<style>
+    .pet-card { border-radius: 20px; border: 1px solid var(--border); background: #fff; overflow: hidden; transition: .2s; }
+    .pet-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-color: var(--green); }
+    .pet-avatar-wrapper { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+    .pet-avatar { width: 100%; height: 100%; object-fit: cover; }
+    .pet-emoji { font-size: 60px; }
+    .pet-info { padding: 20px; }
+    .pet-tag { background: #dcfce7; color: var(--green-dark); padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+</style>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="font-family: 'Segoe UI', sans-serif;">My Pets 🐾</h2>
+            <p class="text-muted">View and manage your furry friends' profiles.</p>
+        </div>
+        <button class="btn btn-primary" style="background:#2ecc71; border:none;">+ Add New Pet</button>
+    </div>
+
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var pet in Model)
+            {
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="pet-card">
+                        <div class="pet-avatar-wrapper">
+                            @if (!string.IsNullOrEmpty(pet.PetAvatar))
+                            {
+                                <img src="@pet.PetAvatar" class="pet-avatar" alt="@pet.Breed" />
+                            }
+                            else
+                            {
+                                <span class="pet-emoji">@(pet.Species.ToLower() == "cat" ? "🐱" : "🐶")</span>
+                            }
+                        </div>
+                        <div class="pet-info text-center">
+                            <h5 class="fw-bold mb-1">@pet.Breed</h5>
+                            <div class="d-flex justify-content-center gap-2 mb-3">
+                                <span class="pet-tag">@pet.Gender</span>
+                                <span class="pet-tag" style="background:#f1f5f9; color:#475569;">@pet.Age</span>
+                            </div>
+                            <button class="btn btn-outline-dark w-100 btn-view-pet" data-id="@pet.PetId">
+                                View Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-heart fs-1 d-block mb-3"></i>
+                <h5>You haven't added any pets yet.</h5>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="petDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; overflow: hidden; border:none;">
+            <div class="modal-body p-0" id="petModalBody">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("click", function (e) {
+        var btnView = e.target.closest(".btn-view-pet");
+        if (btnView) {
+            var petId = btnView.getAttribute("data-id");
+            var modalBody = document.getElementById("petModalBody");
+            var modal = new bootstrap.Modal(document.getElementById('petDetailModal'));
+
+            modalBody.innerHTML = "<div class='text-center py-5'><div class='spinner-border text-success'></div><p class='mt-2'>Loading profile...</p></div>";
+            modal.show();
+
+            fetch('/Pets/Details/' + petId)
+                .then(response => response.text())
+                .then(html => {
+                    modalBody.innerHTML = html;
+                })
+                .catch(err => {
+                    modalBody.innerHTML = "<div class='text-center text-danger py-5'>Failed to load pet details.</div>";
+                });
+        }
+    });
+</script>
