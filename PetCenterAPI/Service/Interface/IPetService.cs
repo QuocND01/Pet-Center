@@ -5,9 +5,14 @@ namespace PetCenterAPI.Service.Interface
 {
     public interface IPetService
     {
-        Task<List<ReadPetListDTO>> GetMyPetsAsync(Guid customerId);
+        IQueryable<ReadPetListDTO> GetMyPetsQuery(Guid customerId);
         Task<ReadPetDetailDTO?> GetPetDetailsAsync(Guid petId, Guid customerId);
-        Task<List<VetPetRequestDTO.ReadVetPetListDTO>> GetAllPetsForVetAsync();
+
+        IQueryable<VetPetRequestDTO.ReadVetPetListDTO> GetAllPetsForVetQuery();
         Task<VetPetRequestDTO.ReadVetPetDetailDTO?> GetPetDetailForVetAsync(Guid petId);
+
+        Task<bool> AddPetAsync(Guid customerId, MutatePetDTO dto);
+        Task<bool> UpdatePetAsync(Guid petId, Guid customerId, MutatePetDTO dto, bool isVet);
+        Task<bool> DeletePetAsync(Guid petId, Guid customerId, bool isVet);
     }
 }

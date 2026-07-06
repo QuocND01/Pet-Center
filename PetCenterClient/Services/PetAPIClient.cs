@@ -1,5 +1,5 @@
-﻿using PetCenterClient.DTOs;
-using PetCenterClient.Services.Interface;
+﻿using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels;
 
 namespace PetCenterClient.Services
 {
@@ -21,11 +21,18 @@ namespace PetCenterClient.Services
                 _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
 
-        public async Task<List<ReadPetListViewModel>?> GetMyPetsAsync()
+        // Truyền thêm string query để xài OData Search
+        public async Task<List<ReadPetListViewModel>?> GetMyPetsAsync(string query = "")
         {
             AddAuthorizationHeader();
-            var res = await _http.GetAsync("api/Pets/my-pets");
-            return res.IsSuccessStatusCode ? await res.Content.ReadFromJsonAsync<List<ReadPetListViewModel>>() : null;
+            var res = await _http.GetAsync($"api/Pets/my-pets{query}");
+            if (res.IsSuccessStatusCode)
+            {
+                // Dùng ODataResponse để bóc vỏ lấy danh sách
+                var odataRes = await res.Content.ReadFromJsonAsync<ODataResponse<ReadPetListViewModel>>();
+                return odataRes?.Value;
+            }
+            return null;
         }
 
         public async Task<ReadPetDetailViewModel?> GetPetDetailsAsync(Guid id)
@@ -35,11 +42,39 @@ namespace PetCenterClient.Services
             return res.IsSuccessStatusCode ? await res.Content.ReadFromJsonAsync<ReadPetDetailViewModel>() : null;
         }
 
-        public async Task<List<ReadVetPetListViewModel>?> GetAllPetsForVetAsync()
+        // ================= CRUD CỦA CUSTOMER =================
+        public async Task<bool> AddPetAsync(MutatePetViewModel dto)
         {
             AddAuthorizationHeader();
-            var res = await _http.GetAsync("api/vet/pets");
-            return res.IsSuccessStatusCode ? await res.Content.ReadFromJsonAsync<List<ReadVetPetListViewModel>>() : null;
+            var res = await _http.PostAsJsonAsync("api/Pets", dto);
+            return res.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> UpdatePetAsync(Guid id, MutatePetViewModel dto)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.PutAsJsonAsync($"api/Pets/{id}", dto);
+            return res.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> DeletePetAsync(Guid id)
+        {
+            AddAuthorizationHeader();
+            var res = await _http.DeleteAsync($"api/Pets/{id}");
+            return res.IsSuccessStatusCode;
+        }
+
+        // ================= GET CỦA VET =================
+        public async Task<List<ReadVetPetListViewModel>?> GetAllPetsForVetAsync(string query = "")
+        {
+            AddAuthorizationHeader();
+            var res = await _http.GetAsync($"api/vet/pets{query}");
+            if (res.IsSuccessStatusCode)
+            {
+                var odataRes = await res.Content.ReadFromJsonAsync<ODataResponse<ReadVetPetListViewModel>>();
+                return odataRes?.Value;
+            }
+            return null;
         }
 
         public async Task<ReadVetPetDetailViewModel?> GetPetDetailsForVetAsync(Guid id)

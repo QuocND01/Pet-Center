@@ -38,5 +38,21 @@ namespace PetCenterAPI.Repository
                 .Include(p => p.Customer)
                 .FirstOrDefaultAsync(p => p.PetId == petId && p.IsActive == true);
         }
+
+        public async Task AddPetAsync(Pet pet)
+        {
+            await _db.Pets.AddAsync(pet);
+        }
+
+        public Task UpdatePetAsync(Pet pet)
+        {
+            _db.Pets.Update(pet);
+            return Task.CompletedTask;
+        }
+
+        public async Task SaveAsync()
+        {
+            await _db.SaveChangesAsync();
+        }
     }
 }

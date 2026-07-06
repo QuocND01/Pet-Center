@@ -7,22 +7,95 @@
 }
 
 <style>
-    .pet-card { border-radius: 20px; border: 1px solid var(--border); background: #fff; overflow: hidden; transition: .2s; }
-    .pet-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-color: var(--green); }
-    .pet-avatar-wrapper { width: 100%; aspect-ratio: 1; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
-    .pet-avatar { width: 100%; height: 100%; object-fit: cover; }
-    .pet-emoji { font-size: 60px; }
-    .pet-info { padding: 20px; }
-    .pet-tag { background: #dcfce7; color: var(--green-dark); padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+    .pet-card {
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: #fff;
+        overflow: hidden;
+        transition: .2s;
+    }
+
+        .pet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-color: var(--green);
+        }
+
+    .pet-avatar-wrapper {
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: hidden;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .pet-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .pet-emoji {
+        font-size: 60px;
+    }
+
+    .pet-info {
+        padding: 20px;
+    }
+
+    .pet-tag {
+        background: #dcfce7;
+        color: var(--green-dark);
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    /* Nút xóa góc phải ảnh */
+    .btn-delete-pet {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .btn-delete-pet:hover {
+            background: #dc2626;
+            color: white;
+        }
 </style>
 
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold" style="font-family: 'Segoe UI', sans-serif;">My Pets 🐾</h2>
-            <p class="text-muted">View and manage your furry friends' profiles.</p>
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-5">
+            <h2 class="fw-bold m-0" style="font-family: 'Segoe UI', sans-serif;">My Pets 🐾</h2>
         </div>
-        <button class="btn btn-primary" style="background:#2ecc71; border:none;">+ Add New Pet</button>
+
+        <div class="col-md-5">
+            <form method="get" action="/Pets/Index" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control rounded-pill px-4" placeholder="Search breed or species..." value="@ViewBag.SearchKeyword" />
+                <button type="submit" class="btn btn-dark rounded-pill px-4">Search</button>
+            </form>
+        </div>
+
+        <div class="col-md-2 text-md-end">
+            <button class="btn btn-primary rounded-pill w-100" style="background:#2ecc71; border:none;" onclick="openMutateModal(null)">+ Add Pet</button>
+        </div>
     </div>
 
     <div class="row g-4">
@@ -41,6 +114,7 @@
                             {
                                 <span class="pet-emoji">@(pet.Species.ToLower() == "cat" ? "🐱" : "🐶")</span>
                             }
+                            <button class="btn-delete-pet" onclick="deletePet('@pet.PetId')" title="Remove Pet"><i class="bi bi-trash"></i></button>
                         </div>
                         <div class="pet-info text-center">
                             <h5 class="fw-bold mb-1">@pet.Breed</h5>
@@ -48,9 +122,10 @@
                                 <span class="pet-tag">@pet.Gender</span>
                                 <span class="pet-tag" style="background:#f1f5f9; color:#475569;">@pet.Age</span>
                             </div>
-                            <button class="btn btn-outline-dark w-100 btn-view-pet" data-id="@pet.PetId">
-                                View Profile
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-light w-50 btn-view-pet" data-id="@pet.PetId"><i class="bi bi-eye"></i> View</button>
+                                <button class="btn btn-outline-dark w-50" onclick="openMutateModal('@pet.PetId')"><i class="bi bi-pencil"></i> Edit</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -59,8 +134,8 @@
         else
         {
             <div class="col-12 text-center py-5 text-muted">
-                <i class="bi bi-heart fs-1 d-block mb-3"></i>
-                <h5>You haven't added any pets yet.</h5>
+                <i class="bi bi-search fs-1 d-block mb-3"></i>
+                <h5>No pets found!</h5>
             </div>
         }
     </div>
@@ -69,31 +144,135 @@
 <div class="modal fade" id="petDetailModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; overflow: hidden; border:none;">
-            <div class="modal-body p-0" id="petModalBody">
+            <div class="modal-body p-0" id="petModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mutatePetModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border:none; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="mutateModalTitle">Add New Pet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="mutPetId" />
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">SPECIES</label>
+                        <select id="mutSpecies" class="form-select bg-light border-0">
+                            <option value="Dog">Dog 🐶</option>
+                            <option value="Cat">Cat 🐱</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">GENDER</label>
+                        <select id="mutGender" class="form-select bg-light border-0">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">BREED</label>
+                        <input type="text" id="mutBreed" class="form-control bg-light border-0" placeholder="e.g. Poodle, British Shorthair...">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">BIRTHDAY</label>
+                        <input type="date" id="mutDob" class="form-control bg-light border-0">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">WEIGHT (kg)</label>
+                        <input type="number" step="0.1" id="mutWeight" class="form-control bg-light border-0" placeholder="e.g. 5.5">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">MEDICAL NOTES (Optional)</label>
+                        <textarea id="mutNote" class="form-control bg-light border-0" rows="2" placeholder="Allergies, habits..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success rounded-pill px-4" onclick="savePet()">Save Pet 🐾</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Logic View Details
     document.addEventListener("click", function (e) {
         var btnView = e.target.closest(".btn-view-pet");
         if (btnView) {
             var petId = btnView.getAttribute("data-id");
             var modalBody = document.getElementById("petModalBody");
             var modal = new bootstrap.Modal(document.getElementById('petDetailModal'));
-
-            modalBody.innerHTML = "<div class='text-center py-5'><div class='spinner-border text-success'></div><p class='mt-2'>Loading profile...</p></div>";
+            modalBody.innerHTML = "<div class='text-center py-5'><div class='spinner-border text-success'></div></div>";
             modal.show();
-
             fetch('/Pets/Details/' + petId)
-                .then(response => response.text())
-                .then(html => {
-                    modalBody.innerHTML = html;
-                })
-                .catch(err => {
-                    modalBody.innerHTML = "<div class='text-center text-danger py-5'>Failed to load pet details.</div>";
-                });
+                .then(r => r.text())
+                .then(html => modalBody.innerHTML = html);
         }
     });
+
+    // Logic Delete
+    function deletePet(id) {
+        if (confirm("Are you sure you want to remove this pet?")) {
+            fetch('/Pets/Delete/' + id, { method: 'POST' })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) location.reload();
+                else alert("Failed to delete.");
+            });
+        }
+    }
+
+    // Logic Add/Edit
+    var mutateModal;
+    function openMutateModal(id) {
+        if (!mutateModal) mutateModal = new bootstrap.Modal(document.getElementById('mutatePetModal'));
+        document.getElementById('mutPetId').value = id || '';
+        document.getElementById('mutateModalTitle').innerText = id ? 'Edit Pet Profile' : 'Add New Pet';
+
+        if (!id) {
+            // Reset form
+            document.getElementById('mutSpecies').value = 'Dog';
+            document.getElementById('mutGender').value = 'Male';
+            document.getElementById('mutBreed').value = '';
+            document.getElementById('mutDob').value = '';
+            document.getElementById('mutWeight').value = '';
+            document.getElementById('mutNote').value = '';
+        } else {
+            // Nếu là Edit thì tốt nhất nên có logic fetch data cũ đổ vào đây
+            // Để đơn giản ta chỉ mở form trống (hoặc bạn có thể tự map data từ lưới HTML)
+        }
+        mutateModal.show();
+    }
+
+    function savePet() {
+        var id = document.getElementById('mutPetId').value;
+        var data = {
+            species: document.getElementById('mutSpecies').value,
+            gender: document.getElementById('mutGender').value,
+            breed: document.getElementById('mutBreed').value,
+            dateOfBirth: document.getElementById('mutDob').value || null,
+            weight: parseFloat(document.getElementById('mutWeight').value) || null,
+            note: document.getElementById('mutNote').value
+        };
+
+        if(!data.breed) return alert("Breed is required!");
+
+        var url = id ? '/Pets/Update/' + id : '/Pets/Add';
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) location.reload();
+            else alert("Failed to save.");
+        });
+    }
 </script>

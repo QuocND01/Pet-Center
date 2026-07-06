@@ -8,7 +8,7 @@
             public string Species { get; set; } = null!;
             public string Breed { get; set; } = null!;
             public string Gender { get; set; } = null!;
-            public string Age { get; set; } = null!;
+            public DateOnly? DateOfBirth { get; set; }
             public string? PetAvatar { get; set; }
 
             // Thêm thông tin Chủ nhân cho Vet xem
