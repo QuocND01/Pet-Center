@@ -1,40 +1,36 @@
 ﻿using PetCenterAPI.DTOs.Requests;
+using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
 using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
 
 namespace PetCenterAPI.Service
 {
-
     public class PetService : IPetService
     {
         private readonly IPetRepository _petRepository;
+        private readonly PetCenterContext _db;
 
-        public PetService(IPetRepository petRepository)
+        public PetService(IPetRepository petRepository, PetCenterContext db)
         {
             _petRepository = petRepository;
+            _db = db;
         }
 
-        private string CalculateAge(DateOnly? dob)
+        public IQueryable<ReadPetListDTO> GetMyPetsQuery(Guid customerId)
         {
-            if (!dob.HasValue) return "Unknown";
-            var age = DateTime.Today.Year - dob.Value.Year;
-            return age > 0 ? $"{age} years" : "Under 1 year";
-        }
-
-        public async Task<List<ReadPetListDTO>> GetMyPetsAsync(Guid customerId)
-        {
-            var pets = await _petRepository.GetPetsByCustomerIdAsync(customerId);
-            return pets.Select(p => new ReadPetListDTO
-            {
-                PetId = p.PetId,
-                Species = p.Species ?? "Unknown",
-                Breed = p.Breed ?? "Unknown",
-                Gender = p.Gender ?? "Unknown",
-                PetAvatar = p.PetAvatar,
-                Age = CalculateAge(p.DateOfBirth),
-                IsActive = p.IsActive ?? true
-            }).ToList();
+            return _db.Pets
+                .Where(p => p.CustomerId == customerId && p.IsActive == true)
+                .Select(p => new ReadPetListDTO
+                {
+                    PetId = p.PetId,
+                    Species = p.Species ?? "Unknown",
+                    Breed = p.Breed ?? "Unknown",
+                    Gender = p.Gender ?? "Unknown",
+                    PetAvatar = p.PetAvatar,
+                    DateOfBirth = p.DateOfBirth,
+                    IsActive = p.IsActive ?? true
+                });
         }
 
         public async Task<ReadPetDetailDTO?> GetPetDetailsAsync(Guid petId, Guid customerId)
@@ -49,27 +45,28 @@ namespace PetCenterAPI.Service
                 Breed = p.Breed ?? "Unknown",
                 Gender = p.Gender ?? "Unknown",
                 PetAvatar = p.PetAvatar,
-                Age = CalculateAge(p.DateOfBirth),
+                DateOfBirth = p.DateOfBirth,
                 IsActive = p.IsActive ?? true,
                 Weight = p.Weight,
-                Note = p.Note,
-                DateOfBirth = p.DateOfBirth
+                Note = p.Note
             };
         }
-        public async Task<List<VetPetRequestDTO.ReadVetPetListDTO>> GetAllPetsForVetAsync()
+
+        public IQueryable<VetPetRequestDTO.ReadVetPetListDTO> GetAllPetsForVetQuery()
         {
-            var pets = await _petRepository.GetAllPetsWithOwnersAsync();
-            return pets.Select(p => new VetPetRequestDTO.ReadVetPetListDTO
-            {
-                PetId = p.PetId,
-                Species = p.Species ?? "Unknown",
-                Breed = p.Breed ?? "Unknown",
-                Gender = p.Gender ?? "Unknown",
-                Age = CalculateAge(p.DateOfBirth),
-                PetAvatar = p.PetAvatar,
-                OwnerName = p.Customer?.FullName ?? "Unknown",
-                OwnerPhone = p.Customer?.PhoneNumber ?? "Unknown"
-            }).ToList();
+            return _db.Pets
+                .Where(p => p.IsActive == true)
+                .Select(p => new VetPetRequestDTO.ReadVetPetListDTO
+                {
+                    PetId = p.PetId,
+                    Species = p.Species ?? "Unknown",
+                    Breed = p.Breed ?? "Unknown",
+                    Gender = p.Gender ?? "Unknown",
+                    PetAvatar = p.PetAvatar,
+                    DateOfBirth = p.DateOfBirth,
+                    OwnerName = p.Customer.FullName ?? "Unknown",
+                    OwnerPhone = p.Customer.PhoneNumber ?? "Unknown"
+                });
         }
 
         public async Task<VetPetRequestDTO.ReadVetPetDetailDTO?> GetPetDetailForVetAsync(Guid petId)
@@ -83,7 +80,6 @@ namespace PetCenterAPI.Service
                 Species = p.Species ?? "Unknown",
                 Breed = p.Breed ?? "Unknown",
                 Gender = p.Gender ?? "Unknown",
-                Age = CalculateAge(p.DateOfBirth),
                 PetAvatar = p.PetAvatar,
                 OwnerName = p.Customer?.FullName ?? "Unknown",
                 OwnerPhone = p.Customer?.PhoneNumber ?? "Unknown",
@@ -91,6 +87,57 @@ namespace PetCenterAPI.Service
                 Note = p.Note,
                 DateOfBirth = p.DateOfBirth
             };
+        }
+
+        public async Task<bool> AddPetAsync(Guid customerId, MutatePetDTO dto)
+        {
+            var pet = new Pet
+            {
+                PetId = Guid.NewGuid(),
+                CustomerId = customerId,
+                Species = dto.Species,
+                Breed = dto.Breed,
+                Gender = dto.Gender,
+                Weight = dto.Weight,
+                Note = dto.Note,
+                DateOfBirth = dto.DateOfBirth,
+                IsActive = true
+            };
+            await _petRepository.AddPetAsync(pet);
+            await _petRepository.SaveAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdatePetAsync(Guid petId, Guid customerId, MutatePetDTO dto, bool isVet)
+        {
+            var pet = isVet ? await _petRepository.GetPetByIdWithOwnerAsync(petId)
+                            : await _petRepository.GetPetByIdAsync(petId, customerId);
+
+            if (pet == null) return false;
+
+            pet.Species = dto.Species;
+            pet.Breed = dto.Breed;
+            pet.Gender = dto.Gender;
+            pet.Weight = dto.Weight;
+            pet.Note = dto.Note;
+            pet.DateOfBirth = dto.DateOfBirth;
+
+            await _petRepository.UpdatePetAsync(pet);
+            await _petRepository.SaveAsync();
+            return true;
+        }
+
+        public async Task<bool> DeletePetAsync(Guid petId, Guid customerId, bool isVet)
+        {
+            var pet = isVet ? await _petRepository.GetPetByIdWithOwnerAsync(petId)
+                            : await _petRepository.GetPetByIdAsync(petId, customerId);
+
+            if (pet == null) return false;
+
+            pet.IsActive = false; // Xóa mềm
+            await _petRepository.UpdatePetAsync(pet);
+            await _petRepository.SaveAsync();
+            return true;
         }
     }
 }
