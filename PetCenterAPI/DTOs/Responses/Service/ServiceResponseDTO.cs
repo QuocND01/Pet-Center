@@ -21,16 +21,14 @@ namespace PetCenterAPI.DTOs.Responses.Service
             [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
             public string? ServiceDescription { get; set; }
 
-            [Required]
-            [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes.")]
+            [Required(ErrorMessage = "Duration is required")]
+            [Range(5, 1440, ErrorMessage = "Duration must be between 5 and 1440 minutes.")]
             public int Duration { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Service type is required")]
             [Range(0, int.MaxValue)]
             public int ServiceType { get; set; }
 
-            [Required]
-            [MinLength(1, ErrorMessage = "At least one image is required.")]
             public List<IFormFile>? ImageFiles { get; set; } = new();
         }
 
@@ -49,11 +47,11 @@ namespace PetCenterAPI.DTOs.Responses.Service
             [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
             public string? ServiceDescription { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Duration is required")]
             [Range(5, 1440, ErrorMessage = "Duration must be between 5 and 1440 minutes.")]
             public int Duration { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Service type is required")]
             [Range(0, int.MaxValue)]
             public int ServiceType { get; set; }
 

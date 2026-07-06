@@ -54,7 +54,10 @@ namespace PetCenterClient.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception(result);
+                throw new HttpRequestException(
+                    result,
+                    null,
+                    response.StatusCode);
             }
         }
 
@@ -153,9 +156,10 @@ namespace PetCenterClient.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception(
-        $"Status: {response.StatusCode}\nResponse: {result}"
-    );
+                throw new HttpRequestException(
+                    result,
+                    null,
+                    response.StatusCode);
             }
         }
 

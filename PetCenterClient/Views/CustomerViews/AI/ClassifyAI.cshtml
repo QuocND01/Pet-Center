@@ -176,7 +176,7 @@
 
         </div>
 
-        <form asp-controller="AIClassifyController"
+        <form asp-controller="AIClassify"
               asp-action="ClassifyAI"
               method="post"
               enctype="multipart/form-data">
@@ -276,9 +276,13 @@
 
                     </h4>
 
-                    <form asp-controller="MedicalRecord"
-                          asp-action="SaveFromAI"
-                          method="post">
+                    <button type="button"
+                            class="save-btn"
+                            id="btnCreateMedicalRecord">
+
+                        Create Medical Record
+
+                    </button>
 
                         <input type="hidden"
                                name="DiseaseName"
@@ -288,9 +292,6 @@
                                name="Confidence"
                                value="@Model.Confidence" />
 
-                        <input type="hidden"
-                               name="ImageUrl"
-                               value="@Model.ImageUrl" />
 
                         <button class="save-btn">
 
@@ -306,13 +307,34 @@
 
                         </a>
 
-                    </form>
-
                 </div>
 
             </div>
 
         }
+
+        <div class="modal fade"
+             id="medicalRecordModal">
+
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+
+                    ...
+
+                    <input id="Diagnosis" />
+
+                    <textarea id="Treatment"></textarea>
+
+                    <textarea id="Note"></textarea>
+
+                    ...
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
@@ -340,4 +362,21 @@
 
     });
 
+
+        document
+    .getElementById("btnCreateMedicalRecord")
+    .addEventListener("click",function(){
+
+        document.getElementById("Diagnosis").value =
+            "@Model?.Description";
+
+        document.getElementById("Treatment").value =
+            "@Model?.Recommendation";
+
+        const modal =
+            new bootstrap.Modal(document.getElementById("medicalRecordModal"));
+
+        modal.show();
+
+    });
 </script>

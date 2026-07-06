@@ -32,7 +32,7 @@ namespace PetCenterAPI.Service
         public async Task AddProductAsync(CreateProductDTO createProduct)
         {
             bool productHasExist = false;
-            productHasExist = await _productRepository.CheckProductExistAsync(createProduct.ProductName, createProduct.BrandId, createProduct.CategoryId);
+            productHasExist = await _productRepository.CheckProductExistAsync(createProduct.ProductName, createProduct.BrandId!.Value, createProduct.CategoryId!.Value);
             if (productHasExist)
             {
                 throw new InvalidOperationException("Product already exists");
@@ -239,40 +239,17 @@ namespace PetCenterAPI.Service
             {
                 var existingAttrs = product.ProductAttributes ??= new List<ProductAttribute>();
 
-                var newAttrSet = updateproduct.Attributes
-     .Select(a => a.CategoryAttributeId)
-     .ToHashSet();
-
-                foreach (var oldAttr in existingAttrs.Where(x => x.IsActive == true))
-                {
-                    if (!newAttrSet.Contains(oldAttr.CategoryAttributeId))
-                    {
-                        oldAttr.IsActive = false;
-                    }
-                }
-
                 foreach (var newAttr in updateproduct.Attributes)
                 {
                     var match = existingAttrs.FirstOrDefault(a =>
                         a.CategoryAttributeId == newAttr.CategoryAttributeId);
 
                     if (match == null)
-                    {
-                        existingAttrs.Add(new ProductAttribute
-                        {
-                            ProductId = product.ProductId,
-                            CategoryAttributeId = newAttr.CategoryAttributeId,
-                            AttributeValue = newAttr.AttributeValue,
-                            IsActive = true
-                        });
-                    }
-                    else
-                    {
-                        match.AttributeValue = newAttr.AttributeValue;
-                        match.IsActive = true;
-                    }
+                        throw new InvalidOperationException("Attribute does not exist.");
+
+                    match.AttributeValue = newAttr.AttributeValue;
+                    match.IsActive = true;
                 }
-              
             }
             await _productRepository.UpdateProductAsync(product);
         }
