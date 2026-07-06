@@ -21,16 +21,14 @@ namespace PetCenterClient.Services
                 _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
 
-        // Truyền thêm string query để xài OData Search
         public async Task<List<ReadPetListViewModel>?> GetMyPetsAsync(string query = "")
         {
             AddAuthorizationHeader();
             var res = await _http.GetAsync($"api/Pets/my-pets{query}");
             if (res.IsSuccessStatusCode)
             {
-                // Dùng ODataResponse để bóc vỏ lấy danh sách
-                var odataRes = await res.Content.ReadFromJsonAsync<ODataResponse<ReadPetListViewModel>>();
-                return odataRes?.Value;
+                // Đọc thẳng ra List vì Backend (Standard Route) trả về mảng trực tiếp
+                return await res.Content.ReadFromJsonAsync<List<ReadPetListViewModel>>();
             }
             return null;
         }
@@ -71,8 +69,8 @@ namespace PetCenterClient.Services
             var res = await _http.GetAsync($"api/vet/pets{query}");
             if (res.IsSuccessStatusCode)
             {
-                var odataRes = await res.Content.ReadFromJsonAsync<ODataResponse<ReadVetPetListViewModel>>();
-                return odataRes?.Value;
+                // Đọc thẳng ra List vì Backend (Standard Route) trả về mảng trực tiếp
+                return await res.Content.ReadFromJsonAsync<List<ReadVetPetListViewModel>>();
             }
             return null;
         }
