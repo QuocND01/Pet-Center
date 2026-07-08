@@ -589,6 +589,15 @@
         window.__CUSTOMER_ID = '@(Context.Session.GetString("CustomerId") ?? "")';
     </script>
     <script src="~/js/chatbot.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/js/signalr-client.js"></script>
 
+    <script>
+        // Lấy Token từ Session Razor và truyền vào JS
+        var userToken = '@Context.Session.GetString("JWT")';
+        if (userToken) {
+        startSignalR(userToken);
+        }
+    </script>
 </body>
 </html>

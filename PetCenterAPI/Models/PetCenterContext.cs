@@ -91,7 +91,7 @@ public partial class PetCenterContext : DbContext
     public virtual DbSet<Voucher> Vouchers { get; set; }
 
     public virtual DbSet<Disease> Diseases { get; set; }
-
+    public virtual DbSet<ChatMessage> ChatMessages { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
@@ -1227,7 +1227,28 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.MaxDiscountAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.MinOrderAmount).HasColumnType("decimal(18, 2)");
         });
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(e => e.MessageId).HasName("PK_ChatMessages");
 
+            entity.ToTable("ChatMessages");
+
+            entity.Property(e => e.MessageId)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("MessageID");
+
+            entity.Property(e => e.SenderId).HasColumnName("SenderID");
+
+            entity.Property(e => e.ReceiverId).HasColumnName("ReceiverID");
+
+            entity.Property(e => e.Content).IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime2");
+
+            entity.Property(e => e.IsRead).HasDefaultValue(false);
+        });
         OnModelCreatingPartial(modelBuilder);
     }
 

@@ -1,0 +1,57 @@
+﻿<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Danh sách khách hàng -->
+        <div class="col-4">
+            <div class="card shadow-sm">
+                <div class="card-header">Khách hàng đang hỗ trợ</div>
+                <ul class="list-group list-group-flush" id="customerList">
+                    <!-- Load bằng AJAX từ api/chat/my-customers -->
+                </ul>
+            </div>
+        </div>
+        <!-- Khung chat -->
+        <div class="col-8">
+            <input type="hidden" id="myId" value="@ViewBag.MyId" />
+            <input type="hidden" id="currentCustomerId" />
+            <div class="card shadow-sm">
+                <div class="card-body" id="chatBox" style="height: 400px; overflow-y: auto;"></div>
+                <div class="card-footer">
+                    <input type="text" id="txtMsg" class="form-control" onkeypress="handleEnter(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    setupChat('@Context.Session.GetString("JWT")', true);
+
+    // 1. Load danh sách khách
+    fetch('/api/chat/my-customers', { headers: { 'Authorization': 'Bearer @Context.Session.GetString("JWT")' }})
+        .then(r => r.json())
+        .then(list => {
+            list.forEach(c => {
+                document.getElementById('customerList').innerHTML +=
+                    `<li class="list-group-item cursor-pointer" onclick="loadChat('${c.customerId}')">${c.fullName}</li>`;
+            });
+        });
+
+    // 2. Click vào khách nào thì load lịch sử chat
+    function loadChat(customerId) {
+        document.getElementById('currentCustomerId').value = customerId;
+        document.getElementById('chatBox').innerHTML = '';
+        fetch('/api/chat/history/' + customerId, { headers: { 'Authorization': 'Bearer @Context.Session.GetString("JWT")' }})
+            .then(r => r.json())
+            .then(msgs => msgs.forEach(m => appendMessage(m.senderId, m.content)));
+    }
+
+    // 3. Staff gửi tin cho khách
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            const customerId = document.getElementById('currentCustomerId').value;
+            const msg = document.getElementById('txtMsg').value;
+            chatConnection.invoke("SendMessageToCustomer", customerId, msg);
+            document.getElementById('txtMsg').value = '';
+        }
+    }
+</script>

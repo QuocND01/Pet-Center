@@ -1,0 +1,23 @@
+﻿<div class="container py-5">
+    <input type="hidden" id="myId" value="@ViewBag.MyId" />
+    <div class="card shadow-sm border-0" style="max-width: 500px; margin: auto;">
+        <div class="card-header bg-success text-white">Chat với nhân viên hỗ trợ</div>
+        <div class="card-body" id="chatBox" style="height: 300px; overflow-y: auto;"></div>
+        <div class="card-footer">
+            <div class="input-group">
+                <input type="text" id="txtMsg" class="form-control" placeholder="Nhập tin nhắn...">
+                <button class="btn btn-success" onclick="sendMsg()">Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    setupChat('@Context.Session.GetString("JWT")', false);
+
+    function sendMsg() {
+        const msg = document.getElementById("txtMsg").value;
+        chatConnection.invoke("SendMessageToSupport", msg);
+        document.getElementById("txtMsg").value = '';
+    }
+</script>
