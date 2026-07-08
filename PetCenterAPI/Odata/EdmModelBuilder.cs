@@ -5,11 +5,9 @@ using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
 using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
 using static PetCenterAPI.DTOs.Requests.Service.ServiceRequestDTO;
 using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
-
-// 👇 1. THÊM 2 DÒNG NÀY ĐỂ TRỎ TỚI DTO CỦA PET 👇
+using static PetCenterAPI.DTOs.Requests.DiseaseDTO;
 using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
 using static PetCenterAPI.DTOs.Requests.VetPetRequestDTO;
-// 👆 ========================================== 👆
 
 namespace PetCenterAPI.Odata
 {
@@ -25,8 +23,7 @@ namespace PetCenterAPI.Odata
             builder.EntitySet<ReadCategoryDTOForCustomer>("Categories");
             builder.EntitySet<ReadServiceDTOForCustomer>("Services");
             builder.EntitySet<ReadOrderListDTO>("Orders");
-
-            // 👇 2. KHAI BÁO ENTITY CHO PET (Customer & Vet) 👇
+            builder.EntitySet<ReadDiseaseDTO>("Diseases");
             builder.EntitySet<ReadPetListDTO>("Pets");
             builder.EntitySet<ReadVetPetListDTO>("VetPets");
 
@@ -37,11 +34,9 @@ namespace PetCenterAPI.Odata
             builder.EntityType<ReadCategoryDTOForCustomer>().HasKey(p => p.CategoryId);
             builder.EntityType<ReadServiceDTOForCustomer>().HasKey(p => p.ServiceId);
             builder.EntityType<ReadOrderListDTO>().HasKey(o => o.OrderId);
-
-            // 👇 3. KHAI BÁO KHÓA CHÍNH (KEY) CHO PET 👇
             builder.EntityType<ReadPetListDTO>().HasKey(p => p.PetId);
             builder.EntityType<ReadVetPetListDTO>().HasKey(p => p.PetId);
-
+            builder.EntityType<ReadDiseaseDTO>().HasKey(d => d.DiseaseId);
             return builder.GetEdmModel();
         }
     }

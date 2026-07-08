@@ -39,7 +39,7 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPet([FromBody] MutatePetDTO dto)
+        public async Task<IActionResult> AddPet([FromForm] MutatePetDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var success = await _petService.AddPetAsync(GetCustomerId(), dto);
@@ -47,7 +47,7 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdatePet(Guid id, [FromBody] MutatePetDTO dto)
+        public async Task<IActionResult> UpdatePet(Guid id, [FromForm] MutatePetDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var success = await _petService.UpdatePetAsync(id, GetCustomerId(), dto, false);

@@ -110,6 +110,11 @@
                         <small class="text-warning">* Required when registering a new pet.</small>
                     </div>
 
+                    <div class="col-12">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">PET AVATAR</label>
+                        <input type="file" id="vMutImage" class="form-control bg-light border-0" accept="image/*">
+                    </div>
+
                     <div class="col-6">
                         <label class="form-label text-muted fw-bold" style="font-size: 13px;">SPECIES</label>
                         <select id="vMutSpecies" class="form-select bg-light border-0">
@@ -151,7 +156,6 @@
 </div>
 
 <script>
-    // Xem chi tiết
     document.addEventListener("click", function (e) {
         var btnView = e.target.closest(".btn-view-vet-pet");
         if (btnView) {
@@ -166,7 +170,6 @@
         }
     });
 
-    // Xóa
     function deleteVetPet(id) {
         if (confirm("Are you sure you want to delete this patient's record?")) {
             fetch('/VetPets/Delete/' + id, { method: 'POST' })
@@ -178,15 +181,16 @@
         }
     }
 
-    // Modal Sửa/Thêm
     var vetMutateModal;
     function openVetMutateModal(id) {
         if (!vetMutateModal) vetMutateModal = new bootstrap.Modal(document.getElementById('vetMutatePetModal'));
         document.getElementById('vMutPetId').value = id || '';
         document.getElementById('vetMutateModalTitle').innerText = id ? 'Edit Patient Record' : 'Register New Patient';
 
-        // Hiện/Ẩn ô nhập CustomerId dựa vào Add hay Edit
         document.getElementById('customerInputGroup').style.display = id ? 'none' : 'block';
+
+        // Reset file input
+        document.getElementById('vMutImage').value = '';
 
         if (!id) {
             document.getElementById('vMutCustomerId').value = '';
@@ -202,24 +206,35 @@
         var id = document.getElementById('vMutPetId').value;
         var customerId = document.getElementById('vMutCustomerId').value;
 
-        var data = {
-            species: document.getElementById('vMutSpecies').value,
-            gender: document.getElementById('vMutGender').value,
-            breed: document.getElementById('vMutBreed').value,
-            dateOfBirth: document.getElementById('vMutDob').value || null,
-            weight: parseFloat(document.getElementById('vMutWeight').value) || null,
-            note: document.getElementById('vMutNote').value
-        };
-
         if(!id && !customerId) return alert("Customer ID is required for new pets!");
-        if(!data.breed) return alert("Breed is required!");
+        if(!document.getElementById('vMutBreed').value) return alert("Breed is required!");
+
+        // Dùng FormData thay vì JSON
+        var formData = new FormData();
+        formData.append('Species', document.getElementById('vMutSpecies').value);
+        formData.append('Gender', document.getElementById('vMutGender').value);
+        formData.append('Breed', document.getElementById('vMutBreed').value);
+
+        var dob = document.getElementById('vMutDob').value;
+        if(dob) formData.append('DateOfBirth', dob);
+
+        var weight = document.getElementById('vMutWeight').value;
+        if(weight) formData.append('Weight', weight);
+
+        var note = document.getElementById('vMutNote').value;
+        if(note) formData.append('Note', note);
+
+        // Nạp file ảnh nếu có
+        var fileInput = document.getElementById('vMutImage');
+        if (fileInput.files.length > 0) {
+            formData.append('ImageFile', fileInput.files[0]);
+        }
 
         var url = id ? '/VetPets/Update/' + id : '/VetPets/Add?customerId=' + customerId;
 
         fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: formData // Không set header Content-Type
         })
         .then(r => r.json())
         .then(d => {

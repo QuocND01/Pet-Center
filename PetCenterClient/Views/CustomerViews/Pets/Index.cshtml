@@ -85,14 +85,12 @@
         <div class="col-md-5">
             <h2 class="fw-bold m-0" style="font-family: 'Segoe UI', sans-serif;">My Pets 🐾</h2>
         </div>
-
         <div class="col-md-5">
             <form method="get" action="/Pets/Index" class="d-flex gap-2">
                 <input type="text" name="search" class="form-control rounded-pill px-4" placeholder="Search breed or species..." value="@ViewBag.SearchKeyword" />
                 <button type="submit" class="btn btn-dark rounded-pill px-4">Search</button>
             </form>
         </div>
-
         <div class="col-md-2 text-md-end">
             <button class="btn btn-primary rounded-pill w-100" style="background:#2ecc71; border:none;" onclick="openMutateModal(null)">+ Add Pet</button>
         </div>
@@ -159,6 +157,12 @@
             <div class="modal-body p-4">
                 <input type="hidden" id="mutPetId" />
                 <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">PET AVATAR</label>
+                        <input type="file" id="mutImage" class="form-control bg-light border-0" accept="image/*">
+                    </div>
+
                     <div class="col-6">
                         <label class="form-label text-muted fw-bold" style="font-size: 13px;">SPECIES</label>
                         <select id="mutSpecies" class="form-select bg-light border-0">
@@ -200,7 +204,6 @@
 </div>
 
 <script>
-    // Logic View Details
     document.addEventListener("click", function (e) {
         var btnView = e.target.closest(".btn-view-pet");
         if (btnView) {
@@ -215,7 +218,6 @@
         }
     });
 
-    // Logic Delete
     function deletePet(id) {
         if (confirm("Are you sure you want to remove this pet?")) {
             fetch('/Pets/Delete/' + id, { method: 'POST' })
@@ -227,47 +229,56 @@
         }
     }
 
-    // Logic Add/Edit
     var mutateModal;
     function openMutateModal(id) {
         if (!mutateModal) mutateModal = new bootstrap.Modal(document.getElementById('mutatePetModal'));
         document.getElementById('mutPetId').value = id || '';
         document.getElementById('mutateModalTitle').innerText = id ? 'Edit Pet Profile' : 'Add New Pet';
 
+        // Reset file input
+        document.getElementById('mutImage').value = '';
+
         if (!id) {
-            // Reset form
             document.getElementById('mutSpecies').value = 'Dog';
             document.getElementById('mutGender').value = 'Male';
             document.getElementById('mutBreed').value = '';
             document.getElementById('mutDob').value = '';
             document.getElementById('mutWeight').value = '';
             document.getElementById('mutNote').value = '';
-        } else {
-            // Nếu là Edit thì tốt nhất nên có logic fetch data cũ đổ vào đây
-            // Để đơn giản ta chỉ mở form trống (hoặc bạn có thể tự map data từ lưới HTML)
         }
         mutateModal.show();
     }
 
     function savePet() {
         var id = document.getElementById('mutPetId').value;
-        var data = {
-            species: document.getElementById('mutSpecies').value,
-            gender: document.getElementById('mutGender').value,
-            breed: document.getElementById('mutBreed').value,
-            dateOfBirth: document.getElementById('mutDob').value || null,
-            weight: parseFloat(document.getElementById('mutWeight').value) || null,
-            note: document.getElementById('mutNote').value
-        };
+        if(!document.getElementById('mutBreed').value) return alert("Breed is required!");
 
-        if(!data.breed) return alert("Breed is required!");
+        // Dùng FormData thay vì JSON
+        var formData = new FormData();
+        formData.append('Species', document.getElementById('mutSpecies').value);
+        formData.append('Gender', document.getElementById('mutGender').value);
+        formData.append('Breed', document.getElementById('mutBreed').value);
+
+        var dob = document.getElementById('mutDob').value;
+        if(dob) formData.append('DateOfBirth', dob);
+
+        var weight = document.getElementById('mutWeight').value;
+        if(weight) formData.append('Weight', weight);
+
+        var note = document.getElementById('mutNote').value;
+        if(note) formData.append('Note', note);
+
+        // Nạp file ảnh nếu có
+        var fileInput = document.getElementById('mutImage');
+        if (fileInput.files.length > 0) {
+            formData.append('ImageFile', fileInput.files[0]);
+        }
 
         var url = id ? '/Pets/Update/' + id : '/Pets/Add';
 
         fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: formData // Không set header Content-Type, trình duyệt tự xử lý boundary
         })
         .then(r => r.json())
         .then(d => {

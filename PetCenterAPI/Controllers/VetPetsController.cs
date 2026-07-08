@@ -35,7 +35,7 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpPost("add-for-customer/{customerId:guid}")]
-        public async Task<IActionResult> AddPetForCustomer(Guid customerId, [FromBody] MutatePetDTO dto)
+        public async Task<IActionResult> AddPetForCustomer(Guid customerId, [FromForm] MutatePetDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var success = await _petService.AddPetAsync(customerId, dto);
@@ -43,7 +43,7 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdatePet(Guid id, [FromBody] MutatePetDTO dto)
+        public async Task<IActionResult> UpdatePet(Guid id, [FromForm] MutatePetDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             // Truyền Guid.Empty cho CustomerId vì isVet = true (bỏ qua check chính chủ)
