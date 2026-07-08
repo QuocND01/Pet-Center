@@ -60,143 +60,168 @@
     /* ── Reset context ── */
     .home-page { font-family: var(--font-body); color: var(--ink); }
 
-        /* ══════════════════════════════════════════
-       FILTER BAR
-    ══════════════════════════════════════════ */
-    .filter-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 20px 24px;
-        margin-bottom: 32px;
-        box-shadow: var(--shadow);
-    }
-.filter-select {
-    width: 180px !important;
-    max-width: 180px !important;
-    flex: 0 0 180px;
+/*═══════════════════════════════════════
+            FILTER
+═══════════════════════════════════════*/
+.filter-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px;
+    margin-bottom:32px;
+    box-shadow:var(--shadow);
 }
-    .filter-top {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 14px;
-    }
-    .filter-label {
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .06em;
-        text-transform: uppercase;
-        color: var(--muted);
-        white-space: nowrap;
-    }
-    .search-wrap {
-        position: relative;
-        flex: 1;
-        max-width: 360px;
-    }
-    .search-wrap svg {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--muted);
-        pointer-events: none;
-    }
-    .search-input {
-        width: 100%;
-        padding: 10px 16px 10px 42px;
-        border: 1.5px solid var(--border);
-        border-radius: 100px;
-        font-family: var(--font-body);
-        font-size: 14px;
-        color: var(--ink);
-        background: var(--bg);
-        outline: none;
-        transition: border .2s, box-shadow .2s;
-    }
-    .search-input:focus {
-        border-color: var(--g3);
-        box-shadow: 0 0 0 3px rgba(46,204,113,.12);
-    }
-    .filter-row {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-    .filter-select {
-        padding: 8px 14px;
-        border: 1.5px solid var(--border);
-        border-radius: 100px;
-        font-family: var(--font-body);
-        font-size: 13px;
-        color: var(--ink2);
-        background: var(--bg);
-        outline: none;
-        cursor: pointer;
-        transition: border .2s;
-        appearance: none;
-        padding-right: 28px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-    }
-    .filter-select:focus { border-color: var(--g3); }
-    .filter-select.active { border-color: var(--g3); background-color: var(--g0); color: var(--g5); }
-    .price-group {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        border: 1.5px solid var(--border);
-        border-radius: 100px;
-        padding: 0 14px;
-        background: var(--bg);
-    }
-    .price-group span { font-size: 12px; color: var(--muted); }
-    .price-input {
-        width: 80px;
-        border: none;
-        background: transparent;
-        font-family: var(--font-body);
-        font-size: 13px;
-        color: var(--ink2);
-        padding: 8px 0;
-        outline: none;
-    }
-    .btn-filter {
-        background: var(--g3);
-        color: #fff;
-        border: none;
-        border-radius: 100px;
-        padding: 9px 20px;
-        font-family: var(--font-body);
-        font-weight: 800;
-        font-size: 13px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all .2s;
-    }
-    .btn-filter:hover { background: var(--g4); transform: translateY(-1px); }
-    .btn-reset {
-        background: transparent;
-        color: var(--muted);
-        border: 1.5px solid var(--border);
-        border-radius: 100px;
-        padding: 8px 16px;
-        font-family: var(--font-body);
-        font-size: 13px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: all .2s;
-    }
-    .btn-reset:hover { color: var(--ink); border-color: var(--ink2); text-decoration: none; }
 
+/*=========================
+        FILTER GRID
+=========================*/
+
+.filter-row{
+    display:grid;
+    grid-template-columns:
+        repeat(4,170px)
+        1fr
+        1fr;
+    gap:14px;
+    align-items:center;
+}
+
+/*=========================
+        SEARCH
+=========================*/
+
+.search-wrap{
+    position:relative;
+    grid-column:1/-1;
+}
+
+.search-wrap svg{
+    position:absolute;
+    left:16px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--muted);
+    pointer-events:none;
+}
+
+.search-input{
+    width:100%;
+    height:50px;
+    padding:0 18px 0 44px;
+    border:1.5px solid var(--border);
+    border-radius:999px;
+    background:var(--bg);
+    font-family:var(--font-body);
+    font-size:14px;
+    transition:.25s;
+}
+
+.search-input:focus{
+    border-color:var(--g3);
+    box-shadow:0 0 0 3px rgba(46,204,113,.12);
+}
+
+/*=========================
+        SELECT
+=========================*/
+
+.filter-select{
+    width:100%;
+    height:48px;
+    padding:0 36px 0 14px;
+    border:1.5px solid var(--border);
+    border-radius:999px;
+    background:var(--bg);
+    appearance:none;
+    cursor:pointer;
+
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+}
+
+.filter-select:focus{
+    border-color:var(--g3);
+}
+
+.filter-select.active{
+    border-color:var(--g3);
+    background:var(--g0);
+}
+
+/*=========================
+        PRICE
+=========================*/
+
+.price-group{
+    grid-column:5 / span 2;
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+.price-group span{
+    display:none;
+}
+
+.price-input{
+    width:100%;
+    height:48px;
+    padding:0 14px;
+    border:1.5px solid var(--border);
+    border-radius:999px;
+    background:var(--bg);
+}
+
+.price-input:focus{
+    border-color:var(--g3);
+    box-shadow:0 0 0 3px rgba(46,204,113,.12);
+}
+
+/*=========================
+        BUTTONS
+=========================*/
+
+.filter-actions{
+    grid-column:5 / span 2;
+
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+}
+
+.btn-filter,
+.btn-reset{
+    height:46px;
+    padding:0 22px;
+    border-radius:999px;
+    font-weight:800;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.btn-filter{
+    border:none;
+    background:var(--g3);
+    color:#fff;
+}
+
+.btn-filter:hover{
+    background:var(--g4);
+}
+
+.btn-reset{
+    background:#fff;
+    border:1.5px solid var(--border);
+    color:var(--muted);
+    text-decoration:none;
+}
+
+.btn-reset:hover{
+    color:var(--ink);
+}
     /* ══════════════════════════════════════════
        RESULTS BAR
     ══════════════════════════════════════════ */
@@ -417,7 +442,7 @@
     }
 
     /* HERO BANNER image */
-    .hero-banner { position:relative; border-radius:24px; overflow:hidden; height:340px; margin-bottom:40px; }
+    .hero-banner { position:relative; border-radius:24px; overflow:hidden; height:340px;     margin: 25px auto 60px; }
     .hero-img { width:100%; height:100%; object-fit:cover; display:block; }
     .hero-banner-content {
         position:absolute; inset:0;
@@ -606,6 +631,106 @@
     line-height: 1.6;
     font-size: 14px;
 }
+
+/*=========================
+        SHOP INTRO
+==========================*/
+
+.shop-intro{
+
+    max-width:900px;
+
+    margin:0 auto 60px;
+
+    text-align:center;
+
+}
+
+.intro-tag{
+
+    display:inline-block;
+
+    padding:8px 18px;
+
+    background:#ECFDF5;
+
+    color:var(--g3);
+
+    border-radius:999px;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    margin-bottom:18px;
+
+}
+
+.shop-intro h2{
+
+    font-size:40px;
+
+    margin-bottom:18px;
+
+    font-family:var(--font-head);
+
+    color:#222;
+
+}
+
+.shop-intro p{
+
+    color:#6B7280;
+
+    font-size:17px;
+
+    line-height:1.9;
+
+    max-width:760px;
+
+    margin:0 auto 35px;
+
+}
+
+.intro-features{
+
+    display:flex;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+    gap:18px;
+
+}
+
+.intro-features div{
+
+    padding:12px 22px;
+
+    border-radius:999px;
+
+    background:#F8FAFC;
+
+    color:#374151;
+
+    font-weight:600;
+
+    border:1px solid #E5E7EB;
+
+    transition:.3s;
+
+}
+
+.intro-features div:hover{
+
+    background:#ECFDF5;
+
+    border-color:#BBF7D0;
+
+    transform:translateY(-3px);
+
+}
 </style>
 
 @{
@@ -629,6 +754,62 @@
         </div>
     </div>
 
+    <div class="filter-card" id="products">
+    <section class="shop-intro">
+
+    <span class="intro-tag">
+
+        PetCenter Shop
+
+    </span>
+
+    <h2>
+
+        Everything Your Pet Needs,
+        <br>
+        All in One Place
+
+    </h2>
+
+    <p>
+
+        Browse our carefully selected collection of premium pet food,
+        toys, healthcare essentials, grooming supplies and accessories.
+        Every product comes from trusted brands to ensure quality,
+        safety and comfort for your beloved companions.
+
+    </p>
+
+    <div class="intro-features">
+
+        <div>
+
+            ✔ Premium Quality
+
+        </div>
+
+        <div>
+
+            ✔ Trusted Brands
+
+        </div>
+
+        <div>
+
+            ✔ Fast Delivery
+
+        </div>
+
+        <div>
+
+            ✔ Affordable Prices
+
+        </div>
+
+    </div>
+
+</section>
+</div>
 
          @{
     int currentPage = ViewBag.CurrentPage ?? 1;
@@ -705,121 +886,151 @@
   <!-- ── FILTER ── -->
 <div class="filter-card" id="products">
     <form asp-action="Index" asp-controller="Products" method="get" id="filterForm">
-        <div class="filter-top">
-            <span class="filter-label">🔍 Search</span>
-            <div class="search-wrap">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-                </svg>
-                <input type="text"
-                       name="search"
-                       value="@currentSearch"
-                       class="search-input"
-                       placeholder="Product name..." />
-            </div>
-        </div>
+     <div class="filter-row">
 
-        <div class="filter-row">
+    <div class="search-wrap search-large">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+        </svg>
 
-           
-            <!-- Category -->
-            <select name="categoryid" class="@catClass">
-                <option value="">🏷 Category</option>
-                @if (cats != null)
+        <input type="text"
+               name="search"
+               value="@currentSearch"
+               class="search-input"
+               placeholder="Search products..." />
+    </div>
+
+    <!-- Category -->
+    <select name="categoryid" class="@catClass">
+        <option value="">🏷 Category</option>
+
+        @if (cats != null)
+        {
+            foreach (var c in cats)
+            {
+                if (currentCat == c.CategoryId.ToString())
                 {
-                    foreach (var c in cats)
-                    {
-                        if (currentCat == c.CategoryId.ToString())
-                        {
-                            <option value="@c.CategoryId" selected>@c.CategoryName</option>
-                        }
-                        else
-                        {
-                            <option value="@c.CategoryId">@c.CategoryName</option>
-                        }
-                    }
-                }
-            </select>
-
-            <!-- Brand -->
-            <select name="brandid" class="@brandClass">
-                <option value="">🏪 Brand</option>
-                @if (brands != null)
-                {
-                    foreach (var b in brands)
-                    {
-                        if (currentBrand == b.BrandId.ToString())
-                        {
-                            <option value="@b.BrandId" selected>@b.BrandName</option>
-                        }
-                        else
-                        {
-                            <option value="@b.BrandId">@b.BrandName</option>
-                        }
-                    }
-                }
-            </select>
-
-            <!-- Sort -->
-            <select name="sortBy" class="filter-select">
-                <option value="">↕ Sort</option>
-                @if (currentSortBy == "Price")
-                {
-                    <option value="Price" selected>Price</option>
+                    <option value="@c.CategoryId" selected>@c.CategoryName</option>
                 }
                 else
                 {
-                    <option value="Price">Price</option>
+                    <option value="@c.CategoryId">@c.CategoryName</option>
                 }
-                @if (currentSortBy == "Name")
+            }
+        }
+    </select>
+
+    <!-- Brand -->
+    <select name="brandid" class="@brandClass">
+        <option value="">🏪 Brand</option>
+
+        @if (brands != null)
+        {
+            foreach (var b in brands)
+            {
+                if (currentBrand == b.BrandId.ToString())
                 {
-                    <option value="Name" selected>Name</option>
+                    <option value="@b.BrandId" selected>@b.BrandName</option>
                 }
                 else
                 {
-                    <option value="Name">Name</option>
+                    <option value="@b.BrandId">@b.BrandName</option>
                 }
-                @if (currentSortBy == "date")
-                {
-                    <option value="date" selected>Newest</option>
-                }
-                else
-                {
-                    <option value="date">Newest</option>
-                }
-            </select>
+            }
+        }
+    </select>
 
-            <select name="sortOrder" class="filter-select">
-                @if (currentOrder != "desc")
-                {
-                    <option value="asc" selected>↑ Ascending</option>
-                    <option value="desc">↓ Descending</option>
-                }
-                else
-                {
-                    <option value="asc">↑ Ascending</option>
-                    <option value="desc" selected>↓ Descending</option>
-                }
-            </select>
+    <!-- Sort -->
+    <select name="sortBy" class="filter-select">
 
-            <!-- Price range -->
-            <div class="price-group">
-                <span>₫</span>
-                <input type="number" name="minPrice" value="@currentMin" class="price-input" placeholder="From" />
-                <span>–</span>
-                <input type="number" name="maxPrice" value="@currentMax" class="price-input" placeholder="To" />
-            </div>
+        <option value="">↕ Sort</option>
 
-            <button type="submit" class="btn-filter">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                Filter
-            </button>
-          
-                <a asp-action="" asp-controller="Products" class="btn-reset">✕ Clear filters</a>
-        </div>
-    </form>
+        @if (currentSortBy == "Price")
+        {
+            <option value="Price" selected>Price</option>
+        }
+        else
+        {
+            <option value="Price">Price</option>
+        }
+
+        @if (currentSortBy == "Name")
+        {
+            <option value="Name" selected>Name</option>
+        }
+        else
+        {
+            <option value="Name">Name</option>
+        }
+
+        @if (currentSortBy == "date")
+        {
+            <option value="date" selected>Newest</option>
+        }
+        else
+        {
+            <option value="date">Newest</option>
+        }
+
+    </select>
+
+    <select name="sortOrder" class="filter-select">
+
+        @if (currentOrder != "desc")
+        {
+            <option value="asc" selected>↑ Ascending</option>
+            <option value="desc">↓ Descending</option>
+        }
+        else
+        {
+            <option value="asc">↑ Ascending</option>
+            <option value="desc" selected>↓ Descending</option>
+        }
+
+    </select>
+
+    <div class="price-group">
+
+        <input type="number"
+               name="minPrice"
+               value="@currentMin"
+               class="price-input"
+               placeholder="Min Price" />
+
+        <input type="number"
+               name="maxPrice"
+               value="@currentMax"
+               class="price-input"
+               placeholder="Max Price" />
+
+    </div>
+
+
+<div class="filter-actions">
+
+    <button type="submit" class="btn-filter">
+
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+
+        Filter
+
+    </button>
+
+   <a asp-action="Index"
+   asp-controller="Products"
+   class="btn-reset"
+   id="btnReset">
+    ✕ Clear Filters
+</a>
+
 </div>
+</div>
+    </form>
 
+    <br/>
 
 @if (hasFilter)
 {
@@ -1008,6 +1219,7 @@ else
 </div>
 
 </div>
+</div>
 
 <script>
     /* Auto-remove empty params on submit */
@@ -1030,4 +1242,28 @@ else
             setTimeout(function () { el.remove(); }, 400);
         }, 3000);
     }
+     const form = document.getElementById("filterForm");
+
+    if (form) {
+        form.addEventListener("submit", function () {
+            sessionStorage.setItem("productScroll", window.scrollY);
+        });
+    }
+
+    window.addEventListener("load", function () {
+        const scroll = sessionStorage.getItem("productScroll");
+
+        if (scroll !== null) {
+            window.scrollTo({
+                top: parseInt(scroll),
+                behavior: "instant"
+            });
+
+            sessionStorage.removeItem("productScroll");
+        }
+    });
+
+    document.getElementById("btnReset").addEventListener("click", function () {
+    sessionStorage.setItem("productScroll", window.scrollY);
+});
 </script>
