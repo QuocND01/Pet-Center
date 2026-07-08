@@ -46,12 +46,10 @@ namespace PetCenterClient.Services
             if (maxPrice.HasValue)
                 filters.Add($"ServicePrice le {maxPrice.Value}");
 
-            var query = new List<string>();
-
             if (serviceType.HasValue)
-            {
-                query.Add($"serviceType={serviceType.Value}");
-            }
+                filters.Add($"ServiceType eq {serviceType.Value}");
+
+            var query = new List<string>();
 
             if (filters.Any())
             {
