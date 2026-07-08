@@ -40,14 +40,14 @@ namespace PetCenterClient.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] MutatePetViewModel dto)
+        public async Task<IActionResult> Add([FromForm] MutatePetViewModel dto)
         {
             var success = await _apiClient.AddPetAsync(dto);
             return Json(new { success });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Update(Guid id, [FromBody] MutatePetViewModel dto)
+        public async Task<IActionResult> Update(Guid id, [FromForm] MutatePetViewModel dto)
         {
             var success = await _apiClient.UpdatePetAsync(id, dto);
             return Json(new { success });

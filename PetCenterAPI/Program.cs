@@ -190,6 +190,8 @@ builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 builder.Services.AddScoped<IChatbotRepository, ChatbotRepository>();
 builder.Services.AddScoped<IPetRepository, PetRepository>();
+builder.Services.AddScoped<IDiseaseRepository, DiseaseRepository>();
+
 
 // ── 3. Services ───────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
@@ -217,6 +219,7 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddScoped<IPetService, PetService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IDiseaseService, DiseaseService>();
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
