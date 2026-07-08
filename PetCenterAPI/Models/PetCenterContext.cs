@@ -623,6 +623,9 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true);
 
+            entity.Property(e => e.IsSystem)
+                .HasDefaultValue(false);
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime2");
