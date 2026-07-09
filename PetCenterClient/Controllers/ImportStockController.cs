@@ -73,16 +73,6 @@ namespace PetCenterClient.Controllers
         {
             var import = await _service.GetByIdAsync(id);
 
-            //if (import == null)
-            //    return NotFound();
-            //var selectSuppliers = await _suppService.GetSupplierSelectAsync();
-            //var selectProducts = await _productService.GetProductSelectToViewAsync();
-            //var staffName = await _staffService.GetStaffNameListAsync();
-            //var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
-            //ViewBag.StaffDict = staffDict;
-
-            //ViewBag.SupplierList = new SelectList(selectSuppliers, "SupplierId", "SupplierName");
-            //ViewBag.ProductList = new SelectList(selectProducts, "ProductId", "ProductName");
             return View("~/Views/AdminViews/ImportStock/Details.cshtml",import);
         }
 

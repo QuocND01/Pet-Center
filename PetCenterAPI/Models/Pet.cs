@@ -8,6 +8,7 @@ public partial class Pet
     public Guid PetId { get; set; }
 
     public Guid CustomerId { get; set; }
+    public string PetName { get; set; }
 
     public string? Species { get; set; }
 

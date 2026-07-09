@@ -1,0 +1,236 @@
+﻿@model PetCenterClient.ViewModels.Appointment.BookingPageViewModel
+
+@{
+    ViewData["Title"] = "Express Booking";
+}
+
+<link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+<div class="container my-3">
+    <div class="booking-dashboard">
+
+        <form asp-action="Book" method="post" id="bookingForm" class="booking-main-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary small"><i class="fas fa-paw me-1"></i> 1. Select Pet</label>
+                <div class="compact-select-box">
+                    @foreach (var pet in Model.Pets)
+                    {
+                        <div class="compact-card card-pet" data-id="@pet.PetId">
+                            <img src="@(string.IsNullOrEmpty(pet.PetAvatar) ? "https://placehold.co/50x50?text=Pet" : pet.PetAvatar)" alt="@pet.PetName" />
+                            <div class="info">
+                                @pet.PetName
+                                <div class="sub-info">@pet.Species</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <input type="hidden" asp-for="PetId" id="selectedPetId" />
+                <span asp-validation-for="PetId" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary small"><i class="fas fa-user-md me-1"></i> 2. Choose Doctor</label>
+                <div class="compact-select-box">
+                    @foreach (var staff in Model.Staffs)
+                    {
+                        <div class="compact-card card-staff" data-id="@staff.StaffId">
+                            <img src="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/50x50?text=Vet" : staff.Avatar)" alt="@staff.FullName" />
+                            <div class="info">
+                                Dr. @staff.FullName
+                                <div class="sub-info">@staff.ExperienceYears Yrs Exp</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <input type="hidden" asp-for="StaffId" id="selectedStaffId" />
+                <span asp-validation-for="StaffId" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold text-secondary small m-0"><i class="fas fa-concierge-bell me-1"></i> 3. Care Services</label>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#serviceModal">
+                        <i class="fas fa-plus me-1"></i> Add Services
+                    </button>
+                </div>
+                <div class="selected-services-preview" id="servicesPreview">
+                    <span class="text-muted small m-auto" id="noServiceText">No services selected yet</span>
+                </div>
+                <span asp-validation-for="ServiceIds" class="text-danger small"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6 mb-2">
+                    <label class="form-label fw-bold text-secondary small"><i class="far fa-calendar-alt me-1"></i> 4. Date & Time</label>
+                    <input asp-for="AppointmentStart" type="datetime-local" value="@Model.AppointmentStart.ToString("yyyy-MM-ddTHH:mm")" class="form-control form-control-sm" />
+                    <span asp-validation-for="AppointmentStart" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-6 mb-2">
+                    <label class="form-label fw-bold text-secondary small"><i class="far fa-comment-alt me-1"></i> 5. Note</label>
+                    <textarea asp-for="Note" class="form-control form-control-sm" rows="1" placeholder="Special requests..."></textarea>
+                </div>
+            </div>
+        </form>
+
+        <div class="booking-sidebar">
+            <div>
+                <h4 class="fw-bold mb-4 text-center pb-2 border-bottom"><i class="fas fa-receipt me-1 text-danger"></i> Summary</h4>
+                <div class="mb-3 small">
+                    <div class="text-muted">Selected Pet:</div>
+                    <div id="summaryPet" class="fw-bold text-dark">-</div>
+                </div>
+                <div class="mb-3 small">
+                    <div class="text-muted">Assigned Doctor:</div>
+                    <div id="summaryStaff" class="fw-bold text-dark">-</div>
+                </div>
+                <div class="mb-3 small">
+                    <div class="text-muted">Total Duration:</div>
+                    <div id="summaryDuration" class="fw-bold text-dark">0 Minutes</div>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <span class="fw-bold text-muted">Total Price:</span>
+                    <span class="fs-4 fw-bold text-danger" id="summaryPrice">0 VNĐ</span>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-danger btn-lg w-100 fw-bold rounded-pill shadow-sm mt-4" onclick="document.getElementById('bookingForm').submit();">
+                <i class="fas fa-check-circle me-1"></i> BOOK NOW
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="serviceModalLabel"><i class="fas fa-hand-holding-medical text-primary me-2"></i>Select Services</h5>
+                <button type="button" class="btn-close" data-bs-shadow="none" data-bs-content="modal" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-service-grid">
+                    @foreach (var service in Model.Services)
+                    {
+                        <div class="product-card card-selectable-service" data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration">
+                            <div class="product-image" style="height:100px;">
+                                <img src="@(service.ServiceImages.Any() ? service.ServiceImages.First() : "https://placehold.co/150x100?text=Service")" alt="@service.ServiceName" style="width:100%; height:100%; object-fit:cover;" />
+                            </div>
+                            <div class="product-info p-2">
+                                <div class="product-title" style="font-size:12px; height:28px; line-height:1.2;">@service.ServiceName</div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <span class="product-price" style="font-size:13px;">@service.Price.ToString("N0") <small style="font-size:8px;">đ</small></span>
+                                    <span class="text-muted" style="font-size:10px;"><i class="far fa-clock"></i> @service.Duration m</span>
+                                </div>
+                            </div>
+                            <input type="checkbox" name="ServiceIds" value="@service.ServiceId" class="d-none form-check-service-input" form="bookingForm" id="chk-@service.ServiceId" />
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Apply Selected</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // 1. Logic Chọn Thú Cưng (Single Select)
+        document.querySelectorAll('.card-pet').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.card-pet').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('selectedPetId').value = this.getAttribute('data-id');
+                document.getElementById('summaryPet').innerText = this.querySelector('.info').childNodes[0].textContent.trim();
+            });
+        });
+
+        // 2. Logic Chọn Bác Sĩ (Single Select)
+        document.querySelectorAll('.card-staff').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.card-staff').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('selectedStaffId').value = this.getAttribute('data-id');
+                document.getElementById('summaryStaff').innerText = this.querySelector('.info').childNodes[0].textContent.trim();
+            });
+        });
+
+        // 3. Logic Chọn Dịch Vụ Trong Popup Modal (Multi Select)
+        const serviceCards = document.querySelectorAll('.card-selectable-service');
+        serviceCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const chk = this.querySelector('.form-check-service-input');
+                chk.checked = !chk.checked;
+
+                if(chk.checked) {
+                    this.classList.add('active-multi');
+                } else {
+                    this.classList.remove('active-multi');
+                }
+                updateServicesSummary();
+            });
+        });
+
+        // Hàm tính toán tiền bạc, thời gian và render nhãn Badge ra Form chính
+        function updateServicesSummary() {
+            const previewContainer = document.getElementById('servicesPreview');
+            const noServiceText = document.getElementById('noServiceText');
+
+            // Xóa các nhãn cũ
+            document.querySelectorAll('.service-badge').forEach(b => b.remove());
+
+            let totalPrice = 0;
+            let totalDuration = 0;
+            let hasService = false;
+
+            serviceCards.forEach(card => {
+                const chk = card.querySelector('.form-check-service-input');
+                if(chk.checked) {
+                    hasService = true;
+                    const name = card.getAttribute('data-name');
+                    const price = parseFloat(card.getAttribute('data-price'));
+                    const duration = parseInt(card.getAttribute('data-duration'));
+
+                    totalPrice += price;
+                    totalDuration += duration;
+
+                    // Tạo thẻ badge nhỏ hiển thị ngoài form chính
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-danger p-2 service-badge';
+                    badge.innerHTML = `<i class="fas fa-check me-1"></i> ${name}`;
+                    previewContainer.appendChild(badge);
+                }
+            });
+
+            if(hasService) {
+                noServiceText.style.display = 'none';
+            } else {
+                noServiceText.style.display = 'block';
+            }
+
+            // Cập nhật lên Sidebar
+            document.getElementById('summaryDuration').innerText = `${totalDuration} Minutes`;
+            document.getElementById('summaryPrice').innerText = `${totalPrice.toLocaleString('vi-VN')} VNĐ`;
+        }
+
+        // Tự động kiểm tra trạng thái cũ khi nạp lại trang do lỗi Validation
+        const initOldState = () => {
+            const oldPet = document.getElementById('selectedPetId').value;
+            if(oldPet) document.querySelector(`.card-pet[data-id="${oldPet}"]`)?.click();
+
+            const oldStaff = document.getElementById('selectedStaffId').value;
+            if(oldStaff) document.querySelector(`.card-staff[data-id="${oldStaff}"]`)?.click();
+
+            updateServicesSummary();
+        };
+        initOldState();
+    });
+</script>

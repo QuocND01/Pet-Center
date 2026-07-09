@@ -120,7 +120,10 @@ builder.Services.AddEndpointsApiExplorer();
 
 // ── CẤU HÌNH DATABASE VÀ ODATA ───────────────────────────────────────────────
 builder.Services.AddDbContext<PetCenterContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection"))
+    .EnableSensitiveDataLogging()
+    .LogTo(Console.WriteLine, LogLevel.Information))
+    ;
 
 builder.Services
     .AddControllers()
@@ -151,6 +154,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<OrderProfile>();
     cfg.AddProfile<InventoryProfile>();
     cfg.AddProfile<ImportStockProfile>();
+    cfg.AddProfile<AppointmentProfile>();
 });
 
 // ── CẤU HÌNH CORS CHO SIGNALR VÀ RASA (GỘP CHUNG) ──
