@@ -108,6 +108,10 @@ builder.Services.AddHttpClient<IDiseaseAPIClient, DiseaseAPIClient>(client =>
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+builder.Services.AddHttpClient<IChatAPIClient, ChatAPIClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 builder.Services.AddHttpClient<InventoryApiService>();
 
 
