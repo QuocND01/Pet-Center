@@ -530,8 +530,17 @@
                 <a asp-controller="MedicalRecord" asp-action="Index" class="sb-link">
                     <i class="bi bi-journal-medical"></i> Medical Records
                 </a>
+                <a asp-controller="Diseases" asp-action="Index" class="sb-link">
+                    <i class="bi bi-virus"></i> Disease Dictionary
+                </a>
             }
-
+            @if (isAdmin || isVet || isSaleStaff)
+            {
+                <div class="sb-section-label">Support</div>
+                <a asp-controller="Chat" asp-action="StaffChat" class="sb-link text-success fw-bold">
+                    <i class="bi bi-chat-dots-fill"></i> Live Chat Inbox
+                </a>
+            }
             <div class="sb-section-label">Sales</div>
             <a asp-controller="Orders" asp-action="IndexAdmin" class="sb-link">
                 <i class="bi bi-bag-check"></i> Orders
@@ -656,7 +665,70 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/js/signalr-client.js"></script>
+
+    <script>
+        // Lấy Token từ Session Razor và truyền vào JS
+        var userToken = '@Context.Session.GetString("JWT")';
+        if (userToken) {
+        startSignalR(userToken);
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
+    @* ── KHU VỰC CHẠY NGẦM THÔNG BÁO CHAT CHO STAFF ── *@
+    @if (Context.Session.GetString("Role") == "Admin" || Context.Session.GetString("Role") == "Vet" || Context.Session.GetString("Role") == "Sale Staff")
+    {
+        <div id="global-toast-container" style="position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+        <script>
+            const jwtTokenGlobal = '@Context.Session.GetString("JWT")';
+            const currentPath = window.location.pathname.toLowerCase();
+
+            // CHỈ CHẠY KHI ĐĂNG NHẬP VÀ KHÔNG Ở TRANG CHAT (Để tránh thông báo đúp)
+            if (jwtTokenGlobal && !currentPath.includes('/chat/staffchat')) {
+
+            const globalConn = new signalR.HubConnectionBuilder()
+            .withUrl("https://localhost:7004/appHub", { accessTokenFactory: () => jwtTokenGlobal })
+            .withAutomaticReconnect()
+            .build();
+
+            globalConn.on("ReceiveMessage", (senderId, msg, time) => {
+            // Tạo thẻ HTML cho Popup
+            const toast = document.createElement("div");
+            toast.style.cssText = "background: #1e1e2d; color: white; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #2ecc71; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 250px; animation: slideInRight 0.5s forwards;";
+
+            toast.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 5px; color: #2ecc71;">
+            <i class="bi bi-chat-dots-fill"></i> Có tin nhắn mới!
+            </div>
+            <div style="font-size: 14px; margin-bottom: 8px;">
+            ${msg.length > 35 ? msg.substring(0, 35) + '...' : msg}
+            </div>
+            <a href="/Chat/StaffChat" class="btn btn-sm btn-success w-100 py-1" style="font-size: 12px;">Mở hộp thư</a>
+            `;
+
+            document.getElementById("global-toast-container").appendChild(toast);
+
+            // Tự động ẩn sau 5 giây
+            setTimeout(() => {
+            toast.style.animation = "slideOutRight 0.5s forwards";
+            setTimeout(() => toast.remove(), 500); // Xóa khỏi DOM sau khi hiệu ứng trượt xong
+            }, 5000);
+            });
+
+            // Nhúng nhanh CSS hiệu ứng trượt (Lưu ý: Dấu @@ là bắt buộc trong Razor)
+            const animStyle = document.createElement('style');
+            animStyle.innerHTML = `
+            @@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @@keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+            `;
+            document.head.appendChild(animStyle);
+
+            globalConn.start().catch(err => console.error("Global Chat Notification Error:", err));
+            }
+        </script>
+    }
 </body>
 </html>

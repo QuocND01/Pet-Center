@@ -440,9 +440,9 @@
             <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle menu">☰</button>
 
             <nav class="main-nav" id="mainNav">
-                <a asp-controller="Home" asp-action="Index">Home Page</a>
-                <a asp-controller="Products" asp-action="Index">Product Page</a>
-                <a asp-controller="Service" asp-action="Index">Service Page</a>
+                <a asp-controller="Home" asp-action="Index">Home</a>
+                <a asp-controller="Products" asp-action="Index">Products</a>
+                <a asp-controller="Service" asp-action="Index">Services</a>
             </nav>
 
             <div class="auth-nav">
@@ -589,6 +589,26 @@
         window.__CUSTOMER_ID = '@(Context.Session.GetString("CustomerId") ?? "")';
     </script>
     <script src="~/js/chatbot.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/js/signalr-client.js"></script>
 
+    <script>
+        // Lấy Token từ Session Razor và truyền vào JS
+        var userToken = '@Context.Session.GetString("JWT")';
+        if (userToken) {
+        startSignalR(userToken);
+        }
+    </script>
+    @if (Context.Session.GetString("Role") == "Customer")
+    {
+        <a asp-controller="Chat" asp-action="CustomerChat"
+           class="btn btn-success rounded-circle d-flex align-items-center justify-content-center shadow-lg"
+           style="position: fixed; bottom: 110px; right: 30px; width: 60px; height: 60px; z-index: 9999; transition: 0.3s; background-color: #2ecc71; border: none;"
+           onmouseover="this.style.transform='scale(1.1)'"
+           onmouseout="this.style.transform='scale(1)'"
+           title="Live Support">
+            <i class="bi bi-chat-text-fill fs-3 text-white"></i>
+        </a>
+    }
 </body>
 </html>

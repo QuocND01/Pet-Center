@@ -15,6 +15,7 @@ namespace PetCenterAPI.Models
         public int Species { get; set; }
 
         public bool IsActive { get; set; }
+        public bool IsSystem { get; set; } = false;
 
         public DateTime CreatedAt { get; set; }
 

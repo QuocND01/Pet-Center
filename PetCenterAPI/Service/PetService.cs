@@ -10,11 +10,14 @@ namespace PetCenterAPI.Service
     {
         private readonly IPetRepository _petRepository;
         private readonly PetCenterContext _db;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public PetService(IPetRepository petRepository, PetCenterContext db)
+
+        public PetService(IPetRepository petRepository, PetCenterContext db, ICloudinaryService cloudinaryService)
         {
             _petRepository = petRepository;
             _db = db;
+            _cloudinaryService = cloudinaryService;
         }
 
         public IQueryable<ReadPetListDTO> GetMyPetsQuery(Guid customerId)
@@ -103,6 +106,17 @@ namespace PetCenterAPI.Service
                 DateOfBirth = dto.DateOfBirth,
                 IsActive = true
             };
+
+            // LOGIC UPLOAD ẢNH CLOUDINARY
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            {
+                var uploadResult = await _cloudinaryService.UploadImageAsync(dto.ImageFile, "pets");
+                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    pet.PetAvatar = uploadResult.SecureUrl.ToString();
+                }
+            }
+
             await _petRepository.AddPetAsync(pet);
             await _petRepository.SaveAsync();
             return true;
@@ -121,6 +135,16 @@ namespace PetCenterAPI.Service
             pet.Weight = dto.Weight;
             pet.Note = dto.Note;
             pet.DateOfBirth = dto.DateOfBirth;
+
+            // LOGIC UPLOAD ẢNH MỚI CLOUDINARY
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            {
+                var uploadResult = await _cloudinaryService.UploadImageAsync(dto.ImageFile, "pets");
+                if (uploadResult != null && uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    pet.PetAvatar = uploadResult.SecureUrl.ToString();
+                }
+            }
 
             await _petRepository.UpdatePetAsync(pet);
             await _petRepository.SaveAsync();

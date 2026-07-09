@@ -1,4 +1,6 @@
-﻿namespace PetCenterAPI.DTOs.Requests.CustomerProfile
+﻿using Microsoft.AspNetCore.Http;
+
+namespace PetCenterAPI.DTOs.Requests.CustomerProfile
 {
     public class PetRequestDTO
     {
@@ -30,6 +32,7 @@
             public decimal? Weight { get; set; }
             public string? Note { get; set; }
             public DateOnly? DateOfBirth { get; set; }
+            public IFormFile? ImageFile { get; set; }
         }
     }
 }

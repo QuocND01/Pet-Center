@@ -9,6 +9,7 @@
         public decimal? Weight { get; set; }
         public string? Note { get; set; }
         public DateOnly? DateOfBirth { get; set; }
+        public IFormFile? ImageFile { get; set; }
     }
 
     // OData Wrapper (Rất quan trọng để hứng dữ liệu OData)

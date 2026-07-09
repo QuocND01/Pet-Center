@@ -1,0 +1,92 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Live Support";
+}
+
+<div class="container py-5">
+    <input type="hidden" id="myId" value="@ViewBag.MyId" />
+    <div class="card shadow border-0 mx-auto" style="max-width: 600px; border-radius: 15px; overflow: hidden;">
+        <div class="card-header bg-success text-white py-3">
+            <h5 class="m-0 fw-bold"><i class="bi bi-headset"></i> PetCenter Live Support</h5>
+        </div>
+        <div class="card-body bg-light" id="chatBox" style="height: 400px; overflow-y: auto;">
+            <div class="text-center text-muted mt-5">
+                <i class="bi bi-chat-dots fs-1"></i>
+                <p>Send a message and an available staff member will assist you shortly.</p>
+            </div>
+        </div>
+        <div class="card-footer bg-white border-0 p-3">
+            <div class="input-group">
+                <input type="text" id="txtMsg" class="form-control rounded-pill bg-light border-0 px-4" placeholder="Type your message..." onkeypress="handleEnter(event)">
+                <button class="btn btn-success rounded-pill ms-2 px-4" onclick="sendMsg()"><i class="bi bi-send-fill"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    const token = '@Context.Session.GetString("JWT")';
+    const backendUrl = "https://localhost:7004/appHub"; // Đảm bảo port API chuẩn xác
+
+    const connection = new signalR.HubConnectionBuilder()
+    .withUrl(backendUrl, { accessTokenFactory: () => token })
+    .withAutomaticReconnect()
+    .build();
+
+    connection.on("ReceiveMessage", (senderId, msg, time) => appendMessage(senderId, msg));
+    connection.on("ReceiveSystemMessage", (msg) => {
+    document.getElementById("chatBox").innerHTML += `<div class="text-center text-warning small my-2">${msg}</div>`;
+    });
+
+    connection.start().catch(err => console.error(err));
+    fetch("https://localhost:7004/api/chat/my-history", {
+    headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(r => r.json())
+    .then(msgs => {
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML = ''; // Xóa chữ hướng dẫn ban đầu đi
+    msgs.forEach(m => appendMessage(m.senderId, m.content, m.createdAt));
+    })
+    .catch(err => console.error("Lỗi load lịch sử:", err));
+    function appendMessage(senderId, message, timestampString = null) {
+    const chatBox = document.getElementById("chatBox");
+    const myId = document.getElementById("myId").value;
+    const isMe = String(senderId).toLowerCase() === String(myId).toLowerCase();
+
+    // Tạo thời gian (nếu rỗng thì lấy giờ hiện tại)
+    const dateObj = timestampString ? new Date(timestampString) : new Date();
+    const timeText = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // CSS bo góc sành điệu: Nếu là mình gửi thì bo nhọn góc phải dưới, người ta gửi thì bo nhọn góc trái dưới
+    const borderRadius = isMe ? "20px 20px 4px 20px" : "20px 20px 20px 4px";
+    const bgColor = isMe ? "linear-gradient(135deg, #2ecc71, #27ae60)" : "#ffffff";
+    const textColor = isMe ? "#ffffff" : "#333333";
+    const shadow = isMe ? "0 4px 10px rgba(46, 204, 113, 0.3)" : "0 4px 10px rgba(0,0,0,0.05)";
+
+    chatBox.innerHTML += `
+    <div class="d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-3">
+    <div style="max-width: 80%;">
+    <div class="p-3" style="background: ${bgColor}; color: ${textColor}; border-radius: ${borderRadius}; box-shadow: ${shadow}; display: inline-block;">
+    <span style="font-size: 14px; line-height: 1.4;">${message}</span>
+    </div>
+    <div class="text-muted mt-1 ${isMe ? 'text-end' : 'text-start'}" style="font-size: 11px;">
+    ${timeText}
+    </div>
+    </div>
+    </div>`;
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMsg() {
+    const input = document.getElementById("txtMsg");
+    if (!input.value.trim()) return;
+
+    connection.invoke("SendMessageToSupport", input.value.trim());
+    input.value = '';
+    }
+
+    function handleEnter(e) { if (e.key === 'Enter') sendMsg(); }
+</script>

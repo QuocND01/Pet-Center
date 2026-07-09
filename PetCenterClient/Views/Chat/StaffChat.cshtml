@@ -1,0 +1,240 @@
+﻿@using PetCenterClient.ViewModels
+@model List<ChatCustomerViewModel>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Support Inbox";
+}
+
+<style>
+    .dark-panel {
+        background: #1e1e2d;
+        color: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .dark-sidebar {
+        background: #151521;
+        border-right: 1px solid #2b2b3c;
+    }
+
+    .customer-item {
+        padding: 15px;
+        border-bottom: 1px solid #2b2b3c;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .customer-item:hover, .customer-item.active {
+            background: #2b2b3c;
+            border-left: 4px solid #2ecc71;
+        }
+
+    .msg-bubble {
+        padding: 12px 18px;
+        border-radius: 12px;
+        max-width: 75%;
+        width: fit-content;
+    }
+
+    .msg-me {
+        background: #2ecc71;
+        color: #fff;
+        border-bottom-right-radius: 2px;
+    }
+
+    .msg-them {
+        background: #2b2b3c;
+        color: #fff;
+        border-bottom-left-radius: 2px;
+    }
+
+    .chat-input {
+        background: #151521;
+        border: 1px solid #2b2b3c;
+        color: #fff;
+    }
+
+        .chat-input:focus {
+            background: #151521;
+            color: #fff;
+            border-color: #2ecc71;
+            box-shadow: none;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <input type="hidden" id="myId" value="@ViewBag.MyId" />
+    <input type="hidden" id="currentCustomerId" />
+
+    <div class="row g-0 dark-panel shadow-lg" style="height: 75vh; overflow: hidden;">
+
+        <div class="col-md-4 col-lg-3 dark-sidebar d-flex flex-column h-100">
+            <div class="p-3 border-bottom" style="border-color: #2b2b3c !important;">
+                <h5 class="fw-bold m-0"><i class="bi bi-inbox-fill text-success"></i> Active Chats</h5>
+            </div>
+            <div class="flex-grow-1 overflow-auto" id="customerList">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var c in Model)
+                    {
+                        var isUnread = c.UnreadCount > 0;
+                        <div class="customer-item" id="user-@c.CustomerId" onclick="loadChat('@c.CustomerId', this)">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="fw-bold @(isUnread ? "text-white" : "")" id="name-@c.CustomerId">@c.FullName</div>
+                                <small class="text-muted" id="time-@c.CustomerId" style="font-size: 11px;">@(c.LastMessageTime?.ToString("HH:mm") ?? "")</small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-truncate @(isUnread ? "text-white fw-bold" : "text-muted")" style="max-width: 80%;" id="snippet-@c.CustomerId">
+                                    @c.LastMessage
+                                </small>
+                                <span class="badge bg-danger rounded-circle @(isUnread ? "" : "d-none")" id="badge-@c.CustomerId">@c.UnreadCount</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="p-4 text-center text-muted">No active chats yet.</div>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-8 col-lg-9 d-flex flex-column bg-transparent h-100">
+            <div class="p-3 border-bottom d-flex align-items-center" style="border-color: #2b2b3c !important; min-height: 60px;">
+                <h6 class="m-0 fw-bold text-success" id="chatHeader">Select a customer to start chatting</h6>
+            </div>
+
+            <div class="flex-grow-1 p-4 overflow-auto" id="chatBox">
+            </div>
+
+            <div class="p-3 border-top mt-auto" style="border-color: #2b2b3c !important;">
+                <div class="input-group">
+                    <input type="text" id="txtMsg" class="form-control chat-input rounded-start" placeholder="Type response..." onkeypress="handleEnter(event)" disabled>
+                    <button class="btn btn-success px-4" id="btnSend" onclick="sendMsg()" disabled><i class="bi bi-send"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    const token = '@Context.Session.GetString("JWT")';
+    const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:7004/appHub", { accessTokenFactory: () => token })
+    .withAutomaticReconnect()
+    .build();
+
+    connection.on("ReceiveMessage", (senderId, msg, time) => {
+    const currentChat = String(document.getElementById("currentCustomerId").value).toLowerCase();
+    const myId = String(document.getElementById("myId").value).toLowerCase();
+    const sId = String(senderId).toLowerCase();
+
+    const isMe = (sId === myId);
+    const targetId = isMe ? currentChat : sId;
+    const isUnread = (!isMe && targetId !== currentChat);
+
+    updateSidebarDOM(targetId, msg, time, isUnread, isMe);
+
+    if (sId === currentChat || isMe) {
+    appendMessage(senderId, msg, time);
+    if (sId === currentChat) {
+    fetch('https://localhost:7004/api/chat/mark-read/' + senderId, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+    }
+    }
+    });
+
+    connection.on("NewCustomerAssigned", (customerId) => {
+    alert("System routed a new customer to you!");
+    location.reload();
+    });
+
+    connection.start();
+
+    function updateSidebarDOM(customerId, msg, time, isUnread, isMe) {
+    const item = document.getElementById("user-" + customerId);
+    if(item) {
+    const prefix = isMe ? "Bạn: " : "";
+    document.getElementById("snippet-" + customerId).innerText = prefix + msg;
+
+    const dateObj = new Date(time);
+    document.getElementById("time-" + customerId).innerText = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if(isUnread) {
+    document.getElementById("name-" + customerId).classList.add("text-white");
+    document.getElementById("snippet-" + customerId).classList.add("text-white", "fw-bold");
+    document.getElementById("snippet-" + customerId).classList.remove("text-muted");
+    const badge = document.getElementById("badge-" + customerId);
+    badge.classList.remove("d-none");
+    badge.innerText = parseInt(badge.innerText || "0") + 1;
+    } else {
+    document.getElementById("name-" + customerId).classList.remove("text-white");
+    document.getElementById("snippet-" + customerId).classList.remove("text-white", "fw-bold");
+    document.getElementById("snippet-" + customerId).classList.add("text-muted");
+    }
+    document.getElementById("customerList").prepend(item);
+    } else {
+    location.reload();
+    }
+    }
+
+    function loadChat(customerId, element) {
+    document.getElementById("currentCustomerId").value = customerId;
+
+    document.querySelectorAll('.customer-item').forEach(el => el.classList.remove('active'));
+    if(element) element.classList.add('active');
+
+    document.getElementById("name-" + customerId).classList.remove("text-white");
+    const snippetEl = document.getElementById("snippet-" + customerId);
+    snippetEl.classList.remove("text-white", "fw-bold");
+    snippetEl.classList.add("text-muted");
+    document.getElementById("badge-" + customerId).classList.add("d-none");
+    document.getElementById("badge-" + customerId).innerText = "0";
+
+    document.getElementById("txtMsg").disabled = false;
+    document.getElementById("btnSend").disabled = false;
+    document.getElementById("chatHeader").innerText = "Chatting with Customer ID: " + customerId;
+
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML = "<div class='text-center text-muted'>Loading history...</div>";
+
+    fetch('https://localhost:7004/api/chat/mark-read/' + customerId, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+
+    fetch('/Chat/GetHistory?id=' + customerId)
+    .then(r => r.json())
+    .then(msgs => {
+    chatBox.innerHTML = '';
+    msgs.forEach(m => appendMessage(m.senderId, m.content, m.createdAt));
+    });
+    }
+
+    function appendMessage(senderId, message, timestampString = null) {
+    const chatBox = document.getElementById("chatBox");
+    const myId = document.getElementById("myId").value;
+    const isMe = String(senderId).toLowerCase() === String(myId).toLowerCase();
+
+    const dateObj = timestampString ? new Date(timestampString) : new Date();
+    const timeText = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    chatBox.innerHTML += `
+    <div class="d-flex flex-column mb-3 ${isMe ? 'align-items-end' : 'align-items-start'}">
+    <div class="msg-bubble ${isMe ? 'msg-me' : 'msg-them'} shadow-sm mb-1">
+    ${message}
+    </div>
+    <small class="text-muted" style="font-size: 11px; padding: 0 4px;">${timeText}</small>
+    </div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMsg() {
+    const input = document.getElementById("txtMsg");
+    const customerId = document.getElementById("currentCustomerId").value;
+    if (!input.value.trim() || !customerId) return;
+
+    connection.invoke("SendMessageToCustomer", customerId, input.value.trim());
+    input.value = '';
+    }
+
+    function handleEnter(e) { if (e.key === 'Enter') sendMsg(); }
+</script>

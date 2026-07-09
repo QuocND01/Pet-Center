@@ -14,18 +14,21 @@ using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Security;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
+using PetCenterAPI.Hubs; 
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
                  optional: true,
                  reloadOnChange: true);
 
+// ── ĐĂNG KÝ SIGNALR ───────────────────────────────────────────────────────────
+builder.Services.AddSignalR();
 
-// Add services to the container.
-
+// ── CẤU HÌNH AUTHENTICATION & JWT ─────────────────────────────────────────────
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -50,7 +53,6 @@ builder.Services.AddAuthentication(options =>
         )
     };
 
-    // Giống JwtEntryPoint + AccessDenied
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
@@ -62,21 +64,30 @@ builder.Services.AddAuthentication(options =>
         {
             context.Response.StatusCode = 403;
             return Task.CompletedTask;
+        },
+        // BẮT BUỘC CHO SIGNALR: Đọc token từ query string
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/appHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
         }
     };
 });
-
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddHostedService<CleanupProductImageJob>();
 
-
+// ── CẤU HÌNH SWAGGER ─────────────────────────────────────────────────────────
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ProductAPI", Version = "v1" });
 
-    // Cấu hình hỗ trợ Bearer token
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -94,6 +105,7 @@ builder.Services.AddSwaggerGen(c =>
             {
                 Reference = new OpenApiReference
                 {
+                    // ĐÃ FIX LỖI AMBIGUOUS REFERENCE Ở ĐÂY
                     Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
@@ -103,20 +115,15 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
-
 builder.Services.AddAuthorization();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-// ── 1. DbContext ──────────────────────────────────────────────────────────────
+// ── CẤU HÌNH DATABASE VÀ ODATA ───────────────────────────────────────────────
 builder.Services.AddDbContext<PetCenterContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection"))
     .EnableSensitiveDataLogging()
     .LogTo(Console.WriteLine, LogLevel.Information))
     ;
-
 
 builder.Services
     .AddControllers()
@@ -133,55 +140,48 @@ builder.Services
         .SetMaxTop(100)
     );
 
+// ── CẤU HÌNH AUTOMAPPER ───────────────────────────────────────────────────────
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<ProductProfile>();
+    cfg.AddProfile<BrandProfile>();
+    cfg.AddProfile<ServiceProfile>();
+    cfg.AddProfile<CategoryProfile>();
+    cfg.AddProfile<ProductAttributeProfile>();
+    cfg.AddProfile<CategoryAttributeProfile>();
+    cfg.AddProfile<CustomerMappingProfile>();
+    cfg.AddProfile<SupplierProfile>();
+    cfg.AddProfile<OrderProfile>();
+    cfg.AddProfile<InventoryProfile>();
+    cfg.AddProfile<ImportStockProfile>();
+    cfg.AddProfile<AppointmentProfile>();
+});
 
-// Đăng ký Automapper
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<BrandProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ServiceProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductAttributeProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<CategoryAttributeProfile>());
-builder.Services.AddAutoMapper(cfg =>{cfg.AddProfile<CustomerMappingProfile>();});
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<OrderProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<InventoryProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<AppointmentProfile>());
+// ── CẤU HÌNH CORS CHO SIGNALR VÀ RASA (GỘP CHUNG) ──
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowClient",
-        policy =>
-        {
-            policy.WithOrigins("https://localhost:7010")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-
-    // Allow RASA chatbot widget (browser) + action server to call PetCenterAPI
-    options.AddPolicy("AllowRasa",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5005", "http://localhost:5055")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins(
+                "https://localhost:7010", // URL của Client MVC
+                "http://localhost:5005",  // URL của Rasa
+                "http://localhost:5055"   // URL của Rasa Action Server
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // <-- Bắt buộc phải có cho SignalR
+    });
 });
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ImportStockProfile>());
 
-// Đăng ký Service và Repository
-builder.Services.AddScoped<IProductService, ProductService>();
+// ── ĐĂNG KÝ SERVICES & REPOSITORIES ──────────────────────────────────────────
+// Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IBrandService, BrandService>();
-builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IImportStockRepository, ImportStockRepository>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
-builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-
-// ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IStaffAuthRepository, StaffAuthRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -189,14 +189,19 @@ builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IAdminFeedbackRepository, AdminFeedbackRepository>();
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductFeedbackRepository, ProductFeedbackRepository>();
 builder.Services.AddScoped<IMedicalRecordRepository, MedicalRecordRepository>();
 builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 builder.Services.AddScoped<IChatbotRepository, ChatbotRepository>();
 builder.Services.AddScoped<IPetRepository, PetRepository>();
+builder.Services.AddScoped<IDiseaseRepository, DiseaseRepository>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 
-// ── 3. Services ───────────────────────────────────────────────────────────────
+// Services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddSingleton<PasswordService>();
@@ -212,43 +217,39 @@ builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAdminFeedbackService, AdminFeedbackService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IProductFeedbackService, ProductFeedbackService>();
 builder.Services.AddScoped<IImportStockService, ImportStockService>();
 builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IPrescriptionItemService, PrescriptionItemService>();
-builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddScoped<IPetService, PetService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
-builder.Services.AddScoped<IAppointmentService, PetCenterAPI.Service.AppointmentService>();
-builder.Services.Configure<CloudinarySettings>(
-    builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddScoped<IDiseaseService, DiseaseService>();
 
-builder.Services.Configure<GoogleAuthSettings>(
-    builder.Configuration.GetSection("Authentication:Google"));
-
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpClient();
 
+// ── CẤU HÌNH PIPELINE ─────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
+if (!app.Environment.IsEnvironment("Docker") && !app.Environment.IsDevelopment()) { app.UseHttpsRedirection(); }
 
-app.UseCors("AllowClient");
-app.UseCors("AllowRasa");
-
+app.UseCors("AllowAll"); // Chỉ để lại 1 dòng này
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// ĐĂNG KÝ ENDPOINT CHO HUB CỦA SIGNALR
+app.MapHub<AppHub>("/appHub");
 
 app.Run();
