@@ -44,4 +44,6 @@ public partial class Staff
     public virtual VetProfile? VetProfile { get; set; }
 
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+    public virtual ICollection<ScheduleException> ScheduleExceptions { get; set; }
+    = new List<ScheduleException>();
 }

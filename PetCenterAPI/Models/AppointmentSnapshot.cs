@@ -17,9 +17,9 @@ public partial class AppointmentSnapshot
 
     public decimal Weight { get; set; }
 
-    public decimal ExperienceYears { get; set; }
+    public decimal? ExperienceYears { get; set; }
 
-    public decimal Rating { get; set; }
+    public decimal? Rating { get; set; }
 
     public string VetName { get; set; } = null!;
 

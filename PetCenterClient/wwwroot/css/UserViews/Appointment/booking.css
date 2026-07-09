@@ -1,0 +1,257 @@
+﻿/* ===== PRODUCT GRID ===== */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* ===== PRODUCT CARD ===== */
+.product-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
+}
+
+    .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+/* ===== PRODUCT IMAGE ===== */
+.product-image {
+    width: 100%;
+    height: 150px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .product-image img {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+
+/* ===== PRODUCT INFO ===== */
+.product-info {
+    padding: 10px;
+}
+
+/* ===== TITLE ===== */
+.product-title {
+    font-size: 14px;
+    font-weight: 600;
+    height: 36px;
+    overflow: hidden;
+}
+
+/* ===== DESCRIPTION ===== */
+.product-info p {
+    font-size: 12px;
+    height: 30px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+/* ===== PRICE ===== */
+.product-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e63946;
+}
+
+/* ===== META ===== */
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ===== EXTRA ===== */
+.product-extra {
+    font-size: 12px;
+}
+
+/* ===== HERO BANNER ===== */
+.hero-banner {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Ảnh banner */
+.hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+}
+
+/* Nội dung banner */
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 2;
+    max-width: 500px;
+}
+
+    /* Chữ trong banner */
+    .hero-content h1 {
+        font-size: 40px;
+        font-weight: 700;
+    }
+
+    .hero-content p {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+/* ===== INTERACTION STATES ===== */
+.card-selectable {
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+    /* Trạng thái kích hoạt chọn 1 (Pet, Staff) */
+    .card-selectable.active-single {
+        border-color: #0d6efd !important;
+        background-color: #f0f7ff;
+    }
+
+    /* Trạng thái kích hoạt chọn nhiều (Service) */
+    .card-selectable.active-multi {
+        border-color: #e63946 !important;
+        background-color: #fff5f5;
+    }
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    border-bottom: 2px solid #f1f3f5;
+    padding-bottom: 8px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .product-image {
+        height: 130px;
+    }
+}
+/*=========*/
+/* ===== 2-COLUMN MAIN DASHBOARD ===== */
+.booking-dashboard {
+    display: grid;
+    grid-template-columns: 7fr 3fr; /* 7 phần cho Form, 3 phần cho Sidebar tổng hợp */
+    gap: 20px;
+    height: calc(100vh - 100px); /* Cố định chiều cao theo khung nhìn màn hình */
+    max-height: 700px;
+}
+
+.booking-main-form {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto; /* Chỉ cuộn nhẹ bên trong form nếu màn hình quá bé */
+}
+
+.booking-sidebar {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* ===== CUSTOM OPTION SELECT (DROPDOWN COMPACT) ===== */
+.compact-select-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.compact-card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .compact-card img {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .compact-card .info {
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .compact-card .sub-info {
+        font-size: 11px;
+        color: #6c757d;
+    }
+
+    .compact-card.active {
+        border-color: #0d6efd;
+        background-color: #f0f7ff;
+    }
+
+/* ===== SERVICE BADGES ON FORM ===== */
+.selected-services-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+    background: #fff;
+}
+
+/* ===== MODAL CUSTOM STYLES ===== */
+.modal-service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .booking-dashboard {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: none;
+    }
+}

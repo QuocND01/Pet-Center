@@ -5,7 +5,7 @@ namespace PetCenterClient.ViewModels
     public class ApiResponseViewModel<T>
     {
         [JsonPropertyName("status")]
-        public int Status { get; set; }
+        public bool Status { get; set; }
 
         [JsonPropertyName("message")]
         public string? Message { get; set; }

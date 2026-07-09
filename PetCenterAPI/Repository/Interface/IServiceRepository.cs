@@ -21,5 +21,8 @@ namespace PetCenterAPI.Repository.Interface
         Task<bool> CheckServiceExistAsync(string ServiceName, Guid? excludeId = null);
         Task SaveAsync();
         void DeleteServiceImage(ServiceImage image);
+
+        //For booking get all active services-vinh
+        Task<IEnumerable<Models.Service>> GetAllActiveServicesAsync();
     }
 }

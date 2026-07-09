@@ -92,6 +92,10 @@ public partial class PetCenterContext : DbContext
 
     public virtual DbSet<Disease> Diseases { get; set; }
 
+    public virtual DbSet<GlobalWorkSchedule> GlobalWorkSchedules { get; set; }
+
+    public virtual DbSet<ScheduleException> ScheduleExceptions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
@@ -169,9 +173,7 @@ public partial class PetCenterContext : DbContext
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("AppointmentServiceID");
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
-            entity.Property(e => e.Duration)
-                .HasMaxLength(200)
-                .IsUnicode(false);
+            
             entity.Property(e => e.PriceAtBooking).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
             entity.Property(e => e.ServiceName)
@@ -849,6 +851,9 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.PetId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("PetID");
+            entity.Property(e => e.PetName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.Breed)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -1223,6 +1228,51 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.MaxDiscountAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.MinOrderAmount).HasColumnType("decimal(18, 2)");
+        });
+
+        // GlobalWorkSchedule
+        modelBuilder.Entity<GlobalWorkSchedule>(entity =>
+        {
+            entity.HasKey(e => e.GlobalScheduleId);
+
+            entity.ToTable("GlobalWorkSchedule");
+
+            entity.HasIndex(e => e.DayOfWeek)
+                  .IsUnique();
+
+            entity.Property(e => e.GlobalScheduleId)
+                  .HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.StartTime)
+                  .HasColumnType("time");
+
+            entity.Property(e => e.EndTime)
+                  .HasColumnType("time");
+        });
+        // ScheduleException
+        modelBuilder.Entity<ScheduleException>(entity =>
+        {
+            entity.HasKey(e => e.ExceptionId);
+
+            entity.ToTable("ScheduleException");
+
+            entity.Property(e => e.ExceptionId)
+                  .HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.ExceptionDate)
+                  .HasColumnType("date");
+
+            entity.Property(e => e.StartTime)
+                  .HasColumnType("time");
+
+            entity.Property(e => e.EndTime)
+                  .HasColumnType("time");
+
+            entity.HasOne(e => e.Staff)
+                  .WithMany(d => d.ScheduleExceptions)
+                  .HasForeignKey(e => e.StaffId)
+                  .OnDelete(DeleteBehavior.SetNull)
+                  .HasConstraintName("FK_ScheduleException_Doctor");
         });
 
         OnModelCreatingPartial(modelBuilder);

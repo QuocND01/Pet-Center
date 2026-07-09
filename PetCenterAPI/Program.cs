@@ -112,7 +112,10 @@ builder.Services.AddSwaggerGen();
 
 // ── 1. DbContext ──────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<PetCenterContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbConnection"))
+    .EnableSensitiveDataLogging()
+    .LogTo(Console.WriteLine, LogLevel.Information))
+    ;
 
 
 builder.Services
@@ -142,6 +145,7 @@ builder.Services.AddAutoMapper(cfg =>{cfg.AddProfile<CustomerMappingProfile>();}
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<SupplierProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<OrderProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<InventoryProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<AppointmentProfile>());
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient",
@@ -175,6 +179,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IImportStockRepository, ImportStockRepository>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 // ── 2. Repositories ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
@@ -217,6 +222,7 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddScoped<IPetService, PetService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IAppointmentService, PetCenterAPI.Service.AppointmentService>();
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 

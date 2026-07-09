@@ -127,5 +127,20 @@ namespace PetCenterAPI.Repository
         {
             _db.ServiceImages.Remove(image);
         }
+        //Vinh
+        public async Task<IEnumerable<Models.Service>> GetAllActiveServicesAsync()
+        {
+            try
+            {
+                return await _db.Services
+                    .Where(s => s.Status == Status.Active)
+                    .Include(s => s.ServiceImages.Where(i => i.IsActive == true))
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterAPI.DTOs.Responses.Supplier;
 using PetCenterAPI.Service.Interface;
+using System;
+using System.Threading.Tasks;
 
 namespace PetCenterAPI.Controllers
 {
@@ -23,7 +26,7 @@ namespace PetCenterAPI.Controllers
 
             return Ok(new
             {
-                status = StatusCodes.Status200OK,
+                status = true, // Thành công -> true
                 message = "Get suppliers successfully",
                 data = suppliers
             });
@@ -39,14 +42,14 @@ namespace PetCenterAPI.Controllers
             {
                 return NotFound(new
                 {
-                    status = StatusCodes.Status404NotFound,
+                    status = false, // Thất bại -> false
                     message = "Supplier not found"
                 });
             }
 
             return Ok(new
             {
-                status = StatusCodes.Status200OK,
+                status = true, // Thành công -> true
                 message = "Get supplier successfully",
                 data = supplier
             });
@@ -60,7 +63,7 @@ namespace PetCenterAPI.Controllers
             {
                 return BadRequest(new
                 {
-                    status = StatusCodes.Status400BadRequest,
+                    status = false, // Thất bại -> false
                     message = "Validation failed",
                     errors = ModelState
                 });
@@ -73,7 +76,7 @@ namespace PetCenterAPI.Controllers
                 new { id = supplier.SupplierId },
                 new
                 {
-                    status = StatusCodes.Status201Created,
+                    status = true, // Thành công -> true
                     message = "Create supplier successfully",
                     data = supplier
                 });
@@ -89,7 +92,7 @@ namespace PetCenterAPI.Controllers
             {
                 return BadRequest(new
                 {
-                    status = StatusCodes.Status400BadRequest,
+                    status = false, // Thất bại -> false
                     message = "Validation failed",
                     errors = ModelState
                 });
@@ -101,14 +104,14 @@ namespace PetCenterAPI.Controllers
             {
                 return NotFound(new
                 {
-                    status = StatusCodes.Status404NotFound,
+                    status = false, // Thất bại -> false
                     message = "Supplier not found"
                 });
             }
 
             return Ok(new
             {
-                status = StatusCodes.Status200OK,
+                status = true, // Thành công -> true
                 message = "Update supplier successfully"
             });
         }
@@ -123,14 +126,14 @@ namespace PetCenterAPI.Controllers
             {
                 return NotFound(new
                 {
-                    status = StatusCodes.Status404NotFound,
+                    status = false, // Thất bại -> false
                     message = "Supplier not found"
                 });
             }
 
             return Ok(new
             {
-                status = StatusCodes.Status200OK,
+                status = true, // Thành công -> true
                 message = "Delete supplier successfully"
             });
         }
