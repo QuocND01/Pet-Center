@@ -153,25 +153,20 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<ImportStockProfile>();
 });
 
-// ── CẤU HÌNH CORS CHO SIGNALR ─────────────────────────────────────────────────
+// ── CẤU HÌNH CORS CHO SIGNALR VÀ RASA (GỘP CHUNG) ──
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowClient",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-
-    // Allow RASA chatbot widget (browser) + action server to call PetCenterAPI
-    options.AddPolicy("AllowRasa",
-        policy =>
-        {
-            policy.AllowAnyOrigin() // Cho phép tất cả các nguồn (bao gồm cổng chạy Flutter Web)
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins(
+                "https://localhost:7010", // URL của Client MVC
+                "http://localhost:5005",  // URL của Rasa
+                "http://localhost:5055"   // URL của Rasa Action Server
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // <-- Bắt buộc phải có cho SignalR
+    });
 });
 
 // ── ĐĂNG KÝ SERVICES & REPOSITORIES ──────────────────────────────────────────
@@ -244,9 +239,7 @@ if (app.Environment.IsDevelopment())
 
 if (!app.Environment.IsEnvironment("Docker") && !app.Environment.IsDevelopment()) { app.UseHttpsRedirection(); }
 
-app.UseCors("AllowClient");
-app.UseCors("AllowRasa");
-
+app.UseCors("AllowAll"); // Chỉ để lại 1 dòng này
 app.UseAuthentication();
 app.UseAuthorization();
 

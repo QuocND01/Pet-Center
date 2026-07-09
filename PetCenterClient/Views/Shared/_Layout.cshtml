@@ -599,5 +599,16 @@
         startSignalR(userToken);
         }
     </script>
+    @if (Context.Session.GetString("Role") == "Customer")
+    {
+        <a asp-controller="Chat" asp-action="CustomerChat"
+           class="btn btn-success rounded-circle d-flex align-items-center justify-content-center shadow-lg"
+           style="position: fixed; bottom: 110px; right: 30px; width: 60px; height: 60px; z-index: 9999; transition: 0.3s; background-color: #2ecc71; border: none;"
+           onmouseover="this.style.transform='scale(1.1)'"
+           onmouseout="this.style.transform='scale(1)'"
+           title="Live Support">
+            <i class="bi bi-chat-text-fill fs-3 text-white"></i>
+        </a>
+    }
 </body>
 </html>

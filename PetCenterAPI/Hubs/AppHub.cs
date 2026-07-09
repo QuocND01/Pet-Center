@@ -9,15 +9,10 @@ namespace PetCenterAPI.Hubs
     [Authorize]
     public class AppHub : Hub
     {
-        // 1. Lưu Staff đang Online và số lượng khách họ đang chat (để chia đều việc)
-        // Key: StaffId | Value: Số lượng khách đang phục vụ
+        // Chỉ cần lưu Staff nào đang Online để chia tải (Load Balancing)
         private static readonly ConcurrentDictionary<Guid, int> OnlineStaffLoads = new();
-
-        // 2. Lưu cặp Khách - Nhân viên (Ai đang chat với ai)
-        // Key: CustomerId | Value: StaffId
-        private static readonly ConcurrentDictionary<Guid, Guid> CustomerStaffMap = new();
-
         private readonly PetCenterContext _db;
+
         public AppHub(PetCenterContext db) => _db = db;
 
         private string GetUserId() => Context.UserIdentifier ?? "";
@@ -28,10 +23,10 @@ namespace PetCenterAPI.Hubs
             var userId = Guid.Parse(GetUserId());
             var role = GetUserRole();
 
-            // Nếu là Staff đăng nhập -> Đưa vào hàng chờ trực chat
+            // Đưa Staff vào hàng chờ nhận Chat
             if (role == "Admin" || role == "Vet" || role == "Sale Staff")
             {
-                OnlineStaffLoads.TryAdd(userId, 0); // Vừa online nên đang rảnh (load = 0)
+                OnlineStaffLoads.TryAdd(userId, 0);
                 await Clients.Caller.SendAsync("ReceiveSystemMessage", "Bạn đã online và sẵn sàng nhận chat từ khách.");
             }
 
@@ -43,7 +38,6 @@ namespace PetCenterAPI.Hubs
             var userId = Guid.Parse(GetUserId());
             var role = GetUserRole();
 
-            // Nếu Staff offline -> Gỡ khỏi hàng chờ trực chat
             if (role == "Admin" || role == "Vet" || role == "Sale Staff")
             {
                 OnlineStaffLoads.TryRemove(userId, out _);
@@ -53,64 +47,76 @@ namespace PetCenterAPI.Hubs
         }
 
         // =========================================================================
-        // HÀM DÀNH CHO CUSTOMER GỬI TIN NHẮN (HỆ THỐNG TỰ ĐỘNG TÌM STAFF MATCH)
+        // HÀM XỬ LÝ KHÁCH HÀNG GỬI TIN NHẮN (AUTO-ROUTING CHUẨN DOANH NGHIỆP)
         // =========================================================================
         public async Task SendMessageToSupport(string content)
         {
             var customerId = Guid.Parse(GetUserId());
             Guid assignedStaffId = Guid.Empty;
 
-            // 1. Kiểm tra xem Khách này đã có Staff nào đang support chưa
-            if (CustomerStaffMap.TryGetValue(customerId, out Guid existingStaffId))
+            // 1. TÌM NHÂN VIÊN GẦN NHẤT TRONG DATABASE
+            // Quét xem trước đây khách này đã từng chat với ai chưa (Chống mất data khi Server khởi động lại)
+            var lastChat = _db.ChatMessages
+                .Where(m => m.SenderId == customerId || m.ReceiverId == customerId)
+                .OrderByDescending(m => m.CreatedAt)
+                .FirstOrDefault();
+
+            if (lastChat != null)
             {
-                // Kiểm tra xem Staff này còn online không
-                if (OnlineStaffLoads.ContainsKey(existingStaffId))
-                {
-                    assignedStaffId = existingStaffId;
-                }
+                assignedStaffId = lastChat.SenderId == customerId ? lastChat.ReceiverId : lastChat.SenderId;
             }
 
-            // 2. Nếu chưa có hoặc Staff cũ đã offline -> Tìm Staff mới rảnh nhất (Ít khách nhất)
-            if (assignedStaffId == Guid.Empty)
-            {
-                if (OnlineStaffLoads.IsEmpty)
-                {
-                    await Clients.Caller.SendAsync("ReceiveSystemMessage", "Hiện tại không có nhân viên nào online. Tin nhắn của bạn đã được ghi nhận.");
-                    return; // Vẫn có thể lưu DB tùy ý, nhưng ở đây báo lỗi tạm
-                }
+            bool isStaffOnline = OnlineStaffLoads.ContainsKey(assignedStaffId);
 
-                // Thuật toán tìm Staff rảnh nhất
+            // 2. THUẬT TOÁN ĐIỀU HƯỚNG (RE-ROUTE)
+            // Nếu: Chưa từng chat với ai HOẶC Nhân viên cũ đang OFFLINE (Và đang có nhân viên khác ONLINE)
+            if ((assignedStaffId == Guid.Empty || !isStaffOnline) && !OnlineStaffLoads.IsEmpty)
+            {
+                // Tìm nhân viên rảnh nhất (ít khách nhất)
                 assignedStaffId = OnlineStaffLoads.OrderBy(x => x.Value).First().Key;
+                OnlineStaffLoads[assignedStaffId]++; // Tăng số khách họ đang tiếp lên
 
-                // Map khách này với Staff vừa tìm được
-                CustomerStaffMap[customerId] = assignedStaffId;
-
-                // Tăng số lượng khách mà Staff này đang phục vụ lên 1
-                OnlineStaffLoads[assignedStaffId]++;
-
-                // Báo cho Staff biết có khách mới
                 await Clients.User(assignedStaffId.ToString()).SendAsync("NewCustomerAssigned", customerId);
+                isStaffOnline = true;
             }
 
-            // 3. Lưu tin nhắn vào Database
-            var chatMsg = new ChatMessage
+            // 3. XỬ LÝ TRƯỜNG HỢP TOÀN BỘ CÔNG TY NGHỈ (OFFLINE HẾT)
+            if (assignedStaffId == Guid.Empty && OnlineStaffLoads.IsEmpty)
             {
-                MessageId = Guid.NewGuid(),
-                SenderId = customerId,
-                ReceiverId = assignedStaffId,
-                Content = content,
-                CreatedAt = DateTime.UtcNow
-            };
-            _db.ChatMessages.Add(chatMsg);
-            await _db.SaveChangesAsync();
+                // Bốc đại 1 nhân viên bất kỳ trong Database để tin nhắn có "chỗ trú"
+                var fallbackStaff = _db.Staffs.FirstOrDefault(s => s.IsActive == true);
+                if (fallbackStaff != null) assignedStaffId = fallbackStaff.StaffId;
+            }
 
-            // 4. Bắn Real-time
-            await Clients.User(assignedStaffId.ToString()).SendAsync("ReceiveMessage", customerId, content, chatMsg.CreatedAt);
-            await Clients.Caller.SendAsync("ReceiveMessage", customerId, content, chatMsg.CreatedAt);
+            // 4. THÔNG BÁO CHO KHÁCH (NẾU NHÂN VIÊN ĐANG OFFLINE)
+            if (!isStaffOnline)
+            {
+                await Clients.Caller.SendAsync("ReceiveSystemMessage", "Hiện tại nhân viên đang offline. Tin nhắn đã được lưu và chúng tôi sẽ phản hồi sớm nhất.");
+            }
+
+            // 5. LƯU VÀO DATABASE (Đoạn này bị lỗi nuốt tin nhắn ở code cũ, nay đã được Fix)
+            if (assignedStaffId != Guid.Empty)
+            {
+                var chatMsg = new ChatMessage
+                {
+                    MessageId = Guid.NewGuid(),
+                    SenderId = customerId,
+                    ReceiverId = assignedStaffId,
+                    Content = content,
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                _db.ChatMessages.Add(chatMsg);
+                await _db.SaveChangesAsync();
+
+                // 6. Bắn Real-time
+                await Clients.User(assignedStaffId.ToString()).SendAsync("ReceiveMessage", customerId, content, chatMsg.CreatedAt);
+                await Clients.Caller.SendAsync("ReceiveMessage", customerId, content, chatMsg.CreatedAt);
+            }
         }
 
         // =========================================================================
-        // HÀM DÀNH CHO STAFF TRẢ LỜI KHÁCH HÀNG
+        // HÀM STAFF TRẢ LỜI
         // =========================================================================
         public async Task SendMessageToCustomer(Guid customerId, string content)
         {
@@ -122,7 +128,8 @@ namespace PetCenterAPI.Hubs
                 SenderId = staffId,
                 ReceiverId = customerId,
                 Content = content,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
             };
             _db.ChatMessages.Add(chatMsg);
             await _db.SaveChangesAsync();
