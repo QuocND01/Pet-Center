@@ -156,20 +156,22 @@ builder.Services.AddAutoMapper(cfg =>
 // ── CẤU HÌNH CORS CHO SIGNALR ─────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowClient", policy =>
-    {
-        policy.WithOrigins("https://localhost:7010")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // <-- BẮT BUỘC THÊM DÒNG NÀY CHO SIGNALR
-    });
+    options.AddPolicy("AllowClient",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 
-    options.AddPolicy("AllowRasa", policy =>
-    {
-        policy.WithOrigins("http://localhost:5005", "http://localhost:5055")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+    // Allow RASA chatbot widget (browser) + action server to call PetCenterAPI
+    options.AddPolicy("AllowRasa",
+        policy =>
+        {
+            policy.AllowAnyOrigin() // Cho phép tất cả các nguồn (bao gồm cổng chạy Flutter Web)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 });
 
 // ── ĐĂNG KÝ SERVICES & REPOSITORIES ──────────────────────────────────────────
@@ -240,10 +242,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-if (!app.Environment.IsEnvironment("Docker"))
-{
-    app.UseHttpsRedirection();
-}
+if (!app.Environment.IsEnvironment("Docker") && !app.Environment.IsDevelopment()) { app.UseHttpsRedirection(); }
 
 app.UseCors("AllowClient");
 app.UseCors("AllowRasa");
