@@ -2,23 +2,24 @@
 {
     public class DashboardMetricsViewModel
     {
+        // Các chỉ số KPI tổng quan
         public decimal TotalRevenue { get; set; }
+        public decimal TotalProfit { get; set; } // Đã thêm Lợi nhuận
         public int TotalOrders { get; set; }
         public int TotalAppointments { get; set; }
         public int TotalCustomers { get; set; }
-        public List<MonthlyRevenueViewModel> RevenueChart { get; set; } = new();
-        public List<TopProductViewModel> TopProducts { get; set; } = new();
+
+        // Các mảng dữ liệu cho phiên bản Analytics Pro
+        public List<ChartItemViewModel> RevenueTimeline { get; set; } = new();
+        public List<ChartItemViewModel> CategoryChart { get; set; } = new();
+        public List<ChartItemViewModel> TopProducts { get; set; } = new();
+        public List<ChartItemViewModel> TopServices { get; set; } = new();
     }
 
-    public class MonthlyRevenueViewModel
+    // Class đa năng dùng để vẽ MỌI loại biểu đồ
+    public class ChartItemViewModel
     {
-        public string Month { get; set; } = null!;
-        public decimal Revenue { get; set; }
-    }
-
-    public class TopProductViewModel
-    {
-        public string ProductName { get; set; } = null!;
-        public int TotalSold { get; set; }
+        public string Label { get; set; } = null!; // Tên nhãn (Tên SP, Tên ngày, Tên danh mục...)
+        public decimal Value { get; set; }         // Giá trị (Doanh thu, Số lượng...)
     }
 }

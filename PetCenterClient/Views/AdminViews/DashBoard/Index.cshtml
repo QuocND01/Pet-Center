@@ -2,86 +2,108 @@
 @model DashboardMetricsViewModel
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "Analytics Dashboard";
+    ViewData["Title"] = "Business Analytics Pro";
 }
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold m-0"><i class="bi bi-graph-up-arrow text-success"></i> Business Analytics</h3>
-        <span class="text-muted">Current Month Overview</span>
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-success border-4">
+        <div>
+            <h4 class="fw-bold m-0"><i class="bi bi-bar-chart-fill text-success"></i> Business Analytics</h4>
+            <small class="text-muted">Real-time data visualization</small>
+        </div>
+        <div class="d-flex gap-2 align-items-end">
+            <div>
+                <small class="text-muted fw-bold">From Date</small>
+                <input type="date" id="startDate" class="form-control form-control-sm border-success" />
+            </div>
+            <div>
+                <small class="text-muted fw-bold">To Date</small>
+                <input type="date" id="endDate" class="form-control form-control-sm border-success" />
+            </div>
+            <button class="btn btn-success btn-sm px-4 shadow-sm" onclick="loadDashboardData()">
+                <i class="bi bi-funnel-fill"></i> Filter
+            </button>
+        </div>
     </div>
 
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+            <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #2ecc71, #27ae60); color: white;">
                 <div class="card-body">
-                    <h6 class="text-muted fw-bold text-uppercase">Revenue</h6>
-                    <h3 class="fw-bold mb-0 text-success">@Model.TotalRevenue.ToString("N0") đ</h3>
+                    <h6 class="fw-bold text-uppercase opacity-75">Total Revenue</h6>
+                    <h3 class="fw-bold mb-0" id="lblRevenue">Loading...</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+            <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
                 <div class="card-body">
-                    <h6 class="text-muted fw-bold text-uppercase">Orders</h6>
-                    <h3 class="fw-bold mb-0">@Model.TotalOrders</h3>
+                    <h6 class="fw-bold text-uppercase opacity-75">Net Profit</h6>
+                    <h3 class="fw-bold mb-0" id="lblProfit">Loading...</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
+            <div class="card shadow-sm border-0 h-100 bg-white border-start border-warning border-4">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase">Total Orders</h6>
+                    <h3 class="fw-bold mb-0 text-dark" id="lblOrders">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 bg-white border-start border-danger border-4">
                 <div class="card-body">
                     <h6 class="text-muted fw-bold text-uppercase">Appointments</h6>
-                    <h3 class="fw-bold mb-0">@Model.TotalAppointments</h3>
+                    <h3 class="fw-bold mb-0 text-dark" id="lblAppointments">0</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="m-0 fw-bold"><i class="bi bi-graph-up text-success"></i> Revenue Timeline</h6>
+                </div>
                 <div class="card-body">
-                    <h6 class="text-muted fw-bold text-uppercase">Total Customers</h6>
-                    <h3 class="fw-bold mb-0">@Model.TotalCustomers</h3>
+                    <canvas id="revenueLineChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="m-0 fw-bold"><i class="bi bi-pie-chart-fill text-primary"></i> Revenue By Category</h6>
+                </div>
+                <div class="card-body d-flex justify-content-center">
+                    <canvas id="categoryPieChart" height="250"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-8 mb-4">
+        <div class="col-md-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="m-0 fw-bold">Revenue Last 6 Months</h6>
+                    <h6 class="m-0 fw-bold"><i class="bi bi-box-seam text-warning"></i> Top 5 Selling Products</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="revenueChart" height="100"></canvas>
-                </div>
+                <ul class="list-group list-group-flush" id="listTopProducts">
+                    <li class="list-group-item text-center text-muted py-4">Loading data...</li>
+                </ul>
             </div>
         </div>
 
-        <div class="col-md-4 mb-4">
+        <div class="col-md-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="m-0 fw-bold"><i class="bi bi-star-fill text-warning"></i> Top Selling Products</h6>
+                    <h6 class="m-0 fw-bold"><i class="bi bi-heart-pulse text-danger"></i> Top 5 Booked Services</h6>
                 </div>
-                <ul class="list-group list-group-flush">
-                    @if (Model.TopProducts != null && Model.TopProducts.Any())
-                    {
-                        var rank = 1;
-                        foreach (var item in Model.TopProducts)
-                        {
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                                <div class="text-truncate" style="max-width: 70%;">
-                                    <span class="badge bg-secondary me-2">#@rank</span> @item.ProductName
-                                </div>
-                                <span class="badge bg-success rounded-pill">@item.TotalSold sold</span>
-                            </li>
-                            rank++;
-                        }
-                    }
-                    else
-                    {
-                        <li class="list-group-item text-center text-muted py-4">No data available</li>
-                    }
+                <ul class="list-group list-group-flush" id="listTopServices">
+                    <li class="list-group-item text-center text-muted py-4">Loading data...</li>
                 </ul>
             </div>
         </div>
@@ -91,41 +113,94 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    let lineChartInst = null;
+    let pieChartInst = null;
+
+    // Format tiền tệ VNĐ
+    const fmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
     document.addEventListener("DOMContentLoaded", function () {
-    // Biến cục bộ C# sang mảng JS xịn xò
-    const chartLabels = @Json.Serialize(Model.RevenueChart.Select(x => x.Month));
-    const chartData = @Json.Serialize(Model.RevenueChart.Select(x => x.Revenue));
+    // Mặc định chọn mốc thời gian: Từ ngày 1 đầu tháng đến ngày hôm nay
+    const today = new Date();
+    // Lấy ngày hiện tại (nếu đang ở VN thì dùng múi giờ local cho chuẩn)
+    const offset = today.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(today - offset)).toISOString().split('T')[0];
 
-    const ctx = document.getElementById('revenueChart').getContext('2d');
+    document.getElementById("endDate").value = localISOTime;
 
-    new Chart(ctx, {
+    // Trở về mùng 1
+    today.setDate(1);
+    const localISOStart = (new Date(today - offset)).toISOString().split('T')[0];
+    document.getElementById("startDate").value = localISOStart;
+
+    loadDashboardData();
+    });
+
+    function loadDashboardData() {
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
+
+    // Gọi thẳng vào Controller của Client (an toàn, bảo mật, không lộ Token ra ngoài)
+    const url = `/Dashboard/GetMetricsJson?startDate=${start}&endDate=${end}`;
+
+    fetch(url)
+    .then(res => {
+    if(!res.ok) throw new Error("Unauthorized or Network Error");
+    return res.json();
+    })
+    .then(data => {
+    // 1. Cập nhật thẻ KPI
+    document.getElementById("lblRevenue").innerText = fmt.format(data.totalRevenue);
+    document.getElementById("lblProfit").innerText = fmt.format(data.totalProfit);
+    document.getElementById("lblOrders").innerText = data.totalOrders;
+    document.getElementById("lblAppointments").innerText = data.totalAppointments;
+
+    // 2. Vẽ biểu đồ Đường
+    drawRevenueChart(data.revenueTimeline);
+
+    // 3. Vẽ biểu đồ Tròn
+    drawCategoryChart(data.categoryChart);
+
+    // 4. In danh sách Top
+    renderTopList("listTopProducts", data.topProducts, "sold");
+    renderTopList("listTopServices", data.topServices, "bookings");
+    })
+    .catch(err => {
+    console.error("Lỗi khi tải dữ liệu Analytics: ", err);
+    });
+    }
+
+    function drawRevenueChart(chartData) {
+    if(lineChartInst) lineChartInst.destroy();
+
+    const ctx = document.getElementById('revenueLineChart').getContext('2d');
+    lineChartInst = new Chart(ctx, {
     type: 'line',
     data: {
-    labels: chartLabels,
+    labels: chartData.map(x => x.label),
     datasets: [{
-    label: 'Revenue (VND)',
-    data: chartData,
+    label: 'Daily Revenue',
+    data: chartData.map(x => x.value),
     borderColor: '#2ecc71',
-    backgroundColor: 'rgba(46, 204, 113, 0.2)',
+    backgroundColor: 'rgba(46, 204, 113, 0.15)',
     borderWidth: 2,
     fill: true,
-    tension: 0.4, // Đường cong mượt
+    tension: 0.4, // Đường cong mềm mại
     pointBackgroundColor: '#27ae60',
-    pointRadius: 4
+    pointRadius: 4,
+    pointHoverRadius: 6
     }]
     },
     options: {
     responsive: true,
-    plugins: {
-    legend: { display: false }
-    },
+    plugins: { legend: { display: false } },
     scales: {
     y: {
     beginAtZero: true,
     ticks: {
     callback: function(value) {
-    if(value >= 1000000) return (value / 1000000) + 'M';
-    if(value >= 1000) return (value / 1000) + 'K';
+    if(value >= 1000000) return (value / 1000000) + ' Tr';
+    if(value >= 1000) return (value / 1000) + ' K';
     return value;
     }
     }
@@ -133,5 +208,49 @@
     }
     }
     });
+    }
+
+    function drawCategoryChart(chartData) {
+    if(pieChartInst) pieChartInst.destroy();
+
+    const ctx = document.getElementById('categoryPieChart').getContext('2d');
+    pieChartInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+    labels: chartData.map(x => x.label),
+    datasets: [{
+    data: chartData.map(x => x.value),
+    backgroundColor: ['#2ecc71', '#3498db', '#f1c40f', '#e74c3c', '#9b59b6', '#34495e'],
+    borderWidth: 2,
+    borderColor: '#ffffff'
+    }]
+    },
+    options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+    legend: { position: 'bottom' }
+    }
+    }
     });
+    }
+
+    function renderTopList(elementId, items, suffix) {
+    const el = document.getElementById(elementId);
+    el.innerHTML = '';
+    if(!items || items.length === 0) {
+    el.innerHTML = '<li class="list-group-item text-center text-muted py-4">No data in this period</li>';
+    return;
+    }
+    items.forEach((item, idx) => {
+    el.innerHTML += `
+    <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+    <div class="text-truncate" style="max-width: 75%;">
+    <span class="badge ${idx < 3 ? 'bg-warning text-dark' : 'bg-secondary'} me-2">#${idx + 1}</span>
+    <span class="fw-bold text-dark">${item.label}</span>
+    </div>
+    <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">${item.value} ${suffix}</span>
+    </li>`;
+    });
+    }
 </script>
