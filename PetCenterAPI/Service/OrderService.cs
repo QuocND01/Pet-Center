@@ -3,6 +3,8 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.SignalR;
+using PetCenterAPI.Hubs;
 using PetCenterAPI.Common;
 using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
 using PetCenterAPI.Repository.Interface;
@@ -16,17 +18,20 @@ namespace PetCenterAPI.Service
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
+        private readonly IHubContext<AppHub> _hub;
 
         public OrderService(
             IOrderRepository orderRepository,
             IInventoryRepository inventoryRepository,
             IMapper mapper,
-            ILogger<OrderService> logger)
+            ILogger<OrderService> logger,
+            IHubContext<AppHub> hub)
         {
             _orderRepository = orderRepository;
             _inventoryRepository = inventoryRepository;
             _mapper = mapper;
             _logger = logger;
+            _hub = hub;
         }
 
         #region Get & Query Orders
@@ -172,6 +177,15 @@ namespace PetCenterAPI.Service
             }
 
             await _orderRepository.SaveAsync();
+            // Notify admins and the specific customer about cancelled order
+            try
+            {
+                await _hub.Clients.Group("Admins").SendAsync("OrderUpdated", new { OrderId = order.OrderId, Status = order.Status });
+                if (order.CustomerId != Guid.Empty)
+                    await _hub.Clients.User(order.CustomerId.ToString()).SendAsync("OrderUpdated", new { OrderId = order.OrderId, Status = order.Status });
+            }
+            catch { }
+
             _logger.LogInformation($"Hủy đơn hàng ID: {orderId} thành công.");
             return true;
         }
@@ -224,6 +238,16 @@ namespace PetCenterAPI.Service
             }
 
             await _orderRepository.SaveAsync();
+
+            // Notify admins and the specific customer about updated order status
+            try
+            {
+                await _hub.Clients.Group("Admins").SendAsync("OrderUpdated", new { OrderId = order.OrderId, Status = order.Status });
+                if (order.CustomerId != Guid.Empty)
+                    await _hub.Clients.User(order.CustomerId.ToString()).SendAsync("OrderUpdated", new { OrderId = order.OrderId, Status = order.Status });
+            }
+            catch { }
+
             _logger.LogInformation($"Cập nhật trạng thái đơn hàng {orderId} thành công: {oldStatus} -> {order.Status}");
 
             return order.Status;

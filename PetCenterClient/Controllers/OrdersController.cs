@@ -45,6 +45,19 @@ namespace PetCenterClient.Controllers
             return View("~/Views/AdminViews/Order/Index.cshtml", result?.Values);
         }
 
+        // Returns only the table body partial so clients can refresh the list via AJAX
+        public async Task<IActionResult> IndexAdminPartial(string? search, int? status, string? paymentMethod, string? sortBy, string sortOrder = "desc", int page = 1)
+        {
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Admin" && role != "Sale")
+            {
+                return Forbid();
+            }
+
+            var result = await _orderService.GetOrderListAdminAsync(search, status, paymentMethod, sortBy, sortOrder, page);
+            return PartialView("~/Views/AdminViews/Order/_TableBody.cshtml", result?.Values);
+        }
+
         // GET: Orders/Details/{id}
         public async Task<IActionResult> DetailsAsync(Guid id)
         {
@@ -90,6 +103,16 @@ namespace PetCenterClient.Controllers
             var historyList = await _orderService.GetMyOrderHistoryAsync();
 
             return View("~/Views/CustomerViews/Order/History.cshtml", historyList);
+        }
+
+        // Returns only the customer's order list partial for AJAX refresh
+        public async Task<IActionResult> HistoryPartial()
+        {
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Customer") return Forbid();
+
+            var historyList = await _orderService.GetMyOrderHistoryAsync();
+            return PartialView("~/Views/CustomerViews/Order/_TableBody.cshtml", historyList);
         }
     }
 }

@@ -1,0 +1,57 @@
+@using PetCenterClient.DTOs
+@model IEnumerable<ReadOrderListViewModel>
+
+@if (Model != null && Model.Any())
+{
+	foreach (var order in Model)
+	{
+		<tr data-order-id="@order.OrderId">
+			<td class="ps-4 fw-semibold text-secondary">#@order.OrderId.ToString().Substring(0, 8).ToUpper()</td>
+			<td>@order.OrderDate.ToString("MMM dd, yyyy - HH:mm")</td>
+			<td class="fw-bold">@order.TotalAmount.ToString("N0") ₫</td>
+			<td>
+				<span class="badge @(order.PaymentMethod == "COD" ? "bg-secondary" : "bg-primary")">@order.PaymentMethod</span>
+			</td>
+			<td>
+				@if (order.Status == 0)
+				{
+					<span class="badge bg-danger">Cancelled</span>
+				}
+				else if (order.Status == 1)
+				{
+					<span class="badge bg-warning text-dark">Pending</span>
+				}
+				else if (order.Status == 2)
+				{
+					<span class="badge bg-info text-dark">Processing</span>
+				}
+				else if (order.Status == 3)
+				{
+					<span class="badge bg-primary">Delivering</span>
+				}
+				else if (order.Status == 4)
+				{
+					<span class="badge bg-success">Completed</span>
+				}
+			</td>
+			<td class="text-end pe-4">
+				<button class="btn btn-sm btn-outline-dark me-2" data-bs-toggle="modal" data-bs-target="#orderModal" data-url="@Url.Action("Details", "Orders", new { id = order.OrderId })">View Details</button>
+
+				@if (order.Status == 1 || order.Status == 2)
+				{
+					<button class="btn btn-sm btn-danger btn-cancel-customer" data-id="@order.OrderId">Cancel</button>
+				}
+			</td>
+		</tr>
+	}
+}
+else
+{
+	<tr>
+		<td colspan="6" class="text-center py-5 text-muted">
+			<i class="bi bi-cart-x fs-1 d-block mb-3"></i>
+			<h5>You haven't placed any orders yet.</h5>
+			<a href="/" class="btn btn-primary mt-2">Start Shopping</a>
+		</td>
+	</tr>
+}

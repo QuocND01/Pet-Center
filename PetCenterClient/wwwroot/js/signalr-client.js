@@ -21,7 +21,29 @@ function startSignalR(token) {
     // Lắng nghe Thông báo chung (Dùng cho Notification)
     appHubConnection.on("ReceiveNotification", function (message) {
         // Có thể dùng thư viện Toastr để hiện popup góc màn hình
-        alert("🔔 THÔNG BÁO MỚI: " + message);
+        toastr.info(message, 'Notification');
+    });
+
+    // Order events
+    appHubConnection.on("OrderCreated", function (payload) {
+        try {
+            var title = 'New Order';
+            var body = 'A new order was placed.';
+            if (payload && payload.OrderId) body = 'Order ' + payload.OrderId + ' placed.';
+            toastr.success(body, title);
+            // Emit a DOM event so pages can react (e.g., refresh admin order list)
+            window.dispatchEvent(new CustomEvent('order:created', { detail: payload }));
+        } catch (e) { console.warn(e); }
+    });
+
+    appHubConnection.on("OrderUpdated", function (payload) {
+        try {
+            var title = 'Order Updated';
+            var body = 'An order status changed.';
+            if (payload && payload.OrderId) body = 'Order ' + payload.OrderId + ' status: ' + (payload.Status ?? 'updated');
+            toastr.info(body, title);
+            window.dispatchEvent(new CustomEvent('order:updated', { detail: payload }));
+        } catch (e) { console.warn(e); }
     });
 
     // Sự kiện "ReceiveMessage" sẽ được cài đặt riêng ở trang Chat.html

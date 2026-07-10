@@ -779,7 +779,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.OrderDetailsId).HasColumnName("OrderDetailsID");
             entity.Property(e => e.ProductBrand).HasMaxLength(255);
             entity.Property(e => e.ProductCategory).HasMaxLength(255);
-            entity.Property(e => e.ProductDescription).HasMaxLength(255);
+            entity.Property(e => e.ProductDescription).HasMaxLength(1000);
             entity.Property(e => e.ProductImage).HasMaxLength(255);
             entity.Property(e => e.ProductName).HasMaxLength(255);
             entity.Property(e => e.ProductPrice).HasColumnType("decimal(18, 2)");
