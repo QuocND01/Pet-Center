@@ -116,6 +116,10 @@ builder.Services.AddHttpClient<IAppointmentApiService, AppointmentApiService>(cl
 {
     client.BaseAddress = new Uri(apiUrl);
 });
+builder.Services.AddHttpClient<IAnalyticsApiClient, AnalyticsApiClient>(client =>
+{
+    client.BaseAddress = new Uri(apiUrl);
+});
 builder.Services.AddHttpClient<InventoryApiService>();
 
 
