@@ -115,94 +115,8 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var o in Model)
-                    {
-                        <tr>
-                            <td class="row-num">#@o.OrderId.ToString().Substring(0, 8).ToUpper()</td>
-                            <td class="fw-bold">@o.CustomerName</td>
-                            <td class="email-cell">@o.PhoneNumber</td>
-                            <td>@o.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>
-                                <span class="badge @(o.PaymentMethod == "COD" ? "bg-secondary" : "bg-primary")">@o.PaymentMethod</span>
-                            </td>
-                            <td class="fw-bold text-success">@o.TotalAmount.ToString("N0") ₫</td>
-                            <td>
-                                @if (o.Status == 0)
-                                {
-                                    <span class="badge badge-cancelled">Cancelled</span>
-                                }
-                                else if (o.Status == 1)
-                                {
-                                    <span class="badge badge-pending">Pending</span>
-                                }
-                                else if (o.Status == 2)
-                                {
-                                    <span class="badge bg-info text-dark">Processing</span>
-                                }
-                                else if (o.Status == 3)
-                                {
-                                    <span class="badge bg-primary">Shipping</span>
-                                }
-                                else if (o.Status == 4)
-                                {
-                                    <span class="badge badge-completed">Completed</span>
-                                }
-                            </td>
-
-                            <td style="white-space: nowrap;">
-
-                                <button class="btn btn-sm btn-outline-primary"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#orderModal"
-                                        data-url="@Url.Action("Details", "Orders", new { id = o.OrderId })"
-                                        title="View Details">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
-                                @if (o.Status == 1)
-                                {
-                                    <button class="btn btn-sm btn-success btn-advance ms-1" data-id="@o.OrderId" title="Mark as Processed">
-                                        <i class="bi bi-gear"></i> Process
-                                    </button>
-                                }
-                                else if (o.Status == 2)
-                                {
-                                    <button class="btn btn-sm btn-info text-dark btn-advance ms-1" data-id="@o.OrderId" title="Mark as Shipping">
-                                        <i class="bi bi-truck"></i> Delivering
-                                    </button>
-                                }
-                                else if (o.Status == 3)
-                                {
-                                    <button class="btn btn-sm btn-primary btn-advance ms-1" data-id="@o.OrderId" title="Mark as Completed">
-                                        <i class="bi bi-check-all"></i> Complete
-                                    </button>
-                                }
-
-                                @if (o.Status == 1 || o.Status == 2)
-                                {
-                                    <button class="btn btn-sm btn-danger btn-cancel ms-1" data-id="@o.OrderId" title="Cancel Order">
-                                        <i class="bi bi-x-circle"></i> Cancel
-                                    </button>
-                                }
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="8">
-                            <div class="empty-state">
-                                <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-                                <h3>No orders found</h3>
-                                <p>Try adjusting your filters</p>
-                            </div>
-                        </td>
-                    </tr>
-                }
+            <tbody id="ordersTableBody">
+                @Html.Partial("~/Views/AdminViews/Order/_TableBody.cshtml", Model)
             </tbody>
         </table>
 
@@ -270,8 +184,9 @@
                     data: { id: orderId },
                     success: function (res) {
                         if (res.success) {
-                            alert(res.message);
-                            location.reload();
+                            toastr.success(res.message);
+                            // rely on SignalR event to refresh the table; but also do a partial refresh as fallback
+                            refreshOrdersTable();
                         } else {
                             alert("Error: " + res.message);
                         }
@@ -293,8 +208,8 @@
                     data: { id: orderId },
                     success: function (res) {
                         if (res.success) {
-                            alert(res.message);
-                            location.reload();
+                            toastr.success(res.message);
+                            refreshOrdersTable();
                         } else {
                             alert("Error: " + res.message);
                         }
@@ -304,6 +219,24 @@
                     }
                 });
             }
+        });
+
+        // Refresh table body via AJAX
+        function refreshOrdersTable() {
+            var url = '@Url.Action("IndexAdminPartial", "Orders")' + window.location.search;
+            $.get(url, function (html) {
+                $('#ordersTableBody').html(html);
+            }).fail(function () {
+                console.warn('Failed to refresh orders table.');
+            });
+        }
+
+        // Listen for SignalR dispatched DOM events
+        window.addEventListener('order:created', function (e) {
+            refreshOrdersTable();
+        });
+        window.addEventListener('order:updated', function (e) {
+            refreshOrdersTable();
         });
     </script>
 }

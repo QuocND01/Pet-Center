@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using PetCenterAPI.Hubs;
 using PetCenterAPI.DTOs.Requests.Order;
 using PetCenterAPI.DTOs.Responses.Order;
 using PetCenterAPI.Models;
@@ -9,10 +11,12 @@ namespace PetCenterAPI.Service
     public class CheckoutService : ICheckoutService
     {
         private readonly PetCenterContext _db;
+        private readonly IHubContext<AppHub> _hub;
 
-        public CheckoutService(PetCenterContext db)
+        public CheckoutService(PetCenterContext db, IHubContext<AppHub> hub)
         {
             _db = db;
+            _hub = hub;
         }
 
         public async Task<PlaceOrderResponseDTO> PlaceCodOrderAsync(PlaceCodOrderDTO dto)
@@ -174,6 +178,25 @@ namespace PetCenterAPI.Service
 
                 await _db.SaveChangesAsync();
                 await tx.CommitAsync();
+
+                // Notify admins and the customer about the new order
+                try
+                {
+                    await _hub.Clients.Group("Admins").SendAsync("OrderCreated", new
+                    {
+                        OrderId = order.OrderId,
+                        CustomerId = order.CustomerId,
+                        FinalAmount = finalAmount
+                    });
+
+                    await _hub.Clients.User(order.CustomerId.ToString()).SendAsync("OrderCreated", new
+                    {
+                        OrderId = order.OrderId,
+                        CustomerId = order.CustomerId,
+                        FinalAmount = finalAmount
+                    });
+                }
+                catch { /* swallow hub errors to avoid failing the request */ }
 
                 return new PlaceOrderResponseDTO
                 {

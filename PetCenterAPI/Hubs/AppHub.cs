@@ -28,6 +28,8 @@ namespace PetCenterAPI.Hubs
             {
                 OnlineStaffLoads.TryAdd(userId, 0);
                 await Clients.Caller.SendAsync("ReceiveSystemMessage", "Bạn đã online và sẵn sàng nhận chat từ khách.");
+                // Add staff to Admins group so they receive order notifications
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
             }
 
             await base.OnConnectedAsync();
@@ -41,6 +43,7 @@ namespace PetCenterAPI.Hubs
             if (role == "Admin" || role == "Vet" || role == "Sale Staff")
             {
                 OnlineStaffLoads.TryRemove(userId, out _);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");
             }
 
             await base.OnDisconnectedAsync(exception);
