@@ -1,124 +1,137 @@
-﻿@model PetCenterClient.DTOs.DashboardStatsDto
-
+﻿@using PetCenterClient.ViewModels
+@model DashboardMetricsViewModel
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "Statistics Center";
+    ViewData["Title"] = "Analytics Dashboard";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Revenue Report</h2>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold m-0"><i class="bi bi-graph-up-arrow text-success"></i> Business Analytics</h3>
+        <span class="text-muted">Current Month Overview</span>
+    </div>
 
-    <form asp-action="Index" method="get" class="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
-        <label class="fw-bold me-2 text-muted mb-0"><i class="fas fa-calendar-alt me-1"></i> Select Year:</label>
-        <select name="year" class="form-select form-select-sm w-auto fw-bold text-primary border-primary" onchange="this.form.submit()">
-            @for (int i = DateTime.Now.Year; i >= 2024; i--)
-            {
-                if (ViewBag.SelectedYear == i)
-                {
-                    <option value="@i" selected>@i</option>
-                }
-                else
-                {
-                    <option value="@i">@i</option>
-                }
-            }
-        </select>
-    </form>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-success shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Total Revenue</h5>
-                <h3 class="fw-bold">@Model.TotalRevenue.ToString("N0") VND</h3>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase">Revenue</h6>
+                    <h3 class="fw-bold mb-0 text-success">@Model.TotalRevenue.ToString("N0") đ</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase">Orders</h6>
+                    <h3 class="fw-bold mb-0">@Model.TotalOrders</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase">Appointments</h6>
+                    <h3 class="fw-bold mb-0">@Model.TotalAppointments</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase">Total Customers</h6>
+                    <h3 class="fw-bold mb-0">@Model.TotalCustomers</h3>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-primary shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Total Orders</h5>
-                <h3 class="fw-bold">@Model.TotalOrders</h3>
+
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="m-0 fw-bold">Revenue Last 6 Months</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="100"></canvas>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-warning shadow-sm text-dark">
-            <div class="card-body">
-                <h5 class="card-title">Pending Orders</h5>
-                <h3 class="fw-bold">@Model.PendingOrders</h3>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="card shadow-sm">
-    <div class="card-header bg-white fw-bold">
-        Revenue Chart for @ViewBag.SelectedYear
-    </div>
-    <div class="card-body">
-        <canvas id="revenueChart" height="100"></canvas>
-    </div>
-</div>
-
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Lấy dữ liệu từ Model
-            const labels = @Html.Raw(Json.Serialize(Model.RevenueByMonth.Select(x => "Month " + x.Month)));
-            const dataValues = @Html.Raw(Json.Serialize(Model.RevenueByMonth.Select(x => x.Revenue)));
-
-            const ctx = document.getElementById('revenueChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Revenue',
-                        data: dataValues,
-                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
-                        borderColor: '#27ae60',
-                        borderWidth: 1,
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                // Format tiền tệ khi hover vào cột
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toLocaleString('vi-VN') + ' VND';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                // Format tiền tệ cho trục Y (hiển thị 1.000.000 VND thay vì 1000000)
-                                callback: function(value, index, values) {
-                                    if (value >= 1000000) {
-                                        return (value / 1000000).toLocaleString('vi-VN') + 'M VND'; // Rút gọn thành chữ M (Triệu) cho gọn
-                                    }
-                                    return value.toLocaleString('vi-VN') + ' VND';
-                                }
-                            }
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="m-0 fw-bold"><i class="bi bi-star-fill text-warning"></i> Top Selling Products</h6>
+                </div>
+                <ul class="list-group list-group-flush">
+                    @if (Model.TopProducts != null && Model.TopProducts.Any())
+                    {
+                        var rank = 1;
+                        foreach (var item in Model.TopProducts)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div class="text-truncate" style="max-width: 70%;">
+                                    <span class="badge bg-secondary me-2">#@rank</span> @item.ProductName
+                                </div>
+                                <span class="badge bg-success rounded-pill">@item.TotalSold sold</span>
+                            </li>
+                            rank++;
                         }
                     }
-                }
-            });
-        });
-    </script>
-}
+                    else
+                    {
+                        <li class="list-group-item text-center text-muted py-4">No data available</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    // Biến cục bộ C# sang mảng JS xịn xò
+    const chartLabels = @Json.Serialize(Model.RevenueChart.Select(x => x.Month));
+    const chartData = @Json.Serialize(Model.RevenueChart.Select(x => x.Revenue));
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+
+    new Chart(ctx, {
+    type: 'line',
+    data: {
+    labels: chartLabels,
+    datasets: [{
+    label: 'Revenue (VND)',
+    data: chartData,
+    borderColor: '#2ecc71',
+    backgroundColor: 'rgba(46, 204, 113, 0.2)',
+    borderWidth: 2,
+    fill: true,
+    tension: 0.4, // Đường cong mượt
+    pointBackgroundColor: '#27ae60',
+    pointRadius: 4
+    }]
+    },
+    options: {
+    responsive: true,
+    plugins: {
+    legend: { display: false }
+    },
+    scales: {
+    y: {
+    beginAtZero: true,
+    ticks: {
+    callback: function(value) {
+    if(value >= 1000000) return (value / 1000000) + 'M';
+    if(value >= 1000) return (value / 1000) + 'K';
+    return value;
+    }
+    }
+    }
+    }
+    }
+    });
+    });
+</script>

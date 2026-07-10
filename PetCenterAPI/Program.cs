@@ -6,15 +6,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PetCenterAPI.Hubs; 
 using PetCenterAPI.Models;
 using PetCenterAPI.Odata;
 using PetCenterAPI.Profiles;
+using PetCenterAPI.Repositories;
+using PetCenterAPI.Repositories.Interfaces;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Security;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
-using PetCenterAPI.Hubs; 
+using PetCenterAPI.Services;
+using PetCenterAPI.Services.Interfaces;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -197,6 +201,7 @@ builder.Services.AddScoped<IPetRepository, PetRepository>();
 builder.Services.AddScoped<IDiseaseRepository, DiseaseRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
 
 // Services
@@ -229,6 +234,7 @@ builder.Services.AddScoped<IPetService, PetService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IAppointmentService,PetCenterAPI.Service.AppointmentService>();
 builder.Services.AddScoped<IDiseaseService, DiseaseService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
