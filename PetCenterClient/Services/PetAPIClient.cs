@@ -29,6 +29,8 @@ namespace PetCenterClient.Services
             content.Add(new StringContent(dto.Species ?? ""), "Species");
             content.Add(new StringContent(dto.Breed ?? ""), "Breed");
             content.Add(new StringContent(dto.Gender ?? ""), "Gender");
+            // Pet name
+            content.Add(new StringContent(dto.PetName ?? ""), "PetName");
 
             if (dto.Weight.HasValue)
                 content.Add(new StringContent(dto.Weight.Value.ToString()), "Weight");
@@ -56,11 +58,27 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
             var res = await _http.GetAsync($"api/Pets/my-pets{query}");
-            if (res.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode) return null;
+
+            // OData endpoints often return an object with a 'value' array. Try to handle both shapes.
+            var raw = await res.Content.ReadAsStringAsync();
+            try
             {
-                return await res.Content.ReadFromJsonAsync<List<ReadPetListViewModel>>();
+                // Try OData wrapper: { "value": [ ... ] }
+                var odata = System.Text.Json.JsonSerializer.Deserialize<ODataResponse<ReadPetListViewModel>>(raw, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (odata != null && odata.Value != null) return odata.Value;
             }
-            return null;
+            catch { /* ignore and try direct list */ }
+
+            try
+            {
+                var list = System.Text.Json.JsonSerializer.Deserialize<List<ReadPetListViewModel>>(raw, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return list;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public async Task<ReadPetDetailViewModel?> GetPetDetailsAsync(Guid id)
@@ -98,11 +116,22 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
             var res = await _http.GetAsync($"api/vet/pets{query}");
-            if (res.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode) return null;
+
+            var raw = await res.Content.ReadAsStringAsync();
+            try
             {
-                return await res.Content.ReadFromJsonAsync<List<ReadVetPetListViewModel>>();
+                var odata = System.Text.Json.JsonSerializer.Deserialize<ODataResponse<ReadVetPetListViewModel>>(raw, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (odata != null && odata.Value != null) return odata.Value;
             }
-            return null;
+            catch { }
+
+            try
+            {
+                var list = System.Text.Json.JsonSerializer.Deserialize<List<ReadVetPetListViewModel>>(raw, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return list;
+            }
+            catch { return null; }
         }
 
         public async Task<ReadVetPetDetailViewModel?> GetPetDetailsForVetAsync(Guid id)

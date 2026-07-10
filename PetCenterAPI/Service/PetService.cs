@@ -23,10 +23,11 @@ namespace PetCenterAPI.Service
         public IQueryable<ReadPetListDTO> GetMyPetsQuery(Guid customerId)
         {
             return _db.Pets
-                .Where(p => p.CustomerId == customerId && p.IsActive == true)
+                .Where(p => p.CustomerId == customerId && (p.IsActive ?? true) == true)
                 .Select(p => new ReadPetListDTO
                 {
                     PetId = p.PetId,
+                    PetName = p.PetName ?? "Unknown",
                     Species = p.Species ?? "Unknown",
                     Breed = p.Breed ?? "Unknown",
                     Gender = p.Gender ?? "Unknown",
@@ -44,6 +45,7 @@ namespace PetCenterAPI.Service
             return new ReadPetDetailDTO
             {
                 PetId = p.PetId,
+                PetName = p.PetName ?? "Unknown",
                 Species = p.Species ?? "Unknown",
                 Breed = p.Breed ?? "Unknown",
                 Gender = p.Gender ?? "Unknown",
@@ -58,10 +60,11 @@ namespace PetCenterAPI.Service
         public IQueryable<VetPetRequestDTO.ReadVetPetListDTO> GetAllPetsForVetQuery()
         {
             return _db.Pets
-                .Where(p => p.IsActive == true)
+                .Where(p => (p.IsActive ?? true) == true)
                 .Select(p => new VetPetRequestDTO.ReadVetPetListDTO
                 {
                     PetId = p.PetId,
+                    PetName = p.PetName ?? "Unknown",
                     Species = p.Species ?? "Unknown",
                     Breed = p.Breed ?? "Unknown",
                     Gender = p.Gender ?? "Unknown",
@@ -80,6 +83,7 @@ namespace PetCenterAPI.Service
             return new VetPetRequestDTO.ReadVetPetDetailDTO
             {
                 PetId = p.PetId,
+                PetName = p.PetName ?? "Unknown",
                 Species = p.Species ?? "Unknown",
                 Breed = p.Breed ?? "Unknown",
                 Gender = p.Gender ?? "Unknown",
@@ -98,6 +102,7 @@ namespace PetCenterAPI.Service
             {
                 PetId = Guid.NewGuid(),
                 CustomerId = customerId,
+                PetName = dto.PetName,
                 Species = dto.Species,
                 Breed = dto.Breed,
                 Gender = dto.Gender,
@@ -130,6 +135,7 @@ namespace PetCenterAPI.Service
             if (pet == null) return false;
 
             pet.Species = dto.Species;
+            pet.PetName = dto.PetName;
             pet.Breed = dto.Breed;
             pet.Gender = dto.Gender;
             pet.Weight = dto.Weight;

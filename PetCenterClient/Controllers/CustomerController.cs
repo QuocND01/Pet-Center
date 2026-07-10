@@ -17,6 +17,14 @@ namespace PetCenterClient.Controllers
             _authService = authService;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var list = await _customerService.GetAllCustomersAsync();
+            var simplified = list.Select(c => new { id = c.CustomerId, text = c.FullName + (string.IsNullOrEmpty(c.Email) ? "" : " (" + c.Email + ")") });
+            return Json(simplified);
+        }
+
         // ============================================================
         // CUSTOMER — VIEW PROFILE
         // ============================================================

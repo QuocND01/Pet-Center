@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Service.Interface;
 using System.Security.Claims;
 using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
@@ -23,11 +24,11 @@ namespace PetCenterAPI.Controllers
         private Guid GetCustomerId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         [HttpGet("my-pets")]
-        [EnableQuery] // Bật OData cho danh sách
-        public IActionResult GetMyPets()
+        public async Task<IActionResult> GetMyPets()
         {
-            var query = _petService.GetMyPetsQuery(GetCustomerId());
-            return Ok(query);
+            // Materialize query to a list to return a plain JSON array (avoid OData wrapper issues)
+            var list = await _petService.GetMyPetsQuery(GetCustomerId()).ToListAsync();
+            return Ok(list);
         }
 
         [HttpGet("{id:guid}")]

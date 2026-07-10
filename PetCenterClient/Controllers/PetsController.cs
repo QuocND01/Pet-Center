@@ -39,9 +39,38 @@ namespace PetCenterClient.Controllers
             return PartialView("~/Views/CustomerViews/Pets/_PetDetailsPartial.cshtml", pet);
         }
 
+        // Return pet JSON (server-side proxy) so browser JS does not need to call protected API directly
+        [HttpGet]
+        public async Task<IActionResult> GetJson(Guid id)
+        {
+            var pet = await _apiClient.GetPetDetailsAsync(id);
+            if (pet == null) return NotFound();
+            return Json(pet);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add([FromForm] MutatePetViewModel dto)
         {
+            // Debug: log incoming form keys and bound DTO values to help diagnose mapping issues
+            try
+            {
+                var form = Request.HasFormContentType ? Request.Form : null;
+                if (form != null)
+                {
+                    Console.WriteLine("[PetsController.Add] Received form keys:");
+                    foreach (var k in form.Keys)
+                    {
+                        var v = form[k];
+                        Console.WriteLine($"  {k} = {v}");
+                    }
+                }
+                Console.WriteLine($"[PetsController.Add] Bound DTO: PetName='{dto.PetName}', Breed='{dto.Breed}', Species='{dto.Species}', Gender='{dto.Gender}', Weight='{dto.Weight}', DateOfBirth='{dto.DateOfBirth}'");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PetsController.Add] Logging error: {ex.Message}");
+            }
+
             var success = await _apiClient.AddPetAsync(dto);
             return Json(new { success });
         }

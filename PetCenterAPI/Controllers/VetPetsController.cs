@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Service.Interface;
 using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
 
@@ -19,11 +20,38 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpGet]
-        [EnableQuery] // Bật OData cho danh sách
-        public IActionResult GetAllPets()
+        public async Task<IActionResult> GetAllPets()
         {
-            var query = _petService.GetAllPetsForVetQuery();
-            return Ok(query);
+            // Materialize query to a list to return a plain JSON array for admin/vet clients
+            var list = await _petService.GetAllPetsForVetQuery().ToListAsync();
+            return Ok(list);
+        }
+
+        [HttpGet("debug")]
+        public async Task<IActionResult> Debug()
+        {
+            // Diagnostic endpoint: returns count and a small sample of pet records
+            var list = await _petService.GetAllPetsForVetQuery().ToListAsync();
+            var sample = list.Take(10);
+            return Ok(new { count = list.Count, sample });
+        }
+
+        [HttpGet("raw-debug")]
+        public async Task<IActionResult> RawDebug()
+        {
+            // Return raw Pet rows from DB for inspection (PetId, PetName, Breed, Species, CustomerId, IsActive)
+            var raw = await _petService.GetAllPetsForVetQuery()
+                .Select(p => new {
+                    p.PetId,
+                    p.PetName,
+                    p.Breed,
+                    p.Species,
+                    p.DateOfBirth,
+                    p.PetAvatar,
+                    p.OwnerName,
+                    p.OwnerPhone
+                }).ToListAsync();
+            return Ok(new { count = raw.Count, raw });
         }
 
         [HttpGet("{id:guid}")]

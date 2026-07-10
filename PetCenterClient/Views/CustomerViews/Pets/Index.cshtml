@@ -115,7 +115,8 @@
                             <button class="btn-delete-pet" onclick="deletePet('@pet.PetId')" title="Remove Pet"><i class="bi bi-trash"></i></button>
                         </div>
                         <div class="pet-info text-center">
-                            <h5 class="fw-bold mb-1">@pet.Breed</h5>
+                            <h5 class="fw-bold mb-1">@pet.PetName</h5>
+                            <div class="text-muted mb-1">@pet.Breed</div>
                             <div class="d-flex justify-content-center gap-2 mb-3">
                                 <span class="pet-tag">@pet.Gender</span>
                                 <span class="pet-tag" style="background:#f1f5f9; color:#475569;">@pet.Age</span>
@@ -178,6 +179,10 @@
                         </select>
                     </div>
                     <div class="col-12">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">PET NAME</label>
+                        <input type="text" id="mutPetName" class="form-control bg-light border-0" placeholder="e.g. Fluffy, Bobo...">
+                    </div>
+                    <div class="col-12">
                         <label class="form-label text-muted fw-bold" style="font-size: 13px;">BREED</label>
                         <input type="text" id="mutBreed" class="form-control bg-light border-0" placeholder="e.g. Poodle, British Shorthair...">
                     </div>
@@ -204,6 +209,36 @@
 </div>
 
 <script>
+    // Shared helper to populate modal inputs for pet mutate forms
+    function populatePetModal(data, prefix) {
+        // prefix: 'mut' for customer modal, 'vMut' for vet/admin modal
+        const v = (obj, camel, pascal) => (obj && obj[camel] !== undefined ? obj[camel] : (obj && pascal && obj[pascal] !== undefined ? obj[pascal] : undefined));
+        const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+
+        set(prefix + 'PetName', v(data, 'petName', 'PetName') || '');
+        set(prefix + 'Species', v(data, 'species', 'Species') || (prefix === 'mut' ? 'Dog' : 'Dog'));
+        set(prefix + 'Breed', v(data, 'breed', 'Breed') || '');
+        set(prefix + 'Gender', v(data, 'gender', 'Gender') || 'Male');
+
+        const dobVal = v(data, 'dateOfBirth', 'DateOfBirth');
+        if (dobVal) {
+            const dt = new Date(dobVal);
+            if (!isNaN(dt)) {
+                const month = (dt.getMonth() + 1).toString().padStart(2, '0');
+                const day = dt.getDate().toString().padStart(2, '0');
+                set(prefix + 'Dob', dt.getFullYear() + '-' + month + '-' + day);
+            } else {
+                set(prefix + 'Dob', '');
+            }
+        } else {
+            set(prefix + 'Dob', '');
+        }
+
+        set(prefix + 'Weight', (v(data, 'weight', 'Weight') ?? ''));
+        set(prefix + 'Note', (v(data, 'note', 'Note') ?? ''));
+        // File inputs cannot be set programmatically for security reasons; leave cleared
+    }
+
     document.addEventListener("click", function (e) {
         var btnView = e.target.closest(".btn-view-pet");
         if (btnView) {
@@ -241,16 +276,33 @@
         if (!id) {
             document.getElementById('mutSpecies').value = 'Dog';
             document.getElementById('mutGender').value = 'Male';
+            document.getElementById('mutPetName').value = '';
             document.getElementById('mutBreed').value = '';
             document.getElementById('mutDob').value = '';
             document.getElementById('mutWeight').value = '';
             document.getElementById('mutNote').value = '';
         }
-        mutateModal.show();
+        // If editing, fetch existing pet data and prefill inputs
+        if (id) {
+            fetch('/Pets/GetJson/' + id)
+                .then(r => {
+                    if (!r.ok) throw new Error('Failed to load pet');
+                    return r.json();
+                })
+                .then(data => {
+                    populatePetModal(data, 'mut');
+                })
+                .catch(err => console.log('[openMutateModal] fetch pet error', err))
+                .finally(() => mutateModal.show());
+        } else {
+            mutateModal.show();
+        }
     }
 
     function savePet() {
         var id = document.getElementById('mutPetId').value;
+        var petName = document.getElementById('mutPetName').value;
+        if(!petName) return alert("Pet name is required!");
         if(!document.getElementById('mutBreed').value) return alert("Breed is required!");
 
         // Dùng FormData thay vì JSON
@@ -258,6 +310,7 @@
         formData.append('Species', document.getElementById('mutSpecies').value);
         formData.append('Gender', document.getElementById('mutGender').value);
         formData.append('Breed', document.getElementById('mutBreed').value);
+        formData.append('PetName', petName);
 
         var dob = document.getElementById('mutDob').value;
         if(dob) formData.append('DateOfBirth', dob);
