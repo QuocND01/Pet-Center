@@ -13,41 +13,18 @@ namespace PetCenterAPI.Services
             _repo = repo;
         }
 
-        public async Task<DashboardMetricsDTO> GetDashboardDataAsync()
+        public async Task<DashboardMetricsDTO> GetDashboardDataAsync(DateTime? startDate, DateTime? endDate)
         {
-            var today = DateTime.UtcNow;
-            var startOfMonth = new DateTime(today.Year, today.Month, 1);
-            var sixMonthsAgo = startOfMonth.AddMonths(-5);
+            // Nếu không truyền ngày, mặc định lấy từ đầu tháng đến hiện tại
+            var to = endDate ?? DateTime.UtcNow;
+            var from = startDate ?? new DateTime(to.Year, to.Month, 1);
 
-            var metrics = new DashboardMetricsDTO
-            {
-                TotalRevenue = await _repo.GetTotalRevenueAsync(startOfMonth),
-                TotalOrders = await _repo.GetTotalOrdersAsync(startOfMonth),
-                TotalAppointments = await _repo.GetTotalAppointmentsAsync(startOfMonth),
-                TotalCustomers = await _repo.GetTotalCustomersAsync(),
-                TopProducts = await _repo.GetTopProductsAsync(5)
-            };
+            // Ép giờ để lấy trọn vẹn ngày cuối cùng
+            to = to.Date.AddDays(1).AddTicks(-1);
+            from = from.Date;
 
-            // Lấy data doanh thu 6 tháng
-            var rawMonthlyData = await _repo.GetMonthlyRevenueAsync(sixMonthsAgo);
+            return await _repo.GetDashboardDataAsync(from, to);
 
-            // Bơm dữ liệu vào mảng, lấp đầy các tháng bị trống (doanh thu = 0)
-            metrics.RevenueChart = new List<MonthlyRevenueDTO>();
-            for (int i = 0; i < 6; i++)
-            {
-                var targetMonth = sixMonthsAgo.AddMonths(i);
-                var targetMonthStr = targetMonth.ToString("MM/yyyy");
-
-                var data = rawMonthlyData.FirstOrDefault(m => m.Month == targetMonthStr);
-
-                metrics.RevenueChart.Add(new MonthlyRevenueDTO
-                {
-                    Month = targetMonthStr,
-                    Revenue = data?.Revenue ?? 0
-                });
-            }
-
-            return metrics;
         }
     }
 }

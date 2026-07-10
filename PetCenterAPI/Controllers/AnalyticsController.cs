@@ -17,10 +17,9 @@ namespace PetCenterAPI.Controllers
         }
 
         [HttpGet("dashboard")]
-        public async Task<IActionResult> GetDashboardMetrics()
+        public async Task<IActionResult> GetDashboardMetrics([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
-            // Controller cực kỳ sạch sẽ, mọi logic tính toán đã được đẩy xuống Service
-            var metrics = await _analyticsService.GetDashboardDataAsync();
+            var metrics = await _analyticsService.GetDashboardDataAsync(startDate, endDate);
             return Ok(metrics);
         }
     }

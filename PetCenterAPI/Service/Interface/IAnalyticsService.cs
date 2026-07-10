@@ -4,6 +4,6 @@ namespace PetCenterAPI.Services.Interfaces
 {
     public interface IAnalyticsService
     {
-        Task<DashboardMetricsDTO> GetDashboardDataAsync();
+        Task<DashboardMetricsDTO> GetDashboardDataAsync(DateTime? startDate, DateTime? endDate);
     }
 }

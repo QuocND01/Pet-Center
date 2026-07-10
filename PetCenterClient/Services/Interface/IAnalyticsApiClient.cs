@@ -4,6 +4,6 @@ namespace PetCenterClient.Services.Interface
 {
     public interface IAnalyticsApiClient
     {
-        Task<DashboardMetricsViewModel> GetDashboardMetricsAsync();
+        Task<DashboardMetricsViewModel> GetDashboardMetricsAsync(string? startDate = null, string? endDate = null);
     }
 }

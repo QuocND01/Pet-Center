@@ -10,5 +10,6 @@ namespace PetCenterAPI.Repositories.Interfaces
         Task<int> GetTotalCustomersAsync();
         Task<List<MonthlyRevenueDTO>> GetMonthlyRevenueAsync(DateTime startDate);
         Task<List<TopProductDTO>> GetTopProductsAsync(int topCount);
+        Task<DashboardMetricsDTO> GetDashboardDataAsync(DateTime fromDate, DateTime toDate);
     }
 }
