@@ -12,7 +12,7 @@ namespace PetCenterAPI.Repository
         public async Task<List<Pet>> GetPetsByCustomerIdAsync(Guid customerId)
         {
             return await _db.Pets
-                .Where(p => p.CustomerId == customerId && p.IsActive == true)
+                .Where(p => p.CustomerId == customerId && (p.IsActive ?? true) == true)
                 .OrderByDescending(p => p.Species)
                 .ToListAsync();
         }
@@ -20,14 +20,14 @@ namespace PetCenterAPI.Repository
         public async Task<Pet?> GetPetByIdAsync(Guid petId, Guid customerId)
         {
             return await _db.Pets
-                .FirstOrDefaultAsync(p => p.PetId == petId && p.CustomerId == customerId && p.IsActive == true);
+                .FirstOrDefaultAsync(p => p.PetId == petId && p.CustomerId == customerId && (p.IsActive ?? true) == true);
         }
 
         public async Task<List<Pet>> GetAllPetsWithOwnersAsync()
         {
             return await _db.Pets
                 .Include(p => p.Customer) // Join bảng Customer để lấy tên & sđt chủ
-                .Where(p => p.IsActive == true)
+                .Where(p => (p.IsActive ?? true) == true)
                 .OrderByDescending(p => p.DateOfBirth)
                 .ToListAsync();
         }
@@ -36,7 +36,7 @@ namespace PetCenterAPI.Repository
         {
             return await _db.Pets
                 .Include(p => p.Customer)
-                .FirstOrDefaultAsync(p => p.PetId == petId && p.IsActive == true);
+                .FirstOrDefaultAsync(p => p.PetId == petId && (p.IsActive ?? true) == true);
         }
 
         public async Task AddPetAsync(Pet pet)

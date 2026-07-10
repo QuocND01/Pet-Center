@@ -8,6 +8,7 @@ namespace PetCenterAPI.DTOs.Requests.CustomerProfile
         public class ReadPetListDTO
         {
             public Guid PetId { get; set; }
+            public string PetName { get; set; } = null!;
             public string Species { get; set; } = null!;
             public string Breed { get; set; } = null!;
             public string Gender { get; set; } = null!;
@@ -26,6 +27,7 @@ namespace PetCenterAPI.DTOs.Requests.CustomerProfile
 
         public class MutatePetDTO
         {
+            public string PetName { get; set; } = null!;
             public string Species { get; set; } = null!;
             public string Breed { get; set; } = null!;
             public string Gender { get; set; } = null!;

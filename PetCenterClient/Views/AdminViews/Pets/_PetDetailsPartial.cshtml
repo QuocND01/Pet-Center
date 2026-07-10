@@ -20,8 +20,8 @@
             </div>
         </div>
         <div class="col-md-9 d-flex flex-column justify-content-center">
-            <h3 class="fw-bold text-dark mb-1">@Model.Breed</h3>
-            <p class="text-muted mb-2">@Model.Species • @Model.Gender • @Model.Age</p>
+            <h3 class="fw-bold text-dark mb-1">@Model.PetName</h3>
+            <p class="text-muted mb-2">@Model.Breed • @Model.Species • @Model.Gender • @Model.Age</p>
             <div class="d-flex gap-3">
                 <span class="badge bg-primary fs-6">DOB: @(Model.DateOfBirth?.ToString("MMM dd, yyyy") ?? "Unknown")</span>
                 <span class="badge bg-success fs-6">Weight: @(Model.Weight?.ToString("0.0") ?? "--") kg</span>

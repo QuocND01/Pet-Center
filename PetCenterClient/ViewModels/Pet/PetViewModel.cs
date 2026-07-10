@@ -3,6 +3,8 @@
     // DTO Dùng chung để Thêm/Sửa
     public class MutatePetViewModel
     {
+        public string PetName { get; set; } = null!;
+        public Guid? CustomerId { get; set; }
         public string Species { get; set; } = null!;
         public string Breed { get; set; } = null!;
         public string Gender { get; set; } = null!;
@@ -23,6 +25,7 @@
     public class ReadPetListViewModel
     {
         public Guid PetId { get; set; }
+        public string PetName { get; set; } = null!;
         public string Species { get; set; } = null!;
         public string Breed { get; set; } = null!;
         public string Gender { get; set; } = null!;

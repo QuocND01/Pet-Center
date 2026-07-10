@@ -58,8 +58,8 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-dark">@pet.Breed</div>
-                                    <small class="text-muted">@pet.Species</small>
+                                    <div class="fw-bold text-dark">@pet.PetName</div>
+                                    <small class="text-muted">@pet.Breed</small>
                                 </td>
                                 <td>
                                     <div>@pet.Gender</div>
@@ -105,9 +105,16 @@
                 <div class="row g-3">
 
                     <div class="col-12" id="customerInputGroup">
-                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">OWNER (CUSTOMER ID)</label>
-                        <input type="text" id="vMutCustomerId" class="form-control bg-light border-0" placeholder="Enter Customer GUID">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">OWNER</label>
+                        <select id="vMutCustomerId" class="form-select bg-light border-0">
+                            <option value="">-- Select an owner --</option>
+                        </select>
                         <small class="text-warning">* Required when registering a new pet.</small>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-muted fw-bold" style="font-size: 13px;">PET NAME</label>
+                        <input type="text" id="vMutPetName" class="form-control bg-light border-0" placeholder="Pet's name">
                     </div>
 
                     <div class="col-12">
@@ -156,6 +163,34 @@
 </div>
 
 <script>
+    // Shared helper to populate modal inputs for pet mutate forms (copied here so admin view can use it)
+    function populatePetModal(data, prefix) {
+        const v = (obj, camel, pascal) => (obj && obj[camel] !== undefined ? obj[camel] : (obj && pascal && obj[pascal] !== undefined ? obj[pascal] : undefined));
+        const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+
+        set(prefix + 'PetName', v(data, 'petName', 'PetName') || '');
+        set(prefix + 'Species', v(data, 'species', 'Species') || 'Dog');
+        set(prefix + 'Breed', v(data, 'breed', 'Breed') || '');
+        set(prefix + 'Gender', v(data, 'gender', 'Gender') || 'Male');
+
+        const dobVal = v(data, 'dateOfBirth', 'DateOfBirth');
+        if (dobVal) {
+            const dt = new Date(dobVal);
+            if (!isNaN(dt)) {
+                const month = (dt.getMonth() + 1).toString().padStart(2, '0');
+                const day = dt.getDate().toString().padStart(2, '0');
+                set(prefix + 'Dob', dt.getFullYear() + '-' + month + '-' + day);
+            } else {
+                set(prefix + 'Dob', '');
+            }
+        } else {
+            set(prefix + 'Dob', '');
+        }
+
+        set(prefix + 'Weight', (v(data, 'weight', 'Weight') ?? ''));
+        set(prefix + 'Note', (v(data, 'note', 'Note') ?? ''));
+    }
+
     document.addEventListener("click", function (e) {
         var btnView = e.target.closest(".btn-view-vet-pet");
         if (btnView) {
@@ -194,19 +229,46 @@
 
         if (!id) {
             document.getElementById('vMutCustomerId').value = '';
+            document.getElementById('vMutPetName').value = '';
             document.getElementById('vMutBreed').value = '';
             document.getElementById('vMutDob').value = '';
             document.getElementById('vMutWeight').value = '';
             document.getElementById('vMutNote').value = '';
+            vetMutateModal.show();
+            } else {
+            // editing: fetch pet details from API and prefill
+            fetch('/VetPets/GetJson/' + id)
+                .then(r => { if (!r.ok) throw new Error('failed'); return r.json(); })
+                .then(data => {
+                    populatePetModal(data, 'vMut');
+                })
+                .catch(err => console.log('[openVetMutateModal] fetch error', err))
+                .finally(() => vetMutateModal.show());
         }
-        vetMutateModal.show();
+        // Load customers into select when opening for create
+        if (!id) {
+            fetch('/Customer/GetAll')
+                .then(r => r.json())
+                .then(list => {
+                    var sel = document.getElementById('vMutCustomerId');
+                    sel.innerHTML = '<option value="">-- Select an owner --</option>';
+                    list.forEach(function (c) {
+                        var opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.text = c.text;
+                        sel.appendChild(opt);
+                    });
+                });
+        }
     }
 
     function saveVetPet() {
         var id = document.getElementById('vMutPetId').value;
         var customerId = document.getElementById('vMutCustomerId').value;
+        var petName = document.getElementById('vMutPetName').value;
 
-        if(!id && !customerId) return alert("Customer ID is required for new pets!");
+        if(!id && !customerId) return alert("Please select an owner for new pets!");
+        if(!petName) return alert("Pet name is required!");
         if(!document.getElementById('vMutBreed').value) return alert("Breed is required!");
 
         // Dùng FormData thay vì JSON
@@ -214,6 +276,7 @@
         formData.append('Species', document.getElementById('vMutSpecies').value);
         formData.append('Gender', document.getElementById('vMutGender').value);
         formData.append('Breed', document.getElementById('vMutBreed').value);
+        formData.append('PetName', petName);
 
         var dob = document.getElementById('vMutDob').value;
         if(dob) formData.append('DateOfBirth', dob);

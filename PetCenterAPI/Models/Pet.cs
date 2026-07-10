@@ -10,9 +10,8 @@ public partial class Pet
 
     public Guid CustomerId { get; set; }
 
-    [Required]
     [StringLength(100)]
-    public string PetName { get; set; }
+    public string? PetName { get; set; }
 
     [StringLength(100)]
     public string? Species { get; set; }
