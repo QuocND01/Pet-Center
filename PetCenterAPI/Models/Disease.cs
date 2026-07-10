@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterAPI.Models
 {
@@ -6,12 +8,17 @@ namespace PetCenterAPI.Models
     {
         public Guid DiseaseId { get; set; }
 
+        [Required]
+        [StringLength(200)]
         public string Name { get; set; } = null!;
 
+        [StringLength(2000)]
         public string Description { get; set; } = null!;
 
+        [StringLength(2000)]
         public string Recommendation { get; set; } = null!;
 
+        [Range(0, int.MaxValue)]
         public int Species { get; set; }
 
         public bool IsActive { get; set; }

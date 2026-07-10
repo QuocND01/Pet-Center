@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterAPI.Models;
 
@@ -13,23 +14,30 @@ public partial class Order
 
     public Guid AddressId { get; set; }
 
+    [Required]
     public string AddressSnapshot { get; set; } = null!;
 
+    [DataType(DataType.DateTime)]
     public DateTime? OrderDate { get; set; }
 
+    [DataType(DataType.DateTime)]
     public DateTime? DeliveredDate { get; set; }
 
+    [Range(0, double.MaxValue)]
     public decimal TotalAmount { get; set; }
 
+    [Range(0, double.MaxValue)]
     public decimal? DiscountAmount { get; set; }
 
     public DateTime? UpdateAt { get; set; }
 
     public int Status { get; set; }
 
-    public string PaymentMethod { get; set; } = null!;
-
     public int PaymentStatus { get; set; }
+
+    [Required]
+    [StringLength(100)]
+    public string PaymentMethod { get; set; } = null!;
 
     public virtual Address Address { get; set; } = null!;
 
