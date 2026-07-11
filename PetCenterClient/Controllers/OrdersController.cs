@@ -20,12 +20,12 @@ namespace PetCenterClient.Controllers
             string sortOrder = "desc",
             int page = 1)
         {
-            // Chỉ Admin hoặc Sale mới được xem
-            var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Sale")
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            //// Chỉ Admin hoặc Sale mới được xem
+            //var role = HttpContext.Session.GetString("Role");
+            //if (role != "Admin" && role != "Sale Staff")
+            //{
+            //    return RedirectToAction("Index", "Home");
+            //}
 
             var result = await _orderService.GetOrderListAdminAsync(
                 search, status, paymentMethod, sortBy, sortOrder, page);

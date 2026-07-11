@@ -14,5 +14,6 @@ namespace PetCenterAPI.Repository.Interface
             InventoryQueryRequestDTO request);
 
         Task<Inventory?> GetByIdAsync(Guid inventoryId);
+        Task<List<ImportStockDetail>> GetAvailableBatchesByProductIdAsync(Guid productId);
     }
 }

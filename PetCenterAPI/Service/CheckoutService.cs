@@ -150,6 +150,7 @@ namespace PetCenterAPI.Service
                 {
                     var inv = inventories.First(i => i.ProductId == item.ProductId);
                     inv.QuantityReserved += item.Quantity;
+                    inv.QuantityAvailable -= item.Quantity;
                     inv.LastUpdated = DateTime.Now;
                 }
 
