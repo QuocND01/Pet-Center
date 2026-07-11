@@ -189,22 +189,41 @@ namespace PetCenterAPI.Repository
         {
             var threeMonthsAgo = DateTime.Now.AddMonths(-3);
 
-            return await _db.Products.Where(p => p.Status == Status.Active)
-                .Where(p => p.AddedAt >= threeMonthsAgo)
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.ProductImages.Where(i => i.IsActive == true))
-                .Include(p => p.Inventory)
-                .Include(p => p.ProductAttributes)
-                    .ThenInclude(pa => pa.CategoryAttribute)
-                .ToListAsync();
+            return await _db.Products
+             .Where(p => p.Status == Status.Active)
+             .Where(p => p.AddedAt >= threeMonthsAgo)
+             .OrderByDescending(p => p.AddedAt)   // Mới nhất trước
+             .Take(16)                            // Top 20 sản phẩm mới
+             .Include(p => p.Brand)
+             .Include(p => p.Category)
+             .Include(p => p.ProductImages.Where(i => i.IsActive== true))
+             .Include(p => p.Inventory)
+             .Include(p => p.ProductAttributes)
+                 .ThenInclude(pa => pa.CategoryAttribute)
+             .ToListAsync();
         }
 
 
-        public async Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids)
+        public async Task<IEnumerable<Product>> GetHotProduct()
         {
-            return await _db.Products.Where(p => p.Status == Status.Active)
-                .Where(p => p.Status == Status.Active && ids.Contains(p.ProductId))
+            var threeMonthsAgo = DateTime.Now.AddMonths(-3);
+
+            var productIds = await _db.OrderDetails
+               .Where(od => od.Order.OrderDate >= threeMonthsAgo && od.Order.Status == 4)
+                .GroupBy(od => od.ProductId)
+                .Select(g => new
+                {
+                    ProductId = g.Key,
+                    TotalSold = g.Sum(x => x.Quantity)
+                })
+                .OrderByDescending(x => x.TotalSold)
+                .Take(16)
+                .Select(x => x.ProductId)
+                .ToListAsync();
+
+            var products = await _db.Products
+                .Where(p => p.Status == Status.Active)
+                .Where(p => productIds.Contains(p.ProductId))
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .Include(p => p.ProductImages.Where(i => i.IsActive == true))
@@ -212,8 +231,11 @@ namespace PetCenterAPI.Repository
                 .Include(p => p.ProductAttributes)
                     .ThenInclude(pa => pa.CategoryAttribute)
                 .ToListAsync();
-        }
 
+            return products
+                .OrderBy(p => productIds.IndexOf(p.ProductId))
+                .ToList();
+        }
 
 
         public Task<Product?> GetProductByIdAsync(Guid id)

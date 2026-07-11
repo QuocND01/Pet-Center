@@ -42,6 +42,7 @@ namespace PetCenterClient.Controllers
             {
                 result.Description = diseaseInfo.Diagnosis;
                 result.Recommendation = diseaseInfo.Treatment;
+
             }
 
             return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml", result);
