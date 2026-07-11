@@ -15,8 +15,8 @@
     var currentCat      = Context.Request.Query["categoryid"].ToString();
     var currentBrand    = Context.Request.Query["brandid"].ToString();
     var totalCount      = Model?.Count ?? 0;
-    var hotProducts     = ViewBag.HotProducts as List<ReadProductViewModel>;
-    var newProducts     = ViewBag.NewProducts as List<ReadProductViewModel>;
+var hotProducts = ViewBag.HotProducts as List<ReadProductViewModelForCustomer>;
+var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
     var cats = ViewBag.Categories as IEnumerable<ReadCategoryViewModelForCustomer>;
     var currentCatName = cats?.FirstOrDefault(x => x.CategoryId.ToString() == currentCat)?.CategoryName;
     var catClass = !string.IsNullOrEmpty(currentCat) ? "filter-select active" : "filter-select";
@@ -822,7 +822,7 @@
     }
 
     <!-- ── HOT PRODUCTS ── -->
-   @if (!hasFilter && hotProducts != null && hotProducts.Any())
+   @if (hotProducts != null && hotProducts.Any())
     {
         <div class="section-header">
             <div class="section-title">🔥 Hot Products</div>
@@ -853,7 +853,7 @@
     }
 
     <!-- ── NEW PRODUCTS ── -->
-     @if (!hasFilter && newProducts != null && newProducts.Any())
+     @if (newProducts != null && newProducts.Any())
     {
         <div class="section-header">
             <div class="section-title">🆕 New Products</div>

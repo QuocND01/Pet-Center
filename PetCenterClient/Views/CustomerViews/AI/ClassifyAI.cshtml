@@ -7,159 +7,593 @@
 
 <style>
 
-    :root{
-        --primary:#2ecc71;
-        --primary-dark:#27ae60;
-        --bg:#f7faf8;
+    /*==================================================
+        VARIABLES
+    ==================================================*/
+
+    :root {
+        --primary: #2ecc71;
+        --primary-dark: #27ae60;
+        --blue: #2563eb;
+        --bg: #f7faf8;
+        --text: #333;
+        --muted: #666;
+        --border: #cbd5e1;
     }
 
-    body{
-        background:var(--bg);
+    /*==================================================
+        PAGE
+    ==================================================*/
+
+    body {
+        background: var(--bg);
     }
 
-    .ai-page{
-        max-width:1200px;
-        margin:auto;
-        padding:50px 20px;
+    .ai-page {
+        max-width: 1200px;
+        margin: auto;
+        padding: 50px 20px;
     }
 
-    .ai-card{
-
-        background:white;
-        border-radius:30px;
-        padding:50px;
-        box-shadow:0 20px 60px rgba(0,0,0,.08);
+    .ai-card {
+        background: #fff;
+        border-radius: 30px;
+        padding: 50px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.08);
     }
 
-    .ai-header{
-        text-align:center;
-        margin-bottom:50px;
+    /*==================================================
+        HERO HEADER
+    ==================================================*/
+
+    .ai-header {
+        text-align: center;
+        padding: 50px;
+        margin-bottom: 45px;
+        color: #fff;
+        border-radius: 25px;
+        background: linear-gradient(135deg,var(--primary),var(--blue));
     }
 
-    .ai-header h1{
+        .ai-header h1 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
 
-        font-size:48px;
-        font-weight:900;
+        .ai-header p {
+            max-width: 850px;
+            margin: auto;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #f5f5f5;
+        }
+
+    /*==================================================
+        HERO BADGES
+    ==================================================*/
+
+    .hero-badge {
+        display: inline-block;
+        padding: 12px 22px;
+        border-radius: 999px;
+        font-weight: 700;
+        color: #fff;
+        background: rgba(255,255,255,.18);
+        backdrop-filter: blur(8px);
     }
 
-    .ai-header p{
+    /*==================================================
+        FEATURE SECTION
+    ==================================================*/
 
-        color:#777;
-        font-size:18px;
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        gap: 25px;
+        margin-bottom: 45px;
     }
 
-    .upload-box{
-
-        border:3px dashed #cbd5e1;
-        border-radius:25px;
-        padding:50px;
-        text-align:center;
-        transition:.3s;
+    .feature-item {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 25px;
+        text-align: center;
+        transition: .3s;
     }
 
-    .upload-box:hover{
+        .feature-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 35px rgba(0,0,0,.08);
+        }
 
-        border-color:var(--primary);
+    .feature-icon {
+        font-size: 45px;
+        margin-bottom: 15px;
     }
 
-    .upload-box img{
-
-        width:320px;
-        height:320px;
-        object-fit:cover;
-        border-radius:20px;
-        display:none;
-        margin:auto;
+    .feature-item h4 {
+        font-weight: 800;
+        margin-bottom: 10px;
     }
 
-    .upload-icon{
-
-        font-size:70px;
+    .feature-item p {
+        color: var(--muted);
+        margin: 0;
     }
 
-    input[type=file]{
+    /*==================================================
+        HOW IT WORKS
+    ==================================================*/
 
-        display:none;
+    .guide {
+        margin-bottom: 45px;
     }
 
-    .upload-btn{
-
-        display:inline-block;
-        margin-top:20px;
-        background:#2ecc71;
-        color:white;
-        padding:15px 30px;
-        border-radius:999px;
-        cursor:pointer;
-        font-weight:bold;
+    .steps {
+        display: flex;
+        gap: 20px;
     }
 
-    .detect-btn{
-
-        margin-top:30px;
-        border:none;
-        background:#2563eb;
-        color:white;
-        padding:16px 40px;
-        border-radius:999px;
-        font-size:18px;
-        font-weight:bold;
+    .step {
+        flex: 1;
+        background: #eef8f2;
+        border-radius: 18px;
+        padding: 20px;
+        text-align: center;
+        font-weight: 700;
     }
 
-    .result-card{
+        .step span {
+            display: block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            color: #fff;
+            background: var(--primary);
+        }
 
-        margin-top:50px;
-        display:none;
-        background:#f8fafc;
-        border-radius:25px;
-        padding:35px;
+    /*==================================================
+        SUPPORTED DISEASES
+    ==================================================*/
+
+    .disease-section {
+        margin: 45px 0;
     }
 
-    .result-title{
-
-        font-size:30px;
-        font-weight:900;
-        margin-bottom:20px;
+    .disease-grid {
+        display: grid;
+        grid-template-columns: repeat(4,1fr);
+        gap: 20px;
     }
 
-    .result-grid{
-
-        display:grid;
-        grid-template-columns:180px 1fr;
-        gap:20px;
+    .disease-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,.06);
+        transition: .3s;
     }
 
-    .result-label{
+        .disease-card:hover {
+            transform: translateY(-6px);
+        }
 
-        font-weight:bold;
+    .disease-card {
+        font-size: 40px;
     }
 
-    .save-area{
+        .disease-card h5 {
+            margin: 15px 0 8px;
+            font-weight: 800;
+        }
 
-        margin-top:40px;
-        text-align:center;
+        .disease-card p {
+            color: var(--muted);
+            margin: 0;
+        }
+    /*==================================================
+        UPLOAD SECTION
+    ==================================================*/
+
+    .upload-box {
+        position: relative;
+        background: #fcfdfd;
+        border: 3px dashed var(--border);
+        border-radius: 25px;
+        padding: 45px;
+        text-align: center;
+        transition: .35s;
     }
 
-    .save-btn{
+        .upload-box:hover,
+        .upload-box.dragover {
+            border-color: var(--primary);
+            background: #eefcf4;
+        }
 
-        background:#2ecc71;
-        color:white;
-        border:none;
-        padding:16px 35px;
-        border-radius:999px;
-        font-weight:bold;
-        margin-right:15px;
+        .upload-box.dragover {
+            transform: scale(1.01);
+        }
+
+    .upload-icon {
+        font-size: 70px;
+        margin-bottom: 15px;
     }
 
-    .cancel-btn{
-
-        background:#e5e7eb;
-        border:none;
-        padding:16px 35px;
-        border-radius:999px;
-        font-weight:bold;
+    .upload-box h2 {
+        font-size: 30px;
+        font-weight: 800;
+        margin-bottom: 12px;
     }
 
+    .upload-box p {
+        color: #777;
+        margin-bottom: 20px;
+    }
+
+    input[type=file] {
+        display: none;
+    }
+
+    /*==================================================
+        BUTTONS
+    ==================================================*/
+
+    .upload-btn,
+    .detect-btn,
+    .save-btn,
+    .cancel-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 15px 34px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .3s;
+    }
+
+    .upload-btn {
+        display: inline-block;
+        margin-top: 20px;
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .detect-btn {
+        margin-top: 30px;
+        background: var(--blue);
+        color: #fff;
+        font-size: 18px;
+    }
+
+    .save-btn {
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .cancel-btn {
+        display: inline-block;
+        background: #e5e7eb;
+        color: #222;
+        text-decoration: none;
+    }
+
+    .upload-btn:hover,
+    .save-btn:hover {
+        background: var(--primary-dark);
+    }
+
+    .detect-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .cancel-btn:hover {
+        background: #d1d5db;
+    }
+
+    /*==================================================
+        FILE INFORMATION
+    ==================================================*/
+
+    .upload-hint {
+        margin-top: 18px;
+        font-size: 14px;
+        color: #888;
+    }
+
+    .file-info {
+        display: none;
+        margin-top: 25px;
+        padding: 18px;
+        border-radius: 15px;
+        background: #eef8f2;
+    }
+
+        .file-info strong {
+            font-size: 16px;
+        }
+
+    /*==================================================
+        IMAGE PREVIEW
+    ==================================================*/
+
+    #preview {
+        display: none;
+        width: 350px;
+        height: 350px;
+        margin: 0 auto 25px;
+        object-fit: cover;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,.15);
+    }
+
+    /*==================================================
+        LOADING
+    ==================================================*/
+
+    .loading-box {
+        display: none;
+        margin-top: 30px;
+    }
+
+    .spinner {
+        width: 65px;
+        height: 65px;
+        margin: auto;
+        border-radius: 50%;
+        border: 7px solid #ddd;
+        border-top-color: var(--primary);
+        animation: spin 1s linear infinite;
+    }
+
+@@keyframes spin {
+
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    /*==================================================
+        RESULT SECTION
+    ==================================================*/
+
+    .result-card {
+        display: none;
+        margin-top: 50px;
+        padding: 35px;
+        border-radius: 25px;
+        background: #f8fafc;
+    }
+
+    .result-title {
+        margin-bottom: 30px;
+        font-size: 30px;
+        font-weight: 900;
+    }
+
+    .result-layout {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 40px;
+        align-items: start;
+    }
+
+    /*==================================================
+        RESULT IMAGE
+    ==================================================*/
+
+    .result-image {
+        text-align: center;
+    }
+
+        .result-image img {
+            display: none;
+            width: 320px;
+            max-width: 100%;
+            border-radius: 20px;
+            border: 5px solid #fff;
+            box-shadow: 0 15px 35px rgba(0,0,0,.15);
+        }
+
+    /*==================================================
+        SUMMARY
+    ==================================================*/
+
+    .summary-box {
+        padding: 25px;
+        margin-bottom: 25px;
+        border-radius: 18px;
+        background: #eef8f2;
+    }
+
+    .summary-title {
+        margin-bottom: 10px;
+        color: #666;
+    }
+
+    .summary-box h2 {
+        margin-bottom: 15px;
+        font-weight: 900;
+    }
+
+    /*==================================================
+        CONFIDENCE
+    ==================================================*/
+
+    .confidence-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .progress {
+        height: 18px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e5e7eb;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg,var(--primary),var(--blue));
+    }
+
+    /*==================================================
+        INFORMATION CARD
+    ==================================================*/
+
+    .info-card {
+        padding: 20px;
+        margin-top: 20px;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,.05);
+    }
+
+        .info-card h5 {
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .info-card p {
+            margin: 0;
+            color: #555;
+            line-height: 1.7;
+        }
+
+    /*==================================================
+        SAVE AREA
+    ==================================================*/
+
+    .save-area {
+        margin-top: 40px;
+        text-align: center;
+    }
+
+        .save-area h4 {
+            margin-bottom: 20px;
+        }
+    /*==================================================
+        IMPORTANT NOTICE
+    ==================================================*/
+
+    .notice {
+        margin-top: 50px;
+        padding: 25px 30px;
+        border-left: 6px solid #f59e0b;
+        border-radius: 18px;
+        background: #fff8e8;
+    }
+
+        .notice h4 {
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .notice p {
+            margin: 0;
+            line-height: 1.7;
+            color: #555;
+        }
+
+    /*==================================================
+        RESPONSIVE
+    ==================================================*/
+
+    @@media (max-width:1200px) {
+
+        .feature-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+
+        .disease-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+
+        .result-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+   @@media (max-width:768px) {
+
+        .ai-page {
+            padding: 25px 15px;
+        }
+
+        .ai-card {
+            padding: 30px 20px;
+        }
+
+        .ai-header {
+            padding: 35px 20px;
+        }
+
+            .ai-header h1 {
+                font-size: 36px;
+            }
+
+            .ai-header p {
+                font-size: 16px;
+            }
+
+        .steps {
+            flex-direction: column;
+        }
+
+        .feature-grid,
+        .disease-grid {
+            grid-template-columns: 1fr;
+        }
+
+        #preview,
+        .result-image img {
+            width: 100%;
+            height: auto;
+        }
+
+        .upload-box {
+            padding: 30px 20px;
+        }
+
+            .upload-box h2 {
+                font-size: 24px;
+            }
+
+        .upload-btn,
+        .detect-btn,
+        .save-btn,
+        .cancel-btn {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .save-area h4 {
+            font-size: 18px;
+        }
+    }
+
+    @@media (max-width:480px) {
+
+        .ai-header h1 {
+            font-size: 30px;
+        }
+
+        .hero-badge {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 24px;
+        }
+    }
 </style>
 
 <div class="ai-page">
@@ -168,11 +602,181 @@
 
         <div class="ai-header">
 
-            <h1>🐶 AI Skin Disease Detection</h1>
+            <div style="font-size:70px;margin-bottom:15px;">
+                🩺🐶
+            </div>
+
+            <h1>AI Skin Disease Detection</h1>
 
             <p>
-                Upload a clear photo of your pet's skin and receive an AI prediction in seconds.
+                Upload a clear image of your pet's skin and let our AI model analyze common skin diseases
+                within seconds. The system provides an initial prediction, confidence score, and treatment
+                recommendations to help you make informed decisions before visiting a veterinarian.
             </p>
+
+            <div style="margin-top:25px;display:flex;justify-content:center;gap:15px;flex-wrap:wrap;">
+
+                <span class="hero-badge">
+                    ⚡ Results in Seconds
+                </span>
+
+                <span class="hero-badge">
+                    🩺 Early Skin Disease Screening
+                </span>
+
+                <span class="hero-badge">
+                    📅 Easy Vet Appointment Booking
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="feature-grid">
+
+            <div class="feature-item">
+
+                <div class="feature-icon">
+                    ⚡
+                </div>
+
+                <h4>Fast AI Analysis</h4>
+
+                <p>
+                    Upload a photo and receive an AI prediction within seconds.
+                </p>
+
+            </div>
+
+            <div class="feature-item">
+
+                <div class="feature-icon">
+                    🩺
+                </div>
+
+                <h4>Early Skin Disease Screening</h4>
+
+                <p>
+                    Identify common skin conditions early to help you take timely action.
+                </p>
+
+            </div>
+
+            <div class="feature-item">
+
+                <div class="feature-icon">
+                    📅
+                </div>
+
+                <h4>Book a Vet Appointment</h4>
+
+                <p>
+                    Easily schedule a veterinary appointment for professional diagnosis and treatment.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="guide">
+
+            <h3>How it works</h3>
+
+            <div class="steps">
+
+                <div class="step">
+
+                    <span>1</span>
+
+                    Upload a clear skin image
+
+                </div>
+
+                <div class="step">
+
+                    <span>2</span>
+
+                    AI analyzes the image
+
+                </div>
+
+                <div class="step">
+
+                    <span>3</span>
+
+                    Receive prediction & recommendation
+
+                </div>
+
+                <div class="step">
+
+                    <span>4</span>
+
+                    You can book a veterinary appointment for this condition.
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="disease-section">
+
+            <h3>
+                Supported Diseases
+            </h3>
+
+            <div class="disease-grid">
+
+                <div class="disease-card">
+
+                    🌿
+
+                    <h5>Dermatitis</h5>
+
+                    <p>
+                        Inflammation of the skin caused by allergies, irritation, or environmental factors.
+                    </p>
+
+                </div>
+
+                <div class="disease-card">
+
+                    🦠
+
+                    <h5>Ringworm</h5>
+
+                    <p>
+                        A contagious fungal infection affecting the skin, hair, and nails.
+                    </p>
+
+                </div>
+
+                <div class="disease-card">
+
+                    🕷️
+
+                    <h5>Tick Infestation</h5>
+
+                    <p>
+                        Tick attachment on the skin that may cause irritation and transmit diseases.
+                    </p>
+
+                </div>
+
+                <div class="disease-card">
+
+                    🐾
+
+                    <h5>Mange</h5>
+
+                    <p>
+                        A skin disease caused by parasitic mites, leading to itching and hair loss.
+                    </p>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -181,89 +785,269 @@
               method="post"
               enctype="multipart/form-data">
 
-            <div class="upload-box">
+            <div class="upload-box" id="dropArea">
 
                 <img id="preview" />
 
                 <div id="placeholder">
 
                     <div class="upload-icon">
-                        📸
+                        📷
                     </div>
 
-                    <h3>Select an image</h3>
+                    <h2>Upload Pet Skin Image</h2>
 
-                    <p>JPG, PNG or JPEG</p>
+                    <p>
+
+                        Drag & Drop your image here
+
+                        <br />
+
+                        or
+
+                    </p>
+
+                    <label class="upload-btn">
+
+                        Browse Image
+
+                        <input type="file"
+                               id="imageInput"
+                               name="image"
+                               accept=".jpg,.jpeg,.png" />
+
+                    </label>
+
+                    <div class="upload-hint">
+
+                        Supported format:
+                        JPG / JPEG / PNG
+
+                        <br />
+
+                        Maximum size: 10 MB
+
+                    </div>
 
                 </div>
 
-                <label class="upload-btn">
+                <div id="fileInfo" class="file-info" style="display:none;">
 
-                    Choose Image
+                    <div>
 
-                    <input type="file"
-                           name="image"
-                           id="imageInput"
-                           accept="image/*" />
+                        <strong id="fileName"></strong>
 
-                </label>
+                    </div>
 
-                <br />
+                    <small id="fileSize"></small>
 
-                <button class="detect-btn">
+                </div>
 
-                    Detect Disease
+                <button class="detect-btn" id="btnDetect">
+
+                    🔍 Analyze Image
 
                 </button>
+
+                <div id="loadingBox" class="loading-box">
+
+                    <div class="spinner"></div>
+
+                    <h4>
+
+                        AI is analyzing the image...
+
+                    </h4>
+
+                    <p>
+
+                        Please wait a few seconds.
+
+                    </p>
+
+                </div>
 
             </div>
 
         </form>
 
+
+
         @if (Model != null)
         {
+            var confidence = Model.Confidence * 100;
 
-            <div class="result-card"
-                 style="display:block;">
+            @if (Model.Confidence < 50)
+            {
+                <div class="alert alert-danger mb-4">
+
+                    ⚠ AI cannot confidently identify this image.
+
+                    Please upload a clearer image or consult a veterinarian.
+
+                </div>
+            }
+
+            var level = confidence >= 90 ? "Very High"
+            : confidence >= 75 ? "High"
+            : confidence >= 60 ? "Medium"
+            : "Low";
+
+            var badge = confidence >= 90 ? "success"
+            : confidence >= 75 ? "primary"
+            : confidence >= 60 ? "warning"
+            : "danger";
+
+            <div class="result-card" style="display:block;">
 
                 <div class="result-title">
 
-                    Prediction Result
+                    🤖 AI Prediction Result
 
                 </div>
 
-                <div class="result-grid">
+                <div class="result-layout">
 
-                    <div class="result-label">
-                        Disease
-                    </div>
+                    <!-- LEFT -->
 
                     <div>
-                        @Model.DiseaseName
+
+                        <div class="result-image">
+
+                            <img id="resultImage" style="display:none;" />
+
+                        </div>
+
                     </div>
 
-                    <div class="result-label">
-                        Confidence
-                    </div>
-
-                    <div>
-                        @Model.Confidence %
-                    </div>
-
-                    <div class="result-label">
-                        Description
-                    </div>
+                    <!-- RIGHT -->
 
                     <div>
-                        @Model.Description
-                    </div>
 
-                    <div class="result-label">
-                        Recommendation
-                    </div>
+                        <div class="summary-box">
 
-                    <div>
-                        @Model.Recommendation
+                            <div class="summary-title">
+
+                                Prediction
+
+                            </div>
+
+                            <h2>
+
+                                @Model.DiseaseName
+
+                            </h2>
+
+                            <span class="badge bg-@badge">
+
+                                @level Confidence
+
+                            </span>
+
+                        </div>
+
+                        <div class="confidence-box">
+
+                            <div class="confidence-header">
+
+                                <span>
+
+                                    Confidence
+
+                                </span>
+
+                                <strong>
+
+                                    @confidence %
+
+                                </strong>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div class="progress-bar"
+                                     role="progressbar"
+                                     style="width:@confidence%">
+                                </div>
+
+                            </div>
+
+                            <div class="diagnosis-summary">
+
+                                @if (confidence >= 90)
+                                {
+                                    <div class="alert alert-success">
+
+                                        <strong>AI Assessment:</strong>
+
+                                        The prediction confidence is very high.
+
+                                        However, veterinary confirmation is still recommended.
+
+                                    </div>
+                                }
+                                else if (confidence >= 75)
+                                {
+                                    <div class="alert alert-primary">
+
+                                        <strong>AI Assessment:</strong>
+
+                                        The prediction confidence is high.
+
+                                        Please compare with your pet's clinical symptoms.
+
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+
+                                        <strong>AI Assessment:</strong>
+
+                                        Confidence is moderate.
+
+                                        Additional examination by a veterinarian is recommended.
+
+                                    </div>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <div class="info-card">
+
+                            <h5>
+
+                                📖 Description
+
+                            </h5>
+
+                            <p>
+
+                                @Model.Description
+
+                            </p>
+
+                        </div>
+
+                        <div class="info-card">
+
+                            <h5>
+
+                                💊 Recommendation
+
+                            </h5>
+
+                            <p>
+
+                                @Model.Recommendation
+
+                            </p>
+
+                        </div>
+
                     </div>
 
                 </div>
@@ -272,7 +1056,7 @@
 
                     <h4>
 
-                        Do you want to save this prediction as a Medical Record?
+                        Save this prediction as a Medical Record?
 
                     </h4>
 
@@ -284,28 +1068,13 @@
 
                     </button>
 
-                        <input type="hidden"
-                               name="DiseaseName"
-                               value="@Model.DiseaseName" />
+                    <a asp-action="Index"
+                       asp-controller="Home"
+                       class="cancel-btn">
 
-                        <input type="hidden"
-                               name="Confidence"
-                               value="@Model.Confidence" />
+                        Back to Home
 
-
-                        <button class="save-btn">
-
-                            Yes, Save Medical Record
-
-                        </button>
-
-                        <a asp-action="Index"
-                           asp-controller="Home"
-                           class="cancel-btn">
-
-                            No Thanks
-
-                        </a>
+                    </a>
 
                 </div>
 
@@ -340,43 +1109,135 @@
 
 </div>
 
+<div class="notice">
+
+    <h4>Important Notice</h4>
+
+    <p>
+
+        The AI prediction is not 100% accurate and may occasionally produce incorrect results.
+        It is provided for reference purposes only and should not be considered a definitive diagnosis.
+        For the most accurate diagnosis and appropriate treatment, please consult a licensed veterinarian.
+
+    </p>
+
+</div>
+
 <script>
 
-    const input=document.getElementById("imageInput");
+    /* ============================================================
+       DOM ELEMENTS
+    ============================================================ */
 
-    const preview=document.getElementById("preview");
+    const input = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+    const holder = document.getElementById("placeholder");
+    const fileInfo = document.getElementById("fileInfo");
+    const fileName = document.getElementById("fileName");
+    const fileSize = document.getElementById("fileSize");
 
-    const holder=document.getElementById("placeholder");
 
-    input.addEventListener("change",function(){
+    /* ============================================================
+       PREVIEW IMAGE AFTER USER SELECTS FILE
+       - Show image preview
+       - Display file information
+       - Save image temporarily in sessionStorage so it can be
+         displayed again after the prediction page reloads.
+    ============================================================ */
 
-    const file=this.files[0];
+    input.addEventListener("change", loadImage);
 
-    if(!file) return;
+    function loadImage() {
 
-    preview.src=URL.createObjectURL(file);
+        const file = input.files[0];
 
-    preview.style.display="block";
+        if (!file) return;
 
-    holder.style.display="none";
+        // Preview image
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+
+        // Hide upload placeholder
+        holder.style.display = "none";
+
+        // Show file information
+        fileInfo.style.display = "block";
+        fileName.innerText = file.name;
+        fileSize.innerText = (file.size / 1024 / 1024).toFixed(2) + " MB";
+
+        // Save image temporarily
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            sessionStorage.setItem("predictImage", e.target.result);
+
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+
+    /* ============================================================
+       SHOW LOADING WHILE AI IS ANALYZING
+    ============================================================ */
+
+    document.querySelector("form").addEventListener("submit", function () {
+
+        if (input.files.length === 0)
+            return;
+
+        document.getElementById("btnDetect").style.display = "none";
+        document.getElementById("loadingBox").style.display = "block";
 
     });
 
 
-        document
-    .getElementById("btnCreateMedicalRecord")
-    .addEventListener("click",function(){
+    /* ============================================================
+       DISPLAY UPLOADED IMAGE AFTER PAGE RELOADS
+       (After AI prediction)
+    ============================================================ */
 
-        document.getElementById("Diagnosis").value =
-            "@Model?.Description";
+    const savedImage = sessionStorage.getItem("predictImage");
 
-        document.getElementById("Treatment").value =
-            "@Model?.Recommendation";
+    if (savedImage) {
 
-        const modal =
-            new bootstrap.Modal(document.getElementById("medicalRecordModal"));
+        const resultImage = document.getElementById("resultImage");
 
-        modal.show();
+        if (resultImage) {
 
-    });
+            resultImage.src = savedImage;
+            resultImage.style.display = "block";
+
+        }
+    }
+
+
+    /* ============================================================
+       OPEN CREATE MEDICAL RECORD MODAL
+       Automatically fill Diagnosis & Treatment from AI result.
+    ============================================================ */
+
+    const btnMedical = document.getElementById("btnCreateMedicalRecord");
+
+    if (btnMedical) {
+
+        btnMedical.addEventListener("click", function () {
+
+            document.getElementById("Diagnosis").value =
+                "@Model?.Description";
+
+            document.getElementById("Treatment").value =
+                "@Model?.Recommendation";
+
+            const modal = new bootstrap.Modal(
+                document.getElementById("medicalRecordModal")
+            );
+
+            modal.show();
+
+        });
+
+    }
+
 </script>

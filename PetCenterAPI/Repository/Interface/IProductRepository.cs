@@ -26,7 +26,7 @@ namespace PetCenterAPI.Repository.Interface
         Task<IEnumerable<Product?>> GetNewProductAsync();
 
 
-         Task<IEnumerable<Product?>> GetProductsByIdsAsync(List<Guid> ids);
+        Task<IEnumerable<Product?>> GetHotProduct();
 
         Task<Product?> GetByIdInternalAsync(Guid productId);
 

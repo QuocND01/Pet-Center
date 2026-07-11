@@ -262,35 +262,11 @@ namespace PetCenterAPI.Service
 
         public async Task<IEnumerable<ReadProductDTOForCustomer>> GetHotProductsAsync()
         {
-            List<Guid>? productIds;
 
-            try
-            {
-                productIds = await _orderClient.GetFromJsonAsync<List<Guid>>("api/OrderDetails/hot-products");
-            }
-            catch (Exception ex)
-            {
-                return new List<ReadProductDTOForCustomer>();
-            }
-
-            if (productIds == null || !productIds.Any())
-                return new List<ReadProductDTOForCustomer>();
-
-            var products = await _productRepository.GetProductsByIdsAsync(productIds);
-
+            var products = await _productRepository.GetHotProduct();
             return _mapper.Map<List<ReadProductDTOForCustomer>>(products);
         }
 
-        //public async Task<List<SelectProductDto>> GetProductSelectListAsync()
-        //{
-        //    // Logic: Chỉ lấy sản phẩm chưa bị xóa và đang hoạt động
-        //    return await _productRepository.GetActiveProductsAsync<SelectProductDto>(p => p.Status == Status.Active);
-        //}
-
-        //public async Task<List<SelectProductDto>> GetProductSelectListToViewAsync()
-        //{
-        //    return await _productRepository.GetActiveProductsAsync<SelectProductDto>();
-        //}
 
         //Code Hồ mới thêm
         public async Task<ProductInternalDto?> GetInternalAsync(Guid productId)
@@ -303,11 +279,5 @@ namespace PetCenterAPI.Service
                 ImageUrl = product.ProductImages.FirstOrDefault()?.ImageUrl
             };
         }
-        //public async Task<List<ProductSnapshotResponseDto>> GetProductSnapshotsAsync(List<Guid> productIds)
-        //{
-        //    var products = await _productRepository.GetProductsForSnapshotAsync(productIds);
-
-        //    return _mapper.Map<List<ProductSnapshotResponseDto>>(products);
-        //}
     }
 }

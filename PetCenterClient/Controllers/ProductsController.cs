@@ -78,8 +78,8 @@ namespace PetCenterClient.Controllers
                 ViewBag.HotProducts = await _productService.GetHotProductsAsync();
                 ViewBag.NewProducts = await _productService.GetNewProductsAsync();
 
-                // Categories
-                var categoriesResponse = await _categoryService.GetAllCategoryAsync();
+            // Categories
+            var categoriesResponse = await _categoryService.GetAllCategoryAsync();
                 ViewBag.Categories = categoriesResponse.Values;
 
                 // Brands
