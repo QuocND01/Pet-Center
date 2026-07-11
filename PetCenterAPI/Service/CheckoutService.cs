@@ -157,12 +157,23 @@ namespace PetCenterAPI.Service
                 // ── 8. Mark voucher used + decrement usage limit ─────────────
                 if (dto.VoucherId.HasValue && voucher != null)
                 {
-                    _db.CustomerVouchers.Add(new CustomerVoucher
+                    var customerVoucher = await _db.CustomerVouchers
+                        .FirstOrDefaultAsync(cv => cv.CustomerId == dto.CustomerId
+                                             && cv.VoucherId == dto.VoucherId.Value);
+
+                    if (customerVoucher != null)
                     {
-                        CustomerId = dto.CustomerId,
-                        VoucherId = dto.VoucherId.Value,
-                        IsUsed = true
-                    });
+                        customerVoucher.IsUsed = true;
+                    }
+                    else
+                    {
+                        _db.CustomerVouchers.Add(new CustomerVoucher
+                        {
+                            CustomerId = dto.CustomerId,
+                            VoucherId = dto.VoucherId.Value,
+                            IsUsed = true
+                        });
+                    }
 
                     if (voucher.UseageLimit.HasValue)
                         voucher.UseageLimit = voucher.UseageLimit.Value - 1;
