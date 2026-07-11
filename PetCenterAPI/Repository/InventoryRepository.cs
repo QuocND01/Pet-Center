@@ -131,5 +131,24 @@ namespace PetCenterAPI.Repository
                 .FirstOrDefaultAsync(i =>
                     i.InventoryId == inventoryId);
         }
+        public async Task<List<ImportStockDetail>>
+    GetAvailableBatchesByProductIdAsync(Guid productId)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            return await _db.ImportStockDetails
+                .Where(x =>
+                    x.ProductId == productId &&
+                    x.StockLeft > 0 &&
+                    x.BatchStatus == BatchStatus.Active &&
+                    (
+                        x.ExpiryDate == null ||
+                        x.ExpiryDate > today
+                    ))
+                .OrderBy(x => x.ExpiryDate.HasValue ? 0 : 1)
+                .ThenBy(x => x.ExpiryDate)
+                .ThenBy(x => x.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.SignalR;
-using PetCenterAPI.Hubs;
 using PetCenterAPI.Common;
-using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
+using PetCenterAPI.Hubs;
+using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
+using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
 
 namespace PetCenterAPI.Service
 {
@@ -16,6 +17,7 @@ namespace PetCenterAPI.Service
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IInventoryRepository _inventoryRepository;
+        private readonly IInventoryTransactionRepository _invenTransactionRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
         private readonly IHubContext<AppHub> _hub;
@@ -23,12 +25,14 @@ namespace PetCenterAPI.Service
         public OrderService(
             IOrderRepository orderRepository,
             IInventoryRepository inventoryRepository,
+            IInventoryTransactionRepository inventoryTransactionReposotory,
             IMapper mapper,
             ILogger<OrderService> logger,
             IHubContext<AppHub> hub)
         {
             _orderRepository = orderRepository;
             _inventoryRepository = inventoryRepository;
+            _invenTransactionRepository = inventoryTransactionReposotory;
             _mapper = mapper;
             _logger = logger;
             _hub = hub;
@@ -195,18 +199,20 @@ namespace PetCenterAPI.Service
         /// </summary>
         public async Task<int> AdvanceOrderStatusAsync(Guid orderId)
         {
-            _logger.LogInformation($"Bắt đầu cập nhật tiến trình cho đơn hàng ID: {orderId}");
+            _logger.LogInformation($"[AdvanceOrder] Bắt đầu cập nhật tiến trình cho đơn hàng ID: {orderId}");
 
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
             if (order == null)
             {
-                _logger.LogWarning($"Cập nhật thất bại: Không tìm thấy đơn hàng ID: {orderId}");
+                _logger.LogWarning($"[AdvanceOrder] Cập nhật thất bại: Không tìm thấy đơn hàng ID: {orderId}");
                 throw new KeyNotFoundException("Order not found");
             }
 
+            _logger.LogInformation($"[AdvanceOrder] Đơn hàng ID: {orderId} hiện có Status = {order.Status}");
+
             if (order.Status == 0 || order.Status == 4)
             {
-                _logger.LogWarning($"Cập nhật thất bại: Đơn hàng {orderId} đã Hủy (0) hoặc Hoàn thành (4).");
+                _logger.LogWarning($"[AdvanceOrder] Cập nhật thất bại: Đơn hàng {orderId} đang ở trạng thái Hủy (0) hoặc Hoàn thành (4). Không thể tăng tiếp.");
                 throw new InvalidOperationException("Cannot advance status of a cancelled or completed order.");
             }
 
@@ -214,45 +220,130 @@ namespace PetCenterAPI.Service
             order.Status += 1;
             order.UpdateAt = DateTime.UtcNow;
 
-            // Xử lý kho khi trạng thái chuyển sang Đang Giao Hàng (Status = 3)
-            if (order.Status == 3)
-            {
-                _logger.LogInformation($"Đơn hàng {orderId} chuyển sang trạng thái Đang giao (3). Tiến hành trừ số lượng Reserved trong kho.");
-                foreach (var detail in order.OrderDetails)
-                {
-                    var inventory = await _inventoryRepository.GetInventoryByProductIdAsync(detail.ProductId);
-                    if (inventory != null)
-                    {
-                        inventory.QuantityReserved -= detail.Quantity;
-                        inventory.LastUpdated = DateTime.UtcNow;
-                        _logger.LogInformation($"Đã giải phóng {detail.Quantity} sản phẩm (Product ID: {detail.ProductId}) khỏi hàng đợi Reserved.");
-                    }
-                }
-            }
-
-            // Ghi nhận thời gian giao hàng thành công
+            // Ghi nhận thời gian giao hàng thành công NẾU trạng thái mới là Hoàn thành (4)
             if (order.Status == 4)
             {
-                _logger.LogInformation($"Đơn hàng {orderId} đã giao thành công. Đang cập nhật DeliveredDate.");
+                _logger.LogInformation($"[AdvanceOrder] Đơn hàng {orderId} đã chuyển sang Hoàn thành (4). Cập nhật DeliveredDate.");
                 order.DeliveredDate = DateTime.UtcNow;
             }
 
+            // Chỉ xử lý kho khi chuyển sang Shipping (từ 2 sang 3)
+            if (oldStatus == 2 && order.Status == 3)
+            {
+                _logger.LogInformation($"[FIFO/FEFO] Phát hiện chuyển trạng thái 2 -> 3. Bắt đầu xử lý kho cho Đơn hàng: {orderId}");
+
+                foreach (var detail in order.OrderDetails)
+                {
+                    _logger.LogInformation($"[FIFO/FEFO] Xử lý Sản phẩm ID: {detail.ProductId} | Số lượng yêu cầu: {detail.Quantity}");
+
+                    // 1. Kiểm tra tổng Inventory
+                    var inventory = await _inventoryRepository.GetInventoryByProductIdAsync(detail.ProductId);
+                    if (inventory == null)
+                    {
+                        throw new InvalidOperationException($"Không tìm thấy tồn kho của sản phẩm {detail.ProductId}");
+                    }
+
+                    if (inventory.QuantityReserved < detail.Quantity)
+                    {
+                        throw new InvalidOperationException($"Reserved không đủ cho sản phẩm {detail.ProductId}");
+                    }
+
+                    // 2. Lấy danh sách lô hàng FEFO/FIFO
+                    var batches = await _inventoryRepository.GetAvailableBatchesByProductIdAsync(detail.ProductId);
+                    if (!batches.Any())
+                    {
+                        throw new InvalidOperationException($"Không có lô hàng khả dụng cho sản phẩm {detail.ProductId}");
+                    }
+
+                    var totalBatchStock = batches.Sum(x => x.StockLeft);
+                    if (totalBatchStock < detail.Quantity)
+                    {
+                        throw new InvalidOperationException($"Không đủ tồn kho batch cho sản phẩm {detail.ProductId}");
+                    }
+
+                    // 3. Trừ kho theo từng lô & Ghi nhận Transaction
+                    var remainingQty = detail.Quantity;
+
+                    foreach (var batch in batches)
+                    {
+                        if (remainingQty <= 0) break;
+
+                        var pickedQty = Math.Min(batch.StockLeft, remainingQty);
+
+                        // --- [TÍNH TOÁN CHO TRANSACTION] ---
+                        // Giả sử QuantityBefore/After đại diện cho trạng thái của bảng Inventory tổng:
+                        int qtyBefore = inventory.QuantityReserved;
+                        int qtyAfter = inventory.QuantityReserved - pickedQty;
+
+                        // Nếu DB thiết kế QuantityBefore/After đại diện cho Tồn của riêng từng LÔ (Batch), hãy đổi thành:
+                        // int qtyBefore = batch.StockLeft;
+                        // int qtyAfter = batch.StockLeft - pickedQty;
+
+                        // --- [CẬP NHẬT TRẠNG THÁI BATCH] ---
+                        batch.StockLeft -= pickedQty;
+                        batch.QuantitySold += pickedQty;
+
+                        if (batch.StockLeft == 0)
+                        {
+                            batch.BatchStatus = BatchStatus.Exhausted;
+                        }
+
+                        // --- [CẬP NHẬT TỔNG KHO CUỐN CHIẾU] ---
+                        inventory.QuantityReserved -= pickedQty;
+
+                        remainingQty -= pickedQty;
+
+                        // --- [LƯU LỊCH SỬ TRANSACTION] ---
+                        Guid testId = Guid.Parse("21000000-0000-0000-0000-000000000001");
+                        await _invenTransactionRepository.AddTransactionAsync(new InventoryTransaction
+                        {
+                            TransactionId = Guid.NewGuid(),
+                            InventoryId = inventory.InventoryId,
+                            TransactionType = TransactionType.StockOut, // 'StockOut' khớp CHECK constraint
+
+                            QuantityChange = -pickedQty, // Số âm (Ví dụ: -5)
+                            QuantityBefore = qtyBefore,  // Ví dụ: 20
+                            QuantityAfter = qtyAfter,    // Ví dụ: 15 (Thỏa mãn: 15 = 20 + (-5))
+
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = testId,
+                            ReferenceId = order.OrderId,
+                            ReferenceType = ReferenceType.Order,     // Khớp CHECK constraint ('Order')
+                            ImportStockDetailId = batch.ImportStockDetailsId,
+                            Note = $"Xuất kho từ lô {batch.BatchCode}"
+                        });
+                    }
+
+                    // 4. Cập nhật thời gian update cuối cùng của Inventory tổng
+                    inventory.LastUpdated = DateTime.UtcNow;
+
+                    _logger.LogInformation($"Đã giải phóng và trừ lô thành công cho sản phẩm {detail.ProductId}");
+                    await _invenTransactionRepository.SaveChange();
+                }
+            } // <-- Đóng ngoặc chuẩn khối IF xử lý kho
+
+            _logger.LogInformation($"[AdvanceOrder] Lưu thay đổi trạng thái đơn hàng vào Database qua OrderRepository...");
             await _orderRepository.SaveAsync();
 
-            // Notify admins and the specific customer about updated order status
+            // Bắn SignalR thông báo trạng thái mới
             try
             {
+                _logger.LogInformation($"[SignalR] Đang gửi thông báo OrderUpdated lên Hub cho trạng thái mới: {order.Status}");
                 await _hub.Clients.Group("Admins").SendAsync("OrderUpdated", new { OrderId = order.OrderId, Status = order.Status });
                 if (order.CustomerId != Guid.Empty)
+                {
                     await _hub.Clients.User(order.CustomerId.ToString()).SendAsync("OrderUpdated", new { OrderId = order.OrderId, Status = order.Status });
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"[SignalR] Không thể gửi thông báo Realtime (Lỗi bỏ qua được): {ex.Message}");
+            }
 
-            _logger.LogInformation($"Cập nhật trạng thái đơn hàng {orderId} thành công: {oldStatus} -> {order.Status}");
+            _logger.LogInformation($"[AdvanceOrder] Hoàn thành! Trạng thái đơn hàng {orderId} đã đổi: {oldStatus} -> {order.Status}");
 
             return order.Status;
         }
-
         #endregion
     }
 }
