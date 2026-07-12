@@ -16,43 +16,46 @@
 
 
 <div class="page-wrapper">
-    <div class="page-header">
+    @* --- 1. SỬA TIÊU ĐỀ: Tiêu đề bên trái, nút Create bên phải --- *@
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 8px; background: transparent; border: none; box-shadow: none;">
         <div class="page-title-group">
-            <h1>Import Stock Management</h1>
-            <p>Manage and track your warehouse inbound shipments</p>
+            <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600;">Import Stock Management</h1>
+            <p style="margin: 4px 0 0; color: #94a3b8; font-size: 14px;">Manage and track your warehouse inbound shipments</p>
         </div>
-        <div class="filter-controls mb-4" style="background: white; padding: 20px; border-radius: 12px; display: flex; gap: 15px; align-items: flex-end; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-            <div style="flex: 2;">
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">Search Name</label>
-                <input type="text" id="filterName" class="form-control" placeholder="Search supplier or staff..." onkeyup="filterTable()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-            </div>
-            <div style="flex: 1;">
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">From Date</label>
-                <input type="date" id="filterFromDate" class="form-control" onchange="filterTable()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-            </div>
-            <div style="flex: 1;">
-                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">To Date</label>
-                <input type="date" id="filterToDate" class="form-control" onchange="filterTable()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-            </div>
-            <button onclick="resetFilters()" style="padding: 9px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">Reset</button>
-            <button onclick="exportExcel()" class="btn-export" ; style="padding: 9px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
-                <i class="bi bi-file-earmark-excel"></i> Export
-            </button>
-        </div>
-        <div class="top-actions">
+        <div class="top-actions" style="margin: 0;">
             <a asp-action="Create" class="btn-create">
                 <i class="bi bi-plus-lg"></i> Create Import
             </a>
         </div>
     </div>
-
+    @* --- 2. SỬA KHUNG LỌC: Đưa xuống dưới rộng rãi, thoáng hơn --- *@
+    <div class="filter-controls" style="background: white; padding: 24px; border-radius: 12px; display: flex; gap: 16px; align-items: flex-end; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin: 0 8px 24px;">
+        <div style="flex: 2; min-width: 200px;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px;">Search Name</label>
+            <input type="text" id="filterName" class="form-control" placeholder="Search supplier or staff..." onkeyup="filterTable()" style="width: 100%; height: 44px; padding: 0 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+        </div>
+        <div style="flex: 1; min-width: 130px;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px;">From Date</label>
+            <input type="date" id="filterFromDate" class="form-control" onchange="filterTable()" style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+        </div>
+        <div style="flex: 1; min-width: 130px;">
+            <label style="display: block; font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px;">To Date</label>
+            <input type="date" id="filterToDate" class="form-control" onchange="filterTable()" style="width: 100%; height: 44px; padding: 0 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+        </div>
+        <div style="display: flex; gap: 10px; min-width: 200px;">
+            <button onclick="resetFilters()" style="height: 44px; padding: 0 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0f172a; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                <i class="bi bi-arrow-clockwise"></i> Reset
+            </button>
+            <button onclick="exportExcel()" class="btn-export" style="height: 44px; padding: 0 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 500; color: #0f172a; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                <i class="bi bi-file-earmark-excel"></i> Export
+            </button>
+        </div>
+    </div>
     <div class="table-card">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>
-                        <a asp-action="Index" asp-route-sortOrder="@ViewBag.IdSort">ID <i class="bi bi-hash"></i></a>
-                    </th>
+                    
                     <th>Supplier</th>
                     <th>Staff</th>
                     <th>
@@ -88,7 +91,7 @@
                     };
 
                     <tr>
-                        <td class="row-num">@item.ImportId.ToString().Substring(0, 8)...</td>
+                        
                         <td class="customer-name">@item.SupplierName</td>
                         <td class="email-cell">
                             @(item.StaffName)
@@ -115,7 +118,7 @@
                                         <i class="bi bi-check-lg"></i>
                                     </a>
                                 }
-                                @if (item.Status != 2 || item.Status != 0)
+                                @if (item.Status != 2 && item.Status != 0)
                                 {
                                     <a asp-action="Cancel" asp-route-id="@item.ImportId" class="btn-action-danger" title="Cancel">
                                         <i class="bi bi-x-lg"></i>
@@ -129,16 +132,28 @@
             </tbody>
         </table>
     </div>
+    <div class="pagination-container">
+        <button id="prevPage" onclick="changePage(-1)">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div id="pageNumbers"></div>
+
+        <button id="nextPage" onclick="changePage(1)">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
 </div>
 
 <script>
+    const rowsPerPage = 6;
+    let currentPage = 1;
+
     function filterTable() {
-        // 1. Lấy giá trị từ các ô input
         const nameInput = document.getElementById('filterName').value.trim().toLowerCase();
-        const fromDateStr = document.getElementById('filterFromDate').value; // Định dạng yyyy-mm-dd
+        const fromDateStr = document.getElementById('filterFromDate').value;
         const toDateStr = document.getElementById('filterToDate').value;
 
-        // Chuyển string sang mốc thời gian để so sánh số (nhanh hơn tạo object Date liên tục)
         const minDate = fromDateStr ? new Date(fromDateStr).setHours(0,0,0,0) : null;
         const maxDate = toDateStr ? new Date(toDateStr).setHours(23,59,59,999) : null;
 
@@ -148,48 +163,50 @@
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
 
-            // Lấy dữ liệu từ các cột
-            const supplier = row.querySelector(".customer-name").innerText.toLowerCase();
-            const staff = row.querySelectorAll(".email-cell")[0].innerText.toLowerCase();
+            const supplier = row.querySelector(".customer-name") ? row.querySelector(".customer-name").innerText.toLowerCase() : "";
+            const staffCells = row.querySelectorAll(".email-cell");
+            const staff = staffCells.length > 0 ? staffCells[0].innerText.toLowerCase() : "";
 
-            // Lấy ngày từ thuộc tính data-date đã thêm ở Bước 1
-            const dateAttr = row.querySelectorAll(".email-cell")[1].getAttribute("data-date");
+            const dateAttr = staffCells.length > 1 ? staffCells[1].getAttribute("data-date") : null;
             const rowDate = dateAttr ? new Date(dateAttr).getTime() : null;
 
-            // Kiểm tra điều kiện Tên/Staff
             const matchesName = supplier.includes(nameInput) || staff.includes(nameInput);
 
-            // Kiểm tra điều kiện Ngày
             let matchesDate = true;
             if (rowDate) {
                 if (minDate && rowDate < minDate) matchesDate = false;
                 if (maxDate && rowDate > maxDate) matchesDate = false;
             } else if (fromDateStr || toDateStr) {
-                // Nếu dòng không có ngày mà người dùng đang lọc ngày thì ẩn đi
                 matchesDate = false;
             }
 
-            // Thực hiện ẩn/hiện
-            row.style.display = (matchesName && matchesDate) ? "" : "none";
+            row.dataset.filtered = (matchesName && matchesDate) ? "true" : "false";
         }
+
+        // Reset về trang 1 sau khi lọc dữ liệu
+        currentPage = 1;
+        paginateTable();
     }
 
     function resetFilters() {
         document.getElementById('filterName').value = '';
         document.getElementById('filterFromDate').value = '';
         document.getElementById('filterToDate').value = '';
-        filterTable();
+
+        const allRows = document.querySelectorAll(".data-table tbody tr");
+        allRows.forEach(row => row.dataset.filtered = "true");
+
+        currentPage = 1;
+        paginateTable();
     }
-        function exportExcel() {
+
+    function exportExcel() {
         const fromDate = document.getElementById("filterFromDate").value;
         const toDate = document.getElementById("filterToDate").value;
-
         let url = `/ImportStocks/ExportExcel?`;
-
         if (fromDate) url += `fromDate=${fromDate}&`;
         if (toDate) url += `toDate=${toDate}`;
 
-        // 🔥 download file
         fetch(url)
             .then(res => {
                 if (!res.ok) throw new Error("Export failed");
@@ -206,4 +223,83 @@
                 alert("Export failed!");
             });
     }
+
+    // --- PHẦN PAGINATION ĐÃ ĐƯỢC SỬA LỖI ---
+
+    // Hàm phụ bổ trợ lấy danh sách các dòng thỏa mãn bộ lọc
+    function getVisibleRows() {
+        const allRows = Array.from(document.querySelectorAll(".data-table tbody tr"));
+        return allRows.filter(row => row.dataset.filtered !== "false");
+    }
+
+    function paginateTable() {
+        const allRows = document.querySelectorAll(".data-table tbody tr");
+        const visibleRows = getVisibleRows();
+
+        // Nếu không có dòng nào thỏa mãn, mặc định tổng số trang ít nhất là 1
+        const totalPages = Math.max(1, Math.ceil(visibleRows.length / rowsPerPage));
+
+        // Ẩn tất cả các dòng trước
+        allRows.forEach(row => {
+            row.style.display = "none";
+        });
+
+        // Chỉ hiển thị các dòng thuộc trang hiện tại
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        visibleRows.slice(start, end).forEach(row => {
+            row.style.display = "";
+        });
+
+        // Vẽ lại các nút số trang
+        renderPageButtons(totalPages);
+
+        // Khóa các nút điều hướng Prev/Next một cách chính xác
+        document.getElementById("prevPage").disabled = (currentPage <= 1);
+        document.getElementById("nextPage").disabled = (currentPage >= totalPages);
+    }
+
+    function renderPageButtons(totalPages) {
+        const container = document.getElementById("pageNumbers");
+        container.innerHTML = "";
+
+        // Nếu chỉ có 1 trang, không cần hiển thị các nút số (tùy chọn UI)
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.className = (i === currentPage) ? "page-btn active" : "page-btn";
+            btn.innerText = i;
+            btn.style.margin = "0 3px"; // Thêm khoảng cách nhỏ cho đẹp mắt
+
+            btn.onclick = () => {
+                currentPage = i;
+                paginateTable();
+            };
+
+            container.appendChild(btn);
+        }
+    }
+
+    function changePage(direction) {
+        const visibleRows = getVisibleRows();
+        const totalPages = Math.max(1, Math.ceil(visibleRows.length / rowsPerPage));
+
+        currentPage += direction;
+
+        // Giới hạn biên an toàn
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        paginateTable();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Khởi tạo trạng thái mặc định ban đầu hiển thị tất cả dữ liệu
+        document.querySelectorAll(".data-table tbody tr").forEach(row => {
+            row.dataset.filtered = "true";
+        });
+        paginateTable();
+    });
 </script>

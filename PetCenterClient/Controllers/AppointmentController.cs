@@ -17,7 +17,13 @@ namespace PetCenterClient.Controllers
 
         [HttpGet]
         public async Task<IActionResult> Book()
-        {
+        {   
+
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Customer")
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             var bookingData = await _appointmentApiService.GetBookingDataAsync();
 
             var vm = new BookingPageViewModel

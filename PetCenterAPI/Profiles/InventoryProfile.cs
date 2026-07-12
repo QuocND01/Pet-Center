@@ -73,12 +73,15 @@ namespace PetCenterAPI.Profiles
                         src.Product.ImportStockDetails
                             .Where(x => x.StockLeft > 0)
                             .OrderBy(x => x.ExpiryDate)
-                            .ThenBy(x => x.CreatedAt)));
-
+                            .ThenBy(x => x.CreatedAt)))
+                .ForMember(
+                    dest => dest.Transactions,
+                    opt => opt.MapFrom(src => src.InventoryTransactions));
 
 
 
             CreateMap<ImportStockDetail, InventoryBatchResponseDTO>();
+            CreateMap<InventoryTransaction,InventoryTransactionResponseDTO>();
         }
     }
 }

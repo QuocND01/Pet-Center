@@ -123,6 +123,7 @@ namespace PetCenterAPI.Repository
 
                 .Include(i => i.Product)
                     .ThenInclude(p => p.ImportStockDetails)
+                .Include(i => i.InventoryTransactions)
 
 
                 .AsNoTracking()
@@ -131,6 +132,8 @@ namespace PetCenterAPI.Repository
                 .FirstOrDefaultAsync(i =>
                     i.InventoryId == inventoryId);
         }
+        
+
         public async Task<List<ImportStockDetail>>
     GetAvailableBatchesByProductIdAsync(Guid productId)
         {

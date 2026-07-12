@@ -26,5 +26,8 @@
 
         public List<InventoryBatchViewModel> Batches { get; set; }
             = new();
+        public List<InventoryTransactionViewModel> Transactions { get; set; }
+            = new();
+
     }
 }

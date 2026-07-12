@@ -27,46 +27,37 @@ namespace PetCenterClient.Controllers
         }
 
 
-       
+
         public async Task<IActionResult> Index(string sortOrder)
         {
+            // 1. Gọi API lấy toàn bộ danh sách dữ liệu về Client
             var imports = await _service.GetAllAsync();
-            // 
-            
-            
 
-            //var staffName = await _staffService.GetStaffNameListAsync();
-
-            
-
-            //var staffDict = staffName.ToDictionary(x => x.StaffId, x => x.StaffName);
-            //ViewBag.StaffDict = staffDict;
-
-           
-            //
-            ViewBag.IdSort = String.IsNullOrEmpty(sortOrder) ? "id_desc" : "";
+            // 2. Thiết lập trạng thái Sort cho View (Rút gọn để chuyển đổi trạng thái click)
+            ViewBag.IdSort = string.IsNullOrEmpty(sortOrder) ? "id_desc" : "";
             ViewBag.DateSort = sortOrder == "date" ? "date_desc" : "date";
             ViewBag.TotalSort = sortOrder == "total" ? "total_desc" : "total";
             ViewBag.StatusSort = sortOrder == "status" ? "status_desc" : "status";
 
-            imports = sortOrder switch
+            // 3. Thực hiện sắp xếp trên RAM của ứng dụng Client (Sử dụng IEnumerable để tránh nhân bản danh sách)
+            IEnumerable<ImportHeaderViewModel> sortedImports = sortOrder switch
             {
-                "id_desc" => imports.OrderByDescending(i => i.ImportId).ToList(),
+                "id_desc" => imports.OrderByDescending(i => i.ImportId),
+                "date" => imports.OrderBy(i => i.ImportDate),
+                "date_desc" => imports.OrderByDescending(i => i.ImportDate),
+                "total" => imports.OrderBy(i => i.TotalAmount),
+                "total_desc" => imports.OrderByDescending(i => i.TotalAmount),
+                "status" => imports.OrderBy(i => i.Status),
+                "status_desc" => imports.OrderByDescending(i => i.Status),
 
-                "date" => imports.OrderBy(i => i.ImportDate).ToList(),
-                "date_desc" => imports.OrderByDescending(i => i.ImportDate).ToList(),
-
-                "total" => imports.OrderBy(i => i.TotalAmount).ToList(),
-                "total_desc" => imports.OrderByDescending(i => i.TotalAmount).ToList(),
-
-                "status" => imports.OrderBy(i => i.Status).ToList(),
-                "status_desc" => imports.OrderByDescending(i => i.Status).ToList(),
-
-                _ => imports.OrderBy(i => i.ImportDate).ToList()
+                // Mặc định: Đơn hàng mới nhập gần nhất sẽ luôn hiển thị ở trên cùng
+                _ => imports.OrderByDescending(i => i.ImportDate)
             };
-            _logger.LogInformation("Dữ liệu nhận được: {@Imports}", imports);
 
-            return View("~/Views/AdminViews/ImportStock/Index.cshtml",imports);
+            // Khuyên dùng: Nếu file View nằm đúng cấu trúc thư mục chuẩn (Views/ImportStock/Index.cshtml), 
+            // bạn chỉ cần: return View(sortedImports.ToList()); 
+            // Dưới đây giữ nguyên đường dẫn tường minh của bạn để tránh lỗi cấu hình:
+            return View("~/Views/AdminViews/ImportStock/Index.cshtml", sortedImports.ToList());
         }
 
         public async Task<IActionResult> Details(Guid id)
