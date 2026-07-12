@@ -84,7 +84,7 @@ namespace PetCenterAPI.Controllers
             {
                 await _ServiceService.UpdateServiceAsync(id, Service);
 
-                return Ok(new { success = true, message = "Service updated successfully" });
+                return Ok(new { status = true, message = "Service updated successfully" });
             }
             catch (Exception ex)
             {
@@ -92,7 +92,7 @@ namespace PetCenterAPI.Controllers
 
                 return StatusCode(500, new
                 {
-                    success = false,
+                    status = false,
                     message = ex.ToString()
                 });
             }
@@ -113,7 +113,7 @@ namespace PetCenterAPI.Controllers
 
                 return BadRequest(new
                 {
-                    success = false,
+                    status = false,
                     message = string.Join(", ", errors)
                 });
             }
@@ -124,7 +124,7 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new
                 {
-                    success = true,
+                    status = true,
                     message = "Service created successfully"
                 });
             }
@@ -132,7 +132,7 @@ namespace PetCenterAPI.Controllers
             {
                 return Conflict(new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -140,7 +140,7 @@ namespace PetCenterAPI.Controllers
             {
                 return StatusCode(500, new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -160,7 +160,7 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new
                 {
-                    success = true
+                    status = true
                 });
             }
             catch (Exception ex)

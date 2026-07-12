@@ -73,7 +73,7 @@ namespace PetCenterAPI.Controllers
 
                 return BadRequest(new
                 {
-                    success = false,
+                    status = false,
                     message = errors
                 });
             }
@@ -84,7 +84,7 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new
                 {
-                    success = true,
+                    status = true,
                     message = "Brand updated successfully"
                 });
             }
@@ -92,7 +92,7 @@ namespace PetCenterAPI.Controllers
             {
                 return Conflict(new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -100,7 +100,7 @@ namespace PetCenterAPI.Controllers
             {
                 return NotFound(new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -108,7 +108,7 @@ namespace PetCenterAPI.Controllers
             {
                 return StatusCode(500, new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -134,7 +134,7 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new
                 {
-                    success = true,
+                    status = true,
                     message = "Brand created successfully"
                 });
             }
@@ -142,7 +142,7 @@ namespace PetCenterAPI.Controllers
             {
                 return Conflict(new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -150,7 +150,7 @@ namespace PetCenterAPI.Controllers
             {
                 return StatusCode(500, new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -166,7 +166,7 @@ namespace PetCenterAPI.Controllers
 
             return Ok(new
             {
-                success = true
+                status = true
             });
         }
     }

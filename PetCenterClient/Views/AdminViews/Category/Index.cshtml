@@ -63,6 +63,34 @@
     justify-content: center;
 }
 
+/* Chỉ áp dụng cho trang Category */
+
+/* Category Name */
+.data-table td .customer-name {
+    display: inline-block;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Attribute badge nếu tên quá dài */
+.data-table td .badge {
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Cột Attributes không cho kéo giãn bảng */
+.data-table td:nth-child(4) {
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 </style>
 
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
@@ -174,23 +202,28 @@
                                 @c.CategoryName
                             </td>
 
-                            <td>
-
-                                @if (c.Attributes != null && c.Attributes.Any())
-                                {
-                                    foreach (var attr in c.Attributes)
+                          <td>
+                                    @if (c.Attributes != null && c.Attributes.Any())
                                     {
-                                        <span class="badge bg-secondary me-1">
-                                            @attr.AttributeName
-                                        </span>
-                                    }
-                                }
-                                else
-                                {
-                                    <span class="text-muted">No attributes</span>
-                                }
+                                        @foreach (var attr in c.Attributes.Take(2))
+                                        {
+                                            <span class="badge bg-secondary me-1">
+                                                @attr.AttributeName
+                                            </span>
+                                        }
 
-                            </td>
+                                        @if (c.Attributes.Count > 2)
+                                        {
+                                            <span class="badge bg-light text-dark">
+                                                +@(c.Attributes.Count - 2)
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No attributes</span>
+                                    }
+                                </td>
 
                             <td class="customer-name">
                                 @c.Status

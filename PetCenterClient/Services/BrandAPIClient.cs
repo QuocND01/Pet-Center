@@ -2,9 +2,11 @@
 using Microsoft.Data.SqlClient;
 using PetCenterClient.Common;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels;
 using PetCenterClient.ViewModels.Brand;
 using PetCenterClient.ViewModels.Common;
 using System.Globalization;
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
@@ -48,15 +50,17 @@ namespace PetCenterClient.Services
 
             var response = await _http.PostAsync("api/Brands", content);
 
-            var result = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+      response.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new HttpRequestException(
-                    result,
-                    null,
-                    response.StatusCode);
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Create brand failed.");
             }
+
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task ChangeBrandStatusAsync(Guid id, Status status)
@@ -139,15 +143,17 @@ namespace PetCenterClient.Services
 
             var response = await _http.PutAsync($"api/Brands/{id}", form);
 
-            var result = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+     response.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new HttpRequestException(
-                    result,
-                    null,
-                    response.StatusCode);
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Update brand failed.");
             }
+
+            response.EnsureSuccessStatusCode();
         }
 
         private void AddAuthorizationHeader()

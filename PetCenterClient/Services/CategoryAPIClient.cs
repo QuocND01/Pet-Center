@@ -1,7 +1,9 @@
 ﻿using PetCenterClient.Common;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels;
 using PetCenterClient.ViewModels.Category;
 using PetCenterClient.ViewModels.Common;
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace PetCenterClient.Services
@@ -50,15 +52,17 @@ namespace PetCenterClient.Services
 
             var response = await _http.PostAsync("api/Categories", content);
 
-            var result = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+    response.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new HttpRequestException(
-                    result,
-                    null,
-                    response.StatusCode);
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Create category failed.");
             }
+
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task ChangeCategoryStatusAsync(Guid id, Status status)
@@ -152,15 +156,17 @@ namespace PetCenterClient.Services
 
             var response = await _http.PutAsync($"api/Categories/{id}", form);
 
-            var result = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+      response.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new HttpRequestException(
-                    result,
-                    null,
-                    response.StatusCode);
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Update category failed.");
             }
+
+            response.EnsureSuccessStatusCode();
         }
 
         private void AddAuthorizationHeader()

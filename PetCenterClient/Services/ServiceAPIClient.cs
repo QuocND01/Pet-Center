@@ -1,7 +1,9 @@
 ﻿using PetCenterClient.Common;
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels;
 using PetCenterClient.ViewModels.Common;
 using PetCenterClient.ViewModels.Service;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using static PetCenterClient.ViewModels.Service.ServiceViewModel;
@@ -162,12 +164,17 @@ namespace PetCenterClient.Services
 
             var response = await _http.PostAsync("api/Services", content);
 
-            var result = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+       response.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new Exception(result);
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Create service failed.");
             }
+
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task UpdateServiceAsync(Guid? id, UpdateServiceViewModel model)
@@ -210,6 +217,16 @@ namespace PetCenterClient.Services
 
 
             var response = await _http.PutAsync($"api/Services/{id}", form);
+
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+    response.StatusCode == HttpStatusCode.Conflict)
+            {
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Update service failed.");
+            }
 
             response.EnsureSuccessStatusCode();
         }

@@ -15,8 +15,9 @@ namespace PetCenterClient.ViewModels.Product
         public string AttributeName { get; set; } = null!;
 
         [Required(ErrorMessage = "Attribute value is required")]
+        [MaxLength(200, ErrorMessage = "Attribute value cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
-            ErrorMessage = "Attribute value cannot contain special characters")]
+                ErrorMessage = "Attribute value cannot contain special characters")]
         public string AttributeValue { get; set; } = null!;
     }
 
@@ -27,8 +28,9 @@ namespace PetCenterClient.ViewModels.Product
         public string? AttributeName { get; set; } = null!;
 
         [Required(ErrorMessage = "Attribute value is required")]
+        [MaxLength(200, ErrorMessage = "Attribute value cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
-            ErrorMessage = "Attribute value cannot contain special characters")]
-        public string? AttributeValue { get; set; }
+                 ErrorMessage = "Attribute value cannot contain special characters")]
+        public string AttributeValue { get; set; } = null!;
     }
 }
