@@ -272,12 +272,13 @@ namespace PetCenterAPI.Service
 
                         // --- [TÍNH TOÁN CHO TRANSACTION] ---
                         // Giả sử QuantityBefore/After đại diện cho trạng thái của bảng Inventory tổng:
-                        int qtyBefore = inventory.QuantityReserved;
-                        int qtyAfter = inventory.QuantityReserved - pickedQty;
+                        int qtyTotal = inventory.QuantityReserved + inventory.QuantityAvailable;
+                        int qtyBefore = qtyTotal;
+                        int qtyAfter = qtyTotal - pickedQty;
 
                         // Nếu DB thiết kế QuantityBefore/After đại diện cho Tồn của riêng từng LÔ (Batch), hãy đổi thành:
-                        // int qtyBefore = batch.StockLeft;
-                        // int qtyAfter = batch.StockLeft - pickedQty;
+                        //int qtyBefore = batch.StockLeft;
+                        //int qtyAfter = batch.StockLeft - pickedQty;
 
                         // --- [CẬP NHẬT TRẠNG THÁI BATCH] ---
                         batch.StockLeft -= pickedQty;
@@ -294,7 +295,7 @@ namespace PetCenterAPI.Service
                         remainingQty -= pickedQty;
 
                         // --- [LƯU LỊCH SỬ TRANSACTION] ---
-                        Guid testId = Guid.Parse("21000000-0000-0000-0000-000000000001");
+                        Guid testId = order.CustomerId;
                         await _invenTransactionRepository.AddTransactionAsync(new InventoryTransaction
                         {
                             TransactionId = Guid.NewGuid(),
@@ -310,7 +311,7 @@ namespace PetCenterAPI.Service
                             ReferenceId = order.OrderId,
                             ReferenceType = ReferenceType.Order,     // Khớp CHECK constraint ('Order')
                             ImportStockDetailId = batch.ImportStockDetailsId,
-                            Note = $"Xuất kho từ lô {batch.BatchCode}"
+                            Note = $"Export form batch {batch.BatchCode}"
                         });
                     }
 

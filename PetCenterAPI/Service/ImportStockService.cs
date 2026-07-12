@@ -229,62 +229,7 @@ namespace PetCenterAPI.Service
                 Details = _mapper.Map<List<ReadImportDetailResponseDTO>>(details)
             };
         }
-        // Trừ kho FIFO
-        public async Task<string> DeductFIFO(Guid productId, int quantity)
-        {
-            using var tran = await _context.Database.BeginTransactionAsync();
-
-            var stocks = await _repo.GetAvailableStock(productId);
-
-            int remain = quantity;
-            var map = new List<string>();
-
-            foreach (var s in stocks)
-            {
-                if (remain <= 0) break;
-
-                int take = Math.Min(s.StockLeft, remain);
-
-                s.StockLeft -= take;
-                remain -= take;
-
-                map.Add($"{s.ImportStockDetailsId}:{take}");
-            }
-
-            if (remain > 0)
-                throw new Exception("Not enough stock");
-
-            await _repo.SaveChangesAsync();
-            await tran.CommitAsync();
-
-            return string.Join(",", map);
-        }
-
-        //  Trả hàng
-        public async Task ReturnStock(string mapping)
-        {
-            if (string.IsNullOrEmpty(mapping)) return;
-
-            using var tran = await _context.Database.BeginTransactionAsync();
-
-            var items = mapping.Split(',');
-
-            foreach (var item in items)
-            {
-                var parts = item.Split(':');
-
-                var id = Guid.Parse(parts[0]);
-                var qty = int.Parse(parts[1]);
-
-                var stock = await _repo.GetById(id);
-
-                if (stock != null)
-                    stock.StockLeft += qty;
-            }
-
-            await _repo.SaveChangesAsync();
-            await tran.CommitAsync();
-        }
+        
 
 
         public async Task<bool> HasProductInImportsAsync(Guid productId)
