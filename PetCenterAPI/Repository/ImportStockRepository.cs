@@ -43,7 +43,9 @@ namespace PetCenterAPI.Repository
         public async Task<List<ImportStock>> GetAllAsync()
         {
             return await _context.ImportStocks
-                .OrderByDescending(x => x.ImportDate).Include(x=>x.Supplier).Include(x => x.Staff)
+                .Include(x => x.Supplier) // Load thông tin nhà cung cấp trước
+                .Include(x => x.Staff)    // Load thông tin nhân viên trước
+                .OrderByDescending(x => x.ImportDate) // Sau đó mới sắp xếp theo ngày gần nhất
                 .ToListAsync();
         }
 

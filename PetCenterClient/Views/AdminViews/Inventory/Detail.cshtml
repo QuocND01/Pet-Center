@@ -223,7 +223,7 @@
 
 
             @* Transaction *@
-            @* <tbody>
+            <tbody>
 
                 @foreach (var t in Model.Transactions)
                 {
@@ -240,7 +240,7 @@
 
                         <td>@t.QuantityAfter</td>
 
-                        <td>@t.ReferenceType</td>
+                        <td>@t.TransactionType</td>
 
                         <td>@t.Note</td>
 
@@ -248,7 +248,7 @@
 
                 }
 
-            </tbody> *@
+            </tbody>
 
         </table>
 

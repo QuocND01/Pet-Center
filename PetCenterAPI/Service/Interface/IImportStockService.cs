@@ -12,8 +12,7 @@ namespace PetCenterAPI.Service.Interface
 
         Task<List<ReadImportHeaderResponseDTO>> GetAllImportsAsync();
         Task<ExportResponseDTO> Export(DateTime? fromDate, DateTime? toDate);
-        Task<string> DeductFIFO(Guid productId, int quantity);
-        Task ReturnStock(string mapping);
+        
         Task<bool> HasProductInImportsAsync(Guid productId);
     }
 }

@@ -28,6 +28,9 @@ namespace PetCenterAPI.DTOs.Responses.Inventory
 
         public List<InventoryBatchResponseDTO> Batches { get; set; }
             = new();
+        public List<InventoryTransactionResponseDTO> Transactions { get; set; }
+            = new();
+        
     }
     public class InventoryBatchResponseDTO
     {
@@ -51,6 +54,18 @@ namespace PetCenterAPI.DTOs.Responses.Inventory
 
         public DateOnly? ExpiryDate { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+    }
+    public class InventoryTransactionResponseDTO
+    {
+        public Guid TransactionId { get; set; }
+        public int QuantityChange { get; set; }
+
+        // 🆕 snapshot trước/sau để reconstruct lịch sử
+        public int QuantityBefore { get; set; }
+        public int QuantityAfter { get; set; }
+        public string? TransactionType { get; set; }
+        public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }
