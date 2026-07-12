@@ -174,7 +174,7 @@ public partial class PetCenterContext : DbContext
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("AppointmentServiceID");
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
-            
+
             entity.Property(e => e.PriceAtBooking).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
             entity.Property(e => e.ServiceName)
@@ -227,24 +227,31 @@ public partial class PetCenterContext : DbContext
 
         modelBuilder.Entity<Brand>(entity =>
         {
-            entity.HasKey(e => e.BrandId).HasName("PK__Brands__DAD4F3BEEF9EA9BB");
+            entity.HasKey(e => e.BrandId);
 
-            entity.HasIndex(e => e.BrandName, "UQ__Brands__2206CE9B8900F156").IsUnique();
+            entity.HasIndex(e => e.BrandName).IsUnique();
 
             entity.Property(e => e.BrandId)
-                .HasDefaultValueSql("(newid())")
-                .HasColumnName("BrandID");
+                .HasColumnName("BrandID")
+                .HasDefaultValueSql("(newid())");
+
+            entity.Property(e => e.BrandName)
+                .HasMaxLength(200);
+
+            entity.Property(e => e.BrandLogo)
+                .HasMaxLength(500);
+
             entity.Property(e => e.BrandDescription)
-                .HasMaxLength(500)
+                .HasMaxLength(2000)
                 .IsUnicode(false);
-            entity.Property(e => e.BrandLogo).HasMaxLength(255);
-            entity.Property(e => e.BrandName).HasMaxLength(150);
+
             entity.Property(e => e.PublicId)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false);
+
             entity.Property(e => e.Status)
-.HasConversion<int>()
-.HasDefaultValue(Status.Active);
+                .HasConversion<int>()
+                .HasDefaultValue(Status.Active);
         });
 
         modelBuilder.Entity<Cart>(entity =>
@@ -296,13 +303,15 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.CategoryId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("CategoryID");
+            entity.Property(e => e.CategoryLogo)
+      .HasMaxLength(500);
+
             entity.Property(e => e.CategoryDescription)
-                .HasMaxLength(500)
+                .HasMaxLength(2000)
                 .IsUnicode(false);
-            entity.Property(e => e.CategoryLogo).HasMaxLength(255);
-            entity.Property(e => e.CategoryName).HasMaxLength(150);
+            entity.Property(e => e.CategoryName).HasMaxLength(200);
             entity.Property(e => e.PublicId)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.Status)
     .HasConversion<int>()
@@ -318,7 +327,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.CategoryAttributeId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("CategoryAttributeID");
-            entity.Property(e => e.AttributeName).HasMaxLength(150);
+            entity.Property(e => e.AttributeName).HasMaxLength(200);
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
 
@@ -389,7 +398,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.FeedbackId).HasColumnName("FeedbackID");
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.PublicId).HasMaxLength(50);
+            entity.Property(e => e.PublicId).HasMaxLength(255);
 
             entity.HasOne(d => d.Feedback).WithMany(p => p.FeedbackImages)
                 .HasForeignKey(d => d.FeedbackId)
@@ -409,9 +418,9 @@ public partial class PetCenterContext : DbContext
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ProductSnapshotID");
             entity.Property(e => e.ImportStockDetailsId).HasColumnName("ImportStockDetailsID");
-            entity.Property(e => e.ProductBrand).HasMaxLength(100);
-            entity.Property(e => e.ProductCategory).HasMaxLength(100);
-            entity.Property(e => e.ProductImage).HasMaxLength(255);
+            entity.Property(e => e.ProductBrand).HasMaxLength(200);
+            entity.Property(e => e.ProductCategory).HasMaxLength(200);
+            entity.Property(e => e.ProductImage).HasMaxLength(500);
             entity.Property(e => e.ProductName).HasMaxLength(255);
 
             entity.HasOne(d => d.ImportStockDetails).WithOne(p => p.ImportProductSnapshot)
@@ -473,7 +482,7 @@ public partial class PetCenterContext : DbContext
                 .HasColumnType("date")
                 .IsRequired(false);
 
-            
+
             entity.Property(e => e.ExpiryDate)
                 .HasColumnType("date")
                 .IsRequired(false);
@@ -777,11 +786,11 @@ public partial class PetCenterContext : DbContext
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ProductSnapshotID");
             entity.Property(e => e.OrderDetailsId).HasColumnName("OrderDetailsID");
-            entity.Property(e => e.ProductBrand).HasMaxLength(255);
-            entity.Property(e => e.ProductCategory).HasMaxLength(255);
-            entity.Property(e => e.ProductDescription).HasMaxLength(1000);
-            entity.Property(e => e.ProductImage).HasMaxLength(255);
-            entity.Property(e => e.ProductName).HasMaxLength(255);
+            entity.Property(e => e.ProductBrand).HasMaxLength(200);
+            entity.Property(e => e.ProductCategory).HasMaxLength(200);
+            entity.Property(e => e.ProductDescription).HasMaxLength(2000);
+            entity.Property(e => e.ProductImage).HasMaxLength(500);
+            entity.Property(e => e.ProductName).HasMaxLength(200);
             entity.Property(e => e.ProductPrice).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.OrderDetails).WithOne(p => p.OrderProductSnapshot)
@@ -873,7 +882,7 @@ public partial class PetCenterContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.PublicId)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.Species)
                 .HasMaxLength(100)
@@ -926,6 +935,8 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.BrandId).HasColumnName("BrandID");
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.ProductName).HasMaxLength(200);
+            entity.Property(e => e.ProductDescription)
+    .HasMaxLength(2000);
             entity.Property(e => e.ProductPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Status)
 .HasConversion<int>()
@@ -950,7 +961,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ProductAttributesId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("ProductAttributesID");
-            entity.Property(e => e.AttributeValue).HasMaxLength(255);
+            entity.Property(e => e.AttributeValue).HasMaxLength(200);
             entity.Property(e => e.CategoryAttributeId).HasColumnName("CategoryAttributeID");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
@@ -1014,7 +1025,7 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
-            entity.Property(e => e.PublicId).HasMaxLength(50);
+            entity.Property(e => e.PublicId).HasMaxLength(255);
 
             entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductId)
@@ -1044,8 +1055,10 @@ public partial class PetCenterContext : DbContext
                 .HasColumnName("ServiceID");
             entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ServiceName)
-                .HasMaxLength(50)
+                .HasMaxLength(200)
                 .IsUnicode(false);
+            entity.Property(e => e.ServiceDescription)
+      .HasMaxLength(2000);
             entity.Property(e => e.ServiceType).HasDefaultValue(1);
             entity.Property(e => e.Status)
 .HasConversion<int>()
@@ -1061,7 +1074,7 @@ public partial class PetCenterContext : DbContext
                 .HasColumnName("ImageID");
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.PublicId).HasMaxLength(50);
+            entity.Property(e => e.PublicId).HasMaxLength(255);
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
 
             entity.HasOne(d => d.Service).WithMany(p => p.ServiceImages)
@@ -1104,7 +1117,7 @@ public partial class PetCenterContext : DbContext
                 .HasMaxLength(15)
                 .IsUnicode(false);
             entity.Property(e => e.PublicId)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
@@ -1249,50 +1262,50 @@ public partial class PetCenterContext : DbContext
 
             entity.Property(e => e.Content).IsRequired();
 
-        // GlobalWorkSchedule
-        modelBuilder.Entity<GlobalWorkSchedule>(entity =>
-        {
-            entity.HasKey(e => e.GlobalScheduleId);
+            // GlobalWorkSchedule
+            modelBuilder.Entity<GlobalWorkSchedule>(entity =>
+            {
+                entity.HasKey(e => e.GlobalScheduleId);
 
-            entity.ToTable("GlobalWorkSchedule");
+                entity.ToTable("GlobalWorkSchedule");
 
-            entity.HasIndex(e => e.DayOfWeek)
-                  .IsUnique();
+                entity.HasIndex(e => e.DayOfWeek)
+                      .IsUnique();
 
-            entity.Property(e => e.GlobalScheduleId)
-                  .HasDefaultValueSql("(newid())");
+                entity.Property(e => e.GlobalScheduleId)
+                      .HasDefaultValueSql("(newid())");
 
-            entity.Property(e => e.StartTime)
-                  .HasColumnType("time");
+                entity.Property(e => e.StartTime)
+                      .HasColumnType("time");
 
-            entity.Property(e => e.EndTime)
-                  .HasColumnType("time");
-        });
-        // ScheduleException
-        modelBuilder.Entity<ScheduleException>(entity =>
-        {
-            entity.HasKey(e => e.ExceptionId);
+                entity.Property(e => e.EndTime)
+                      .HasColumnType("time");
+            });
+            // ScheduleException
+            modelBuilder.Entity<ScheduleException>(entity =>
+            {
+                entity.HasKey(e => e.ExceptionId);
 
-            entity.ToTable("ScheduleException");
+                entity.ToTable("ScheduleException");
 
-            entity.Property(e => e.ExceptionId)
-                  .HasDefaultValueSql("(newid())");
+                entity.Property(e => e.ExceptionId)
+                      .HasDefaultValueSql("(newid())");
 
-            entity.Property(e => e.ExceptionDate)
-                  .HasColumnType("date");
+                entity.Property(e => e.ExceptionDate)
+                      .HasColumnType("date");
 
-            entity.Property(e => e.StartTime)
-                  .HasColumnType("time");
+                entity.Property(e => e.StartTime)
+                      .HasColumnType("time");
 
-            entity.Property(e => e.EndTime)
-                  .HasColumnType("time");
+                entity.Property(e => e.EndTime)
+                      .HasColumnType("time");
 
-            entity.HasOne(e => e.Staff)
-                  .WithMany(d => d.ScheduleExceptions)
-                  .HasForeignKey(e => e.StaffId)
-                  .OnDelete(DeleteBehavior.SetNull)
-                  .HasConstraintName("FK_ScheduleException_Doctor");
-        });
+                entity.HasOne(e => e.Staff)
+                      .WithMany(d => d.ScheduleExceptions)
+                      .HasForeignKey(e => e.StaffId)
+                      .OnDelete(DeleteBehavior.SetNull)
+                      .HasConstraintName("FK_ScheduleException_Doctor");
+            });
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getutcdate())")

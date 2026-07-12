@@ -82,7 +82,7 @@ namespace PetCenterAPI.Controllers
             {
                 await _productService.UpdateProductAsync(id, product);
 
-                return Ok(new { success = true, message = "Product updated successfully" });
+                return Ok(new { status = true, message = "Product updated successfully" });
             }
             catch (Exception ex)
             {
@@ -90,7 +90,7 @@ namespace PetCenterAPI.Controllers
 
                 return StatusCode(500, new
                 {
-                    success = false,
+                    status = false,
                     message = ex.ToString()
                 });
             }
@@ -111,7 +111,7 @@ namespace PetCenterAPI.Controllers
 
                 return BadRequest(new
                 {
-                    success = false,
+                    status = false,
                     message = string.Join(", ", errors)
                 });
             }
@@ -122,7 +122,7 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new
                 {
-                    success = true,
+                    status = true,
                     message = "Product created successfully"
                 });
             }
@@ -130,7 +130,7 @@ namespace PetCenterAPI.Controllers
             {
                 return Conflict(new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -138,7 +138,7 @@ namespace PetCenterAPI.Controllers
             {
                 return StatusCode(500, new
                 {
-                    success = false,
+                    status = false,
                     message = ex.Message
                 });
             }
@@ -158,7 +158,7 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new
                 {
-                    success = true
+                    status = true
                 });
             }
             catch (Exception ex)
@@ -175,19 +175,6 @@ namespace PetCenterAPI.Controllers
             }
         }
 
-        //[HttpGet("select")]
-        //public async Task<IActionResult> GetProductSelectAsync()
-        //{
-        //    var result = await _productService.GetProductSelectListAsync();
-        //    return Ok(result);
-        //}
-
-        //[HttpGet("selecttoview")]
-        //public async Task<IActionResult> GetProductSelectToViewAsync()
-        //{
-        //    var result = await _productService.GetProductSelectListToViewAsync();
-        //    return Ok(result);
-        //}
 
 
         // Lấy sản phẩm mới
@@ -216,19 +203,6 @@ namespace PetCenterAPI.Controllers
             if (result == null) return NotFound();
             return Ok(result);
         }
-        //[HttpPost("snapshot")]
-        //public async Task<IActionResult> GetSnapshots(
-        //    [FromBody] ProductSnapshotRequestDto dto)
-        //{
-        //    if (dto.ProductIds == null || !dto.ProductIds.Any())
-        //    {
-        //        return BadRequest("ProductIds is required");
-        //    }
-
-        //    var result = await _productService
-        //        .GetProductSnapshotsAsync(dto.ProductIds);
-
-        //    return Ok(result);
-        //}
+     
     }
 }

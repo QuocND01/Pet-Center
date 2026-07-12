@@ -56,14 +56,16 @@ namespace PetCenterClient.ViewModels.Service
             [Range(0.01, 100000000, ErrorMessage = "Service price must be greater than 0")]
             public decimal Price { get; set; }
 
-            [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
+
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? ServiceDescription { get; set; }
 
-            [Required]
-            [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes.")]
+            [Required(ErrorMessage = "Duration is required")]
+            [Range(5, 1440, ErrorMessage = "Duration must be between 5 and 1440 minutes.")]
             public int Duration { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Service type is required")]
+            [Range(0, int.MaxValue)]
             public int ServiceType { get; set; }
 
             public List<IFormFile>? ImageFiles { get; set; } = new();
@@ -75,21 +77,22 @@ namespace PetCenterClient.ViewModels.Service
             [Required(ErrorMessage = "Service name is required")]
             [MaxLength(200, ErrorMessage = "Service name cannot exceed 200 characters")]
             [RegularExpression(@"^[a-zA-Z0-9\s]+$",
-                ErrorMessage = "Service name cannot contain special characters")]
+                 ErrorMessage = "Service name cannot contain special characters")]
             public string ServiceName { get; set; } = null!;
 
             [Required(ErrorMessage = "Service price is required")]
             [Range(0.01, 100000000, ErrorMessage = "Service price must be greater than 0")]
             public decimal Price { get; set; }
 
-            [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? ServiceDescription { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Duration is required")]
             [Range(5, 1440, ErrorMessage = "Duration must be between 5 and 1440 minutes.")]
             public int Duration { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Service type is required")]
+            [Range(0, int.MaxValue)]
             public int ServiceType { get; set; }
 
             public List<string>? ExistingImages { get; set; } = new();

@@ -63,7 +63,32 @@
     gap: 8px;
     justify-content: center;
 }
+/* Chỉ giới hạn cột Brand Name */
+.data-table td:nth-child(3) {
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
+/* Không cho Status bị cắt */
+.data-table td:nth-child(4) {
+    white-space: nowrap;
+}
+
+.brand-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    object-fit: contain;
+    padding: 5px;
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+    width: 90px;
+    text-align: center;
+}
 </style>
 
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
@@ -164,8 +189,7 @@
                             <td class="row-num">@i</td>
 
                             <td>
-                                <img src="@b.BrandLogo"
-                                     style="width:48px;height:48px;border-radius:8px;object-fit:cover" />
+                               <img src="@b.BrandLogo" class="brand-logo" />
                             </td>
 
                             <td class="customer-name">

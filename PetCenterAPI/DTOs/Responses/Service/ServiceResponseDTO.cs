@@ -18,7 +18,7 @@ namespace PetCenterAPI.DTOs.Responses.Service
             public decimal Price { get; set; }
 
 
-            [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? ServiceDescription { get; set; }
 
             [Required(ErrorMessage = "Duration is required")]
@@ -44,7 +44,7 @@ namespace PetCenterAPI.DTOs.Responses.Service
             [Range(0.01, 100000000, ErrorMessage = "Service price must be greater than 0")]
             public decimal Price { get; set; }
 
-            [MaxLength(20000, ErrorMessage = "Description cannot exceed 20000 characters")]
+            [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
             public string? ServiceDescription { get; set; }
 
             [Required(ErrorMessage = "Duration is required")]

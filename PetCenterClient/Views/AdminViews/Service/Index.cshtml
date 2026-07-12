@@ -66,6 +66,86 @@
     gap: 8px;
     justify-content: center;
 }
+
+.data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+.customer-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Các cột text */
+/* Text columns only */
+.data-table td:nth-child(2),
+.data-table td:nth-child(5),
+.data-table td:nth-child(6) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Image + service name */
+.customer-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.customer-cell img {
+    flex-shrink: 0;
+}
+
+/* Action không bị co */
+.data-table td:last-child {
+    width: 180px;
+    white-space: nowrap;
+}
+
+/* Header */
+.data-table th {
+    white-space: nowrap;
+}
+.data-table th:nth-child(1),
+.data-table td:nth-child(1) {
+    width: 50px;
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+    width: 35%;
+}
+
+.data-table th:nth-child(3),
+.data-table td:nth-child(3) {
+    width: 12%;
+}
+
+.data-table th:nth-child(4),
+.data-table td:nth-child(4) {
+    width: 12%;
+}
+
+.data-table th:nth-child(5),
+.data-table td:nth-child(5) {
+    width: 12%;
+}
+
+.data-table th:nth-child(6),
+.data-table td:nth-child(6) {
+    width: 10%;
+}
+
+.data-table th:nth-child(7),
+.data-table td:nth-child(7) {
+    width: 180px;
+}
 </style>
 
 <div class="page-wrapper">
@@ -173,11 +253,10 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Service</th>
+                    <th>Services</th>
                     <th>Price</th>
                     <th>Duration</th>
                     <th>Type</th>
-                    <th>Description</th>
                     <th>Status</th>
                     <th style="width:180px">Actions</th>
                 </tr>
@@ -206,13 +285,6 @@
                             <td>@s.Price.ToString("N0") ₫</td>
                             <td>@s.Duration mins</td>
                            <td>@(s.ServiceType == 1 ? "Veterian" : "Grooming")</td>
-                            <td title="@s.ServiceDescription">
-                                <div class="desc-clamp">
-                                    @(string.IsNullOrEmpty(s.ServiceDescription)
-                                        ? "-"
-                                        : s.ServiceDescription)
-                                </div>
-                            </td>
                             <td>@s.Status</td>
 
                             <td>

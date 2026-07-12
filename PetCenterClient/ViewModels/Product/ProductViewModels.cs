@@ -64,7 +64,7 @@ namespace PetCenterClient.ViewModels.Product
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
-            ErrorMessage = "Product name cannot contain special characters")]
+                 ErrorMessage = "Product name cannot contain special characters")]
         public string ProductName { get; set; } = null!;
 
         [Required(ErrorMessage = "Product price is required")]
@@ -96,7 +96,7 @@ namespace PetCenterClient.ViewModels.Product
         [Required(ErrorMessage = "Product name is required")]
         [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$",
-            ErrorMessage = "Product name cannot contain special characters")]
+               ErrorMessage = "Product name cannot contain special characters")]
         public string ProductName { get; set; } = null!;
 
         [Required(ErrorMessage = "Product price is required")]

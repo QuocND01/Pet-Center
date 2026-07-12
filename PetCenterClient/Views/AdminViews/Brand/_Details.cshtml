@@ -7,6 +7,8 @@
         border: 1px solid #e9ecef;
         border-radius: 18px;
         padding: 25px;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .brand-header {
@@ -25,9 +27,13 @@
 
     .brand-name {
         margin-top: 15px;
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
         color: #212529;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        line-height: 1.5;
     }
 
     .info-item {
@@ -35,6 +41,7 @@
         border-radius: 12px;
         padding: 15px 18px;
         margin-bottom: 15px;
+        min-width: 0;
     }
 
     .info-label {
@@ -49,7 +56,10 @@
     .info-value {
         font-size: 16px;
         color: #212529;
+        white-space: normal;
+        overflow-wrap: anywhere;
         word-break: break-word;
+        line-height: 1.5;
     }
 
     .empty-value {
@@ -74,10 +84,6 @@
                  class="brand-logo"
                  alt="No Logo" />
         }
-
-        <div class="brand-name">
-            @Model.BrandName
-        </div>
 
     </div>
 
@@ -116,7 +122,7 @@
 
     </div>
 
-    <div class="info-item">
+    @* <div class="info-item">
 
         <div class="info-label">
             Brand Logo
@@ -139,7 +145,7 @@
 
         </div>
 
-    </div>
+    </div> *@
 
 
 </div>

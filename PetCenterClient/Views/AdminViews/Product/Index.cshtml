@@ -218,6 +218,81 @@
     gap: 8px;
     justify-content: center;
 }
+
+/* ===== Prevent table overflow ===== */
+
+.data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Các cột text dài */
+.customer-name,
+.email-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Product column */
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+    width: 320px;
+}
+
+/* Product name */
+.customer-name {
+    max-width: 240px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+}
+
+
+/* Brand + Category */
+.email-cell {
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Date */
+.data-table td:nth-child(7),
+.data-table td:nth-child(8) {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Image + name container */
+.customer-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.customer-cell img {
+    width:45px !important;
+    height:45px !important;
+    flex-shrink:0;
+}
+
+/* Header không bị xuống dòng */
+.data-table th {
+    white-space: nowrap;
+}
+
+/* Action không bị co */
+.data-table td:last-child {
+    width: 180px;
+    white-space: nowrap;
+}
 </style>
 
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />

@@ -162,7 +162,6 @@ namespace PetCenterAPI.Repository
             }
             else
             {
-                // mặc định
                 query = query.OrderByDescending(x => x.AddedAt);
             }
 

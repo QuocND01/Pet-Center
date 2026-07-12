@@ -2,8 +2,10 @@
 using PetCenterClient.DTOs;
 
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels;
 using PetCenterClient.ViewModels.Common;
 using PetCenterClient.ViewModels.Product;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -208,15 +210,17 @@ namespace PetCenterClient.Services
 
             var response = await _http.PostAsync("api/Products", content);
 
-            var result = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+       response.StatusCode == HttpStatusCode.Conflict)
             {
-                throw new HttpRequestException(
-                    result,
-                    null,
-                    response.StatusCode);
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Create product failed.");
             }
+
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task UpdateProductAsync(Guid? id, UpdateProductViewModel model)
@@ -274,6 +278,16 @@ namespace PetCenterClient.Services
             }
 
             var response = await _http.PutAsync($"api/Products/{id}", form);
+
+            if (response.StatusCode == HttpStatusCode.BadRequest ||
+       response.StatusCode == HttpStatusCode.Conflict)
+            {
+                var error = await response.Content
+                    .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new InvalidOperationException(
+                    error?.Message ?? "Update product failed.");
+            }
 
             response.EnsureSuccessStatusCode();
         }

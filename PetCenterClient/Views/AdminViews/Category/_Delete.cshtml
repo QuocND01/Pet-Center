@@ -8,6 +8,8 @@
         border-radius: 16px;
         background: #fff;
         text-align: center;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     /* ===== TITLE ===== */
@@ -23,6 +25,11 @@
         font-size: 20px;
         font-weight: 700;
         margin-bottom: 20px;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        line-height: 1.5;
     }
 
     /* ===== LOGO ===== */
@@ -42,21 +49,25 @@
     }
 
     .attr-badge {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
         background: #6c757d;
         color: #fff;
         padding: 6px 12px;
         border-radius: 20px;
         font-size: 13px;
         margin: 3px;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
-    /* ===== BUTTONS ===== */
     .btn {
         border-radius: 10px;
         font-weight: 600;
         padding: 8px 16px;
     }
+
 
 </style>
 
