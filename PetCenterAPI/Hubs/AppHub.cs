@@ -27,7 +27,7 @@ namespace PetCenterAPI.Hubs
             if (role == "Admin" || role == "Vet" || role == "Sale Staff")
             {
                 OnlineStaffLoads.TryAdd(userId, 0);
-                await Clients.Caller.SendAsync("ReceiveSystemMessage", "Bạn đã online và sẵn sàng nhận chat từ khách.");
+                await Clients.Caller.SendAsync("ReceiveSystemMessage", "You are online and ready to receive chats from customers.");
                 // Add staff to Admins group so they receive order notifications
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
             }
@@ -94,7 +94,7 @@ namespace PetCenterAPI.Hubs
             // 4. THÔNG BÁO CHO KHÁCH (NẾU NHÂN VIÊN ĐANG OFFLINE)
             if (!isStaffOnline)
             {
-                await Clients.Caller.SendAsync("ReceiveSystemMessage", "Hiện tại nhân viên đang offline. Tin nhắn đã được lưu và chúng tôi sẽ phản hồi sớm nhất.");
+                await Clients.Caller.SendAsync("ReceiveSystemMessage", "Our staff are currently offline. Your message has been saved and we will respond as soon as possible.");
             }
 
             // 5. LƯU VÀO DATABASE (Đoạn này bị lỗi nuốt tin nhắn ở code cũ, nay đã được Fix)
