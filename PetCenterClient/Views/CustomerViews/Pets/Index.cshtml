@@ -112,7 +112,15 @@
                             {
                                 <span class="pet-emoji">@(pet.Species.ToLower() == "cat" ? "🐱" : "🐶")</span>
                             }
-                            <button class="btn-delete-pet" onclick="deletePet('@pet.PetId')" title="Remove Pet"><i class="bi bi-trash"></i></button>
+                            <button class="btn-delete-pet" onclick="deletePet('@pet.PetId')" title="Remove Pet (soft delete)">
+                                <!-- Inline trash SVG to avoid dependency on external icon fonts -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                    <path d="M5.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z"/>
+                                    <path d="M14 4.5V5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-.5H0v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1h-2z" opacity=".0"></path>
+                                    <path d="M6.5 1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1H14a1 1 0 0 1 1 1v1H1V2a1 1 0 0 1 1-1h4.5z" opacity=".0"></path>
+                                    <path d="M5.5 4a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5V13a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2V4z"/>
+                                </svg>
+                            </button>
                         </div>
                         <div class="pet-info text-center">
                             <h5 class="fw-bold mb-1">@pet.PetName</h5>
@@ -254,7 +262,7 @@
     });
 
     function deletePet(id) {
-        if (confirm("Are you sure you want to remove this pet?")) {
+        if (confirm("Are you sure you want to remove this pet? This action is a soft delete and can be restored by admins.")) {
             fetch('/Pets/Delete/' + id, { method: 'POST' })
             .then(r => r.json())
             .then(d => {
@@ -304,6 +312,31 @@
         var petName = document.getElementById('mutPetName').value;
         if(!petName) return alert("Pet name is required!");
         if(!document.getElementById('mutBreed').value) return alert("Breed is required!");
+
+        // Client-side validation: disallow special characters in name, negative weight, and future DOB
+        try {
+            var nameRegex = new RegExp("^[\\p{L}\\p{N}\\s'\\-]+$","u");
+            if (!nameRegex.test(petName)) return alert('Pet name contains invalid characters');
+        } catch (e) {
+            // Fallback for older browsers without unicode property escapes
+            var fallback = /^[A-Za-z0-9\s'\-]+$/;
+            if (!fallback.test(petName)) return alert('Pet name contains invalid characters');
+        }
+
+        var weightVal = document.getElementById('mutWeight').value;
+        if (weightVal) {
+            var w = parseFloat(weightVal);
+            if (isNaN(w) || w < 0) return alert('Weight must be a non-negative number');
+        }
+
+        var dob = document.getElementById('mutDob').value;
+        if (dob) {
+            var dt = new Date(dob);
+            var today = new Date();
+            // zero time portion for comparison
+            dt.setHours(0,0,0,0); today.setHours(0,0,0,0);
+            if (dt > today) return alert('Date of birth cannot be in the future');
+        }
 
         // Dùng FormData thay vì JSON
         var formData = new FormData();

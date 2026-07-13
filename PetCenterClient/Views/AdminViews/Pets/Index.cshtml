@@ -70,9 +70,25 @@
                                     <small class="text-muted">📞 @pet.OwnerPhone</small>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-light btn-view-vet-pet" data-id="@pet.PetId" title="Medical Profile"><i class="bi bi-file-medical"></i></button>
-                                    <button class="btn btn-sm btn-outline-dark" onclick="openVetMutateModal('@pet.PetId')" title="Edit"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteVetPet('@pet.PetId')" title="Delete"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-light btn-view-vet-pet" data-id="@pet.PetId" title="Medical Profile">
+                                        <!-- medical file SVG -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path d="M8 0a2 2 0 0 0-2 2v1H3.5A1.5 1.5 0 0 0 2 4.5v9A1.5 1.5 0 0 0 3.5 15h9A1.5 1.5 0 0 0 14 13.5v-9A1.5 1.5 0 0 0 12.5 3H10V2a2 2 0 0 0-2-2z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-dark" onclick="openVetMutateModal('@pet.PetId')" title="Edit">
+                                        <!-- pencil SVG -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-9.5 9.5a.5.5 0 0 1-.233.13l-5 1a.5.5 0 0 1-.606-.606l1-5a.5.5 0 0 1 .13-.233l9.5-9.5z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteVetPet('@pet.PetId')" title="Delete (soft delete)">
+                                        <!-- trash SVG -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                            <path d="M5.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z"/>
+                                            <path d="M6.5 4a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5V13a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V4z"/>
+                                        </svg>
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -206,7 +222,7 @@
     });
 
     function deleteVetPet(id) {
-        if (confirm("Are you sure you want to delete this patient's record?")) {
+        if (confirm("Are you sure you want to delete this patient's record? This is a soft delete.")) {
             fetch('/VetPets/Delete/' + id, { method: 'POST' })
             .then(r => r.json())
             .then(d => {
