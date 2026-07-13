@@ -15,16 +15,18 @@ namespace PetCenterAPI.Repository
 
         public async Task<List<Address>> GetAddressesByCustomerIdAsync(Guid customerId)
         {
+            // Only return active (not soft-deleted) addresses and order default first
             return await _db.Addresses
-                .Where(a => a.CustomerId == customerId)
+                .Where(a => a.CustomerId == customerId && a.IsActive == true)
                 .OrderByDescending(a => a.IsDefault)
                 .ToListAsync();
         }
 
         public async Task<Address?> GetAddressByIdAsync(Guid addressId, Guid customerId)
         {
+            // Only fetch active addresses to avoid operating on soft-deleted records
             return await _db.Addresses
-                .FirstOrDefaultAsync(a => a.AddressId == addressId && a.CustomerId == customerId);
+                .FirstOrDefaultAsync(a => a.AddressId == addressId && a.CustomerId == customerId && a.IsActive == true);
         }
 
         public async Task AddAddressAsync(Address address)
@@ -40,7 +42,9 @@ namespace PetCenterAPI.Repository
 
         public Task DeleteAddressAsync(Address address)
         {
-            _db.Addresses.Remove(address);
+            // Soft-delete: mark the address as inactive instead of removing it from DB
+            address.IsActive = false;
+            _db.Addresses.Update(address);
             return Task.CompletedTask;
         }
 

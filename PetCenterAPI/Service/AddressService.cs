@@ -32,8 +32,18 @@ namespace PetCenterAPI.Service
 
         public async Task<bool> AddAddressAsync(Guid customerId, MutateAddressDTO dto)
         {
-            if (dto.IsDefault)
+            // If customer has no active addresses, make this new address the default
+            var existing = await _addressRepository.GetAddressesByCustomerIdAsync(customerId);
+            var hasActive = existing != null && existing.Any();
+
+            bool isDefaultFinal = dto.IsDefault;
+            if (!hasActive)
             {
+                isDefaultFinal = true;
+            }
+            else if (dto.IsDefault)
+            {
+                // If explicitly marked as default, reset other defaults
                 await _addressRepository.ResetDefaultAddressAsync(customerId);
             }
 
@@ -45,7 +55,7 @@ namespace PetCenterAPI.Service
                 District = dto.District,
                 Ward = dto.Ward,
                 AddressDetails = dto.AddressDetails,
-                IsDefault = dto.IsDefault,
+                IsDefault = isDefaultFinal,
                 IsActive = true // Mặc định địa chỉ mới tạo sẽ active
             };
 
@@ -82,6 +92,13 @@ namespace PetCenterAPI.Service
             var address = await _addressRepository.GetAddressByIdAsync(addressId, customerId);
             if (address == null) return false;
 
+            // Do not allow deleting the default address
+            if (address.IsDefault == true)
+            {
+                return false;
+            }
+
+            // Perform soft-delete via repository
             await _addressRepository.DeleteAddressAsync(address);
             await _addressRepository.SaveAsync();
 
