@@ -185,7 +185,7 @@ namespace PetCenterAPI.Service
             if (staff == null)
                 throw new Exception("Doctor not found.");
             appointment.AppointmentSnapshot =
-    new AppointmentSnapshot
+            new AppointmentSnapshot
     {
         AppointmentSnapshotId = Guid.NewGuid(),
 
@@ -201,7 +201,7 @@ namespace PetCenterAPI.Service
 
         VetName = staff.FullName,
 
-        ExperienceYears = staff.VetProfile.ExperienceYears,
+        
 
         Rating = 0
 

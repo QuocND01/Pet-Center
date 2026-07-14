@@ -181,7 +181,11 @@ public partial class PetCenterContext : DbContext
                 .HasMaxLength(200)
                 .IsUnicode(false);
             entity.Property(e => e.ServiceType).HasDefaultValue(1);
-
+            entity.Property(e => e.Status).HasDefaultValue(1);
+            entity.Property(e => e.CompleteAt)
+                .HasColumnName("CompleteAt")
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
             entity.HasOne(d => d.Appointment).WithMany(p => p.AppointmentServices)
                 .HasForeignKey(d => d.AppointmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -208,11 +212,15 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.Breed)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.ExperienceYears).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.Gender)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-            entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
+            entity.Property(e => e.Rating)
+                .HasColumnType("decimal(3, 1)")
+                .IsRequired();
+            entity.Property(e => e.Feedback)
+                .HasMaxLength(500)
+                .IsUnicode(true); 
             entity.Property(e => e.Species)
                 .HasMaxLength(100)
                 .IsUnicode(false);

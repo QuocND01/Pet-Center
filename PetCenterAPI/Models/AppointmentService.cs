@@ -15,8 +15,9 @@ public partial class AppointmentService
 
     public decimal PriceAtBooking { get; set; }
 
-    public int? Duration { get; set; }
-
+    public int Duration { get; set; }
+    public DateTime? CompleteAt { get; set; }
+    public int? Status { get; set; }
     public int ServiceType { get; set; }
 
     public virtual Appointment Appointment { get; set; } = null!;
