@@ -49,7 +49,7 @@
 
         public decimal Weight { get; set; }
 
-        public decimal ExperienceYears { get; set; }
+        public string? Feedback { get; set; }
 
         public decimal Rating { get; set; }
 
