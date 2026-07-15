@@ -29,5 +29,12 @@ namespace PetCenterAPI.DTOs.Responses.Product
             public string? AttributeValue { get; set; }
         }
 
+
+        public class ProductAttributeCompareDTO
+        {
+            public Guid CategoryAttributeId { get; set; }
+            public string AttributeValue { get; set; } = null!;
+        }
+
     }
 }

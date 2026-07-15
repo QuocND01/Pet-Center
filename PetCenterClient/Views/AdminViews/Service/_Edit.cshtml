@@ -36,10 +36,12 @@
         resize: vertical;
     }
 
-    .image-preview {
+    .service-update-image {
         width: 130px;
         height: 130px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+        background: #fff;
         border-radius: 12px;
         border: 2px solid #fff;
         box-shadow: 0 4px 15px rgba(0,0,0,.1);
@@ -200,7 +202,7 @@
                         <div class="image-wrapper">
 
                             <img src="@image"
-                                 class="image-preview" />
+                                 class="service-update-image" />
 
                             <button type="button"
                                     class="btn btn-danger remove-btn"
@@ -262,12 +264,23 @@
      
 
 </div>
-
 <script>
 
     $("#newImages").change(function () {
 
+        const oldImages =
+            $("input[name='ExistingImages']:not(:disabled)").length;
+
+        const newImages =
+            $("#previewNewImages .image-wrapper").length;
+
         const files = this.files;
+
+        if (oldImages + newImages + files.length > 10) {
+            alert("Maximum 10 images are allowed.");
+            $(this).val("");
+            return;
+        }
 
         for (let i = 0; i < files.length; i++) {
 
@@ -282,8 +295,7 @@
                 const html = `
                 <div class="image-wrapper" id="${id}">
 
-                    <img src="${e.target.result}"
-                         class="image-preview"/>
+                  <img src="${e.target.result}" class="service-update-image"/>
 
                     <button type="button"
                             class="btn btn-danger remove-btn"
@@ -301,7 +313,6 @@
                 $("#previewNewImages").append(html);
 
                 const dt = new DataTransfer();
-
                 dt.items.add(file);
 
                 $("#" + id + " input")[0].files = dt.files;
@@ -337,20 +348,17 @@
             $("#previewNewImages .image-wrapper").length;
 
         if (oldImages + newImages === 0) {
-
             alert("Service must have at least one image");
-
             e.preventDefault();
+            return;
+        }
+
+        if (oldImages + newImages > 10) {
+            alert("Maximum 10 images are allowed.");
+            e.preventDefault();
+            return;
         }
 
     });
 
 </script>
-
-@section Scripts {
-
-     
-    <partial name="_ValidationScriptsPartial" />
-     
-
-}

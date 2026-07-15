@@ -8,6 +8,8 @@ using PetCenterAPI.Repository.Interface;
 using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
+using static PetCenterAPI.DTOs.Requests.Product.ProductAttributeRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Product.ProductAttributeResponseDTO;
 
 namespace PetCenterAPI.Repository
 {
@@ -258,17 +260,35 @@ namespace PetCenterAPI.Repository
 
 
         public async Task<bool> CheckProductExistAsync(
-      string productName,
-      Guid brandId,
-      Guid categoryId,
-      Guid? excludeId = null)
+        string productName,
+        Guid brandId,
+        Guid categoryId,
+        List<ProductAttributeCompareDTO> attributes,
+        Guid? excludeId = null)
         {
-            return await _db.Products.Where(p => p.Status != Status.Deleted).AnyAsync(p =>
-                p.ProductName == productName &&
-                p.BrandId == brandId &&
-                p.CategoryId == categoryId &&
-                p.Status == Status.Active &&
-                (!excludeId.HasValue || p.ProductId != excludeId.Value));
+            var inputSet = attributes
+                .Select(x => $"{x.CategoryAttributeId}|{x.AttributeValue.Trim().ToLower()}")
+                .ToHashSet();
+
+            var products = await _db.Products
+                .Where(p =>
+                    p.Status != Status.Deleted &&
+                    p.ProductName == productName &&
+                    p.BrandId == brandId &&
+                    p.CategoryId == categoryId &&
+                    (!excludeId.HasValue || p.ProductId != excludeId.Value))
+                .Include(p => p.ProductAttributes)
+                .ToListAsync();
+
+            return products.Any(product =>
+            {
+                var dbSet = product.ProductAttributes
+                    .Where(x => x.IsActive == true)
+                    .Select(x => $"{x.CategoryAttributeId}|{x.AttributeValue.Trim().ToLower()}")
+                    .ToHashSet();
+
+                return dbSet.SetEquals(inputSet);
+            });
         }
 
         public async Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null)

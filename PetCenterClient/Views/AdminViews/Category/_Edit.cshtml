@@ -1,12 +1,14 @@
 ﻿@model PetCenterClient.ViewModels.Category.UpdateCategoryViewModel
 
 <style>
-    .logo-preview {
+    .category-update-logo {
         width: 140px;
         height: 140px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
         border-radius: 8px;
         border: 1px solid #ddd;
+        background: #fff;
         cursor: pointer;
     }
 
@@ -70,7 +72,7 @@
 
             <img id="logoPreview"
                  src="@(string.IsNullOrEmpty(Model.ExistingCategoryLogo) ? "https://via.placeholder.com/140" : Model.ExistingCategoryLogo)"
-                 class="logo-preview"
+                 class="category-update-logo"
                  onclick="document.getElementById('logoInput').click()" />
 
             <button type="button"
@@ -303,7 +305,3 @@
         checkDuplicate()
     })
 </script>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

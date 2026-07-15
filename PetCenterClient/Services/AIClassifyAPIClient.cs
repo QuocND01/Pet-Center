@@ -20,12 +20,11 @@ namespace PetCenterClient.Services
             using var stream = image.OpenReadStream();
 
             var content = new StreamContent(stream);
-
-            content.Headers.ContentType =
-                new MediaTypeHeaderValue(image.ContentType);
+            content.Headers.ContentType = new MediaTypeHeaderValue(image.ContentType);
 
             form.Add(content, "file", image.FileName);
-            var response = await _httpClient.PostAsync("predict", form);
+
+            var response = await _httpClient.PostAsync("api/AI/predict", form);
 
             response.EnsureSuccessStatusCode();
 

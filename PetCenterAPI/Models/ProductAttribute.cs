@@ -13,7 +13,7 @@ public partial class ProductAttribute
 
     public string AttributeValue { get; set; } = null!;
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual CategoryAttribute CategoryAttribute { get; set; } = null!;
 

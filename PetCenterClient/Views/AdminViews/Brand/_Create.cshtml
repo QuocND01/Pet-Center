@@ -68,7 +68,7 @@
             background: #f7f7ff;
         }
 
-    .logo-preview {
+    .brand-create-logo {
         width: 180px;
         height: 180px;
         object-fit: cover;
@@ -162,7 +162,7 @@
 
                         <img id="logoPreview"
                              src="https://via.placeholder.com/180?text=Logo"
-                             class="logo-preview" />
+                             class="brand-create-logo" />
 
                         <div class="preview-text">
                             Click here to upload a logo image
@@ -202,31 +202,17 @@
 
 
 </div>
+<script>
+    window.previewLogo = function (input) {
+        const file = input.files[0];
+        if (!file) return;
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+        const reader = new FileReader();
 
-    <script>
+        reader.onload = function (e) {
+            document.getElementById("logoPreview").src = e.target.result;
+        };
 
-        function previewLogo(input) {
-
-            const file = input.files[0];
-
-            if (!file)
-                return;
-
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-
-                document.getElementById("logoPreview").src =
-                    e.target.result;
-
-            };
-
-            reader.readAsDataURL(file);
-        }
-
-    </script>
-
-}
+        reader.readAsDataURL(file);
+    };
+</script>

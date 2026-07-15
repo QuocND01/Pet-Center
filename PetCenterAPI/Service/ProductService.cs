@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using CloudinaryDotNet.Actions;
 using Humanizer;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,9 @@ using PetCenterAPI.Models;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
+using System.Net;
 using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Product.ProductAttributeResponseDTO;
 using static PetCenterAPI.DTOs.Responses.Product.ProductResponseDTO;
 
 namespace PetCenterAPI.Service
@@ -32,7 +35,14 @@ namespace PetCenterAPI.Service
         public async Task AddProductAsync(CreateProductDTO createProduct)
         {
             bool productHasExist = false;
-            productHasExist = await _productRepository.CheckProductExistAsync(createProduct.ProductName, createProduct.BrandId!.Value, createProduct.CategoryId!.Value);
+            var compareAttributes = createProduct.Attributes
+                .Select(x => new ProductAttributeCompareDTO
+                {
+                    CategoryAttributeId = x.CategoryAttributeId,
+                    AttributeValue = x.AttributeValue
+                })
+                .ToList();
+            productHasExist = await _productRepository.CheckProductExistAsync(createProduct.ProductName, createProduct.BrandId!.Value, createProduct.CategoryId!.Value, compareAttributes);
             if (productHasExist)
             {
                 throw new InvalidOperationException("Product already exists");
@@ -44,36 +54,51 @@ namespace PetCenterAPI.Service
                 product.ProductId = Guid.NewGuid();
                 product.AddedAt = DateTime.UtcNow;
                 product.ProductImages ??= new List<ProductImage>();
-                if (createProduct.ImageFiles != null && createProduct.ImageFiles.Any())
+                var uploadedImages = new List<ImageUploadResult>();
+                if (createProduct.ImageFiles.Count > 10)
                 {
-                    foreach (var file in createProduct.ImageFiles)
-                    {
-                        // 1️⃣ Upload trước
-                        var uploadResult = await _cloudinaryService
-                            .UploadImageAsync(file, "products");
-
-                        if (uploadResult == null ||
-                            uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
-                        {
-                            throw new Exception("Upload ảnh thất bại");
-                        }
-
-                        // 2️⃣ Tạo Image entity
-                        var image = new ProductImage
-                        {
-                            ImageId = Guid.NewGuid(),
-                            ImageUrl = uploadResult.SecureUrl.ToString(),
-                            PublicId = uploadResult.PublicId,
-                            IsActive = true
-                        };
-
-                        // 3️⃣ Gán trực tiếp vào navigation property
-                        product.ProductImages.Add(image);
-                    }
+                    throw new BadHttpRequestException("Maximum 10 images are allowed.");
                 }
+                try
+                {
+                    if (createProduct.ImageFiles != null && createProduct.ImageFiles.Any())
+                    {
+                        var uploadTasks = createProduct.ImageFiles
+                            .Select(file => _cloudinaryService.UploadImageAsync(file, "products"));
 
-                // 4️⃣ Save
-                await _productRepository.AddProductAsync(product);
+                        uploadedImages = (await Task.WhenAll(uploadTasks)).ToList();
+
+                        foreach (var uploadResult in uploadedImages)
+                        {
+                            if (uploadResult == null ||
+                                uploadResult.StatusCode != HttpStatusCode.OK)
+                            {
+                                throw new Exception("Upload ảnh thất bại");
+                            }
+
+                            product.ProductImages.Add(new ProductImage
+                            {
+                                ImageId = Guid.NewGuid(),
+                                ImageUrl = uploadResult.SecureUrl.ToString(),
+                                PublicId = uploadResult.PublicId,
+                                IsActive = true
+                            });
+                        }
+                    }
+
+                    await _productRepository.AddProductAsync(product);
+                }
+                catch
+                {
+                    // Rollback Cloudinary
+                    var deleteTasks = uploadedImages
+                        .Where(x => x != null && !string.IsNullOrWhiteSpace(x.PublicId))
+                        .Select(x => _cloudinaryService.DeleteImageAsync(x.PublicId));
+
+                    await Task.WhenAll(deleteTasks);
+
+                    throw;
+                }
             }
         }
 
@@ -174,11 +199,14 @@ namespace PetCenterAPI.Service
 
             if (updateproduct.BrandId == null || updateproduct.CategoryId == null)
                 throw new Exception("BrandId and CategoryId are required");
-            Console.WriteLine(updateproduct.ProductName);
-            Console.WriteLine(updateproduct.BrandId);
-            Console.WriteLine(updateproduct.CategoryId);
-
-            bool productHasExist = await _productRepository.CheckProductExistAsync(updateproduct.ProductName, updateproduct.BrandId.Value, updateproduct.CategoryId.Value, id);
+            var compareAttributes = updateproduct.Attributes
+               .Select(x => new ProductAttributeCompareDTO
+               {
+                   CategoryAttributeId = x.CategoryAttributeId,
+                   AttributeValue = x.AttributeValue
+               })
+               .ToList();
+            bool productHasExist = await _productRepository.CheckProductExistAsync(updateproduct.ProductName, updateproduct.BrandId.Value, updateproduct.CategoryId.Value, compareAttributes, id);
             Console.WriteLine(productHasExist);
             if (productHasExist)
             {
@@ -192,66 +220,93 @@ namespace PetCenterAPI.Service
             product.ProductImages ??= new List<ProductImage>();
             product.ProductAttributes ??= new List<ProductAttribute>();
 
-            // 1️⃣ xử lý ảnh bị xoá
-            var existingImages = updateproduct.ExistingImages ?? new List<string>();
+            var uploadedImages = new List<ImageUploadResult>();
+            var finalImageCount =
+             (updateproduct.ExistingImages?.Count ?? 0) +
+                (updateproduct.ImageFiles?.Count ?? 0);
 
-            var currentImages = product.ProductImages
-     .Where(x => x.IsActive == true)
-     .ToList();
-
-            foreach (var img in currentImages)
+            if (finalImageCount > 10)
             {
-                bool stillExists = existingImages.Any(x =>
-                    string.Equals(x, img.ImageUrl, StringComparison.OrdinalIgnoreCase));
-
-                if (!stillExists)
-                {
-                    img.IsActive = false;
-                    img.InactiveAt = DateTime.UtcNow;
-                }
+                throw new BadHttpRequestException("Maximum 10 images are allowed.");
             }
-
-            // 2️⃣ upload ảnh mới
-            if (updateproduct.ImageFiles != null && updateproduct.ImageFiles.Any())
+            try
             {
-                foreach (var file in updateproduct.ImageFiles)
-                {
-                    var uploadResult = await _cloudinaryService.UploadImageAsync(file, "products");
+                // 1️⃣ Xử lý ảnh bị xóa
+                var existingImages = updateproduct.ExistingImages ?? new List<string>();
 
-                    if (uploadResult == null ||
-                        uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+                var currentImages = product.ProductImages
+                    .Where(x => x.IsActive)
+                    .ToList();
+
+                foreach (var img in currentImages)
+                {
+                    bool stillExists = existingImages.Any(x =>
+                        string.Equals(x, img.ImageUrl, StringComparison.OrdinalIgnoreCase));
+
+                    if (!stillExists)
                     {
-                        throw new Exception("Upload ảnh thất bại");
+                        img.IsActive = false;
+                        img.InactiveAt = DateTime.UtcNow;
                     }
-
-                    product.ProductImages.Add(new ProductImage
-                    {
-                        ImageUrl = uploadResult.SecureUrl.ToString(),
-                        PublicId = uploadResult.PublicId,
-                        ProductId = product.ProductId,
-                        IsActive = true
-                    });
                 }
-            }
 
-            // 2️⃣ UPDATE ATTRIBUTES
-            if (updateproduct.Attributes != null)
-            {
-                var existingAttrs = product.ProductAttributes ??= new List<ProductAttribute>();
-
-                foreach (var newAttr in updateproduct.Attributes)
+                // 2️⃣ Upload ảnh mới song song
+                if (updateproduct.ImageFiles != null && updateproduct.ImageFiles.Any())
                 {
-                    var match = existingAttrs.FirstOrDefault(a =>
-                        a.CategoryAttributeId == newAttr.CategoryAttributeId);
+                    var uploadTasks = updateproduct.ImageFiles
+                        .Select(file => _cloudinaryService.UploadImageAsync(file, "products"));
 
-                    if (match == null)
-                        throw new InvalidOperationException("Attribute does not exist.");
+                    uploadedImages = (await Task.WhenAll(uploadTasks)).ToList();
 
-                    match.AttributeValue = newAttr.AttributeValue;
-                    match.IsActive = true;
+                    foreach (var uploadResult in uploadedImages)
+                    {
+                        if (uploadResult == null ||
+                            uploadResult.StatusCode != HttpStatusCode.OK)
+                        {
+                            throw new Exception("Upload ảnh thất bại");
+                        }
+
+                        product.ProductImages.Add(new ProductImage
+                        {
+                            ImageUrl = uploadResult.SecureUrl.ToString(),
+                            PublicId = uploadResult.PublicId,
+                            ProductId = product.ProductId,
+                            IsActive = true
+                        });
+                    }
                 }
+
+                // 3️⃣ Update attributes
+                if (updateproduct.Attributes != null)
+                {
+                    var existingAttrs = product.ProductAttributes ??= new List<ProductAttribute>();
+
+                    foreach (var newAttr in updateproduct.Attributes)
+                    {
+                        var match = existingAttrs.FirstOrDefault(a =>
+                            a.CategoryAttributeId == newAttr.CategoryAttributeId);
+
+                        if (match == null)
+                            throw new InvalidOperationException("Attribute does not exist.");
+
+                        match.AttributeValue = newAttr.AttributeValue;
+                        match.IsActive = true;
+                    }
+                }
+
+                await _productRepository.UpdateProductAsync(product);
             }
-            await _productRepository.UpdateProductAsync(product);
+            catch
+            {
+                // Rollback các ảnh mới upload
+                var deleteTasks = uploadedImages
+                    .Where(x => x != null && !string.IsNullOrWhiteSpace(x.PublicId))
+                    .Select(x => _cloudinaryService.DeleteImageAsync(x.PublicId));
+
+                await Task.WhenAll(deleteTasks);
+
+                throw;
+            }
         }
 
         public async Task<IEnumerable<ReadProductDTOForCustomer>> GetNewProductsAsync()

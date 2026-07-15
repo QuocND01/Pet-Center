@@ -40,10 +40,12 @@
         overflow: hidden;
     }
 
-    .service-image {
+    .service-detail-image {
         width: 130px;
         height: 130px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+        background: #fff;
         border-radius: 14px;
         border: 2px solid #fff;
         box-shadow: 0 4px 15px rgba(0,0,0,.08);
@@ -54,6 +56,17 @@
     .empty-text {
         color: #6c757d;
         font-style: italic;
+    }
+
+    .no-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 16px;
+        font-weight: 600;
+        background: #f8f9fa;
+        margin: 0 auto;
     }
 
 </style>
@@ -170,14 +183,14 @@
             foreach (var image in Model.ImageFiles)
             {
                 <img src="@image"
-                     class="service-image"
+                     class="service-detail-image"
                      alt="Service Image" />
             }
         }
         else
         {
-            <div class="empty-text">
-                No images
+            <div class="service-detail-image no-logo">
+                No Image
             </div>
         }
 

@@ -33,12 +33,14 @@
     }
 
     /* ===== LOGO ===== */
-    .category-logo {
+    .category-delete-logo {
         width: 120px;
         height: 120px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
         border-radius: 14px;
         border: 2px solid #eee;
+        background: #fff;
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
 
@@ -68,6 +70,16 @@
         padding: 8px 16px;
     }
 
+    .no-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 16px;
+        font-weight: 600;
+        background: #f8f9fa;
+        margin: 0 auto;
+    }
 
 </style>
 
@@ -94,11 +106,13 @@
         <div class="mb-3">
             @if (!string.IsNullOrEmpty(Model.CategoryLogo))
             {
-                <img src="@Model.CategoryLogo" class="category-logo" />
+                <img src="@Model.CategoryLogo" class="category-delete-logo" />
             }
             else
             {
-                <img src="https://via.placeholder.com/120" class="category-logo" />
+                <div class="category-delete-logo no-logo">
+                    No Logo
+                </div>
             }
         </div>
 

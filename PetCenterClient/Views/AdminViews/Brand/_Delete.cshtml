@@ -41,13 +41,15 @@
         overflow: hidden;
     }
 
-    .brand-logo {
+    .brand-delete-logo {
         width: 130px;
         height: 130px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
         border-radius: 16px;
         border: 3px solid #fff;
         box-shadow: 0 5px 20px rgba(0,0,0,.1);
+        background: #fff;
     }
 
     .brand-name {
@@ -87,6 +89,17 @@
     .modal-body {
         overflow-x: hidden;
     }
+
+    .no-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 16px;
+        font-weight: 600;
+        background: #f8f9fa;
+        margin: 0 auto;
+    }
 </style>
 
 <form asp-action="ChangeStatusConfirmed"
@@ -123,14 +136,15 @@
             @if (!string.IsNullOrEmpty(Model.BrandLogo))
             {
                 <img src="@Model.BrandLogo"
-                     class="brand-logo"
-                     alt="Brand Logo" />
+                     class="brand-delete-logo"
+                     alt="Brand Logo"
+                     onerror="this.style.display='none';" />
             }
             else
             {
-                <img src="https://via.placeholder.com/130?text=Brand"
-                     class="brand-logo"
-                     alt="No Logo" />
+                <div class="brand-delete-logo no-logo">
+                    No Logo
+                </div>
             }
 
             <div class="brand-name">

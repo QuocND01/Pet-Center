@@ -2,10 +2,12 @@
 
 <style>
 
-    .image-preview {
+    .product-update-logo {
         width: 120px;
         height: 120px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+        background: #fff;
         border-radius: 8px;
         border: 1px solid #ddd;
     }
@@ -102,7 +104,7 @@
                 {
                     <div class="image-wrapper">
 
-                        <img src="@img" class="image-preview" />
+                        <img src="@img" class="product-update-logo" />
 
                         <button type="button"
                                 class="btn btn-danger btn-sm remove-btn"
@@ -208,53 +210,74 @@
     </div>
 
 </form>
-
 <script>
 
+    // Submit form
+    $("form").submit(function (e) {
 
-        $("form").submit(function(e){
+        const activeOldImages =
+            $("input[name='ExistingImages']:enabled").length;
 
-        let valid = true
+        const newImages =
+            $("#previewNewImages .image-wrapper").length;
 
-        $("input[name*='AttributeValue']").each(function(){
+        if (activeOldImages + newImages > 10) {
+            e.preventDefault();
+            alert("Maximum 10 images are allowed.");
+            return;
+        }
 
-            if(!$(this).val().trim()){
+        let valid = true;
 
-                valid = false
-                $(this).addClass("is-invalid")
+        $("input[name*='AttributeValue']").each(function () {
 
-            } else {
-
-                $(this).removeClass("is-invalid")
-
+            if (!$(this).val().trim()) {
+                valid = false;
+                $(this).addClass("is-invalid");
+            }
+            else {
+                $(this).removeClass("is-invalid");
             }
 
-        })
+        });
 
-        if(!valid)
-            e.preventDefault()
+        if (!valid) {
+            e.preventDefault();
+        }
 
-    })
+    });
 
 
-          $("#newImages").change(function(){
+    // Add new images
+    $("#newImages").change(function () {
 
-        const files = this.files
+        const activeOldImages =
+            $("input[name='ExistingImages']:enabled").length;
 
-        for(let i=0;i<files.length;i++){
+        const newImages =
+            $("#previewNewImages .image-wrapper").length;
 
-            const file = files[i]
+        const files = this.files;
 
-            const reader = new FileReader()
+        if (activeOldImages + newImages + files.length > 10) {
+            alert("Maximum 10 images are allowed.");
+            $(this).val("");
+            return;
+        }
 
-            reader.onload = function(e){
+        for (let i = 0; i < files.length; i++) {
 
-                const id = "img_" + Date.now() + i
+            const file = files[i];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                const id = "img_" + Date.now() + "_" + i;
 
                 const html = `
                 <div class="image-wrapper" id="${id}">
 
-                    <img src="${e.target.result}" class="image-preview"/>
+                   <img src="${e.target.result}" class="product-update-logo"/>
 
                     <button type="button"
                             class="btn btn-danger btn-sm remove-btn"
@@ -267,45 +290,42 @@
                            hidden />
 
                 </div>
-                `
+                `;
 
-                $("#previewNewImages").append(html)
+                $("#previewNewImages").append(html);
 
-                // gán file vào input mới
-                const dt = new DataTransfer()
-                dt.items.add(file)
+                const dt = new DataTransfer();
+                dt.items.add(file);
 
-                $("#" + id + " input")[0].files = dt.files
-            }
+                $("#" + id + " input")[0].files = dt.files;
+            };
 
-            reader.readAsDataURL(file)
-
+            reader.readAsDataURL(file);
         }
 
-        // reset input để chọn tiếp
-        $(this).val("")
+        // Cho phép chọn tiếp
+        $(this).val("");
 
-    })
+    });
 
-       function removeOldImage(btn){
 
-        const wrapper = $(btn).closest(".image-wrapper")
+    // Remove old image
+    function removeOldImage(btn) {
 
-        // disable input để không submit
-        wrapper.find("input[name='ExistingImages']").prop("disabled", true)
+        const wrapper = $(btn).closest(".image-wrapper");
 
-        // ẩn UI
-        wrapper.hide()
+        wrapper.find("input[name='ExistingImages']").prop("disabled", true);
+
+        wrapper.hide();
 
     }
 
-       function removeNewImage(id){
 
-        $("#" + id).remove()
+    // Remove new image
+    function removeNewImage(id) {
+
+        $("#" + id).remove();
 
     }
 
 </script>
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

@@ -52,21 +52,22 @@
         display: inline-block;
     }
 
-    .logo-preview {
+    .brand-edit-logo-preview {
         width: 180px;
         height: 180px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
         border-radius: 18px;
         border: 3px solid #fff;
         box-shadow: 0 6px 25px rgba(0,0,0,.12);
         cursor: pointer;
         transition: .25s;
+        background: #fff;
     }
 
-        .logo-preview:hover {
+        .brand-edit-logo-preview:hover {
             transform: scale(1.03);
         }
-
     .remove-btn {
         position: absolute;
         top: -8px;
@@ -170,7 +171,7 @@
                      src="@(string.IsNullOrEmpty(Model.ExistingBrandLogo)
                                          ? "https://via.placeholder.com/180?text=Brand"
                                          : Model.ExistingBrandLogo)"
-                     class="logo-preview"
+                     class="brand-edit-logo-preview"
                      onclick="document.getElementById('logoInput').click()" />
 
                 <button type="button"
