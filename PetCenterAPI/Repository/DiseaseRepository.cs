@@ -30,5 +30,11 @@ namespace PetCenterAPI.Repository
         {
             await _db.SaveChangesAsync();
         }
+
+        public async Task<Disease?> GetByNameAsync(string name)
+        {
+            return await _db.Diseases
+                .FirstOrDefaultAsync(x => x.Name == name);
+        }
     }
 }

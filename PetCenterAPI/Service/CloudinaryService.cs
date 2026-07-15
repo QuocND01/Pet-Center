@@ -38,8 +38,8 @@ public class CloudinaryService : ICloudinaryService
     // Xóa ảnh bằng publicId
     public async Task<DeletionResult> DeleteImageAsync(string publicId)
     {
-        if (string.IsNullOrEmpty(publicId))
-            return null;
+        if (string.IsNullOrWhiteSpace(publicId))
+            return null!;
 
         var deletionParams = new DeletionParams(publicId);
         var result = await _cloudinary.DestroyAsync(deletionParams);

@@ -14,7 +14,7 @@ public partial class ProductImage
     public DateTime? InactiveAt { get; set; }
     public string? PublicId { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual Product Product { get; set; } = null!;
 }

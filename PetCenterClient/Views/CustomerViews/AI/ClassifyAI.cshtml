@@ -170,30 +170,37 @@
     }
 
     .disease-card {
-        background: #fff;
-        border-radius: 18px;
-        padding: 25px;
         text-align: center;
-        box-shadow: 0 10px 25px rgba(0,0,0,.06);
-        transition: .3s;
+        padding: 28px 22px;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        transition: all .25s ease;
     }
 
         .disease-card:hover {
             transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0,0,0,.08);
+            border-color: #22c55e;
         }
 
     .disease-card {
-        font-size: 40px;
+        font-size: 3rem; /* Emoji */
     }
 
         .disease-card h5 {
-            margin: 15px 0 8px;
+            margin: 14px 0 8px;
+            font-size: 1.1rem;
             font-weight: 800;
+            color: var(--text);
         }
 
         .disease-card p {
-            color: var(--muted);
             margin: 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            font-weight: 400;
         }
     /*==================================================
         UPLOAD SECTION
@@ -729,54 +736,38 @@
             <div class="disease-grid">
 
                 <div class="disease-card">
-
                     🌿
-
                     <h5>Dermatitis</h5>
-
                     <p>
-                        Inflammation of the skin caused by allergies, irritation, or environmental factors.
+                        Inflammation of the skin caused by allergies, irritation, or infections, often resulting in redness, itching, and discomfort.
                     </p>
-
                 </div>
 
                 <div class="disease-card">
-
                     🦠
-
                     <h5>Ringworm</h5>
-
                     <p>
-                        A contagious fungal infection affecting the skin, hair, and nails.
+                        A contagious fungal infection that causes circular patches of hair loss, scaly skin, and mild to severe itching.
                     </p>
-
                 </div>
 
                 <div class="disease-card">
-
-                    🕷️
-
-                    <h5>Tick Infestation</h5>
-
-                    <p>
-                        Tick attachment on the skin that may cause irritation and transmit diseases.
-                    </p>
-
-                </div>
-
-                <div class="disease-card">
-
                     🐾
-
                     <h5>Mange</h5>
-
                     <p>
-                        A skin disease caused by parasitic mites, leading to itching and hair loss.
+                        A skin disease caused by microscopic mites, leading to intense itching, hair loss, crusty skin, and irritation.
                     </p>
-
                 </div>
 
-            </div>
+                <div class="disease-card">
+                    🌸
+                    <h5>Papilloma</h5>
+                    <p>
+                        A viral skin condition that forms wart-like growths on the skin or around the mouth, usually benign but sometimes requiring treatment.
+                    </p>
+                </div>
+
+            </div>>
 
         </div>
 

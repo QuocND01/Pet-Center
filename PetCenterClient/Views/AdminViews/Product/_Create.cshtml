@@ -42,6 +42,24 @@
         border-radius: 12px;
     }
 
+    /* Cho phép dropdown Brand & Category hiển thị đầy đủ tên, xuống dòng nếu cần */
+    #BrandId,
+    #CategoryId {
+        white-space: normal;
+        overflow: visible;
+        word-break: break-word;
+        height: auto;
+        min-height: 48px;
+    }
+
+        #BrandId option,
+        #CategoryId option {
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            padding: 6px 8px;
+        }
+
     textarea.form-control {
         min-height: 120px;
         resize: vertical;
@@ -338,36 +356,40 @@
 
     let imageIndex = 1
 
-    $(document).on("click", "#addImage", function () {
+     $(document).on("click", "#addImage", function () {
 
-            const html = `
-            <div class="image-item position-relative">
+        if ($(".image-item").length >= 10) {
+            alert("Maximum 10 images are allowed.");
+            return;
+        }
 
-                <input type="file"
-                       name="ImageFiles"
-                       accept="image/*"
-                       hidden
-                       onchange="previewSelectedImage(this,'preview_${imageIndex}')"/>
+        const html = `
+        <div class="image-item position-relative">
 
-                <img id="preview_${imageIndex}"
-                     src="https://via.placeholder.com/120"
-                     class="image-preview"
-                     onclick="this.previousElementSibling.click()" />
+            <input type="file"
+                   name="ImageFiles"
+                   accept="image/*"
+                   hidden
+                   onchange="previewSelectedImage(this,'preview_${imageIndex}')"/>
 
-                <button type="button"
-                        class="btn btn-danger btn-sm remove-image"
-                        onclick="removeImage(this)">
-                    ✖
-                </button>
+            <img id="preview_${imageIndex}"
+                 src="https://via.placeholder.com/120"
+                 class="image-preview"
+                 onclick="this.previousElementSibling.click()" />
 
-            </div>
-            `
+            <button type="button"
+                    class="btn btn-danger btn-sm remove-image"
+                    onclick="removeImage(this)">
+                ✖
+            </button>
 
-            $("#imageList").append(html)
+        </div>
+        `;
 
-            imageIndex++
+        $("#imageList").append(html);
 
-        })
+        imageIndex++;
+    });
 
 
         // LOAD CATEGORY ATTRIBUTES
@@ -454,5 +476,14 @@
         reader.readAsDataURL(file)
 
     }
+
+        $("form").on("submit", function (e) {
+
+        if ($(".image-item").length > 10) {
+            e.preventDefault();
+            alert("Maximum 10 images are allowed.");
+        }
+
+    });
 
 </script>

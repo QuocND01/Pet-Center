@@ -80,7 +80,7 @@
         display: flex;
         gap: 20px;
         flex-wrap: wrap;
-        margin-bottom: 25px;
+        align-items: flex-start;
     }
 
     .meta-box {
@@ -89,6 +89,7 @@
         background: #f8fafc;
         border-radius: 18px;
         padding: 20px;
+        min-width: 0;
     }
 
     .meta-title {
@@ -161,6 +162,18 @@
         .info-section {
             padding: 25px;
         }
+    }
+
+    /* Cho phép các trường dài xuống dòng, không làm vỡ giao diện */
+    .service-name,
+    .service-type,
+    .meta-title,
+    .meta-value,
+    .description-title,
+    .description-content {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 </style>
 

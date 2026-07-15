@@ -261,11 +261,10 @@
 }
 
 /* Date */
-.data-table td:nth-child(7),
-.data-table td:nth-child(8) {
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+/* Added Date */
+.data-table th:nth-child(7),
+.data-table td:nth-child(7) {
+    width: 160px;
     white-space: nowrap;
 }
 
@@ -292,6 +291,15 @@
 .data-table td:last-child {
     width: 180px;
     white-space: nowrap;
+}
+
+.product-image {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    object-fit: contain;
+    object-position: center;
+    background: #fff;
 }
 </style>
 
@@ -492,7 +500,6 @@
                     <th>Brand</th>
                     <th>Category</th>
                     <th>Added Date</th>
-                    <th>Updated Date</th>
                     <th>Status</th>
                     <th style="width:180px">Actions</th>
                 </tr>
@@ -513,8 +520,7 @@
                             <td>
                                 <div class="customer-cell">
 
-                                    <img src="@p.Images?.FirstOrDefault()"
-                                         style="width:38px;height:38px;border-radius:8px;object-fit:cover" />
+                                   <img src="@p.Images?.FirstOrDefault()" class="product-image" />
 
                                     <div class="customer-name">
                                         @p.ProductName
@@ -540,11 +546,7 @@
                             </td>
 
                             <td class="email-cell">
-                                @p.AddedAt
-                            </td>
-
-                            <td class="email-cell">
-                                @p.UpdateAt
+                                @p.AddedAt?.ToString("dd/MM/yyyy")
                             </td>
 
                              <td class="email-cell">

@@ -2,6 +2,8 @@
 using PetCenterAPI.DTOs;
 using PetCenterAPI.Models;
 using System.Linq.Expressions;
+using static PetCenterAPI.DTOs.Requests.Product.ProductAttributeRequestDTO;
+using static PetCenterAPI.DTOs.Responses.Product.ProductAttributeResponseDTO;
 
 namespace PetCenterAPI.Repository.Interface
 {
@@ -19,7 +21,7 @@ namespace PetCenterAPI.Repository.Interface
      Guid id,
      Status status,
      bool hardDeleteImages = false);
-        Task<bool> CheckProductExistAsync(string productName,Guid brandId,Guid categoryId,Guid? excludeId = null);
+        Task<bool> CheckProductExistAsync(string productName,Guid brandId,Guid categoryId, List<ProductAttributeCompareDTO> attributes, Guid? excludeId = null);
 
         Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null);
 

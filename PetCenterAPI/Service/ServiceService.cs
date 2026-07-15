@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Common;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
+using System.Net;
 using static PetCenterAPI.DTOs.Requests.Service.ServiceRequestDTO;
 using static PetCenterAPI.DTOs.Responses.Service.ServiceResponseDTO;
 using static System.Net.Mime.MediaTypeNames;
@@ -27,48 +29,63 @@ namespace PetCenterAPI.Service
 
         public async Task AddServiceAsync(CreateServiceDTO createService)
         {
-            bool ServiceHasExist = false;
-            ServiceHasExist = await _ServiceRepository.CheckServiceExistAsync(createService.ServiceName);
-            if (ServiceHasExist)
+            bool serviceHasExist = await _ServiceRepository.CheckServiceExistAsync(createService.ServiceName);
+
+            if (serviceHasExist)
             {
                 throw new InvalidOperationException("Service already exists");
             }
-            else
-            {
-                var Service = _mapper.Map<Models.Service>(createService);
 
-                Service.ServiceId = Guid.NewGuid();
-                Service.ServiceImages ??= new List<ServiceImage>();
+            if (createService.ImageFiles?.Count > 10)
+            {
+                throw new BadHttpRequestException("Maximum 10 images are allowed.");
+            }
+
+            var service = _mapper.Map<Models.Service>(createService);
+
+            service.ServiceId = Guid.NewGuid();
+            service.ServiceImages ??= new List<ServiceImage>();
+
+            var uploadedImages = new List<ImageUploadResult>();
+
+            try
+            {
                 if (createService.ImageFiles != null && createService.ImageFiles.Any())
                 {
-                    foreach (var file in createService.ImageFiles)
-                    {
-                        // 1️⃣ Upload trước
-                        var uploadResult = await _cloudinaryService
-                            .UploadImageAsync(file, "services");
+                    var uploadTasks = createService.ImageFiles
+                        .Select(file => _cloudinaryService.UploadImageAsync(file, "services"));
 
+                    uploadedImages = (await Task.WhenAll(uploadTasks)).ToList();
+
+                    foreach (var uploadResult in uploadedImages)
+                    {
                         if (uploadResult == null ||
-                            uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+                            uploadResult.StatusCode != HttpStatusCode.OK)
                         {
                             throw new Exception("Upload ảnh thất bại");
                         }
 
-                        // 2️⃣ Tạo Image entity
-                        var image = new ServiceImage
+                        service.ServiceImages.Add(new ServiceImage
                         {
                             ImageId = Guid.NewGuid(),
                             ImageUrl = uploadResult.SecureUrl.ToString(),
                             PublicId = uploadResult.PublicId,
                             IsActive = true
-                        };
-
-                        // 3️⃣ Gán trực tiếp vào navigation property
-                        Service.ServiceImages.Add(image);
+                        });
                     }
                 }
 
-                // 4️⃣ Save
-                await _ServiceRepository.AddServiceAsync(Service);
+                await _ServiceRepository.AddServiceAsync(service);
+            }
+            catch
+            {
+                var deleteTasks = uploadedImages
+                    .Where(x => x != null && !string.IsNullOrWhiteSpace(x.PublicId))
+                    .Select(x => _cloudinaryService.DeleteImageAsync(x.PublicId));
+
+                await Task.WhenAll(deleteTasks);
+
+                throw;
             }
         }
 
@@ -155,6 +172,8 @@ namespace PetCenterAPI.Service
             return result;
         }
 
+
+
         public async Task UpdateServiceAsync(Guid id, UpdateServiceDTO updateService)
         {
             var Service = await _ServiceRepository.GetServiceByIdAsync(id);
@@ -169,6 +188,13 @@ namespace PetCenterAPI.Service
             {
                 throw new InvalidOperationException("Service already exists");
             }
+
+            var finalImageCount =
+               (updateService.ExistingImages?.Count ?? 0) +
+               (updateService.ImageFiles?.Count ?? 0);
+
+            if (finalImageCount > 10)
+                throw new BadHttpRequestException("Maximum 10 images are allowed.");
 
             _mapper.Map(updateService, Service);
 
@@ -199,16 +225,13 @@ namespace PetCenterAPI.Service
             // 2️⃣ upload ảnh mới
             if (updateService.ImageFiles != null && updateService.ImageFiles.Any())
             {
-                foreach (var file in updateService.ImageFiles)
+                var uploadTasks = updateService.ImageFiles
+     .Select(file => _cloudinaryService.UploadImageAsync(file, "services"));
+
+                var uploadResults = await Task.WhenAll(uploadTasks);
+
+                foreach (var uploadResult in uploadResults)
                 {
-                    var uploadResult = await _cloudinaryService.UploadImageAsync(file, "services");
-
-                    if (uploadResult == null ||
-                        uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
-                    {
-                        throw new Exception("Upload ảnh thất bại");
-                    }
-
                     Service.ServiceImages.Add(new ServiceImage
                     {
                         ImageUrl = uploadResult.SecureUrl.ToString(),

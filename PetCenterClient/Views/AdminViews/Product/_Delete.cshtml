@@ -43,10 +43,12 @@
     }
 
 
-    .product-image {
+    .product-delete-image {
         width: 150px;
         height: 150px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+        background: #fff;
         border-radius: 18px;
         border: 3px solid #fff;
         box-shadow: 0 5px 20px rgba(0,0,0,.1);
@@ -131,6 +133,16 @@
         overflow-x: hidden;
     }
 
+    .no-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 16px;
+        font-weight: 600;
+        background: #f8f9fa;
+        margin: 0 auto;
+    }
 
 </style>
 
@@ -172,14 +184,14 @@
         @if (Model.Images != null && Model.Images.Any())
         {
             <img src="@Model.Images.First()"
-                 class="product-image"
+                 class="product-delete-image"
                  alt="Product Image" />
         }
         else
         {
-            <img src="https://via.placeholder.com/150?text=Product"
-                 class="product-image"
-                 alt="No Image" />
+                <div class="product-delete-image no-logo">
+                    No Image
+                </div>
         }
 
         <div class="product-name">

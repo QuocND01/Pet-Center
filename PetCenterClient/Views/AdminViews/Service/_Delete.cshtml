@@ -39,10 +39,12 @@
         text-align: center;
     }
 
-    .service-image {
+    .service-delete-image {
         width: 150px;
         height: 150px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+        background: #fff;
         border-radius: 18px;
         border: 3px solid #fff;
         box-shadow: 0 5px 20px rgba(0,0,0,.1);
@@ -122,6 +124,17 @@
         overflow: hidden;
     }
 
+    .no-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 16px;
+        font-weight: 600;
+        background: #f8f9fa;
+        margin: 0 auto;
+    }
+
 </style>
 
 <form asp-action="ChangeStatusConfirmed"
@@ -162,14 +175,14 @@
             @if (Model.ImageFiles != null && Model.ImageFiles.Any())
             {
                 <img src="@Model.ImageFiles.First()"
-                     class="service-image"
+                     class="service-delete-image"
                      alt="Service Image" />
             }
             else
             {
-                <img src="https://via.placeholder.com/150?text=Service"
-                     class="service-image"
-                     alt="No Image" />
+                <div class="service-delete-image no-logo">
+                    No Image
+                </div>
             }
 
             <div class="service-name">

@@ -33,10 +33,12 @@
         min-width: 0;
     }
 
-    .product-image {
+    .product-detail-image {
         width: 130px;
         height: 130px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+        background: #fff;
         border-radius: 14px;
         border: 2px solid #fff;
         box-shadow: 0 4px 15px rgba(0,0,0,.08);
@@ -76,6 +78,17 @@
             white-space: normal;
             overflow-wrap: anywhere;
         }
+
+    .no-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 16px;
+        font-weight: 600;
+        background: #f8f9fa;
+        margin: 0 auto;
+    }
 </style>
 
 <div class="detail-card">
@@ -132,6 +145,20 @@
             </div>
         </div>
 
+        <div class="col-md-6 mb-3">
+            <div class="info-box">
+                <div class="info-label">Added Date</div>
+                <div class="info-value">@Model.AddedAt?.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="info-box">
+                <div class="info-label">Updated Date</div>
+                @(Model.UpdateAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+            </div>
+        </div>
+
     </div>
 
     <!-- IMAGES -->
@@ -145,12 +172,14 @@
         {
             foreach (var img in Model.Images)
             {
-                <img src="@img" class="product-image" />
+                <img src="@img" class="product-detail-image" />
             }
         }
         else
         {
-            <div class="empty-text">No images</div>
+            <div class="product-detail-image no-logo">
+                No Image
+            </div>
         }
 
     </div>

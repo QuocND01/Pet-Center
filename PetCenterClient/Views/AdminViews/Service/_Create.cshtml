@@ -47,10 +47,12 @@
         resize: vertical;
     }
 
-    .image-preview {
+    .service-create-image {
         width: 150px;
         height: 150px;
-        object-fit: cover;
+        object-fit: contain;
+        object-position: center;
+        background: #fff;
         border-radius: 16px;
         border: 3px solid #fff;
         box-shadow: 0 5px 20px rgba(0,0,0,.12);
@@ -242,7 +244,7 @@
 
                     <img id="preview_0"
                          src="https://via.placeholder.com/150"
-                         class="image-preview"
+                         class="service-create-image"
                          onclick="this.previousElementSibling.click()" />
 
                     <button type="button"
@@ -281,18 +283,19 @@
     </form>
      
 
-</div>
-
-@section Scripts
-{
-    <partial name="_ValidationScriptsPartial" />
-
-         
+</div>         
     <script>
 
         let imageIndex = 1;
 
-        $("#addImage").click(function () {
+            $("#addImage").click(function () {
+
+                const imageSlots = $(".image-item").length;
+
+        if (imageSlots >= 10) {
+            alert("Maximum 10 images are allowed.");
+            return;
+        }
 
             const html = `
             <div class="image-item">
@@ -303,10 +306,10 @@
                        hidden
                        onchange="previewSelectedImage(this,'preview_${imageIndex}')" />
 
-                <img id="preview_${imageIndex}"
-                     src="https://via.placeholder.com/150"
-                     class="image-preview"
-                     onclick="this.previousElementSibling.click()" />
+            <img id="preview_${imageIndex}"
+                src="https://via.placeholder.com/150"
+                class="service-create-image"
+                onclick="this.previousElementSibling.click()" />
 
                 <button type="button"
                         class="btn btn-danger remove-image"
@@ -351,7 +354,18 @@
             reader.readAsDataURL(file);
         }
 
+                    $("form").submit(function (e) {
+
+            const imageCount = $("input[name='ImageFiles']").filter(function () {
+                return this.files && this.files.length > 0;
+            }).length;
+
+            if (imageCount > 10) {
+                e.preventDefault();
+                alert("Maximum 10 images are allowed.");
+            }
+
+        });
+
     </script>
          
-
-}

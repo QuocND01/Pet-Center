@@ -313,6 +313,11 @@ var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
         flex-wrap: wrap;
     }
     .card-tag {
+        d display:inline-block;
+    max-width:90px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
         font-size: 10px;
         font-weight: 800;
         padding: 2px 8px;
@@ -357,6 +362,13 @@ var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
         font-weight: 900;
         color: var(--g4);
     }
+
+    .card-tag{
+    max-width:90px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
     .card-add {
         width: 34px;
         height: 34px;
@@ -429,17 +441,23 @@ var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
         flex-wrap: wrap;
         margin-bottom: 16px;
     }
-    .filter-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--g1);
-        color: var(--g5);
-        font-size: 12px;
-        font-weight: 700;
-        padding: 4px 12px;
-        border-radius: 100px;
-    }
+.filter-chip {
+    display: inline-block;
+
+    background: var(--g1);
+    color: var(--g5);
+    font-size: 12px;
+    font-weight: 700;
+
+    padding: 4px 12px;
+    border-radius: 18px; /* hoặc 999px nếu thích */
+
+    max-width: 220px;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
 
     /* HERO BANNER image */
     .hero-banner { position:relative; border-radius:24px; overflow:hidden; height:340px;     margin: 25px auto 60px; }
@@ -586,6 +604,9 @@ var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
     text-decoration: none;
     font-size: 14px;
     transition: background .2s;
+        overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
 }
 
 .dropdown-content a:hover {
@@ -609,6 +630,11 @@ var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
     box-shadow: var(--shadow);
 }
 
+.selected-info-card > div {
+    flex: 1;
+    min-width: 0;
+}
+
 .selected-info-card img {
     width: 90px;
     height: 90px;
@@ -623,13 +649,26 @@ var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
     font-size: 22px;
     font-family: var(--font-head);
     color: var(--ink);
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
+.selected-info-card p{
+    margin:0;
+    color:var(--muted);
+    line-height:1.6;
+    font-size:14px;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.selected-info-card h2,
 .selected-info-card p {
-    margin: 0;
-    color: var(--muted);
-    line-height: 1.6;
-    font-size: 14px;
+    overflow-wrap: anywhere;
 }
 
 /*=========================
@@ -730,6 +769,14 @@ var newProducts = ViewBag.NewProducts as List<ReadProductViewModelForCustomer>;
 
     transform:translateY(-3px);
 
+}
+
+.card-name,
+.card-desc,
+.mini-name,
+.selected-info-card h2{
+    overflow-wrap:anywhere;
+    word-break:break-word;
 }
 </style>
 

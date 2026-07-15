@@ -77,7 +77,6 @@ namespace PetCenterClient.ViewModels.Product
 
         public Guid BrandId { get; set; }
         public string? BrandName { get; set; }
-        public string? BrandLogo { get; set; }
 
         // Category
         public Guid CategoryId { get; set; }

@@ -7,6 +7,7 @@ namespace PetCenterAPI.Repository.Interface
         Task<Disease?> GetDiseaseByIdAsync(Guid id);
         Task AddDiseaseAsync(Disease disease);
         Task UpdateDiseaseAsync(Disease disease);
+        Task<Disease?> GetByNameAsync(string name);
         Task SaveAsync();
     }
 }

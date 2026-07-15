@@ -203,6 +203,7 @@ builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 builder.Services.AddScoped<IInventoryTransactionRepository, InventoryTransactionRepository>();
+builder.Services.AddScoped<IClassifyAIRepository, ClassifyAIRepository>();
 
 
 // Services
@@ -236,11 +237,18 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IAppointmentService,PetCenterAPI.Service.AppointmentService>();
 builder.Services.AddScoped<IDiseaseService, DiseaseService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IClassifyAIService, ClassifyAIService>();
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddHttpClient();
+
+
+builder.Services.AddHttpClient<IClassifyAIRepository, ClassifyAIRepository>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AI:BaseUrl"]);
+});
 
 // ── CẤU HÌNH PIPELINE ─────────────────────────────────────────────────────────
 var app = builder.Build();

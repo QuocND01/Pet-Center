@@ -102,6 +102,11 @@ namespace PetCenterAPI.Repository
 
         public async Task UpdateServiceAsync(Models.Service Service)
         {
+
+            foreach (var e in _db.ChangeTracker.Entries<ServiceImage>())
+            {
+                Console.WriteLine($"{e.State} - {e.Entity.ImageId}");
+            }
             _db.Services.Update(Service);
             await _db.SaveChangesAsync();
         }
