@@ -9,5 +9,13 @@ namespace PetCenterAPI.Service.Interface
         BookAppointmentRequestDTO request);
 
         Task<BookingDataResponseDTO> GetBookingDataAsync(Guid customerId);
+        //View for customer
+        Task<List<AppointmentListResponseDTO>>
+        GetMyAppointmentsAsync(Guid customerId);
+
+        Task<AppointmentResponseDTO> GetAppointmentDetailAsync(Guid appointmentId);
+        Task CancelAppointmentAsync(Guid appointmentId,Guid customerId);
+        Task SubmitReviewAsync(Guid customerId,SubmitReviewRequestDTO request);
+
     }
 }

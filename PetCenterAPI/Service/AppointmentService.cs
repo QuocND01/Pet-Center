@@ -2,6 +2,7 @@
 using PetCenterAPI.DTOs.Requests.Appointment;
 using PetCenterAPI.DTOs.Responses.Appointment;
 using PetCenterAPI.Models;
+using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
 namespace PetCenterAPI.Service
@@ -228,6 +229,119 @@ namespace PetCenterAPI.Service
 
                 Services = _mapper.Map<List<BookingServiceDTO>>(services)
             };
+        }
+        public async Task<List<AppointmentListResponseDTO>> GetMyAppointmentsAsync(Guid customerId)
+        {
+            var appointments =
+                await _repository
+                    .GetAppointmentsByCustomerAsync(customerId);
+
+            return _mapper.Map<
+                List<AppointmentListResponseDTO>>
+                (appointments);
+        }
+        public async Task<AppointmentResponseDTO> GetAppointmentDetailAsync(Guid appointmentId)
+        {
+            var appointment =
+                await _repository
+                    .GetAppointmentDetailAsync(appointmentId);
+
+            if (appointment == null)
+            {
+                throw new Exception("Appointment not found.");
+            }
+
+            return _mapper.Map<
+                AppointmentResponseDTO>
+                (appointment);
+        }
+        public async Task CancelAppointmentAsync(
+    Guid appointmentId,
+    Guid customerId)
+        {
+            var appointment =
+                await _repository
+                    .GetByIdAsync(appointmentId);
+
+            if (appointment == null)
+            {
+                throw new Exception("Appointment not found.");
+            }
+
+            if (appointment.CustomerId != customerId)
+            {
+                throw new Exception(
+                    "You are not allowed to cancel this appointment.");
+            }
+
+            if (appointment.Status == 0)
+            {
+                throw new Exception(
+                    "Appointment already cancelled.");
+            }
+
+            if (appointment.Status == 3)
+            {
+                throw new Exception(
+                    "Appointment is in progress.");
+            }
+
+            if (appointment.Status == 4)
+            {
+                throw new Exception(
+                    "Appointment already completed.");
+            }
+
+            appointment.Status = 0;
+            appointment.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.SaveChangesAsync();
+        }
+        public async Task SubmitReviewAsync(
+    Guid customerId,
+    SubmitReviewRequestDTO request)
+        {
+            var appointment =
+                await _repository
+                    .GetAppointmentDetailAsync(
+                        request.AppointmentId);
+
+            if (appointment == null)
+            {
+                throw new Exception("Appointment not found.");
+            }
+
+            if (appointment.CustomerId != customerId)
+            {
+                throw new Exception(
+                    "You are not allowed to review this appointment.");
+            }
+
+            if (appointment.Status != 4)
+            {
+                throw new Exception(
+                    "Only completed appointments can be reviewed.");
+            }
+
+            if (appointment.AppointmentSnapshot == null)
+            {
+                throw new Exception(
+                    "Appointment snapshot not found.");
+            }
+
+            if (request.Rating < 1 || request.Rating > 5)
+            {
+                throw new Exception(
+                    "Rating must be between 1 and 5.");
+            }
+
+            appointment.AppointmentSnapshot.Rating =
+                request.Rating;
+
+            appointment.AppointmentSnapshot.Feedback =
+                request.Feedback;
+
+            await _repository.SaveChangesAsync();
         }
     }
 }
