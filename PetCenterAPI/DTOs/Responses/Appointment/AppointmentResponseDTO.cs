@@ -9,7 +9,9 @@
         public Guid PetId { get; set; }
 
         public Guid StaffId { get; set; }
+        public string PetName { get; set; } = string.Empty;
 
+        public string VetName { get; set; } = string.Empty;
         public DateTime AppointmentStart { get; set; }
 
         public DateTime AppointmentEnd { get; set; }
@@ -36,8 +38,10 @@
         public decimal Price { get; set; }
 
         public int Duration { get; set; }
-
+            
+        public int? Status { get; set; }
         public int ServiceType { get; set; }
+        public DateTime? CompleteAt { get; set; }
     }
     public class AppointmentSnapshotResponseDTO
     {

@@ -29,5 +29,14 @@ namespace PetCenterAPI.Repository.Interface
         //Load booking data
         Task<IEnumerable<Staff>> GetActiveVetsAsync();
 
+        //View for customer
+        Task<List<Appointment>> GetAppointmentsByCustomerAsync(
+        Guid customerId);
+
+        Task<Appointment?> GetAppointmentDetailAsync(
+            Guid appointmentId);
+        Task<Appointment?> GetByIdAsync(Guid appointmentId);
+
+
     }
 }

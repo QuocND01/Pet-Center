@@ -24,7 +24,19 @@ namespace PetCenterAPI.Profiles
                 .ForMember(dest => dest.MedicalRecords, opt => opt.Ignore());
 
             // Appointment -> Response
-            CreateMap<Appointment, AppointmentResponseDTO>();
+            CreateMap<Appointment, AppointmentResponseDTO>()
+                .ForMember(
+                    dest => dest.PetName,
+                    opt => opt.MapFrom(src => src.Pet.PetName))
+                .ForMember(
+                    dest => dest.VetName,
+                    opt => opt.MapFrom(src => src.Staff.FullName))
+                .ForMember(
+                    dest => dest.AppointmentServices,
+                    opt => opt.MapFrom(src => src.AppointmentServices))
+                .ForMember(
+                    dest => dest.Snapshot,
+                    opt => opt.MapFrom(src => src.AppointmentSnapshot));
 
             // AppointmentService -> DTO
             CreateMap<AppointmentService, AppointmentServiceResponseDTO>()
@@ -49,6 +61,18 @@ namespace PetCenterAPI.Profiles
             CreateMap<Models.Service, BookingServiceDTO>()
             .ForMember(dest => dest.ServiceImages,
                        opt => opt.MapFrom(src => src.ServiceImages.Select(img => img.ImageUrl).ToList()));
+            CreateMap<Appointment,
+          AppointmentListResponseDTO>()
+                .ForMember(
+                    dest => dest.PetName,
+                    opt => opt.MapFrom(src => src.Pet.PetName))
+                .ForMember(
+                    dest => dest.VetName,
+                    opt => opt.MapFrom(src => src.Staff.FullName));
+            
+
+           
+
         }
     }
 }

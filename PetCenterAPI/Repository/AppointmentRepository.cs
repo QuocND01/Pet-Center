@@ -83,5 +83,32 @@ namespace PetCenterAPI.Repository
                 .Where(s => s.IsActive && s.VetProfile != null && s.VetProfile.IsActive)
                 .ToListAsync();
         }
+        public async Task<List<Appointment>>
+    GetAppointmentsByCustomerAsync(Guid customerId)
+        {
+            return await _context.Appointments
+                .Include(x => x.Pet)
+                .Include(x => x.Staff)
+                .Where(x => x.CustomerId == customerId)
+                .OrderByDescending(x => x.AppointmentStart)
+                .ToListAsync();
+        }
+        public async Task<Appointment?>
+    GetAppointmentDetailAsync(Guid appointmentId)
+        {
+            return await _context.Appointments
+                .Include(x => x.Pet)
+                .Include(x => x.Staff)
+                .Include(x => x.AppointmentSnapshot)
+                .Include(x => x.AppointmentServices)
+                .FirstOrDefaultAsync(x =>
+                    x.AppointmentId == appointmentId);
+        }
+        public async Task<Appointment?> GetByIdAsync(Guid appointmentId)
+        {
+            
+            return await _context.Appointments
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+        }
     }
 }
