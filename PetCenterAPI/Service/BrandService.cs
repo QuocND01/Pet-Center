@@ -45,8 +45,11 @@ namespace PetCenterAPI.Service
         public async Task<ReadBrandDTO?> GetBrandByIdAsync(Guid id)
         {
             var brand = await _brandRepository.GetBrandByIdAsync(id);
+            if (brand == null)
+                throw new KeyNotFoundException("Brand not found.");
             return _mapper.Map<ReadBrandDTO>(brand);
         }
+
 
         public async Task AddBrandAsync(CreateBrandDTO createBrand)
         {
