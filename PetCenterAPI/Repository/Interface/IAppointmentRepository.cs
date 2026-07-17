@@ -37,6 +37,9 @@ namespace PetCenterAPI.Repository.Interface
             Guid appointmentId);
         Task<Appointment?> GetByIdAsync(Guid appointmentId);
 
+        Task<List<Appointment>> GetDoctorAppointmentsByDateAsync(
+        Guid staffId,
+        DateOnly date);
 
     }
 }

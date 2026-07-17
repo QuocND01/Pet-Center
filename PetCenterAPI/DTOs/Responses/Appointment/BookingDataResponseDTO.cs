@@ -48,4 +48,9 @@
         
         public List<string> ServiceImages { get; set; } = new List<string>();
     }
+    public class AvailableSlotDTO
+    {
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+    }
 }

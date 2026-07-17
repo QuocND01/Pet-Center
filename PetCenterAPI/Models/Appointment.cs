@@ -16,8 +16,9 @@ public partial class Appointment
     public DateTime AppointmentStart { get; set; }
 
     public DateTime AppointmentEnd { get; set; }
-
+    // 1: Pending, 2: Confirmed, 3:InProgress 4: Completed, 0: Cancelled
     public int? Status { get; set; }
+
 
     public DateTime? CreatedAt { get; set; }
 

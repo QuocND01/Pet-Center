@@ -204,6 +204,7 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 builder.Services.AddScoped<IInventoryTransactionRepository, InventoryTransactionRepository>();
 builder.Services.AddScoped<IClassifyAIRepository, ClassifyAIRepository>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 
 // Services

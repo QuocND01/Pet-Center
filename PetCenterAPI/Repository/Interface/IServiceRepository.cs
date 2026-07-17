@@ -24,5 +24,8 @@ namespace PetCenterAPI.Repository.Interface
 
         //For booking get all active services-vinh
         Task<IEnumerable<Models.Service>> GetAllActiveServicesAsync();
+        //List services by ids
+        Task<List<Models.Service>> GetServicesByIdsAsync(
+    List<Guid> serviceIds);
     }
 }

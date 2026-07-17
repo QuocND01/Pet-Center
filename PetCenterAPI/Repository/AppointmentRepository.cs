@@ -110,5 +110,26 @@ namespace PetCenterAPI.Repository
             return await _context.Appointments
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
         }
+        public async Task<List<Appointment>>
+    GetDoctorAppointmentsByDateAsync(
+        Guid staffId,
+        DateOnly date)
+        {
+            var startDate = date.ToDateTime(TimeOnly.MinValue);
+            var endDate = startDate.AddDays(1);
+
+            return await _context.Appointments
+                .Where(a =>
+                    a.StaffId == staffId &&
+                    a.AppointmentStart >= startDate &&
+                    a.AppointmentStart < endDate &&
+                    (
+                        a.Status == 1 ||
+                        a.Status == 2 ||
+                        a.Status == 3
+                    ))
+                .OrderBy(a => a.AppointmentStart)
+                .ToListAsync();
+        }
     }
 }
