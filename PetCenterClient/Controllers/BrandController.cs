@@ -91,16 +91,19 @@ namespace PetCenterClient.Controllers
             try
             {
                 await _brandService.AddBrandAsync(model);
+
                 return Json(new { success = true });
             }
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("", ex.Message);
+
                 return PartialView("~/Views/AdminViews/Brand/_Create.cshtml", model);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ModelState.AddModelError("", "Something went wrong: " + ex.Message);
+                ModelState.AddModelError("", "An unexpected error occurred.");
+
                 return PartialView("~/Views/AdminViews/Brand/_Create.cshtml", model);
             }
         }
@@ -135,16 +138,31 @@ namespace PetCenterClient.Controllers
         // POST: BrandController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(Guid BrandId, UpdateBrandViewModel model)
+        public async Task<IActionResult> EditAsync(Guid brandId, UpdateBrandViewModel model)
         {
-            Console.WriteLine("ĐÃ VÀO EDIT");
-            Console.WriteLine($"ID: {BrandId}");
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                return PartialView("~/Views/AdminViews/Brand/_Edit.cshtml", model);
+            }
 
-            await _brandService.UpdateBrandAsync(BrandId, model);
+            try
+            {
+                await _brandService.UpdateBrandAsync(brandId, model);
 
-            return Json(new { success = true });
+                return Json(new { success = true });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+
+                return PartialView("~/Views/AdminViews/Brand/_Edit.cshtml", model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError("", "An unexpected error occurred.");
+
+                return PartialView("~/Views/AdminViews/Brand/_Edit.cshtml", model);
+            }
         }
 
         // GET: ReadProdutDTOs/Delete/5

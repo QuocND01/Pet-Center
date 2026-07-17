@@ -136,6 +136,43 @@ namespace PetCenterClient.Services
         public async Task AddServiceAsync(CreateServiceViewModel model)
         {
             AddAuthorizationHeader();
+
+            // Validate ServiceName
+            if (string.IsNullOrWhiteSpace(model.ServiceName))
+            {
+                throw new InvalidOperationException("Service name is required.");
+            }
+
+            model.ServiceName = model.ServiceName.Trim();
+
+            // Validate ImageFiles
+            if (model.ImageFiles != null && model.ImageFiles.Any())
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                foreach (var file in model.ImageFiles)
+                {
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        throw new InvalidOperationException(
+                            "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                    }
+
+                    if (!file.ContentType.StartsWith("image/"))
+                    {
+                        throw new InvalidOperationException("Invalid image file.");
+                    }
+
+                    // Giới hạn 5MB mỗi ảnh
+                    if (file.Length > 5 * 1024 * 1024)
+                    {
+                        throw new InvalidOperationException(
+                            "Each image size cannot exceed 5 MB.");
+                    }
+                }
+            }
             var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(model.ServiceName), "ServiceName");
@@ -180,6 +217,43 @@ namespace PetCenterClient.Services
         public async Task UpdateServiceAsync(Guid? id, UpdateServiceViewModel model)
         {
             AddAuthorizationHeader();
+
+            // Validate ServiceName
+            if (string.IsNullOrWhiteSpace(model.ServiceName))
+            {
+                throw new InvalidOperationException("Service name is required.");
+            }
+
+            model.ServiceName = model.ServiceName.Trim();
+
+            // Validate ImageFiles
+            if (model.ImageFiles != null && model.ImageFiles.Any())
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                foreach (var file in model.ImageFiles)
+                {
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        throw new InvalidOperationException(
+                            "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                    }
+
+                    if (!file.ContentType.StartsWith("image/"))
+                    {
+                        throw new InvalidOperationException("Invalid image file.");
+                    }
+
+                    // Giới hạn 5MB mỗi ảnh
+                    if (file.Length > 5 * 1024 * 1024)
+                    {
+                        throw new InvalidOperationException(
+                            "Each image size cannot exceed 5 MB.");
+                    }
+                }
+            }
             var form = new MultipartFormDataContent();
 
             form.Add(new StringContent(model.ServiceName), "ServiceName");

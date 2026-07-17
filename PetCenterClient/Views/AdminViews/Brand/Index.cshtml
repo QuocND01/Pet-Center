@@ -435,33 +435,50 @@
                 contentType:false,
                 processData:false,
 
-                success:function(res){
+             success: function (res) {
 
-                    $("#pageLoadingOverlay").hide();
+    $("#pageLoadingOverlay").hide();
 
-                    if(res.success){
+    // Thành công
+    if (typeof res === "object" && res.success) {
 
-                        $('#brandModal').modal('hide');
+        $('#brandModal').modal('hide');
 
-                        showToast("Success");
+        showToast("Success");
 
-                        setTimeout(function(){
+        setTimeout(function () {
+            location.reload();
+        }, 800);
 
-                            location.reload();
+        return;
+    }
 
-                        },800);
-                    }
-                        else {
-                        showToast(res.message || "Error");
-        }
-                },
+  // Thất bại -> server trả PartialView
+$("#brandModalBody").html(res);
 
-                error:function(){
+$.validator.unobtrusive.parse("#brandModalBody");
 
-                    $("#pageLoadingOverlay").hide();
-                    showToast("Error");
+// Lấy lỗi đầu tiên để hiện Toast
+let message =
+    $("#brandModalBody .validation-summary-errors li:first").text().trim() ||
+    $("#brandModalBody .field-validation-error:first").text().trim() ||
+    "Please check the form.";
 
-                }
+showToast(message);
+},
+
+              error: function (xhr) {
+
+    $("#pageLoadingOverlay").hide();
+
+    let message = "An unexpected error occurred.";
+
+    if (xhr.responseJSON?.message) {
+        message = xhr.responseJSON.message;
+    }
+
+    showToast(message);
+}
 
             });
 

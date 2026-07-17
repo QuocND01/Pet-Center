@@ -118,24 +118,27 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(CreateServiceViewModel model)
         {
-
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-       .SelectMany(v => v.Errors)
-       .Select(e => e.ErrorMessage)
-       .ToList();
                 return PartialView("~/Views/AdminViews/Service/_Create.cshtml", model);
             }
 
             try
             {
                 await _ServiceService.AddServiceAsync(model);
+
                 return Json(new { success = true });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("", ex.Message);
+
+                return PartialView("~/Views/AdminViews/Service/_Create.cshtml", model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError("", "An unexpected error occurred.");
+
                 return PartialView("~/Views/AdminViews/Service/_Create.cshtml", model);
             }
         }
@@ -177,23 +180,6 @@ namespace PetCenterClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var errors = ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
-                    .Select(x => new
-                    {
-                        Key = x.Key,
-                        Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                    });
-
-                foreach (var err in errors)
-                {
-                    Console.WriteLine($"FIELD: {err.Key}");
-                    foreach (var msg in err.Errors)
-                    {
-                        Console.WriteLine($"  ERROR: {msg}");
-                    }
-                }
-
                 return PartialView("~/Views/AdminViews/Service/_Edit.cshtml", model);
             }
 
@@ -203,9 +189,16 @@ namespace PetCenterClient.Controllers
 
                 return Json(new { success = true });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("", ex.Message);
+
+                return PartialView("~/Views/AdminViews/Service/_Edit.cshtml", model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError("", "An unexpected error occurred.");
+
                 return PartialView("~/Views/AdminViews/Service/_Edit.cshtml", model);
             }
         }

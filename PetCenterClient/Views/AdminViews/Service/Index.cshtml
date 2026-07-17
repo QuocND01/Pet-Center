@@ -527,22 +527,36 @@
             contentType: false,
             processData: false,
 
-            success: function (res) {
-               hideLoading();
+           success: function (res) {
 
-                if (res.success) {
-                    $('#serviceModal').modal('hide');
-                    showToast("Success");
-                    setTimeout(() => location.reload(), 800);
-                } else {
-                    $("#serviceModalBody").html(res);
-                }
-            },
+    hideLoading();
 
-            error: function () {
-              hideLoading();
-                showToast("Error");
-            }
+    if (typeof res === "object" && res.success) {
+
+        $('#serviceModal').modal('hide');
+
+        showToast("Success");
+
+        setTimeout(() => location.reload(), 800);
+
+    } else {
+
+        $("#serviceModalBody").html(res);
+
+        $.validator.unobtrusive.parse("#serviceModalBody");
+
+        showToast("Please check the form.");
+    }
+},
+
+error: function (xhr) {
+
+    hideLoading();
+
+    console.log(xhr.responseText);
+
+    showToast("Error");
+}
         });
     });
 

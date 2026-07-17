@@ -219,15 +219,8 @@ namespace PetCenterClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(CreateProductViewModel model)
         {
-
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-       .SelectMany(v => v.Errors)
-       .Select(e => e.ErrorMessage)
-       .ToList();
-
-                Console.WriteLine(string.Join(",", errors));
                 var category = await _categoryService.DetailsCategoryAsync(model.CategoryId);
 
                 model.Attributes = category.Attributes
@@ -239,22 +232,34 @@ namespace PetCenterClient.Controllers
                             .FirstOrDefault(x => x.CategoryAttributeId == a.CategoryAttributeId)?
                             .AttributeValue
                     }).ToList();
-
                 var brands = await _brandService.GetAllBrandAsync();
                 var categories = await _categoryService.GetAllCategoryAsync();
 
                 ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+
                 return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
             }
 
             try
             {
                 await _productService.AddProductAsync(model);
+
                 return Json(new { success = true });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
+                var category = await _categoryService.DetailsCategoryAsync(model.CategoryId);
+
+                model.Attributes = category.Attributes
+                    .Select(a => new CreateProductAttributeViewModel
+                    {
+                        CategoryAttributeId = a.CategoryAttributeId,
+                        AttributeName = a.AttributeName,
+                        AttributeValue = model.Attributes?
+                            .FirstOrDefault(x => x.CategoryAttributeId == a.CategoryAttributeId)?
+                            .AttributeValue
+                    }).ToList();
                 ModelState.AddModelError("", ex.Message);
                 var brands = await _brandService.GetAllBrandAsync();
                 var categories = await _categoryService.GetAllCategoryAsync();
@@ -263,8 +268,29 @@ namespace PetCenterClient.Controllers
                 ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
                 return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
             }
-        }
+            catch (Exception)
+            {
+                var category = await _categoryService.DetailsCategoryAsync(model.CategoryId);
 
+                model.Attributes = category.Attributes
+                    .Select(a => new CreateProductAttributeViewModel
+                    {
+                        CategoryAttributeId = a.CategoryAttributeId,
+                        AttributeName = a.AttributeName,
+                        AttributeValue = model.Attributes?
+                            .FirstOrDefault(x => x.CategoryAttributeId == a.CategoryAttributeId)?
+                            .AttributeValue
+                    }).ToList();
+                ModelState.AddModelError("", "An unexpected error occurred.");
+                var brands = await _brandService.GetAllBrandAsync();
+                var categories = await _categoryService.GetAllCategoryAsync();
+
+                ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
+                ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+
+                return PartialView("~/Views/AdminViews/Product/_Create.cshtml", model);
+            }
+        }
         // GET: ReadProdutDTOs/Edit/5
         public async Task<IActionResult> EditAsync(Guid? id)
         {
@@ -304,8 +330,13 @@ namespace PetCenterClient.Controllers
             var brands = await _brandService.GetAllBrandAsync();
             var categories = await _categoryService.GetAllCategoryAsync();
 
-            ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
-            ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+            model.BrandName = brands.Values
+                .FirstOrDefault(x => x.BrandId == model.BrandId)?
+                .BrandName;
+
+            model.CategoryName = categories.Values
+                .FirstOrDefault(x => x.CategoryId == model.CategoryId)?
+                .CategoryName;
 
             return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
         }
@@ -321,16 +352,15 @@ namespace PetCenterClient.Controllers
             {
                 var brands = await _brandService.GetAllBrandAsync();
                 var categories = await _categoryService.GetAllCategoryAsync();
-                ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
-                ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
-                foreach (var item in ModelState)
-                {
-                    foreach (var error in item.Value.Errors)
-                    {
-                        Console.WriteLine($"KEY: {item.Key}");
-                        Console.WriteLine($"ERROR: {error.ErrorMessage}");
-                    }
-                }
+
+                model.BrandName = brands.Values
+                    .FirstOrDefault(x => x.BrandId == model.BrandId)?
+                    .BrandName;
+
+                model.CategoryName = categories.Values
+                    .FirstOrDefault(x => x.CategoryId == model.CategoryId)?
+                    .CategoryName;
+
                 return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
             }
 
@@ -340,19 +370,41 @@ namespace PetCenterClient.Controllers
 
                 return Json(new { success = true });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("", ex.Message);
 
                 var brands = await _brandService.GetAllBrandAsync();
                 var categories = await _categoryService.GetAllCategoryAsync();
 
-                ViewBag.Brands = new SelectList(brands.Values, "BrandId", "BrandName");
-                ViewBag.Categories = new SelectList(categories.Values, "CategoryId", "CategoryName");
+                model.BrandName = brands.Values
+                    .FirstOrDefault(x => x.BrandId == model.BrandId)?
+                    .BrandName;
+
+                model.CategoryName = categories.Values
+                    .FirstOrDefault(x => x.CategoryId == model.CategoryId)?
+                    .CategoryName;
+
+                return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError("", "An unexpected error occurred.");
+
+                var brands = await _brandService.GetAllBrandAsync();
+                var categories = await _categoryService.GetAllCategoryAsync();
+
+                model.BrandName = brands.Values
+                    .FirstOrDefault(x => x.BrandId == model.BrandId)?
+                    .BrandName;
+
+                model.CategoryName = categories.Values
+                    .FirstOrDefault(x => x.CategoryId == model.CategoryId)?
+                    .CategoryName;
+
                 return PartialView("~/Views/AdminViews/Product/_Edit.cshtml", model);
             }
         }
-
         // GET: ReadProdutDTOs/Delete/5
         public async Task<IActionResult> ChangeStatusAsync(
       Guid? id,

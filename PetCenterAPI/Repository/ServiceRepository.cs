@@ -117,7 +117,7 @@ namespace PetCenterAPI.Repository
       Guid? excludeId = null)
         {
             return await _db.Services.Where(s => s.Status != Status.Deleted).AnyAsync(p =>
-                p.ServiceName == ServiceName &&
+                p.ServiceName == ServiceName.Trim() &&
                 p.Status == Status.Active &&
                 (!excludeId.HasValue || p.ServiceId != excludeId.Value));
         }

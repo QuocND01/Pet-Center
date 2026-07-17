@@ -23,12 +23,61 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
 
+            // Validate CategoryName
+            if (string.IsNullOrWhiteSpace(createCategory.CategoryName))
+            {
+                throw new InvalidOperationException("Category name is required.");
+            }
+
+            createCategory.CategoryName = createCategory.CategoryName.Trim();
+
+            // Validate Attributes
+            if (createCategory.Attributes != null)
+            {
+                foreach (var attribute in createCategory.Attributes)
+                {
+                    if (string.IsNullOrWhiteSpace(attribute.AttributeName))
+                    {
+                        throw new InvalidOperationException("Attribute name is required.");
+                    }
+
+                    attribute.AttributeName = attribute.AttributeName.Trim();
+                }
+            }
+
+            // Validate CategoryLogo
+            if (createCategory.CategoryLogo != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                var extension = Path.GetExtension(createCategory.CategoryLogo.FileName)
+                    .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    throw new InvalidOperationException(
+                        "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+
+                if (!createCategory.CategoryLogo.ContentType.StartsWith("image/"))
+                {
+                    throw new InvalidOperationException("Invalid image file.");
+                }
+
+                // Giới hạn 5MB
+                if (createCategory.CategoryLogo.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Image size cannot exceed 5 MB.");
+                }
+            }
+
             var content = new MultipartFormDataContent();
+
             content.Add(new StringContent(createCategory.CategoryName), "CategoryName");
 
-            if (!string.IsNullOrEmpty(createCategory.CategoryDescription))
+            if (!string.IsNullOrWhiteSpace(createCategory.CategoryDescription))
             {
-                content.Add(new StringContent(createCategory.CategoryDescription), "CategoryDescription");
+                content.Add(new StringContent(createCategory.CategoryDescription.Trim()), "CategoryDescription");
             }
 
             if (createCategory.CategoryLogo != null)
@@ -39,6 +88,7 @@ namespace PetCenterClient.Services
 
                 content.Add(streamContent, "CategoryLogo", createCategory.CategoryLogo.FileName);
             }
+
             if (createCategory.Attributes != null)
             {
                 for (int i = 0; i < createCategory.Attributes.Count; i++)
@@ -53,7 +103,7 @@ namespace PetCenterClient.Services
             var response = await _http.PostAsync("api/Categories", content);
 
             if (response.StatusCode == HttpStatusCode.BadRequest ||
-    response.StatusCode == HttpStatusCode.Conflict)
+                response.StatusCode == HttpStatusCode.Conflict)
             {
                 var error = await response.Content
                     .ReadFromJsonAsync<ApiResponseViewModel<object>>();
@@ -117,13 +167,63 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
 
+            // Validate CategoryName
+            if (string.IsNullOrWhiteSpace(updateCategory.CategoryName))
+            {
+                throw new InvalidOperationException("Category name is required.");
+            }
+
+            updateCategory.CategoryName = updateCategory.CategoryName.Trim();
+
+            // Validate Attributes
+            if (updateCategory.Attributes != null)
+            {
+                foreach (var attribute in updateCategory.Attributes)
+                {
+                    if (string.IsNullOrWhiteSpace(attribute.AttributeName))
+                    {
+                        throw new InvalidOperationException("Attribute name is required.");
+                    }
+
+                    attribute.AttributeName = attribute.AttributeName.Trim();
+                }
+            }
+
+            // Validate CategoryLogo
+            if (updateCategory.CategoryLogo != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                var extension = Path.GetExtension(updateCategory.CategoryLogo.FileName)
+                    .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    throw new InvalidOperationException(
+                        "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+
+                if (!updateCategory.CategoryLogo.ContentType.StartsWith("image/"))
+                {
+                    throw new InvalidOperationException("Invalid image file.");
+                }
+
+                // Giới hạn 5MB
+                if (updateCategory.CategoryLogo.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Image size cannot exceed 5 MB.");
+                }
+            }
+
             var form = new MultipartFormDataContent();
+
             form.Add(new StringContent(updateCategory.CategoryName), "CategoryName");
 
-            if (!string.IsNullOrEmpty(updateCategory.CategoryDescription))
+            if (!string.IsNullOrWhiteSpace(updateCategory.CategoryDescription))
             {
-                form.Add(new StringContent(updateCategory.CategoryDescription), "CategoryDescription");
+                form.Add(new StringContent(updateCategory.CategoryDescription.Trim()), "CategoryDescription");
             }
+
             if (updateCategory.CategoryLogo != null)
             {
                 var stream = updateCategory.CategoryLogo.OpenReadStream();
@@ -134,21 +234,18 @@ namespace PetCenterClient.Services
 
                 form.Add(content, "CategoryLogo", updateCategory.CategoryLogo.FileName);
             }
+
             if (updateCategory.Attributes != null)
             {
                 for (int i = 0; i < updateCategory.Attributes.Count; i++)
                 {
                     form.Add(
-                        new StringContent(
-                            updateCategory.Attributes[i].CategoryAttributeId.ToString()
-                        ),
+                        new StringContent(updateCategory.Attributes[i].CategoryAttributeId.ToString()),
                         $"Attributes[{i}].CategoryAttributeId"
                     );
 
                     form.Add(
-                        new StringContent(
-                            updateCategory.Attributes[i].AttributeName
-                        ),
+                        new StringContent(updateCategory.Attributes[i].AttributeName),
                         $"Attributes[{i}].AttributeName"
                     );
                 }
@@ -157,7 +254,7 @@ namespace PetCenterClient.Services
             var response = await _http.PutAsync($"api/Categories/{id}", form);
 
             if (response.StatusCode == HttpStatusCode.BadRequest ||
-      response.StatusCode == HttpStatusCode.Conflict)
+                response.StatusCode == HttpStatusCode.Conflict)
             {
                 var error = await response.Content
                     .ReadFromJsonAsync<ApiResponseViewModel<object>>();

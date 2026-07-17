@@ -834,38 +834,41 @@
 
                         processData: false,
 
-                 success: function (res) {
+               success: function (res) {
 
-                    $("#pageLoadingOverlay").hide();
+                $("#pageLoadingOverlay").hide();
 
-                    if (res.success) {
+                if (typeof res === "object" && res.success) {
 
-                        $('#productModal').modal('hide');
+                    $('#productModal').modal('hide');
 
-                        showToast("Success");
+                    showToast("Success");
 
-                        setTimeout(function () {
-                            location.reload();
-                        }, 800);
-
-                    }
-                    else {
-
-                        $("#productModalBody").html(res);
-
-                    }
-
-                },
-                error: function (xhr) {
-
-                    $("#pageLoadingOverlay").hide();
-
-                    console.log(xhr.responseText);
-                     showToast("Error");
-
+                    setTimeout(function () {
+                        location.reload();
+                    }, 800);
 
                 }
+                else {
 
+                    $("#productModalBody").html(res);
+
+                    $.validator.unobtrusive.parse("#productModalBody");
+
+                    showToast("Please check the form.");
+                }
+
+            },
+
+            error: function (xhr) {
+
+                $("#pageLoadingOverlay").hide();
+
+                console.log(xhr.responseText);
+
+                showToast("Error");
+
+            }
                     });
 
                 });

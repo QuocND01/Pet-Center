@@ -28,17 +28,50 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
 
-            var content = new MultipartFormDataContent();
-
-            // 👇 text
-            content.Add(new StringContent(createBrand.BrandName), "BrandName");
-
-            if (!string.IsNullOrEmpty(createBrand.BrandDescription))
+            // Validate BrandName
+            if (string.IsNullOrWhiteSpace(createBrand.BrandName))
             {
-                content.Add(new StringContent(createBrand.BrandDescription), "BrandDescription");
+                throw new InvalidOperationException("Brand name is required.");
             }
 
-            // 👇 file (phải đúng tên BrandLogo)
+            createBrand.BrandName = createBrand.BrandName.Trim();
+
+            // Validate BrandLogo
+            if (createBrand.BrandLogo != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                var extension = Path.GetExtension(createBrand.BrandLogo.FileName)
+                    .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    throw new InvalidOperationException(
+                        "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+
+                if (!createBrand.BrandLogo.ContentType.StartsWith("image/"))
+                {
+                    throw new InvalidOperationException("Invalid image file.");
+                }
+
+                // Giới hạn 5MB
+                if (createBrand.BrandLogo.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException(
+                        "Image size cannot exceed 5 MB.");
+                }
+            }
+
+            var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(createBrand.BrandName), "BrandName");
+
+            if (!string.IsNullOrWhiteSpace(createBrand.BrandDescription))
+            {
+                content.Add(new StringContent(createBrand.BrandDescription.Trim()), "BrandDescription");
+            }
+
             if (createBrand.BrandLogo != null)
             {
                 var streamContent = new StreamContent(createBrand.BrandLogo.OpenReadStream());
@@ -51,7 +84,7 @@ namespace PetCenterClient.Services
             var response = await _http.PostAsync("api/Brands", content);
 
             if (response.StatusCode == HttpStatusCode.BadRequest ||
-      response.StatusCode == HttpStatusCode.Conflict)
+                response.StatusCode == HttpStatusCode.Conflict)
             {
                 var error = await response.Content
                     .ReadFromJsonAsync<ApiResponseViewModel<object>>();
@@ -121,13 +154,48 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
 
+            // Validate BrandName
+            if (string.IsNullOrWhiteSpace(updateBrand.BrandName))
+            {
+                throw new InvalidOperationException("Brand name is required.");
+            }
+
+            updateBrand.BrandName = updateBrand.BrandName.Trim();
+
+            // Validate BrandLogo
+            if (updateBrand.BrandLogo != null)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                var extension = Path.GetExtension(updateBrand.BrandLogo.FileName)
+                    .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    throw new InvalidOperationException(
+                        "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+
+                if (!updateBrand.BrandLogo.ContentType.StartsWith("image/"))
+                {
+                    throw new InvalidOperationException("Invalid image file.");
+                }
+
+                // Giới hạn 5MB
+                if (updateBrand.BrandLogo.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException(
+                        "Image size cannot exceed 5 MB.");
+                }
+            }
+
             var form = new MultipartFormDataContent();
 
             form.Add(new StringContent(updateBrand.BrandName), "BrandName");
 
-            if (!string.IsNullOrEmpty(updateBrand.BrandDescription))
+            if (!string.IsNullOrWhiteSpace(updateBrand.BrandDescription))
             {
-                form.Add(new StringContent(updateBrand.BrandDescription), "BrandDescription");
+                form.Add(new StringContent(updateBrand.BrandDescription.Trim()), "BrandDescription");
             }
 
             if (updateBrand.BrandLogo != null)
@@ -144,7 +212,7 @@ namespace PetCenterClient.Services
             var response = await _http.PutAsync($"api/Brands/{id}", form);
 
             if (response.StatusCode == HttpStatusCode.BadRequest ||
-     response.StatusCode == HttpStatusCode.Conflict)
+                response.StatusCode == HttpStatusCode.Conflict)
             {
                 var error = await response.Content
                     .ReadFromJsonAsync<ApiResponseViewModel<object>>();

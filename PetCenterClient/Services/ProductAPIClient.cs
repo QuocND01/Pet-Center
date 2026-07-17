@@ -166,6 +166,57 @@ namespace PetCenterClient.Services
         public async Task AddProductAsync(CreateProductViewModel model)
         {
             AddAuthorizationHeader();
+
+            // Validate ProductName
+            if (string.IsNullOrWhiteSpace(model.ProductName))
+            {
+                throw new InvalidOperationException("Product name is required.");
+            }
+
+            model.ProductName = model.ProductName.Trim();
+
+            // Validate AttributeValue
+            if (model.Attributes != null)
+            {
+                foreach (var attribute in model.Attributes)
+                {
+                    if (string.IsNullOrWhiteSpace(attribute.AttributeValue))
+                    {
+                        throw new InvalidOperationException("Attribute value is required.");
+                    }
+
+                    attribute.AttributeValue = attribute.AttributeValue.Trim();
+                }
+            }
+
+            // Validate ImageFiles
+            if (model.ImageFiles != null && model.ImageFiles.Any())
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                foreach (var file in model.ImageFiles)
+                {
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        throw new InvalidOperationException(
+                            "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                    }
+
+                    if (!file.ContentType.StartsWith("image/"))
+                    {
+                        throw new InvalidOperationException("Invalid image file.");
+                    }
+
+                    // Giới hạn 5MB mỗi ảnh
+                    if (file.Length > 5 * 1024 * 1024)
+                    {
+                        throw new InvalidOperationException(
+                            "Each image size cannot exceed 5 MB.");
+                    }
+                }
+            }
             var content = new MultipartFormDataContent();
 
             content.Add(new StringContent(model.ProductName), "ProductName");
@@ -226,13 +277,66 @@ namespace PetCenterClient.Services
         public async Task UpdateProductAsync(Guid? id, UpdateProductViewModel model)
         {
             AddAuthorizationHeader();
+
+            // Validate ProductName
+            if (string.IsNullOrWhiteSpace(model.ProductName))
+            {
+                throw new InvalidOperationException("Product name is required.");
+            }
+
+            model.ProductName = model.ProductName.Trim();
+
+            // Validate AttributeValue
+            if (model.Attributes != null)
+            {
+                foreach (var attribute in model.Attributes)
+                {
+                    if (string.IsNullOrWhiteSpace(attribute.AttributeValue))
+                    {
+                        throw new InvalidOperationException("Attribute value is required.");
+                    }
+
+                    attribute.AttributeValue = attribute.AttributeValue.Trim();
+                }
+            }
+
+            // Validate ImageFiles
+            if (model.ImageFiles != null && model.ImageFiles.Any())
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                foreach (var file in model.ImageFiles)
+                {
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        throw new InvalidOperationException(
+                            "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                    }
+
+                    if (!file.ContentType.StartsWith("image/"))
+                    {
+                        throw new InvalidOperationException("Invalid image file.");
+                    }
+
+                    // Giới hạn 5MB mỗi ảnh
+                    if (file.Length > 5 * 1024 * 1024)
+                    {
+                        throw new InvalidOperationException(
+                            "Each image size cannot exceed 5 MB.");
+                    }
+                }
+            }
             var form = new MultipartFormDataContent();
 
             form.Add(new StringContent(model.ProductName), "ProductName");
             form.Add(new StringContent(model.ProductPrice.ToString()), "ProductPrice");
 
-            if (!string.IsNullOrEmpty(model.ProductDescription))
-                form.Add(new StringContent(model.ProductDescription), "ProductDescription");
+            if (!string.IsNullOrWhiteSpace(model.ProductDescription))
+            {
+                form.Add(new StringContent(model.ProductDescription.Trim()), "ProductDescription");
+            }
 
 
             if (model.BrandId != null)
@@ -251,7 +355,7 @@ namespace PetCenterClient.Services
             }
 
             // Upload images
-            if (model.ImageFiles != null)
+            if (model.ImageFiles != null && model.ImageFiles.Any())
             {
                 foreach (var file in model.ImageFiles)
                 {

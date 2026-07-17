@@ -11,7 +11,7 @@ public partial class CategoryAttribute
 
     public string AttributeName { get; set; } = null!;
 
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
     public virtual Category Category { get; set; } = null!;
 
