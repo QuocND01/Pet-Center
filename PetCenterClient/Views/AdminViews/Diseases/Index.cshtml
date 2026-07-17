@@ -173,16 +173,20 @@
         document.getElementById('mutDiseaseId').value = id || '';
         document.getElementById('mutateModalTitle').innerText = id ? 'Edit Disease' : 'Add New Disease';
 
+        var nameInput = document.getElementById('mutName'); // Lấy element của Disease Name
+
         if (!id) {
             // Add mới
-            document.getElementById('mutName').value = '';
+            nameInput.value = '';
+            nameInput.readOnly = false; // Cho phép nhập khi thêm mới
             document.getElementById('mutSpecies').value = '3'; // Default both
             document.getElementById('mutDescription').value = '';
             document.getElementById('mutRecommendation').value = '';
             document.getElementById('systemWarning').classList.add('d-none');
         } else {
             // Edit: Đổ tạm tên và loài vào form
-            document.getElementById('mutName').value = name;
+            nameInput.value = name;
+            nameInput.readOnly = true;  // Chỉ đọc (không cho sửa) khi cập nhật
             document.getElementById('mutSpecies').value = species;
 
             if(isSystem === 'True') document.getElementById('systemWarning').classList.remove('d-none');
