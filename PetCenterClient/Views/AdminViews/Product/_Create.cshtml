@@ -352,11 +352,12 @@
 
 <script>
 
-
-
+    (function(){
     let imageIndex = 1
-
-     $(document).on("click", "#addImage", function () {
+    
+    $(document)
+    .off("click", "#addImage")
+    .on("click", "#addImage", function () {
 
         if ($(".image-item").length >= 10) {
             alert("Maximum 10 images are allowed.");
@@ -393,7 +394,9 @@
 
 
         // LOAD CATEGORY ATTRIBUTES
-    $(document).on("change","#CategoryId",function(){
+    $(document)
+      .off("change", "#CategoryId")
+      .on("change", "#CategoryId", function () {
 
             const categoryId = $(this).val()
 
@@ -476,8 +479,11 @@
         reader.readAsDataURL(file)
 
     }
-
-        $("form").on("submit", function (e) {
+        window.removeImage = removeImage;
+         window.previewSelectedImage = previewSelectedImage;
+       $("form")
+    .off("submit")
+    .on("submit", function (e) {
 
         if ($(".image-item").length > 10) {
             e.preventDefault();
@@ -485,5 +491,6 @@
         }
 
     });
+    })();
 
 </script>

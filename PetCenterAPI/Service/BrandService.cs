@@ -53,6 +53,13 @@ namespace PetCenterAPI.Service
             bool brandHasExist = await _brandRepository
                 .CheckBrandExistAsync(createBrand.BrandName);
 
+            if (string.IsNullOrWhiteSpace(createBrand.BrandName))
+            {
+                throw new Exception("Brand name is required");
+            }
+
+            createBrand.BrandName = createBrand.BrandName.Trim();
+
             if (brandHasExist)
             {
                 throw new InvalidOperationException("Brand already exists");
@@ -65,8 +72,28 @@ namespace PetCenterAPI.Service
             // 👇 xử lý upload ảnh giống Product
             if (createBrand.BrandLogo != null)
             {
-                var uploadResult = await _cloudinaryService
-                    .UploadImageAsync(createBrand.BrandLogo, "brands");
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                var extension = Path.GetExtension(createBrand.BrandLogo.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    throw new InvalidOperationException(
+                        "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+
+                if (!createBrand.BrandLogo.ContentType.StartsWith("image/"))
+                {
+                    throw new InvalidOperationException("Invalid image file.");
+                }
+
+                // Giới hạn 5MB
+                if (createBrand.BrandLogo.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Image size cannot exceed 5 MB.");
+                }
+
+                var uploadResult = await _cloudinaryService.UploadImageAsync(createBrand.BrandLogo, "brands");
 
                 if (uploadResult == null ||
                     uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
@@ -74,7 +101,6 @@ namespace PetCenterAPI.Service
                     throw new Exception("Failed to upload brand logo");
                 }
 
-                // 👇 lưu vào Brand
                 brand.BrandLogo = uploadResult.SecureUrl.ToString();
                 brand.PublicId = uploadResult.PublicId;
             }
@@ -90,6 +116,13 @@ namespace PetCenterAPI.Service
             if (brand == null)
                 throw new KeyNotFoundException("Brand not found");
 
+            if (string.IsNullOrWhiteSpace(updateBrand.BrandName))
+            {
+                throw new Exception("Brand name is required");
+            }
+
+            updateBrand.BrandName = updateBrand.BrandName.Trim();
+
             bool brandHasExist = await _brandRepository.CheckBrandExistAsync(updateBrand.BrandName, id);
 
             if (brandHasExist)
@@ -100,11 +133,29 @@ namespace PetCenterAPI.Service
 
             if (updateBrand.BrandLogo != null)
             {
-                if (!string.IsNullOrEmpty(brand.PublicId))
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                var extension = Path.GetExtension(updateBrand.BrandLogo.FileName)
+                    .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
                 {
-                    await _cloudinaryService.DeleteImageAsync(brand.PublicId);
+                    throw new InvalidOperationException(
+                        "Only JPG, JPEG, PNG, and WEBP images are allowed.");
                 }
 
+                if (!updateBrand.BrandLogo.ContentType.StartsWith("image/"))
+                {
+                    throw new InvalidOperationException("Invalid image file.");
+                }
+
+                // Giới hạn 5MB
+                if (updateBrand.BrandLogo.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Image size cannot exceed 5 MB.");
+                }
+
+                // Upload ảnh mới trước
                 var uploadResult = await _cloudinaryService
                     .UploadImageAsync(updateBrand.BrandLogo, "brands");
 
@@ -114,10 +165,17 @@ namespace PetCenterAPI.Service
                     throw new Exception("Failed to upload brand logo");
                 }
 
+                // Upload thành công mới xóa ảnh cũ
+                if (!string.IsNullOrEmpty(brand.PublicId))
+                {
+                    await _cloudinaryService.DeleteImageAsync(brand.PublicId);
+                }
+
+                // Cập nhật thông tin ảnh mới
                 brand.BrandLogo = uploadResult.SecureUrl.ToString();
                 brand.PublicId = uploadResult.PublicId;
             }
-            Console.WriteLine($"Status: {(int)brand.Status}");
+
             await _brandRepository.UpdateBrandAsync(brand);
         }
 

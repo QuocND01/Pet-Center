@@ -34,6 +34,23 @@ namespace PetCenterAPI.Service
 
         public async Task AddProductAsync(CreateProductDTO createProduct)
         {
+            if (string.IsNullOrWhiteSpace(createProduct.ProductName))
+            {
+                throw new Exception("Product name is required");
+            }
+            createProduct.ProductName = createProduct.ProductName.Trim();
+            if (createProduct.Attributes != null)
+            {
+                foreach (var attribute in createProduct.Attributes)
+                {
+                    if (string.IsNullOrWhiteSpace(attribute.AttributeValue))
+                    {
+                        throw new InvalidOperationException("Attribute value is required.");
+                    }
+
+                    attribute.AttributeValue = attribute.AttributeValue.Trim();
+                }
+            }
             bool productHasExist = false;
             var compareAttributes = createProduct.Attributes
                 .Select(x => new ProductAttributeCompareDTO
@@ -63,6 +80,31 @@ namespace PetCenterAPI.Service
                 {
                     if (createProduct.ImageFiles != null && createProduct.ImageFiles.Any())
                     {
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                        foreach (var file in createProduct.ImageFiles)
+                        {
+                            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                            if (!allowedExtensions.Contains(extension))
+                            {
+                                throw new InvalidOperationException(
+                                    "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                            }
+
+                            if (!file.ContentType.StartsWith("image/"))
+                            {
+                                throw new InvalidOperationException("Invalid image file.");
+                            }
+
+                            // Giới hạn 5MB mỗi ảnh
+                            if (file.Length > 5 * 1024 * 1024)
+                            {
+                                throw new InvalidOperationException(
+                                    "Each image size cannot exceed 5 MB.");
+                            }
+                        }
+
                         var uploadTasks = createProduct.ImageFiles
                             .Select(file => _cloudinaryService.UploadImageAsync(file, "products"));
 
@@ -73,7 +115,7 @@ namespace PetCenterAPI.Service
                             if (uploadResult == null ||
                                 uploadResult.StatusCode != HttpStatusCode.OK)
                             {
-                                throw new Exception("Upload ảnh thất bại");
+                                throw new Exception("Failed to upload image");
                             }
 
                             product.ProductImages.Add(new ProductImage
@@ -197,6 +239,26 @@ namespace PetCenterAPI.Service
             if (product == null)
                 throw new KeyNotFoundException("Product not found");
 
+            if (string.IsNullOrWhiteSpace(updateproduct.ProductName))
+            {
+                throw new Exception("Product name is required");
+            }
+
+            updateproduct.ProductName = updateproduct.ProductName.Trim();
+
+            if (updateproduct.Attributes != null)
+            {
+                foreach (var attribute in updateproduct.Attributes)
+                {
+                    if (string.IsNullOrWhiteSpace(attribute.AttributeValue))
+                    {
+                        throw new InvalidOperationException("Attribute value is required.");
+                    }
+
+                    attribute.AttributeValue = attribute.AttributeValue.Trim();
+                }
+            }
+
             if (updateproduct.BrandId == null || updateproduct.CategoryId == null)
                 throw new Exception("BrandId and CategoryId are required");
             var compareAttributes = updateproduct.Attributes
@@ -253,6 +315,31 @@ namespace PetCenterAPI.Service
                 // 2️⃣ Upload ảnh mới song song
                 if (updateproduct.ImageFiles != null && updateproduct.ImageFiles.Any())
                 {
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                    foreach (var file in updateproduct.ImageFiles)
+                    {
+                        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                        if (!allowedExtensions.Contains(extension))
+                        {
+                            throw new InvalidOperationException(
+                                "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                        }
+
+                        if (!file.ContentType.StartsWith("image/"))
+                        {
+                            throw new InvalidOperationException("Invalid image file.");
+                        }
+
+                        // Giới hạn 5MB mỗi ảnh
+                        if (file.Length > 5 * 1024 * 1024)
+                        {
+                            throw new InvalidOperationException(
+                                "Each image size cannot exceed 5 MB.");
+                        }
+                    }
+
                     var uploadTasks = updateproduct.ImageFiles
                         .Select(file => _cloudinaryService.UploadImageAsync(file, "products"));
 
@@ -263,7 +350,7 @@ namespace PetCenterAPI.Service
                         if (uploadResult == null ||
                             uploadResult.StatusCode != HttpStatusCode.OK)
                         {
-                            throw new Exception("Upload ảnh thất bại");
+                            throw new Exception("Failed to upload image");
                         }
 
                         product.ProductImages.Add(new ProductImage

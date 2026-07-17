@@ -118,6 +118,8 @@
 
                     </div>
                 }
+                <span asp-validation-for="ExistingImages"
+                      class="text-danger"></span>
             }
 
         </div>
@@ -140,7 +142,8 @@
         <div id="previewNewImages"
              class="d-flex flex-wrap gap-2 mt-2">
         </div>
-
+        <span asp-validation-for="ImageFiles"
+              class="text-danger"></span>
     </div>
 
 
@@ -181,7 +184,8 @@
                 </div>
 
             }
-
+            <span asp-validation-for="Attributes"
+                  class="text-danger"></span>
         </div>
 
     }

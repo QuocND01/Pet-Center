@@ -273,7 +273,7 @@ namespace PetCenterAPI.Repository
             var products = await _db.Products
                 .Where(p =>
                     p.Status != Status.Deleted &&
-                    p.ProductName == productName &&
+                    p.ProductName == productName.Trim() &&
                     p.BrandId == brandId &&
                     p.CategoryId == categoryId &&
                     (!excludeId.HasValue || p.ProductId != excludeId.Value))

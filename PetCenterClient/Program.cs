@@ -168,7 +168,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.Add<ApiExceptionFilter>();
+    //options.Filters.Add<ApiExceptionFilter>();
 });
 builder.Services.AddHttpContextAccessor();
 

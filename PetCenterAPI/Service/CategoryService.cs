@@ -30,24 +30,43 @@ namespace PetCenterAPI.Service
         public async Task AddCategoryAsync(CreateCategoryDTO createCategory)
         {
 
+            if (string.IsNullOrWhiteSpace(createCategory.CategoryName))
+            {
+                throw new Exception("Category name is required");
+            }
+
+            createCategory.CategoryName = createCategory.CategoryName.Trim();
+
             if (createCategory.Attributes != null && createCategory.Attributes.Any())
             {
-                if (createCategory.Attributes.Any(a => string.IsNullOrWhiteSpace(a.AttributeName)))
+                // Tối đa 10 attributes
+                if (createCategory.Attributes.Count > 10)
                 {
-                    throw new InvalidOperationException("Attribute name cannot be empty");
+                    throw new InvalidOperationException("Maximum 10 attributes are allowed.");
                 }
 
+                // Validate và Trim
+                foreach (var attribute in createCategory.Attributes)
+                {
+                    if (string.IsNullOrWhiteSpace(attribute.AttributeName))
+                    {
+                        throw new InvalidOperationException("Attribute name is required.");
+                    }
+
+                    attribute.AttributeName = attribute.AttributeName.Trim();
+                }
+
+                // Kiểm tra trùng
                 var duplicate = createCategory.Attributes
-                    .GroupBy(x => x.AttributeName.Trim().ToLower())
+                    .GroupBy(x => x.AttributeName.ToLowerInvariant())
                     .Where(g => g.Count() > 1)
-                    .Select(g => g.First().AttributeName)
+                    .Select(g => g.Key)
                     .ToList();
 
                 if (duplicate.Any())
                 {
                     throw new InvalidOperationException(
-                        $"Duplicate attributes: {string.Join(", ", duplicate)}"
-                    );
+                        $"Duplicate attributes: {string.Join(", ", duplicate)}");
                 }
             }
 
@@ -66,17 +85,34 @@ namespace PetCenterAPI.Service
             // 👇 xử lý upload ảnh
             if (createCategory.CategoryLogo != null)
             {
-                var uploadResult = await _cloudinaryService
-                    .UploadImageAsync(createCategory.CategoryLogo, "categories");
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                var extension = Path.GetExtension(createCategory.CategoryLogo.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    throw new InvalidOperationException(
+                        "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+
+                if (!createCategory.CategoryLogo.ContentType.StartsWith("image/"))
+                {
+                    throw new InvalidOperationException("Invalid image file.");
+                }
+
+                // Giới hạn 5MB
+                if (createCategory.CategoryLogo.Length > 5 * 1024 * 1024)
+                {
+                    throw new InvalidOperationException("Image size cannot exceed 5 MB.");
+                }
+
+                var uploadResult = await _cloudinaryService.UploadImageAsync(createCategory.CategoryLogo, "categories");
 
                 if (uploadResult == null ||
                     uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     throw new Exception("Failed to upload category logo");
                 }
-
-                category.CategoryLogo = uploadResult.SecureUrl.ToString();
-                category.PublicId = uploadResult.PublicId;
             }
             Console.WriteLine(category.CategoryAttributes?.Count);
 
@@ -207,7 +243,6 @@ namespace PetCenterAPI.Service
                 {
                     var existingAttr = existingAttrs.FirstOrDefault(a =>
                         a.CategoryAttributeId == attrDto.CategoryAttributeId);
-
                     if (existingAttr != null)
                     {
                         existingAttr.AttributeName = attrDto.AttributeName;
@@ -217,7 +252,6 @@ namespace PetCenterAPI.Service
                     {
                         existingAttrs.Add(new CategoryAttribute
                         {
-                            CategoryAttributeId = Guid.NewGuid(),
                             CategoryId = id,
                             AttributeName = attrDto.AttributeName,
                             IsActive = true
@@ -228,4 +262,4 @@ namespace PetCenterAPI.Service
             await _categoryRepository.UpdateCategoryAsync(existingCategory);
         }
     }
-}
+    }

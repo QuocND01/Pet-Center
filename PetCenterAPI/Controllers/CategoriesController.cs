@@ -126,6 +126,9 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> PostCategoryAsync([FromForm] CreateCategoryDTO categoryDTOs)
         {
+            Console.WriteLine(categoryDTOs.Attributes == null
+    ? "NULL"
+    : categoryDTOs.Attributes.Count.ToString());
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values

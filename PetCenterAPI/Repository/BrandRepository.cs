@@ -23,7 +23,7 @@ namespace PetCenterAPI.Repository
         public async Task<bool> CheckBrandExistAsync(string brandName, Guid? excludeId = null)
         {
             return await _db.Brands.Where(b => b.Status != Status.Deleted).AnyAsync(b =>
-                b.BrandName == brandName &&
+                b.BrandName == brandName.Trim() &&
                 b.Status == Status.Active &&
                 (!excludeId.HasValue || b.BrandId != excludeId.Value));
         }

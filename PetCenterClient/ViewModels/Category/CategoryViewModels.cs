@@ -37,6 +37,7 @@ namespace PetCenterClient.ViewModels.Category
         public IFormFile? CategoryLogo { get; set; }
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? CategoryDescription { get; set; }
+        [MaxLength(10, ErrorMessage = "Maximum 10 attributes are allowed.")]
         public List<CreateCategoryAttributeViewModel>? Attributes { get; set; }
     }
 
@@ -54,6 +55,7 @@ ErrorMessage = "Category name cannot contain special characters")]
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
         public string? CategoryDescription { get; set; }
         public Status Status { get; set; }
+        [MaxLength(10, ErrorMessage = "Maximum 10 attributes are allowed.")]
         public List<UpdateCategoryAttributeViewModel>? Attributes { get; set; }
     }
 }

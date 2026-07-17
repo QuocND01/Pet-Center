@@ -74,7 +74,8 @@ namespace PetCenterClient.Controllers
         // GET: CategoryController/Create
         public ActionResult CreateAsync()
         {
-            return PartialView("~/Views/AdminViews/Category/_Create.cshtml");
+            return PartialView("~/Views/AdminViews/Category/_Create.cshtml", new CreateCategoryViewModel());
+
         }
 
         // POST: CategoryController/Create
@@ -84,22 +85,27 @@ namespace PetCenterClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
                 return PartialView("~/Views/AdminViews/Category/_Create.cshtml", model);
             }
+
             try
             {
                 await _categoryService.AddCategoryAsync(model);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
 
-            return Json(new { success = true });
+                return Json(new { success = true });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+
+                return PartialView("~/Views/AdminViews/Category/_Create.cshtml", model);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError("", "An unexpected error occurred.");
+
+                return PartialView("~/Views/AdminViews/Category/_Create.cshtml", model);
+            }
         }
 
         // GET: CategoryController/Edit/5
@@ -138,16 +144,21 @@ namespace PetCenterClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return Json(new
-                {
-                    success = false,
-                    message = "Invalid data"
-                });
+                return PartialView("~/Views/AdminViews/Category/_Edit.cshtml", model);
             }
 
-            await _categoryService.UpdateCategoryAsync(id, model);
+            try
+            {
+                await _categoryService.UpdateCategoryAsync(id, model);
 
-            return Json(new { success = true });
+                return Json(new { success = true });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+
+                return PartialView("~/Views/AdminViews/Category/_Edit.cshtml", model);
+            }
         }
 
 

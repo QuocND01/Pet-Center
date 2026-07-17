@@ -79,6 +79,8 @@
                 <div class="col-md-12 mb-3">
                     <label class="form-label">Category Name</label>
                     <input asp-for="CategoryName" class="form-control" />
+                    <span asp-validation-for="CategoryName"
+                          class="text-danger"></span>
                 </div>
 
                 <div class="col-md-12 mb-3">
@@ -86,6 +88,8 @@
                     <textarea asp-for="CategoryDescription"
                               class="form-control"
                               rows="3"></textarea>
+                    <span asp-validation-for="CategoryDescription"
+                          class="text-danger"></span>
                 </div>
 
             </div>
@@ -107,7 +111,8 @@
                  src="https://via.placeholder.com/140"
                  class="category-create-logo"
                  onclick="document.getElementById('logoInput').click()" />
-
+            <span asp-validation-for="CategoryLogo"
+                  class="text-danger"></span>
         </div>
 
         <!-- ATTRIBUTES -->
@@ -117,14 +122,41 @@
 
             <div id="attributeError"></div>
 
-            <div id="attributeContainer"></div>
+            <div id="attributeContainer">
+                @if (Model.Attributes != null)
+                {
+                    for (int i = 0; i < Model.Attributes.Count; i++)
+                    {
+                        <div class="input-group attribute-item">
+
+                            <input name="Attributes[@i].AttributeName"
+                                   class="form-control attribute-input"
+                                   value="@Model.Attributes[i].AttributeName"
+                                   placeholder="Attribute name"
+                                   data-val="true"
+                                   data-val-required="Category Attribute name is required"
+                                   data-val-maxlength="Category Attribute name cannot exceed 200 characters"
+                                   data-val-maxlength-max="200"
+                                   data-val-regex="Category Attribute name cannot contain special characters"
+                                   data-val-regex-pattern="^[a-zA-Z0-9\s]+$" />
+
+                            <button type="button"
+                                    class="btn btn-danger removeAttr">
+                                X
+                            </button>
+
+                        </div>
+                    }
+                }
+            </div>
 
             <button type="button"
                     class="btn btn-secondary btn-sm mt-2"
                     id="addAttributeBtn">
                 + Add Attribute
             </button>
-
+            <span asp-validation-for="Attributes"
+                  class="text-danger"></span>
         </div>
 
         <!-- SUBMIT -->
@@ -137,117 +169,96 @@
     </form>
 
 </div>
-
 <script>
+    (function () {
 
-    function previewLogo(input) {
+        function previewLogo(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => $("#logoPreview").attr("src", e.target.result);
+            reader.readAsDataURL(file);
+        }
+        // previewLogo được gọi từ onchange="previewLogo(this)" trong HTML
+        // -> phải gán ra window vì HTML attribute chỉ tìm hàm ở global scope
+        window.previewLogo = previewLogo;
 
-        const file = input.files[0];
-        if (!file) return;
+        /* ================= ATTRIBUTES ================= */
+        let attrIndex = $("#attributeContainer .attribute-item").length;
 
-        const reader = new FileReader();
-        reader.onload = e => {
-            $("#logoPreview").attr("src", e.target.result);
-        };
-        reader.readAsDataURL(file);
-    }
+        $(document).off("click.categoryCreate", "#addAttributeBtn")
+                   .on("click.categoryCreate", "#addAttributeBtn", function () {
 
-    /* ================= ATTRIBUTES ================= */
+            if ($(".attribute-item").length >= 10) {
+                alert("Maximum 10 attributes are allowed.");
+                return;
+            }
 
-    let attrIndex = 0;
-
-    /* ADD */
-    $(document).on("click", "#addAttributeBtn", function () {
-
-        const html = `
+            const html = `
         <div class="input-group attribute-item">
-
             <input name="Attributes[${attrIndex}].AttributeName"
                    class="form-control attribute-input"
-                   placeholder="Attribute name" />
-
-            <button type="button"
-                    class="btn btn-danger removeAttr">X</button>
-
+                   placeholder="Attribute name"
+                   data-val="true"
+                   data-val-required="Category Attribute name is required"
+                   data-val-maxlength="Category Attribute name cannot exceed 200 characters"
+                   data-val-maxlength-max="200"
+                   data-val-regex="Category Attribute name cannot contain special characters"
+                   data-val-regex-pattern="^[a-zA-Z0-9\\s]+$" />
+            <button type="button" class="btn btn-danger removeAttr">X</button>
         </div>`;
 
-        $("#attributeContainer").append(html);
-
-        attrIndex++;
-
-        checkDuplicate();
-    });
-
-    /* REMOVE */
-    $(document).on("click", ".removeAttr", function () {
-
-        $(this).closest(".attribute-item").remove();
-
-        reIndexAttributes();
-
-        setTimeout(checkDuplicate, 0);
-    });
-
-    /* REINDEX */
-    function reIndexAttributes() {
-
-        $("#attributeContainer .attribute-item").each(function (index) {
-
-            $(this).find("input")
-                .attr("name", `Attributes[${index}].AttributeName`);
+            $("#attributeContainer").append(html);
+            $.validator.unobtrusive.parse("#attributeContainer");
+            attrIndex++;
+            checkDuplicate();
         });
 
-        attrIndex = $("#attributeContainer .attribute-item").length;
-    }
-
-    /* ================= DUPLICATE CHECK ================= */
-
-    function checkDuplicate() {
-
-        let map = {};
-        let isDuplicate = false;
-
-        $("#attributeError").empty();
-
-        $(".attribute-input").each(function () {
-
-            const val = $(this).val()?.trim().toLowerCase();
-
-            $(this).removeClass("is-invalid");
-
-            if (!val) return;
-
-            if (map[val]) {
-
-                isDuplicate = true;
-
-                $(this).addClass("is-invalid");
-                map[val].addClass("is-invalid");
-
-            } else {
-                map[val] = $(this);
-            }
+        $(document).off("click.categoryCreate", ".removeAttr")
+                   .on("click.categoryCreate", ".removeAttr", function () {
+            $(this).closest(".attribute-item").remove();
+            reIndexAttributes();
+            setTimeout(checkDuplicate, 0);
         });
 
-        if (isDuplicate) {
-            $("#attributeError").html(`
-                <div class="text-danger mb-2">
-                    Attributes must be unique
-                </div>
-            `);
+        function reIndexAttributes() {
+            $("#attributeContainer .attribute-item").each(function (index) {
+                $(this).find("input").attr("name", `Attributes[${index}].AttributeName`);
+            });
+            attrIndex = $("#attributeContainer .attribute-item").length;
         }
 
-        $("button[type='submit']").prop("disabled", isDuplicate);
+        function checkDuplicate() {
+            let map = {};
+            let isDuplicate = false;
+            $("#attributeError").empty();
 
-        return isDuplicate;
-    }
+            $(".attribute-input").each(function () {
+                const val = $(this).val()?.trim().toLowerCase();
+                $(this).removeClass("is-invalid");
+                if (!val) return;
 
-    /* realtime */
-    $(document).on("input", ".attribute-input", checkDuplicate);
+                if (map[val]) {
+                    isDuplicate = true;
+                    $(this).addClass("is-invalid");
+                    map[val].addClass("is-invalid");
+                } else {
+                    map[val] = $(this);
+                }
+            });
 
-    /* init */
-    $(document).ready(function () {
+            if (isDuplicate) {
+                $("#attributeError").html(`<div class="text-danger mb-2">Attributes must be unique</div>`);
+            }
+
+            $("button[type='submit']").prop("disabled", isDuplicate);
+            return isDuplicate;
+        }
+
+        $(document).off("input.categoryCreate", ".attribute-input")
+                   .on("input.categoryCreate", ".attribute-input", checkDuplicate);
+
         checkDuplicate();
-    });
 
+    })();
 </script>
