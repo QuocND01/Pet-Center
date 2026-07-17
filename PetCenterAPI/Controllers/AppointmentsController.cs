@@ -209,5 +209,30 @@ namespace PetCenterAPI.Controllers
                 });
             }
         }
+        [HttpPost("available-slots")]
+        public async Task<IActionResult> GetAvailableSlots(
+        [FromBody] GetAvailableSlotsRequestDTO request)
+        {
+            try
+            {
+                var result = await _appointmentService
+                    .GetAvailableSlotsAsync(request);
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Get available slots successfully.",
+                    Result = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }

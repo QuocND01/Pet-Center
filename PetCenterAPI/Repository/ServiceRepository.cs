@@ -147,5 +147,14 @@ namespace PetCenterAPI.Repository
                 throw;
             }
         }
+        public async Task<List<Models.Service>>
+    GetServicesByIdsAsync(
+        List<Guid> serviceIds)
+        {
+            return await _db.Services
+                .Where(x =>
+                    serviceIds.Contains(x.ServiceId))
+                .ToListAsync();
+        }
     }
 }

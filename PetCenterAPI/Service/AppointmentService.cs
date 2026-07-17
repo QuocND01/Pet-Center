@@ -13,15 +13,17 @@ namespace PetCenterAPI.Service
         private readonly IPetRepository _petRepo;
         private readonly IServiceRepository _serviceRepo;
         private readonly IMapper _mapper;
+        private readonly IScheduleRepository _scheduleRepo;
 
         public AppointmentService(
             IAppointmentRepository repository, IPetRepository petRepo, IServiceRepository serviceRepo,
-            IMapper mapper)
+            IMapper mapper, IScheduleRepository scheduleRepository)
         {   
             _repository = repository;
             _petRepo = petRepo;
             _serviceRepo = serviceRepo;
             _mapper = mapper;
+            _scheduleRepo = scheduleRepository;
         }
         public async Task<AppointmentResponseDTO> BookAppointmentAsync(
             BookAppointmentRequestDTO request)
@@ -342,6 +344,166 @@ namespace PetCenterAPI.Service
                 request.Feedback;
 
             await _repository.SaveChangesAsync();
+        }
+        public async Task<List<AvailableSlotResponseDTO>>
+    GetAvailableSlotsAsync(
+        GetAvailableSlotsRequestDTO request)
+        {
+            var services =
+                await _serviceRepo.GetServicesByIdsAsync(
+                    request.ServiceIds);
+
+            var duration =
+                services.Sum(x => x.Duration);
+
+            var appointments =
+                await _repository
+                    .GetDoctorAppointmentsByDateAsync(
+                        request.StaffId,
+                        request.Date);
+
+            var workTime =
+                await GetWorkTimeAsync(
+                    request.StaffId,
+                    request.Date);
+
+            return GenerateAvailableSlots(
+                workTime.Start,
+                workTime.End,
+                duration,
+                appointments);
+        }
+        //Priveate method to get work time
+        private List<AvailableSlotResponseDTO> GenerateAvailableSlots(
+            DateTime workStart,
+            DateTime workEnd,
+            int durationMinutes,
+            List<Appointment> appointments)
+        {
+            var result = new List<AvailableSlotResponseDTO>();
+
+            appointments = appointments
+                .OrderBy(x => x.AppointmentStart)
+                .ToList();
+
+            var current = workStart;
+
+            while (current.AddMinutes(durationMinutes) <= workEnd)
+            {
+                var slotEnd =
+                    current.AddMinutes(durationMinutes);
+
+                bool overlap =
+                    appointments.Any(a =>
+                        current < a.AppointmentEnd &&
+                        slotEnd > a.AppointmentStart);
+
+                if (!overlap)
+                {
+                    var previousAppointment = appointments
+                        .Where(x => x.AppointmentEnd <= current)
+                        .OrderByDescending(x => x.AppointmentEnd)
+                        .FirstOrDefault();
+
+                    var nextAppointment = appointments
+                        .Where(x => x.AppointmentStart >= slotEnd)
+                        .OrderBy(x => x.AppointmentStart)
+                        .FirstOrDefault();
+
+                    int gapBefore = previousAppointment == null
+                        ? 0
+                        : (int)(current - previousAppointment.AppointmentEnd)
+                            .TotalMinutes;
+
+                    int gapAfter = nextAppointment == null
+                        ? 0
+                        : (int)(nextAppointment.AppointmentStart - slotEnd)
+                            .TotalMinutes;
+                    int score = 0;
+                    if (gapBefore <= 15 || gapAfter <= 15)
+                    {
+                         score = 0;
+                    }
+                    else
+                    {
+                        score =
+                            Math.Min(gapBefore, gapAfter) * 1000
+                            + (gapBefore + gapAfter);
+                    }
+                    
+
+                    // Phạt slot đầu ngày hoặc cuối ngày
+                    if (previousAppointment == null ||
+                        nextAppointment == null)
+                    {
+                        score += 1000;
+                    }
+
+                    result.Add(new AvailableSlotResponseDTO
+                    {
+                        StartTime = current,
+                        EndTime = slotEnd,
+                        GapBeforeMinutes = gapBefore,
+                        GapAfterMinutes = gapAfter,
+                        Score = score
+                    });
+                }
+
+                current = current.AddMinutes(15);
+            }
+
+            var recommendedSlots = result
+                .OrderBy(x => x.Score)
+                .ThenBy(x => x.StartTime)
+                .Take(3)
+                .ToList();
+
+            for (int i = 0; i < recommendedSlots.Count; i++)
+            {
+                recommendedSlots[i].IsRecommended = true;
+                recommendedSlots[i].RecommendationRank = i + 1;
+            }
+
+            return result
+                .OrderBy(x => x.StartTime)
+                .ToList();
+        }
+        private async Task<(DateTime Start, DateTime End)> GetWorkTimeAsync(
+    Guid staffId,
+    DateOnly date)
+        {
+            var exception =
+                await _scheduleRepo.GetScheduleExceptionAsync(
+                    staffId,
+                    date);
+
+            if (exception != null)
+            {
+                if (!exception.IsWorking)
+                    throw new Exception("Doctor is unavailable.");
+
+                return (
+                    date.ToDateTime(exception.StartTime!.Value),
+                    date.ToDateTime(exception.EndTime!.Value)
+                );
+            }
+
+            var dayOfWeek = (byte)(
+                date.DayOfWeek == DayOfWeek.Sunday
+                    ? 7
+                    : (int)date.DayOfWeek);
+
+            var global =
+                await _scheduleRepo.GetGlobalWorkScheduleAsync(
+                    dayOfWeek);
+
+            if (global == null || !global.IsWorking)
+                throw new Exception("Doctor is unavailable.");
+
+            return (
+                date.ToDateTime(global.StartTime!.Value),
+                date.ToDateTime(global.EndTime!.Value)
+            );
         }
     }
 }
