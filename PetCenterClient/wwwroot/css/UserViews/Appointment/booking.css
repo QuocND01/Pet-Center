@@ -1,257 +1,483 @@
-﻿/* ===== PRODUCT GRID ===== */
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+﻿/* ==========================================
+   1. ĐỊNH NGHĨA BIẾN MÀU & ĐỒNG BỘ CHUẨN
+   ========================================== */
+:root {
+    --primary-green: #10b981; /* Emerald Green tươi như màu True/Success */
+    --primary-green-hover: #059669; /* Xanh lá đậm khi hover */
+    --light-green-bg: #f0fdf4; /* Nền xanh nhạt tạo điểm nhấn nhẹ */
+    --accent-light-green: #d1fae5; /* Màu viền hoặc nền phụ nhẹ */
+    --dark-theme: #1f2937; /* Màu chữ tiêu đề chính */
+    --text-muted: #6b7280; /* Màu chữ phụ, mô tả */
+    --border-color: #e5e7eb; /* Viền xám mờ tinh tế */
+    --bg-main: #f9fafb; /* Nền tổng thể trang đặt lịch */
+    --white: #ffffff;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 25px -5px rgba(16, 185, 129, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ===== PRODUCT CARD ===== */
-.product-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-    transition: all 0.2s ease;
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
-    .product-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+body {
+    background-color: var(--bg-main);
+    color: var(--dark-theme);
+}
+
+/* ==========================================
+   2. THANH TIẾN TRÌNH (STEPPER PROGRESS)
+   ========================================== */
+.stepper-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.stepper-wrapper {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    padding-top: 10px;
+}
+
+    /* Đường ray nền xám */
+    .stepper-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 32px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: var(--border-color);
+        z-index: 1;
+        border-radius: 2px;
     }
 
-/* ===== PRODUCT IMAGE ===== */
-.product-image {
-    width: 100%;
-    height: 150px;
-    background: #f5f5f5;
+/* Đường tiến trình chạy động */
+.step-progress-bar {
+    position: absolute;
+    top: 32px;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-green), #34d399);
+    z-index: 2;
+    transition: var(--transition-smooth);
+    border-radius: 2px;
+    width: 0%; /* Điều khiển tự động bằng JS */
+}
+
+.step-node {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.step-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--white);
+    border: 3px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-    .product-image img {
-        max-width: 80%;
-        max-height: 80%;
-        object-fit: contain;
-    }
-
-/* ===== PRODUCT INFO ===== */
-.product-info {
-    padding: 10px;
-}
-
-/* ===== TITLE ===== */
-.product-title {
+    color: var(--text-muted);
     font-size: 14px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-smooth);
+}
+
+.step-label {
+    margin-top: 8px;
+    font-size: 12px;
     font-weight: 600;
-    height: 36px;
-    overflow: hidden;
+    color: var(--text-muted);
+    transition: var(--transition-smooth);
 }
 
-/* ===== DESCRIPTION ===== */
-.product-info p {
-    font-size: 12px;
-    height: 30px;
-    overflow: hidden;
-    margin-bottom: 6px;
+/* Trạng thái Active của Stepper Node */
+.step-node.active .step-icon {
+    background-color: var(--white);
+    border-color: var(--primary-green);
+    color: var(--primary-green);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px var(--accent-light-green);
 }
 
-/* ===== PRICE ===== */
-.product-price {
-    font-size: 16px;
-    font-weight: 700;
-    color: #e63946;
+.step-node.active .step-label {
+    color: var(--primary-green);
 }
 
-/* ===== META ===== */
-.product-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+/* ==========================================
+   3. CẤU TRÚC ẨN HIỆN NỘI DUNG MULTI-STEP
+   ========================================== */
+.booking-step-content {
+    display: none;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
-/* ===== EXTRA ===== */
-.product-extra {
-    font-size: 12px;
+    .booking-step-content.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+
+/* ==========================================
+   4. HỆ THỐNG THẺ LỰA CHỌN HIỆN ĐẠI (CARDS GRID)
+   ========================================== */
+.modern-grid-select {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
 }
 
-/* ===== HERO BANNER ===== */
-.hero-banner {
+    .modern-grid-select.grid-services {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+/* Thẻ cơ bản */
+.modern-card {
     position: relative;
-    width: 100%;
-    height: 200px;
-    border-radius: 12px;
+    background-color: var(--white);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
     overflow: hidden;
-}
-
-/* Ảnh banner */
-.hero-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: block;
-}
-
-/* Nội dung banner */
-.hero-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    color: white;
-    z-index: 2;
-    max-width: 500px;
-}
-
-    /* Chữ trong banner */
-    .hero-content h1 {
-        font-size: 40px;
-        font-weight: 700;
-    }
-
-    .hero-content p {
-        font-size: 18px;
-        margin-bottom: 15px;
-    }
-
-/* ===== INTERACTION STATES ===== */
-.card-selectable {
     cursor: pointer;
-    border: 2px solid transparent;
-}
-
-    /* Trạng thái kích hoạt chọn 1 (Pet, Staff) */
-    .card-selectable.active-single {
-        border-color: #0d6efd !important;
-        background-color: #f0f7ff;
-    }
-
-    /* Trạng thái kích hoạt chọn nhiều (Service) */
-    .card-selectable.active-multi {
-        border-color: #e63946 !important;
-        background-color: #fff5f5;
-    }
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    border-bottom: 2px solid #f1f3f5;
-    padding-bottom: 8px;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
-
-    .product-image {
-        height: 130px;
-    }
-}
-/*=========*/
-/* ===== 2-COLUMN MAIN DASHBOARD ===== */
-.booking-dashboard {
-    display: grid;
-    grid-template-columns: 7fr 3fr; /* 7 phần cho Form, 3 phần cho Sidebar tổng hợp */
-    gap: 20px;
-    height: calc(100vh - 100px); /* Cố định chiều cao theo khung nhìn màn hình */
-    max-height: 700px;
-}
-
-.booking-main-form {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    overflow-y: auto; /* Chỉ cuộn nhẹ bên trong form nếu màn hình quá bé */
-}
-
-.booking-sidebar {
-    background: #f8f9fa;
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid #e9ecef;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-/* ===== CUSTOM OPTION SELECT (DROPDOWN COMPACT) ===== */
-.compact-select-box {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-}
-
-.compact-card {
-    border: 1px solid #dee2e6;
-    border-radius: 10px;
-    padding: 8px;
-    display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    text-align: center;
+    padding: 20px 12px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-smooth);
 }
 
-    .compact-card img {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
+    .modern-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-green);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Thẻ Dịch vụ đổi sang bố cục khối ảnh vuông vắn */
+    .modern-card.card-service {
+        padding: 0;
+        align-items: stretch;
+        text-align: left;
+    }
+
+/* Media chứa Avatar/Ảnh */
+.card-media {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 2px solid var(--border-color);
+    transition: var(--transition-smooth);
+}
+
+    .card-media img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
     }
 
-    .compact-card .info {
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 1.2;
-    }
+.service-media {
+    width: 100%;
+    height: 120px;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+}
 
-    .compact-card .sub-info {
-        font-size: 11px;
-        color: #6c757d;
-    }
-
-    .compact-card.active {
-        border-color: #0d6efd;
-        background-color: #f0f7ff;
-    }
-
-/* ===== SERVICE BADGES ON FORM ===== */
-.selected-services-preview {
+/* Text nội dung thẻ */
+.card-info {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    min-height: 40px;
-    padding: 8px;
-    border: 1px dashed #ced4da;
-    border-radius: 8px;
-    background: #fff;
+    flex-direction: column;
+    width: 100%;
 }
 
-/* ===== MODAL CUSTOM STYLES ===== */
-.modal-service-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 5px;
+.entity-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: var(--dark-theme);
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 992px) {
-    .booking-dashboard {
-        grid-template-columns: 1fr;
-        height: auto;
-        max-height: none;
+.entity-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.service-price {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--primary-green);
+}
+
+.service-duration {
+    font-size: 11px;
+    color: var(--text-muted);
+    background-color: var(--bg-main);
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+
+/* Nút Xem Chi Tiết (Select to View) */
+.btn-view-detail {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+    border-radius: 50%;
+    z-index: 5;
+    transition: var(--transition-smooth);
+}
+
+    .btn-view-detail:hover {
+        color: var(--primary-green);
+        transform: scale(1.15);
+        background-color: var(--light-green-bg);
     }
+
+/* Dấu tích khi thẻ được chọn */
+.select-indicator {
+    position: absolute;
+    bottom: -30px;
+    right: -30px;
+    width: 50px;
+    height: 50px;
+    background-color: var(--primary-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 8px;
+    padding-left: 8px;
+    color: var(--white);
+    font-size: 12px;
+    opacity: 0;
+    transition: var(--transition-smooth);
+    z-index: 4;
 }
+
+/* TRẠNG THÁI ACTIVE KHI THẺ ĐƯỢC CHỌN (SỬ DỤNG CLASS MỚI) */
+.modern-card.selected-active {
+    border-color: var(--primary-green);
+    background-color: var(--light-green-bg);
+    box-shadow: var(--shadow-lg);
+}
+
+    .modern-card.selected-active .card-media {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px var(--accent-light-green);
+    }
+
+    .modern-card.selected-active .select-indicator {
+        opacity: 1;
+        bottom: -20px;
+        right: -20px;
+    }
+
+
+/* ==========================================
+   5. KHU VỰC THỜI GIAN & CHỌN LỊCH TRỐNG (SLOTS)
+   ========================================== */
+.modern-date-picker {
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+    .modern-date-picker:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px var(--accent-light-green);
+    }
+
+.btn-search-slots {
+    background-color: var(--dark-theme);
+    color: var(--white);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: none;
+    transition: var(--transition-smooth);
+}
+
+    .btn-search-slots:hover {
+        background-color: #374151;
+        box-shadow: var(--shadow-md);
+    }
+
+/* Lưới hiển thị các ô giờ */
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.btn-slot {
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 12px;
+    text-align: center;
+    background-color: var(--white);
+    transition: var(--transition-smooth);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+}
+
+.modern-slot-outline {
+    border: 2px solid var(--border-color);
+    color: var(--dark-theme);
+}
+
+    .modern-slot-outline:hover {
+        border-color: var(--primary-green);
+        background-color: var(--light-green-bg);
+    }
+
+.modern-slot-recommended {
+    border: 2px dashed #f59e0b; /* Viền cam đứt nét nổi bật đề xuất */
+    background-color: #fffbeb;
+    color: #b45309;
+}
+
+    .modern-slot-recommended:hover {
+        background-color: #fef3c7;
+    }
+
+.slot-badge-star {
+    font-size: 10px;
+    background-color: #f59e0b;
+    color: var(--white);
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+/* Ô Slot được kích hoạt click chọn */
+.btn-slot.active {
+    background-color: var(--primary-green) !important;
+    border-color: var(--primary-green) !important;
+    color: var(--white) !important;
+    transform: scale(0.97);
+    box-shadow: var(--shadow-md);
+}
+
+    .btn-slot.active .slot-badge-star {
+        background-color: var(--white);
+        color: #f59e0b;
+    }
+
+.modern-textarea {
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+    .modern-textarea:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 3px var(--accent-light-green);
+    }
+
+
+/* ==========================================
+   6. NÚT ĐIỀU HƯỚNG FORM (BACK / NEXT)
+   ========================================== */
+.btn-control-prev {
+    background-color: var(--white);
+    border: 2px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 10px;
+    transition: var(--transition-smooth);
+}
+
+    .btn-control-prev:hover {
+        background-color: var(--bg-main);
+        color: var(--dark-theme);
+    }
+
+.btn-control-next {
+    background-color: var(--primary-green);
+    border: none;
+    color: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-smooth);
+}
+
+    .btn-control-next:hover {
+        background-color: var(--primary-green-hover);
+        box-shadow: var(--shadow-md);
+        transform: translateX(2px);
+    }
+
+
+/* ==========================================
+   7. THANH SIDEBAR TỔNG HỢP HÓA ĐƠN (SUMMARY)
+   ========================================== */
+.booking-sidebar {
+    border: 1px solid var(--border-color);
+}
+
+.summary-node {
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+    .summary-node:last-of-type {
+        border-bottom: none;
+    }
+
+.placeholder-dash {
+    font-size: 14px;
+}
+
+.price-summary-box {
+    background-color: var(--light-green-bg);
+    border: 1px solid var(--accent-light-green);
+}
+
+.btn-confirm-booking {
+    background-color: var(--primary-green);
+    border: none;
+    color: var(--white);
+    border-radius: 12px;
+    padding: 14px;
+    transition: var(--transition-smooth);
+}
+
+    .btn-confirm-booking:hover:not([disabled]) {
+        background-color: var(--primary-green-hover);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-confirm-booking:disabled {
+        background-color: var(--border-color);
+        color: var(--text-muted);
+        cursor: not-allowed;
+        box-shadow: none;
+    }

@@ -220,17 +220,17 @@ namespace PetCenterAPI.Controllers
 
                 return Ok(new
                 {
-                    Success = true,
-                    Message = "Get available slots successfully.",
-                    Result = result
+                    status = true,
+                    message = "Get available slots successfully.",
+                    data = result
                 });
             }
             catch (Exception ex)
             {
                 return BadRequest(new
                 {
-                    Success = false,
-                    Message = ex.Message
+                    status = false,
+                    message = ex.Message
                 });
             }
         }

@@ -97,5 +97,34 @@ namespace PetCenterClient.Services
 
             return result.Data;
         }
+        public async Task<List<AvailableSlotViewModel>> GetAvailableSlotsAsync(
+    Guid staffId,
+    DateOnly date,
+    List<Guid> serviceIds)
+        {
+            AddAuthorizationHeader();
+
+            var request = new
+            {
+                StaffId = staffId,
+                Date = date,
+                ServiceIds = serviceIds
+            };
+
+            var response = await _http.PostAsJsonAsync(
+                "api/Appointment/available-slots",
+                request);
+
+            var result = await response.Content
+                .ReadFromJsonAsync<ApiResponseViewModel<List<AvailableSlotViewModel>>>();
+
+            if (result == null)
+                throw new Exception("Cannot load available slots.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
+
+            return result.Data ?? [];
+        }
     }
 }

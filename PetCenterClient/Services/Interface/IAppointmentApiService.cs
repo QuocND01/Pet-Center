@@ -8,5 +8,9 @@ namespace PetCenterClient.Services.Interface
             BookAppointmentViewModel request);
 
         Task<BookingPageViewModel?> GetBookingDataAsync();
+        Task<List<AvailableSlotViewModel>> GetAvailableSlotsAsync(
+    Guid doctorId,
+    DateOnly date,
+    List<Guid> serviceIds);
     }
 }

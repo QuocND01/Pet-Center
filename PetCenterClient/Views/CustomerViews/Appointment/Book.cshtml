@@ -1,198 +1,429 @@
 ﻿@model PetCenterClient.ViewModels.Appointment.BookingPageViewModel
 
 @{
-    ViewData["Title"] = "Express Booking";
+    ViewData["Title"] = "Modern Booking Experience";
 }
 
-<link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" />
+<!-- Liên kết CSS & Icon -->
+<link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" asp-append-version="true"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
-<div class="container my-3">
-    <div class="booking-dashboard">
-
-        <form asp-action="Book" method="post" id="bookingForm" class="booking-main-form">
-            @Html.AntiForgeryToken()
-            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold text-secondary small"><i class="fas fa-paw me-1"></i> 1. Select Pet</label>
-                <div class="compact-select-box">
-                    @foreach (var pet in Model.Pets)
-                    {
-                        <div class="compact-card card-pet" data-id="@pet.PetId">
-                            <img src="@(string.IsNullOrEmpty(pet.PetAvatar) ? "https://placehold.co/50x50?text=Pet" : pet.PetAvatar)" alt="@pet.PetName" />
-                            <div class="info">
-                                @pet.PetName
-                                <div class="sub-info">@pet.Species</div>
-                            </div>
-                        </div>
-                    }
+<div class="booking-wrapper py-5" data-bs-theme="light">
+    <div class="container">
+        
+        <!-- THANH TIẾN TRÌNH (STEPPER) -->
+        <div class="stepper-container mb-5">
+            <div class="stepper-wrapper">
+                <div class="step-progress-bar" id="stepProgressBar"></div>
+                <div class="step-node active" data-step="1">
+                    <div class="step-icon"><i class="fas fa-paw"></i></div>
+                    <span class="step-label">Pet</span>
                 </div>
-                <input type="hidden" asp-for="PetId" id="selectedPetId" />
-                <span asp-validation-for="PetId" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold text-secondary small"><i class="fas fa-user-md me-1"></i> 2. Choose Doctor</label>
-                <div class="compact-select-box">
-                    @foreach (var staff in Model.Staffs)
-                    {
-                        <div class="compact-card card-staff" data-id="@staff.StaffId">
-                            <img src="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/50x50?text=Vet" : staff.Avatar)" alt="@staff.FullName" />
-                            <div class="info">
-                                Dr. @staff.FullName
-                                <div class="sub-info">@staff.ExperienceYears Yrs Exp</div>
-                            </div>
-                        </div>
-                    }
+                <div class="step-node" data-step="2">
+                    <div class="step-icon"><i class="fas fa-user-md"></i></div>
+                    <span class="step-label">Doctor</span>
                 </div>
-                <input type="hidden" asp-for="StaffId" id="selectedStaffId" />
-                <span asp-validation-for="StaffId" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label fw-bold text-secondary small m-0"><i class="fas fa-concierge-bell me-1"></i> 3. Care Services</label>
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#serviceModal">
-                        <i class="fas fa-plus me-1"></i> Add Services
-                    </button>
+                <div class="step-node" data-step="3">
+                    <div class="step-icon"><i class="fas fa-concierge-bell"></i></div>
+                    <span class="step-label">Services</span>
                 </div>
-                <div class="selected-services-preview" id="servicesPreview">
-                    <span class="text-muted small m-auto" id="noServiceText">No services selected yet</span>
-                </div>
-                <span asp-validation-for="ServiceIds" class="text-danger small"></span>
-            </div>
-
-            <div class="row">
-                <div class="col-sm-6 mb-2">
-                    <label class="form-label fw-bold text-secondary small"><i class="far fa-calendar-alt me-1"></i> 4. Date & Time</label>
-                    <input asp-for="AppointmentStart" type="datetime-local" value="@Model.AppointmentStart.ToString("yyyy-MM-ddTHH:mm")" class="form-control form-control-sm" />
-                    <span asp-validation-for="AppointmentStart" class="text-danger small"></span>
-                </div>
-                <div class="col-sm-6 mb-2">
-                    <label class="form-label fw-bold text-secondary small"><i class="far fa-comment-alt me-1"></i> 5. Note</label>
-                    <textarea asp-for="Note" class="form-control form-control-sm" rows="1" placeholder="Special requests..."></textarea>
+                <div class="step-node" data-step="4">
+                    <div class="step-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <span class="step-label">Time Slot</span>
                 </div>
             </div>
-        </form>
-
-        <div class="booking-sidebar">
-            <div>
-                <h4 class="fw-bold mb-4 text-center pb-2 border-bottom"><i class="fas fa-receipt me-1 text-danger"></i> Summary</h4>
-                <div class="mb-3 small">
-                    <div class="text-muted">Selected Pet:</div>
-                    <div id="summaryPet" class="fw-bold text-dark">-</div>
-                </div>
-                <div class="mb-3 small">
-                    <div class="text-muted">Assigned Doctor:</div>
-                    <div id="summaryStaff" class="fw-bold text-dark">-</div>
-                </div>
-                <div class="mb-3 small">
-                    <div class="text-muted">Total Duration:</div>
-                    <div id="summaryDuration" class="fw-bold text-dark">0 Minutes</div>
-                </div>
-                <hr />
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <span class="fw-bold text-muted">Total Price:</span>
-                    <span class="fs-4 fw-bold text-danger" id="summaryPrice">0 VNĐ</span>
-                </div>
-            </div>
-
-            <button type="button" class="btn btn-danger btn-lg w-100 fw-bold rounded-pill shadow-sm mt-4" onclick="document.getElementById('bookingForm').submit();">
-                <i class="fas fa-check-circle me-1"></i> BOOK NOW
-            </button>
         </div>
 
-    </div>
-</div>
+        <div class="row g-4">
+            <!-- CỘT TRÁI: KHU VỰC ĐIỀU HƯỚNG CÁC BƯỚC FORM -->
+            <div class="col-lg-8">
+                <form asp-action="Book" method="post" id="bookingForm" class="booking-multistep-form bg-white p-4 rounded-4 shadow-sm">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
-<div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" style="border-radius:16px;">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="serviceModalLabel"><i class="fas fa-hand-holding-medical text-primary me-2"></i>Select Services</h5>
-                <button type="button" class="btn-close" data-bs-shadow="none" data-bs-content="modal" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-service-grid">
-                    @foreach (var service in Model.Services)
-                    {
-                        <div class="product-card card-selectable-service" data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration">
-                            <div class="product-image" style="height:100px;">
-                                <img src="@(service.ServiceImages.Any() ? service.ServiceImages.First() : "https://placehold.co/150x100?text=Service")" alt="@service.ServiceName" style="width:100%; height:100%; object-fit:cover;" />
+                    <!-- BƯỚC 1: CHỌN VÀ XEM THÚ CƯNG -->
+                    <div class="booking-step-content active" data-step-content="1">
+                        <div class="step-header mb-4">
+                            <h4 class="fw-bold text-dark m-0">Select Your Pet</h4>
+                            <p class="text-muted small m-0">Which furry friend are we taking care of today?</p>
+                        </div>
+                        
+                        <div class="modern-grid-select">
+                            @foreach (var pet in Model.Pets)
+                            {
+                                <div class="modern-card card-selectable card-pet" data-id="@pet.PetId" data-name="@pet.PetName" data-species="@pet.Species" data-breed="@pet.Breed" data-gender="@pet.Gender" data-weight="@pet.Weight" data-avatar="@(string.IsNullOrEmpty(pet.PetAvatar) ? "https://placehold.co/100x100?text=Pet" : pet.PetAvatar)">
+                                    <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
+                                    <div class="card-media">
+                                        <img src="@(string.IsNullOrEmpty(pet.PetAvatar) ? "https://placehold.co/100x100?text=Pet" : pet.PetAvatar)" alt="@pet.PetName" />
+                                    </div>
+                                    <div class="card-info">
+                                        <h5 class="entity-title">@pet.PetName</h5>
+                                        <span class="entity-subtitle">@pet.Species @(!string.IsNullOrEmpty(pet.Breed) ? $"• {pet.Breed}" : "")</span>
+                                    </div>
+                                    <div class="select-indicator"><i class="fas fa-check-circle"></i></div>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" asp-for="PetId" id="selectedPetId" />
+                        <span asp-validation-for="PetId" class="text-danger small d-block mt-2"></span>
+                    </div>
+
+                    <!-- BƯỚC 2: CHỌN VÀ XEM BÁC SĨ -->
+                    <div class="booking-step-content" data-step-content="2">
+                        <div class="step-header mb-4">
+                            <h4 class="fw-bold text-dark m-0">Choose Veterinary Doctor</h4>
+                            <p class="text-muted small m-0">Select a trusted specialist or let us assign the best one.</p>
+                        </div>
+
+                        <div class="modern-grid-select">
+                            @foreach (var staff in Model.Staffs)
+                            {
+                                <div class="modern-card card-selectable card-staff" data-id="@staff.StaffId" data-name="Dr. @staff.FullName" data-exp="@staff.ExperienceYears" data-email="@staff.Email" data-phone="@staff.PhoneNumber" data-license="@staff.LicenseNumber" data-desc="@staff.Description" data-avatar="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Vet" : staff.Avatar)">
+                                    <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
+                                    <div class="card-media">
+                                        <img src="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Vet" : staff.Avatar)" alt="@staff.FullName" />
+                                    </div>
+                                    <div class="card-info">
+                                        <h5 class="entity-title">Dr. @staff.FullName</h5>
+                                        <span class="entity-subtitle"><i class="fas fa-star text-warning me-1"></i> @staff.ExperienceYears Yrs Experience</span>
+                                    </div>
+                                    <div class="select-indicator"><i class="fas fa-check-circle"></i></div>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" asp-for="StaffId" id="selectedStaffId" />
+                        <span asp-validation-for="StaffId" class="text-danger small d-block mt-2"></span>
+                    </div>
+
+                    <!-- BƯỚC 3: CHỌN VÀ XEM DỊCH VỤ -->
+                    <div class="booking-step-content" data-step-content="3">
+                        <div class="step-header mb-4">
+                            <h4 class="fw-bold text-dark m-0">Care Services</h4>
+                            <p class="text-muted small m-0">You can select multiple specialized services for this visit.</p>
+                        </div>
+
+                        <div class="modern-grid-select grid-services">
+                            @foreach (var service in Model.Services)
+                            {
+                                <div class="modern-card card-selectable card-service" data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration" data-images="@string.Join(",", service.ServiceImages)">
+                                    <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
+                                    <div class="card-media service-media">
+                                        <img src="@(service.ServiceImages.Any() ? service.ServiceImages.First() : "https://placehold.co/150x100?text=Service")" alt="@service.ServiceName" />
+                                    </div>
+                                    <div class="card-info p-3">
+                                        <h5 class="entity-title mb-2">@service.ServiceName</h5>
+                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                            <span class="service-price">@service.Price.ToString("N0")<small>đ</small></span>
+                                            <span class="service-duration"><i class="far fa-clock me-1"></i>@service.Duration m</span>
+                                        </div>
+                                    </div>
+                                    <div class="select-indicator"><i class="fas fa-check-circle"></i></div>
+                                    <input type="checkbox" name="ServiceIds" value="@service.ServiceId" class="d-none service-checkbox-input" id="chk-@service.ServiceId" />
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="ServiceIds" class="text-danger small d-block mt-2"></span>
+                    </div>
+
+                    <!-- BƯỚC 4: CHỌN THỜI GIAN & SLOT LỊCH -->
+                    <div class="booking-step-content" data-step-content="4">
+                        <div class="step-header mb-4">
+                            <h4 class="fw-bold text-dark m-0">Appointment Schedule</h4>
+                            <p class="text-muted small m-0">Pick your preferred date and find an available time slot.</p>
+                        </div>
+
+                        <div class="row g-3 align-items-end mb-4">
+                            <div class="col-sm-8">
+                                <label class="form-label fw-bold text-secondary small mb-2"><i class="fas fa-calendar-alt me-2"></i>Select Date</label>
+                                <input type="date" id="AppointmentDate" class="form-control modern-date-picker" min="@(DateTime.Today.ToString("yyyy-MM-dd"))" />
                             </div>
-                            <div class="product-info p-2">
-                                <div class="product-title" style="font-size:12px; height:28px; line-height:1.2;">@service.ServiceName</div>
-                                <div class="d-flex justify-content-between align-items-center mt-1">
-                                    <span class="product-price" style="font-size:13px;">@service.Price.ToString("N0") <small style="font-size:8px;">đ</small></span>
-                                    <span class="text-muted" style="font-size:10px;"><i class="far fa-clock"></i> @service.Duration m</span>
+                            <div class="col-sm-4">
+                                <button type="button" id="btnLoadSlots" class="btn btn-search-slots w-100 fw-bold">
+                                    <i class="fas fa-search me-2"></i>Find Slots
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="slots-section">
+                            <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-clock me-2"></i>Available Time Slots</label>
+                            
+                            <div id="slotLoading" class="text-center py-4" style="display:none;">
+                                <div class="spinner-border text-success" role="status"></div>
+                                <p class="text-muted small mt-2">Searching for best available slots...</p>
+                            </div>
+
+                            <div id="slotContainer" class="slots-grid">
+                                <div class="empty-slot-state text-center py-4 border rounded-3 bg-light">
+                                    <i class="fas fa-calendar-day text-muted fs-3 mb-2"></i>
+                                    <p class="text-muted small m-0">Please set a date above and click "Find Slots".</p>
                                 </div>
                             </div>
-                            <input type="checkbox" name="ServiceIds" value="@service.ServiceId" class="d-none form-check-service-input" form="bookingForm" id="chk-@service.ServiceId" />
                         </div>
-                    }
+
+                        <div class="mt-4">
+                            <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-comment-alt me-2"></i>Notes for the Doctor (Optional)</label>
+                            <textarea asp-for="Note" class="form-control modern-textarea" rows="3" placeholder="Describe any symptoms or requirements here..."></textarea>
+                        </div>
+
+                        <input type="hidden" id="SelectedStartTime" name="AppointmentStart" />             
+                    </div>
+
+                    <!-- THANH ĐIỀU HƯỚNG CONTROL BUTTONS -->
+                    <div class="form-actions-wrapper d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-control-prev px-4 py-2 fw-bold" id="btnPrevStep" style="display: none;">
+                            <i class="fas fa-chevron-left me-2"></i> Back
+                        </button>
+                        <button type="button" class="btn btn-control-next px-4 py-2 fw-bold ms-auto" id="btnNextStep">
+                            Next Step <i class="fas fa-chevron-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CỘT PHẢI: SIDEBAR TỔNG HỢP (SUMMARY) -->
+            <div class="col-lg-4">
+                <div class="booking-sidebar bg-white p-4 rounded-4 shadow-sm sticky-top" style="top: 24px; z-index: 10;">
+                    <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom"><i class="fas fa-receipt text-success me-2"></i>Booking Summary</h5>
+
+                    <div class="summary-details">
+                        <div class="summary-node mb-3">
+                            <span class="label text-muted small d-block mb-1">Pet Patient</span>
+                            <div id="summaryPet" class="value fw-bold text-dark d-flex align-items-center gap-2">
+                                <span class="placeholder-dash text-muted">—</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-node mb-3">
+                            <span class="label text-muted small d-block mb-1">Selected Doctor</span>
+                            <div id="summaryStaff" class="value fw-bold text-dark d-flex align-items-center gap-2">
+                                <span class="placeholder-dash text-muted">—</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-node mb-3">
+                            <span class="label text-muted small d-block mb-1">Selected Services</span>
+                            <div id="summaryServicesList" class="d-flex flex-wrap gap-2 py-1">
+                                <span class="placeholder-dash text-muted small">—</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-node mb-4">
+                            <span class="label text-muted small d-block mb-1">Schedule & Duration</span>
+                            <div id="summarySchedule" class="value text-dark small fw-bold mb-1" style="display:none;"></div>
+                            <div id="summaryDuration" class="value fw-bold text-dark small">
+                                <i class="far fa-clock text-secondary me-1"></i> Total time: 0 minutes
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="price-summary-box p-3 rounded-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-secondary">Total Price</span>
+                            <span class="fs-4 fw-black text-success" id="summaryPrice">0 đ</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-confirm-booking btn-lg w-100 fw-bold shadow" id="btnSubmitBooking" disabled>
+                        CONFIRM & BOOK <i class="fas fa-check-circle ms-2"></i>
+                    </button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Apply Selected</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL CHUNG CHO TÍNH NĂNG "SELECT TO VIEW" (XEM CHI TIẾT ENTITY) -->
+<div class="modal fade" id="detailViewerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold text-dark" id="detailModalTitle">Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="detailModalBody">
+                <!-- Nội dung chi tiết được render động qua JS -->
             </div>
         </div>
     </div>
 </div>
 
+<!-- CORE LOGIC SCRIPTS -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        let currentStep = 1;
+        const totalSteps = 4;
+        let totalDuration = 0;
 
-        // 1. Logic Chọn Thú Cưng (Single Select)
+        // --- HỆ THỐNG ĐIỀU HƯỚNG MULTI-STEP ---
+        function updateStepperUI() {
+            // Cập nhật các node bước trên thanh tiến trình
+            document.querySelectorAll('.step-node').forEach(node => {
+                const stepNum = parseInt(node.getAttribute('data-step'));
+                if (stepNum <= currentStep) {
+                    node.classList.add('active');
+                } else {
+                    node.classList.remove('active');
+                }
+            });
+
+            // Cập nhật thanh line tiến trình chạy ngang
+            const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            const progressBar = document.getElementById('stepProgressBar');
+            if(progressBar) progressBar.style.width = `${progressPercent}%`;
+
+            // Cập nhật content ẩn hiện của từng bước
+            document.querySelectorAll('.booking-step-content').forEach(content => {
+                if (parseInt(content.getAttribute('data-step-content')) === currentStep) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // Điều khiển các nút điều hướng
+            document.getElementById('btnPrevStep').style.display = currentStep === 1 ? 'none' : 'block';
+            
+            if (currentStep === totalSteps) {
+                document.getElementById('btnNextStep').style.display = 'none';
+            } else {
+                document.getElementById('btnNextStep').style.display = 'block';
+            }
+        }
+
+        document.getElementById('btnNextStep').addEventListener('click', function() {
+            if (currentStep < totalSteps) {
+                // Kiểm tra validation logic cơ bản trước khi qua bước tiếp theo
+                if (currentStep === 1 && !document.getElementById('selectedPetId').value) {
+                    alert("Please select a pet before moving forward."); return;
+                }
+                if (currentStep === 2 && !document.getElementById('selectedStaffId').value) {
+                    alert("Please select a doctor before moving forward."); return;
+                }
+                if (currentStep === 3 && totalDuration === 0) {
+                    alert("Please select at least one service before moving forward."); return;
+                }
+                currentStep++;
+                updateStepperUI();
+            }
+        });
+
+        document.getElementById('btnPrevStep').addEventListener('click', function() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepperUI();
+            }
+        });
+
+
+        // --- LOGIC XEM CHI TIẾT (SELECT TO VIEW) ---
+        const detailModal = new bootstrap.Modal(document.getElementById('detailViewerModal'));
+        const modalTitle = document.getElementById('detailModalTitle');
+        const modalBody = document.getElementById('detailModalBody');
+
+        document.querySelectorAll('.btn-view-detail').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Không kích hoạt hành động chọn thẻ cha
+                const card = this.closest('.modern-card');
+                
+                if (card.classList.contains('card-pet')) {
+                    modalTitle.innerText = "Pet Information";
+                    modalBody.innerHTML = `
+                        <div class="text-center mb-3">
+                            <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
+                            <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
+                            <span class="badge bg-success-subtle text-success">${card.dataset.species}</span>
+                        </div>
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item d-flex justify-content-between"><span>Breed:</span> <strong class="text-dark">${card.dataset.breed || 'N/A'}</strong></li>
+                            <li class="list-group-item d-flex justify-content-between"><span>Gender:</span> <strong class="text-dark">${card.dataset.gender || 'N/A'}</strong></li>
+                            <li class="list-group-item d-flex justify-content-between"><span>Weight:</span> <strong class="text-dark">${card.dataset.weight ? card.dataset.weight + ' kg' : 'N/A'}</strong></li>
+                        </ul>`;
+                } 
+                else if (card.classList.contains('card-staff')) {
+                    modalTitle.innerText = "Doctor Profile";
+                    modalBody.innerHTML = `
+                        <div class="text-center mb-3">
+                            <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
+                            <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
+                            <span class="text-muted small">License: ${card.dataset.license || 'N/A'}</span>
+                        </div>
+                        <p class="text-muted small text-center px-2 mb-3">"${card.dataset.desc || 'No description provided.'}"</p>
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item d-flex justify-content-between"><span>Experience:</span> <strong class="text-dark">${card.dataset.exp} Years</strong></li>
+                            <li class="list-group-item d-flex justify-content-between"><span>Email:</span> <strong class="text-dark">${card.dataset.email}</strong></li>
+                            <li class="list-group-item d-flex justify-content-between"><span>Hotline:</span> <strong class="text-dark">${card.dataset.phone}</strong></li>
+                        </ul>`;
+                } 
+                else if (card.classList.contains('card-service')) {
+                    modalTitle.innerText = "Service Information";
+                    modalBody.innerHTML = `
+                        <h4 class="fw-bold text-dark mb-2">${card.dataset.name}</h4>
+                        <div class="d-flex gap-3 mb-3 small">
+                            <span><i class="fas fa-tags text-success me-1"></i> Price: <strong class="text-dark">${parseFloat(card.dataset.price).toLocaleString('vi-VN')} đ</strong></span>
+                            <span><i class="far fa-clock text-success me-1"></i> Duration: <strong class="text-dark">${card.dataset.duration} mins</strong></span>
+                        </div>
+                        <p class="text-muted small">Professional healthcare service optimized for your pet comfort and medical requirements.</p>`;
+                }
+                detailModal.show();
+            });
+        });
+
+
+        // --- LOGIC CHỌN THÚ CƯNG (SINGLE SELECT) ---
         document.querySelectorAll('.card-pet').forEach(card => {
             card.addEventListener('click', function() {
-                document.querySelectorAll('.card-pet').forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
+                document.querySelectorAll('.card-pet').forEach(c => c.classList.remove('selected-active'));
+                this.classList.add('selected-active');
                 document.getElementById('selectedPetId').value = this.getAttribute('data-id');
-                document.getElementById('summaryPet').innerText = this.querySelector('.info').childNodes[0].textContent.trim();
+                
+                document.getElementById('summaryPet').innerHTML = `
+                    <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
+                    <span>${this.dataset.name} <small class="text-muted">(${this.dataset.species})</small></span>`;
             });
         });
 
-        // 2. Logic Chọn Bác Sĩ (Single Select)
+
+        // --- LOGIC CHỌN BÁC SĨ (SINGLE SELECT) ---
         document.querySelectorAll('.card-staff').forEach(card => {
             card.addEventListener('click', function() {
-                document.querySelectorAll('.card-staff').forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
+                document.querySelectorAll('.card-staff').forEach(c => c.classList.remove('selected-active'));
+                this.classList.add('selected-active');
                 document.getElementById('selectedStaffId').value = this.getAttribute('data-id');
-                document.getElementById('summaryStaff').innerText = this.querySelector('.info').childNodes[0].textContent.trim();
+                
+                document.getElementById('summaryStaff').innerHTML = `
+                    <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
+                    <span>${this.dataset.name}</span>`;
             });
         });
 
-        // 3. Logic Chọn Dịch Vụ Trong Popup Modal (Multi Select)
-        const serviceCards = document.querySelectorAll('.card-selectable-service');
+
+        // --- LOGIC CHỌN DỊCH VỤ (MULTI SELECT) ---
+        const serviceCards = document.querySelectorAll('.card-service');
         serviceCards.forEach(card => {
             card.addEventListener('click', function() {
-                const chk = this.querySelector('.form-check-service-input');
+                const chk = this.querySelector('.service-checkbox-input');
                 chk.checked = !chk.checked;
 
                 if(chk.checked) {
-                    this.classList.add('active-multi');
+                    this.classList.add('selected-active');
                 } else {
-                    this.classList.remove('active-multi');
+                    this.classList.remove('selected-active');
                 }
                 updateServicesSummary();
             });
         });
 
-        // Hàm tính toán tiền bạc, thời gian và render nhãn Badge ra Form chính
         function updateServicesSummary() {
-            const previewContainer = document.getElementById('servicesPreview');
-            const noServiceText = document.getElementById('noServiceText');
-
-            // Xóa các nhãn cũ
-            document.querySelectorAll('.service-badge').forEach(b => b.remove());
+            const listContainer = document.getElementById('summaryServicesList');
+            listContainer.innerHTML = '';
 
             let totalPrice = 0;
-            let totalDuration = 0;
+            totalDuration = 0; 
             let hasService = false;
 
             serviceCards.forEach(card => {
-                const chk = card.querySelector('.form-check-service-input');
+                const chk = card.querySelector('.service-checkbox-input');
                 if(chk.checked) {
                     hasService = true;
                     const name = card.getAttribute('data-name');
@@ -202,26 +433,23 @@
                     totalPrice += price;
                     totalDuration += duration;
 
-                    // Tạo thẻ badge nhỏ hiển thị ngoài form chính
                     const badge = document.createElement('span');
-                    badge.className = 'badge bg-danger p-2 service-badge';
-                    badge.innerHTML = `<i class="fas fa-check me-1"></i> ${name}`;
-                    previewContainer.appendChild(badge);
+                    badge.className = 'badge bg-light text-dark border p-2 shadow-sm';
+                    badge.innerHTML = `<i class="fas fa-check text-success me-1"></i> ${name}`;
+                    listContainer.appendChild(badge);
                 }
             });
 
-            if(hasService) {
-                noServiceText.style.display = 'none';
-            } else {
-                noServiceText.style.display = 'block';
+            if(!hasService) {
+                listContainer.innerHTML = '<span class="placeholder-dash text-muted small">—</span>';
             }
 
-            // Cập nhật lên Sidebar
-            document.getElementById('summaryDuration').innerText = `${totalDuration} Minutes`;
-            document.getElementById('summaryPrice').innerText = `${totalPrice.toLocaleString('vi-VN')} VNĐ`;
+            document.getElementById('summaryDuration').innerHTML = `<i class="far fa-clock text-secondary me-1"></i> Total time: ${totalDuration} minutes`;
+            document.getElementById('summaryPrice').innerText = `${totalPrice.toLocaleString('vi-VN')} đ`;
         }
 
-        // Tự động kiểm tra trạng thái cũ khi nạp lại trang do lỗi Validation
+
+        // --- TÁI TẠO TRẠNG THÁI KHI SỰ KIỆN VALIDATION LỖI ---
         const initOldState = () => {
             const oldPet = document.getElementById('selectedPetId').value;
             if(oldPet) document.querySelector(`.card-pet[data-id="${oldPet}"]`)?.click();
@@ -232,5 +460,101 @@
             updateServicesSummary();
         };
         initOldState();
+
+
+        // --- THIẾT LẬP GỌI API LẤY TIME SLOTS ---
+        const btnLoadSlots = document.getElementById("btnLoadSlots");
+        if (btnLoadSlots) {
+            btnLoadSlots.addEventListener("click", loadSlots);
+        }
+
+        async function loadSlots() {
+            const doctorId = document.getElementById("selectedStaffId").value;
+            const date = document.getElementById("AppointmentDate").value;
+
+            if (!doctorId) { alert("Please go back and select a doctor."); return; }
+            if (totalDuration === 0) { alert("Please go back and select services."); return; }
+            if (!date) { alert("Please choose an appointment date."); return; }
+
+            const loadingElem = document.getElementById("slotLoading");
+            const container = document.getElementById("slotContainer");
+
+            loadingElem.style.display = "block";
+            container.innerHTML = "";
+
+            const serviceIds = [];
+            document.querySelectorAll(".service-checkbox-input:checked").forEach(x => serviceIds.push(x.value));
+
+            try {
+                const response = await fetch("/Appointment/GetAvailableSlots", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        staffId: doctorId,
+                        date: date,
+                        serviceIds: serviceIds
+                    })
+                });
+
+                const result = await response.json();
+                loadingElem.style.display = "none";
+
+                if (result.status && result.data) {
+                    renderSlots(result.data);
+                } else {
+                    container.innerHTML = `<div class="alert alert-danger w-100 small m-0"><i class="fas fa-exclamation-triangle me-2"></i>${result.message || 'Error parsing slot schedules.'}</div>`;
+                }
+            } catch (error) {
+                loadingElem.style.display = "none";
+                container.innerHTML = `<div class="alert alert-danger w-100 small m-0"><i class="fas fa-wifi-slash me-2"></i>Network breakdown or server error.</div>`;
+            }
+        }
+
+        function renderSlots(slots) {
+            const container = document.getElementById("slotContainer");
+            container.innerHTML = "";
+
+            if (!slots || slots.length === 0) {
+                container.innerHTML = `<div class="alert alert-warning w-100 small m-0 text-center"><i class="fas fa-calendar-times me-2"></i>Fully booked or no matching hours on this day.</div>`;
+                return;
+            }
+
+            slots.forEach(slot => {
+                const start = new Date(slot.startTime);
+                const end = new Date(slot.endTime);
+
+                const formatOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+                const timeText = start.toLocaleTimeString([], formatOptions) + " - " + end.toLocaleTimeString([], formatOptions);
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = slot.isRecommended ? "btn btn-slot modern-slot-recommended" : "btn btn-slot modern-slot-outline";
+
+                let badge = slot.recommendationRank ? ` <span class="slot-badge-star">⭐ #${slot.recommendationRank}</span>` : "";
+                btn.innerHTML = `<div><i class="far fa-clock me-1 small"></i> ${timeText}</div>` + badge;
+
+                btn.onclick = () => {
+                    document.querySelectorAll("#slotContainer .btn-slot").forEach(x => x.classList.remove("active"));
+                    btn.classList.add("active");
+                    document.getElementById("SelectedStartTime").value = slot.startTime;
+                    
+                    // Điền thời gian vào thanh Sidebar Summary & mở khóa submit (Sử dụng @@ để thoát ký tự cho Razor)
+                    const summarySchedule = document.getElementById('summarySchedule');
+                    summarySchedule.style.display = "block";
+                    summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} @@ ${timeText.split('-')[0]}`;
+                    
+                    document.getElementById('btnSubmitBooking').removeAttribute('disabled');
+                };
+
+                container.appendChild(btn);
+            });
+        }
+
+        // Ủy quyền hành động Submit từ Sidebar sang Form gốc
+        document.getElementById('btnSubmitBooking').addEventListener('click', function() {
+            if(document.getElementById("SelectedStartTime").value) {
+                document.getElementById('bookingForm').submit();
+            }
+        });
     });
 </script>
