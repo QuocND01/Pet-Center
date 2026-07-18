@@ -18,7 +18,7 @@ namespace PetCenterAPI.DTOs.Requests.AI
 
     public class AIResultDTO
     {
-        public Guid DiseaseId { get; set; }
+        public Guid? DiseaseId { get; set; }
 
         public string DiseaseName { get; set; } = null!;
 
@@ -28,6 +28,10 @@ namespace PetCenterAPI.DTOs.Requests.AI
 
         public string? Recommendation { get; set; }
 
-        public int Species { get; set; }
+        public int? Species { get; set; }
+
+        public bool HasDiseaseInfo { get; set; }
+
+        public bool IsDiseaseImage { get; set; } = true;
     }
 }

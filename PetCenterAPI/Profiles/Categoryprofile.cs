@@ -19,6 +19,7 @@ namespace PetCenterAPI.Profiles
               .ForMember(dest => dest.Attributes,
                   opt => opt.MapFrom(src => src.CategoryAttributes));
 
+
             // Create DTO -> Entity
             CreateMap<CreateCategoryDTO, Category>()
                 .ForMember(dest => dest.CategoryAttributes,

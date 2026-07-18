@@ -28,14 +28,16 @@ namespace PetCenterAPI.Repository
                 (!excludeId.HasValue || b.BrandId != excludeId.Value));
         }
 
-        public async Task ChangeBrandStatusAsync(
-     Guid id,
-     Status status)
+        public async Task ChangeBrandStatusAsync(Guid id, Status status)
         {
-            await _db.Brands
-                .Where(b => b.BrandId == id)
-                .ExecuteUpdateAsync(s =>
-                    s.SetProperty(b => b.Status, status));
+            var brand = await _db.Brands.FirstOrDefaultAsync(x => x.BrandId == id);
+
+            if (brand == null)
+                return;
+
+            brand.Status = status;
+
+            await _db.SaveChangesAsync();
         }
 
         public IQueryable<Brand> GetAllBrand()

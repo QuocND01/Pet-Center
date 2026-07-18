@@ -767,7 +767,7 @@
                     </p>
                 </div>
 
-            </div>>
+            </div>
 
         </div>
 
@@ -867,18 +867,6 @@
         @if (Model != null)
         {
             var confidence = Model.Confidence * 100;
-
-            @if (Model.Confidence < 50)
-            {
-                <div class="alert alert-danger mb-4">
-
-                    ⚠ AI cannot confidently identify this image.
-
-                    Please upload a clearer image or consult a veterinarian.
-
-                </div>
-            }
-
             var level = confidence >= 90 ? "Very High"
             : confidence >= 75 ? "High"
             : confidence >= 60 ? "Medium"
@@ -923,11 +911,14 @@
 
                             </div>
 
-                            <h2>
-
-                                @Model.DiseaseName
-
-                            </h2>
+                            @if (Model.IsDiseaseImage)
+                            {
+                                <h2>@Model.DiseaseName</h2>
+                            }
+                            else
+                            {
+                                <h2 class="text-danger">Not a Pet Skin Disease</h2>
+                            }
 
                             <span class="badge bg-@badge">
 
@@ -965,110 +956,133 @@
                             </div>
 
                             <div class="diagnosis-summary">
+                                @if (!Model.IsDiseaseImage)
+                                {
+                                    <div class="alert alert-danger">
+                                        <strong>Invalid Image</strong><br />
 
-                                @if (confidence >= 90)
+                                        The uploaded image does not appear to contain a pet skin disease.
+
+                                        Please upload a clear image showing the affected skin area.
+                                    </div>
+                                }
+                                else if (confidence < 50)
+                                {
+                                    <div class="alert alert-danger">
+                                        <strong>AI Assessment:</strong>
+                                        AI cannot confidently identify this image.
+                                        Please upload a clearer image or consult a veterinarian.
+                                    </div>
+                                }
+                                else if (confidence >= 90)
                                 {
                                     <div class="alert alert-success">
-
                                         <strong>AI Assessment:</strong>
-
                                         The prediction confidence is very high.
-
                                         However, veterinary confirmation is still recommended.
-
                                     </div>
                                 }
                                 else if (confidence >= 75)
                                 {
                                     <div class="alert alert-primary">
-
                                         <strong>AI Assessment:</strong>
-
                                         The prediction confidence is high.
-
                                         Please compare with your pet's clinical symptoms.
-
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="alert alert-warning">
-
                                         <strong>AI Assessment:</strong>
-
                                         Confidence is moderate.
-
                                         Additional examination by a veterinarian is recommended.
-
                                     </div>
                                 }
-
                             </div>
 
                         </div>
+                        @if (Model.IsDiseaseImage && Model.HasDiseaseInfo)
+                        {
+                            <div class="info-card">
+                                <h5>📖 Description</h5>
+                                <p>@Model.Description</p>
+                            </div>
 
-                        <div class="info-card">
+                            <div class="info-card">
+                                <h5>💊 Recommendation</h5>
+                                <p>@Model.Recommendation</p>
+                            </div>
+                        }
+                        else if (Model.IsDiseaseImage)
+                        {
+                            <div class="alert alert-warning mt-3">
+                                <h5>⚠ Disease Information Unavailable</h5>
 
-                            <h5>
-
-                                📖 Description
-
-                            </h5>
-
-                            <p>
-
-                                @Model.Description
-
-                            </p>
-
-                        </div>
-
-                        <div class="info-card">
-
-                            <h5>
-
-                                💊 Recommendation
-
-                            </h5>
-
-                            <p>
-
-                                @Model.Recommendation
-
-                            </p>
-
-                        </div>
+                                <p class="mb-0">
+                                    AI predicted
+                                    <strong>@Model.DiseaseName</strong>,
+                                    but detailed information about this disease is not yet available in our database.
+                                </p>
+                            </div>
+                        }
 
                     </div>
 
                 </div>
 
-                <div class="save-area">
+                @if (Model.IsDiseaseImage)
+                {
+                    <div class="save-area">
 
-                    <h4>
+                        <h4>
+                            Need a professional diagnosis?
+                        </h4>
 
-                        Save this prediction as a Medical Record?
+                        <p class="mb-3">
+                            AI has identified a possible skin disease. To receive an accurate diagnosis and appropriate treatment, please schedule an appointment with one of our veterinarians.
+                        </p>
 
-                    </h4>
+                        <a asp-action="Create"
+                           asp-controller="Appointment"
+                           class="save-btn">
+                            📅 Book Appointment
+                        </a>
 
-                    <button type="button"
-                            class="save-btn"
-                            id="btnCreateMedicalRecord">
+                        <a asp-action="Index"
+                           asp-controller="Home"
+                           class="cancel-btn">
+                            Back to Home
+                        </a>
 
-                        Create Medical Record
+                    </div>
+                }
+                else
+                {
+                    <div class="save-area">
 
-                    </button>
+                        <h4>
+                            Unable to identify a skin disease
+                        </h4>
 
-                    <a asp-action="Index"
-                       asp-controller="Home"
-                       class="cancel-btn">
+                        <p class="mb-3">
+                            The uploaded image does not appear to contain a recognizable pet skin disease.
+                            If your pet is showing unusual symptoms, we still recommend scheduling a veterinary consultation.
+                        </p>
 
-                        Back to Home
+                        <a asp-action="Create"
+                           asp-controller="Appointment"
+                           class="save-btn">
+                            📅 Book Appointment
+                        </a>
 
-                    </a>
+                        <a asp-action="Index"
+                           asp-controller="Home"
+                           class="cancel-btn">
+                            Back to Home
+                        </a>
 
-                </div>
-
+                    </div>
+                }
             </div>
 
         }
@@ -1080,15 +1094,12 @@
 
                 <div class="modal-content">
 
-                    ...
 
                     <input id="Diagnosis" />
 
                     <textarea id="Treatment"></textarea>
 
                     <textarea id="Note"></textarea>
-
-                    ...
 
                 </div>
 

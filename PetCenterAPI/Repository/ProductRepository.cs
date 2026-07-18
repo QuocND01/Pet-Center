@@ -96,23 +96,18 @@ namespace PetCenterAPI.Repository
             }
         }
 
-        public IQueryable<Product> GetAllProduct()
+        // Repository
+        public async Task<List<Product>> GetAllProduct()
         {
-            try
-            {
-                return _db.Products.Where(p => p.Status == Status.Active)
+            return await _db.Products
+                .Where(p => p.Status == Status.Active)
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
-                .Include(p => p.ProductImages.Where(i => i.IsActive == true))
+                .Include(p => p.ProductImages.Where(i => i.IsActive))
                 .Include(p => p.Inventory)
                 .Include(p => p.ProductAttributes)
-                    .ThenInclude(pa => pa.CategoryAttribute).Where(p => p.Status == Status.Active)
-                    
-                .AsQueryable();
-            }
-            catch (Exception ex) {
-                throw new Exception(ex.Message);
-            }
+                    .ThenInclude(pa => pa.CategoryAttribute)
+                .ToListAsync();
         }
 
         public async Task<(IEnumerable<Product> Items, int Total)> GetAllProductAdminAsync(

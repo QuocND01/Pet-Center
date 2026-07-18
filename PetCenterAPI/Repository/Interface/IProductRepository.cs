@@ -9,7 +9,7 @@ namespace PetCenterAPI.Repository.Interface
 {
     public interface IProductRepository
     {
-        IQueryable<Product> GetAllProduct();
+        Task<List<Product>> GetAllProduct();
 
         Task<(IEnumerable<Product> Items, int Total)> GetAllProductAdminAsync(
     ProductSpecification spec);

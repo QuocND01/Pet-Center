@@ -20,15 +20,32 @@ namespace PetCenterAPI.Service
         public async Task<AIResultDTO?> PredictAsync(IFormFile image)
         {
             var ai = await _aiRepository.PredictAsync(image);
-            Console.WriteLine(ai.DiseaseName);
-            Console.WriteLine(ai.Confidence);
+
             if (ai == null)
                 return null;
+
+            if (ai.DiseaseName == "Not_Disease")
+            {
+                return new AIResultDTO
+                {
+                    DiseaseName = ai.DiseaseName,
+                    Confidence = ai.Confidence,
+                    IsDiseaseImage = false
+                };
+            }
 
             var disease = await _diseaseRepository.GetByNameAsync(ai.DiseaseName);
 
             if (disease == null)
-                return null;
+            {
+                return new AIResultDTO
+                {
+                    DiseaseName = ai.DiseaseName,
+                    Confidence = ai.Confidence,
+                    IsDiseaseImage = true,
+                    HasDiseaseInfo = false
+                };
+            }
 
             return new AIResultDTO
             {
@@ -37,7 +54,9 @@ namespace PetCenterAPI.Service
                 Confidence = ai.Confidence,
                 Description = disease.Description,
                 Recommendation = disease.Recommendation,
-                Species = disease.Species
+                Species = disease.Species,
+                IsDiseaseImage = true,
+                HasDiseaseInfo = true
             };
         }
     }
