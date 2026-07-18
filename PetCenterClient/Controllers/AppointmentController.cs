@@ -74,7 +74,33 @@ namespace PetCenterClient.Controllers
         {
             return View();
         }
+        [HttpPost]
+        public async Task<IActionResult> GetAvailableSlots(
+    [FromBody] GetAvailableSlotsRequestViewModel request)
+        {
+            try
+            {
+                var slots = await _appointmentApiService
+                    .GetAvailableSlotsAsync(
+                        request.StaffId,
+                        request.Date,
+                        request.ServiceIds);
 
+                return Json(new
+                {
+                    status = true,
+                    data = slots
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
         /// <summary>
         /// Hàm Helper dùng để biến đổi dữ liệu từ Form Input (BookAppointmentViewModel)
         /// thành Dữ liệu hiển thị giao diện (BookingPageViewModel) khi xảy ra lỗi.
