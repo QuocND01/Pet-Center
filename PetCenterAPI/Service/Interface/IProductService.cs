@@ -9,7 +9,7 @@ namespace PetCenterAPI.Service.Interface
 {
     public interface IProductService
     {
-        Task<List<ReadProductDTOForCustomer>> GetAllProductAsync(ODataQueryOptions<ReadProductDTOForCustomer> queryOptions);
+        Task<List<ReadProductDTOForCustomer>> GetAllProductAsync();
 
         Task<PagedResult<ReadProductDTO>> GetAllProductAdminAsync(
     ProductSpecification spec);

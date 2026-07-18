@@ -32,8 +32,14 @@ namespace PetCenterAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(ODataQueryOptions<ReadProductDTOForCustomer> queryOptions)
         {
-            var result = await _productService.GetAllProductAsync(queryOptions);
-            return Ok(result);
+            var result = await _productService.GetAllProductAsync();
+
+            var query = result.AsQueryable();
+
+            var filtered = (IQueryable<ReadProductDTOForCustomer>)
+                queryOptions.ApplyTo(query);
+
+            return Ok(filtered);
         }
 
 

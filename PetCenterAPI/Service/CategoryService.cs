@@ -113,6 +113,9 @@ namespace PetCenterAPI.Service
                 {
                     throw new Exception("Failed to upload category logo");
                 }
+
+                category.CategoryLogo = uploadResult.SecureUrl.ToString();
+                category.PublicId = uploadResult.PublicId;
             }
             Console.WriteLine(category.CategoryAttributes?.Count);
 
@@ -166,7 +169,11 @@ namespace PetCenterAPI.Service
 
         public async Task<ReadCategoryDTO?> GetCategoryByIdAsync(Guid id)
         {
+
             var category = await _categoryRepository.GetCategoryByIdAsync(id);
+
+            if (category == null)
+                throw new KeyNotFoundException("Category not found");
 
             return _mapper.Map<ReadCategoryDTO>(category);
         }

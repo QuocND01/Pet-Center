@@ -1,6 +1,7 @@
 using AutoMapper;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -8,6 +9,7 @@ using PetCenterAPI.Common;
 using PetCenterAPI.DTOs.Requests.Brand;
 using PetCenterAPI.Models;
 using PetCenterAPI.Profiles;
+using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
@@ -62,101 +64,144 @@ namespace PetCenterTestProject
             return results;
         }
 
-        //=====================================================================
-        // Function: GetAllBrand()
-        // Test Requirement:
-        // Verify that the function returns all active brands for customer display.
-        //=====================================================================
+        //=========================================================
+        // GetAllBrand()
+        // UTCID01 - Active brands exist
+        // Expected: Return active brand list
+        //=========================================================
 
-        /// <summary>
-        /// UTCID01
-        /// Verify that GetAllBrand() returns all active brands
-        /// when active brands exist.
-        /// Expected:
-        /// - Return active brand list.
-        /// </summary>
         [Fact]
         public void UTCID01_GetAllBrand_ReturnActiveBrandList()
         {
             // Arrange
-            var brands = new List<Brand>
-    {
-        new Brand
-        {
-            BrandId = Guid.NewGuid(),
-            BrandName = "Royal Canin",
-            Status = Status.Active
-        },
-        new Brand
-        {
-            BrandId = Guid.NewGuid(),
-            BrandName = "Pedigree",
-            Status = Status.Active
-        }
-    }.AsQueryable();
 
-            _brandRepositoryMock
-                .Setup(x => x.GetAllBrand())
-                .Returns(brands);
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.AddRange(
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Royal Canin",
+                    Status = Status.Active
+                },
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Pedigree",
+                    Status = Status.Active
+                },
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Whiskas",
+                    Status = Status.Inactive
+                });
+
+            context.SaveChanges();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                _mapper,
+                _cloudinaryServiceMock.Object);
 
             // Act
-            var result = _service.GetAllBrand().ToList();
+
+            var result = service.GetAllBrand().ToList();
 
             // Assert
-            Assert.NotNull(result);
+
             Assert.Equal(2, result.Count);
+
+            Assert.DoesNotContain(result,
+                x => x.BrandName == "Whiskas");
+
+            Assert.All(result,
+                x => Assert.NotEqual(Guid.Empty, x.BrandId));
         }
 
+        //=========================================================
+        // GetAllBrand()
+        // UTCID02 - No active brands exist
+        // Expected: Return empty list
+        //=========================================================
 
-
-        /// <summary>
-        /// UTCID02
-        /// Verify that GetAllBrand() returns an empty list
-        /// when no active brands exist.
-        /// Expected:
-        /// - Return empty list.
-        /// </summary>
         [Fact]
         public void UTCID02_GetAllBrand_ReturnEmptyList()
         {
             // Arrange
-            _brandRepositoryMock
-                .Setup(x => x.GetAllBrand())
-                .Returns(new List<Brand>().AsQueryable());
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.AddRange(
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Royal Canin",
+                    Status = Status.Inactive
+                },
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Pedigree",
+                    Status = Status.Inactive
+                });
+
+            context.SaveChanges();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                _mapper,
+                _cloudinaryServiceMock.Object);
 
             // Act
-            var result = _service.GetAllBrand().ToList();
+
+            var result = service.GetAllBrand().ToList();
 
             // Assert
+
             Assert.NotNull(result);
+
             Assert.Empty(result);
         }
 
+        //=========================================================
+        // GetAllBrand()
+        // UTCID03 - Repository throws exception
+        // Expected:
+        // - Throw Exception
+        // - Message = Service Temporarily Unavailable
+        //=========================================================
 
-
-        /// <summary>
-        /// UTCID03
-        /// Verify that GetAllBrand() throws an exception
-        /// when repository throws an exception.
-        /// Expected:
-        /// - Throw Exception.
-        /// - Message = "Service Temporarily Unavailable".
-        /// </summary>
         [Fact]
         public void UTCID03_GetAllBrand_RepositoryThrowsException()
         {
             // Arrange
+
             _brandRepositoryMock
                 .Setup(x => x.GetAllBrand())
                 .Throws(new Exception("Service Temporarily Unavailable"));
 
-            // Act + Assert
+            // Act & Assert
+
             var ex = Assert.Throws<Exception>(() =>
                 _service.GetAllBrand().ToList());
 
-            Assert.Equal("Service Temporarily Unavailable", ex.Message);
+            Assert.Equal(
+                "Service Temporarily Unavailable",
+                ex.Message);
         }
-
 
         //=====================================================================
         // Function: GetAllBrandAdminAsync()
@@ -176,6 +221,31 @@ namespace PetCenterTestProject
         public async Task UTCID01_GetAllBrandAdminAsync_ReturnPagedBrandList_WhenKeywordEmpty()
         {
             // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.AddRange(
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Royal Canin",
+                    Status = Status.Active
+                },
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Pedigree",
+                    Status = Status.Inactive
+                });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
             var spec = new BrandSpecification
             {
                 Search = "",
@@ -183,37 +253,15 @@ namespace PetCenterTestProject
                 PageSize = 10
             };
 
-            var brands = new List<Brand>
-    {
-        new Brand
-        {
-            BrandId = Guid.NewGuid(),
-            BrandName = "Royal Canin",
-            Status = Status.Active
-        },
-        new Brand
-        {
-            BrandId = Guid.NewGuid(),
-            BrandName = "Pedigree",
-            Status = Status.Inactive
-        }
-    };
-
-            _brandRepositoryMock
-                .Setup(x => x.GetAllBrandAdminAsync(It.IsAny<BrandSpecification>()))
-                .ReturnsAsync((brands, 2));
-
             // Act
-            var result = await _service.GetAllBrandAdminAsync(spec);
+
+            var (items, total) = await repository.GetAllBrandAdminAsync(spec);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.TotalCount);
-            Assert.Equal(2, result.Data.Count());
-            Assert.Equal(1, result.CurrentPage);
-            Assert.Equal(10, result.PageSize);
-        }
 
+            Assert.Equal(2, total);
+            Assert.Equal(2, items.Count());
+        }
         /// <summary>
         /// UTCID02
         /// Verify that GetAllBrandAdminAsync() returns paged brand list
@@ -224,34 +272,42 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID02_GetAllBrandAdminAsync_ReturnPagedBrandList_WhenKeywordExists()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.AddRange(
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Royal Canin",
+                    Status = Status.Active
+                },
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Pedigree",
+                    Status = Status.Active
+                });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
             var spec = new BrandSpecification
             {
-                Search = "Royal",
-                Page = 1,
-                PageSize = 10
+                Search = "Royal"
             };
 
-            var brands = new List<Brand>
-    {
-        new Brand
-        {
-            BrandId = Guid.NewGuid(),
-            BrandName = "Royal Canin",
-            Status = Status.Active
-        }
-    };
+            var (items, total) = await repository.GetAllBrandAdminAsync(spec);
 
-            _brandRepositoryMock
-                .Setup(x => x.GetAllBrandAdminAsync(It.IsAny<BrandSpecification>()))
-                .ReturnsAsync((brands, 1));
+            Assert.Single(items);
 
-            // Act
-            var result = await _service.GetAllBrandAdminAsync(spec);
+            Assert.Equal(1, total);
 
-            // Assert
-            Assert.Single(result.Data);
-            Assert.Equal(1, result.TotalCount);
+            Assert.Equal("Royal Canin", items.First().BrandName);
         }
 
         /// <summary>
@@ -264,24 +320,34 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID03_GetAllBrandAdminAsync_ReturnEmptyPagedList_WhenKeywordNotExists()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.Add(
+                new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = "Royal Canin",
+                    Status = Status.Active
+                });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
             var spec = new BrandSpecification
             {
-                Search = "ABCXYZ",
-                Page = 1,
-                PageSize = 10
+                Search = "ABCXYZ"
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetAllBrandAdminAsync(It.IsAny<BrandSpecification>()))
-                .ReturnsAsync((new List<Brand>(), 0));
+            var (items, total) = await repository.GetAllBrandAdminAsync(spec);
 
-            // Act
-            var result = await _service.GetAllBrandAdminAsync(spec);
+            Assert.Empty(items);
 
-            // Assert
-            Assert.Empty(result.Data);
-            Assert.Equal(0, result.TotalCount);
+            Assert.Equal(0, total);
         }
 
         /// <summary>
@@ -293,34 +359,41 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID04_GetAllBrandAdminAsync_ReturnPagedBrandList_WhenStatusActive()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.AddRange(
+                new Brand
+                {
+                    BrandName = "Royal",
+                    Status = Status.Active
+                },
+                new Brand
+                {
+                    BrandName = "Pedigree",
+                    Status = Status.Inactive
+                });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
             var spec = new BrandSpecification
             {
-                Status = Status.Active,
-                Page = 1,
-                PageSize = 10
+                Status = Status.Active
             };
 
-            var brands = new List<Brand>
-    {
-        new Brand
-        {
-            BrandId = Guid.NewGuid(),
-            BrandName = "Royal Canin",
-            Status = Status.Active
-        }
-    };
+            var (items, total) = await repository.GetAllBrandAdminAsync(spec);
 
-            _brandRepositoryMock
-                .Setup(x => x.GetAllBrandAdminAsync(It.IsAny<BrandSpecification>()))
-                .ReturnsAsync((brands, 1));
+            Assert.Single(items);
 
-            // Act
-            var result = await _service.GetAllBrandAdminAsync(spec);
+            Assert.Equal(1, total);
 
-            // Assert
-            Assert.Single(result.Data);
-            Assert.Equal(Status.Active, result.Data.First().Status);
+            Assert.All(items,
+                x => Assert.Equal(Status.Active, x.Status));
         }
 
         /// <summary>
@@ -332,34 +405,41 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID05_GetAllBrandAdminAsync_ReturnPagedBrandList_WhenStatusInactive()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.AddRange(
+                new Brand
+                {
+                    BrandName = "Royal",
+                    Status = Status.Active
+                },
+                new Brand
+                {
+                    BrandName = "Pedigree",
+                    Status = Status.Inactive
+                });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
             var spec = new BrandSpecification
             {
-                Status = Status.Inactive,
-                Page = 1,
-                PageSize = 10
+                Status = Status.Inactive
             };
 
-            var brands = new List<Brand>
-    {
-        new Brand
-        {
-            BrandId = Guid.NewGuid(),
-            BrandName = "Pedigree",
-            Status = Status.Inactive
-        }
-    };
+            var (items, total) = await repository.GetAllBrandAdminAsync(spec);
 
-            _brandRepositoryMock
-                .Setup(x => x.GetAllBrandAdminAsync(It.IsAny<BrandSpecification>()))
-                .ReturnsAsync((brands, 1));
+            Assert.Single(items);
 
-            // Act
-            var result = await _service.GetAllBrandAdminAsync(spec);
+            Assert.Equal(1, total);
 
-            // Assert
-            Assert.Single(result.Data);
-            Assert.Equal(Status.Inactive, result.Data.First().Status);
+            Assert.All(items,
+                x => Assert.Equal(Status.Inactive, x.Status));
         }
 
         /// <summary>
@@ -395,7 +475,7 @@ namespace PetCenterTestProject
         //=====================================================================
         // Function: GetBrandByIdAsync()
         // Test Requirement:
-        // Verify that the function retrieves brand information by BrandId.
+        // Verify that the function returns brand information by BrandId.
         //=====================================================================
 
         /// <summary>
@@ -406,32 +486,52 @@ namespace PetCenterTestProject
         /// - Return brand information.
         /// </summary>
         [Fact]
-        public async Task UTCID01_GetBrandByIdAsync_ReturnBrandInformation_WhenBrandExists()
+        public async Task UTCID01_GetBrandByIdAsync_ReturnBrand_WhenBrandExists()
         {
             // Arrange
-            var id = Guid.NewGuid();
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance);
+
+            var mapper = config.CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var brand = new Brand
             {
-                BrandId = id,
+                BrandId = Guid.NewGuid(),
                 BrandName = "Royal Canin",
                 BrandDescription = "Pet Food",
                 Status = Status.Active
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            context.Brands.Add(brand);
+            await context.SaveChangesAsync();
 
             // Act
-            var result = await _service.GetBrandByIdAsync(id);
+
+            var result = await service.GetBrandByIdAsync(brand.BrandId);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(id, result.BrandId);
-            Assert.Equal("Royal Canin", result.BrandName);
-        }
 
+            Assert.NotNull(result);
+            Assert.Equal(brand.BrandId, result.BrandId);
+            Assert.Equal("Royal Canin", result.BrandName);
+            Assert.Equal("Pet Food", result.BrandDescription);
+        }
         /// <summary>
         /// UTCID02
         /// Verify that GetBrandByIdAsync() throws KeyNotFoundException
@@ -443,21 +543,33 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID02_GetBrandByIdAsync_BrandNotFound_ShouldThrowKeyNotFoundException()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance);
+
+            var mapper = config.CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
+
             var id = Guid.NewGuid();
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync((Brand?)null);
-
-            // Act + Assert
             var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _service.GetBrandByIdAsync(id));
+                service.GetBrandByIdAsync(id));
 
             Assert.Equal("Brand not found.", ex.Message);
         }
-
-
         /// <summary>
         /// UTCID03
         /// Verify that GetBrandByIdAsync() throws exception
@@ -470,19 +582,26 @@ namespace PetCenterTestProject
         public async Task UTCID03_GetBrandByIdAsync_RepositoryThrowsException()
         {
             // Arrange
+
             var id = Guid.NewGuid();
 
             _brandRepositoryMock
                 .Setup(x => x.GetBrandByIdAsync(id))
                 .ThrowsAsync(new Exception("Service Temporarily Unavailable"));
 
-            // Act + Assert
+            // Act
+
             var ex = await Assert.ThrowsAsync<Exception>(() =>
                 _service.GetBrandByIdAsync(id));
 
-            Assert.Equal("Service Temporarily Unavailable", ex.Message);
-        }
+            // Assert
 
+            Assert.Equal("Service Temporarily Unavailable", ex.Message);
+
+            _brandRepositoryMock.Verify(
+                x => x.GetBrandByIdAsync(id),
+                Times.Once);
+        }
 
         //=====================================================================
         // Function: AddBrandAsync()
@@ -578,104 +697,159 @@ namespace PetCenterTestProject
         public async Task UTCID05_AddBrandAsync_ShouldAddBrandSuccessfully()
         {
             // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var cloudinary = new Mock<ICloudinaryService>();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                cloudinary.Object);
+
             var dto = new CreateBrandDTO
             {
                 BrandName = "Royal Canin",
                 BrandDescription = "Pet Food"
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(false);
-
-            _brandRepositoryMock
-                .Setup(x => x.AddBrandAsync(It.IsAny<Brand>()))
-                .Returns(Task.CompletedTask);
-
             // Act
-            await _service.AddBrandAsync(dto);
+
+            await service.AddBrandAsync(dto);
 
             // Assert
-            _brandRepositoryMock.Verify(
-                x => x.AddBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+
+            var brand = await context.Brands.FirstOrDefaultAsync();
+
+            Assert.NotNull(brand);
+            Assert.Equal("Royal Canin", brand.BrandName);
+            Assert.Equal("Pet Food", brand.BrandDescription);
         }
 
 
 
         [Fact]
-        public async Task UTCID06_AddBrandAsync_ShouldThrow_WhenBrandAlreadyExists()
+        public async Task UTCID06_AddBrandAsync_BrandAlreadyExists_ShouldThrowException()
         {
             // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            context.Brands.Add(new Brand
+            {
+                BrandId = Guid.NewGuid(),
+                BrandName = "Royal Canin",
+                Status = Status.Active
+            });
+
+            await context.SaveChangesAsync();
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var cloudinary = new Mock<ICloudinaryService>();
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                cloudinary.Object);
+
             var dto = new CreateBrandDTO
             {
                 BrandName = "Royal Canin"
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(true);
-
             // Act
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _service.AddBrandAsync(dto));
+                service.AddBrandAsync(dto));
 
             // Assert
 
             Assert.Equal("Brand already exists", ex.Message);
         }
 
-
         [Fact]
-        public async Task UTCID07_AddBrandAsync_UploadImageSuccess_ShouldAddBrand()
+        public async Task UTCID07_AddBrandAsync_UploadImageSuccess_ShouldSaveImageInformation()
         {
             // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var cloudinary = new Mock<ICloudinaryService>();
+
             var stream = new MemoryStream(new byte[100]);
 
-            var file = new FormFile(stream, 0, stream.Length, "BrandLogo", "logo.jpg")
+            IFormFile file = new FormFile(
+                stream,
+                0,
+                stream.Length,
+                "BrandLogo",
+                "logo.jpg")
             {
                 Headers = new HeaderDictionary(),
                 ContentType = "image/jpeg"
             };
 
+            cloudinary
+                .Setup(x => x.UploadImageAsync(file, "brands"))
+                .ReturnsAsync(new ImageUploadResult
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    PublicId = "brand/logo",
+                    SecureUrl = new Uri("https://demo.com/logo.jpg")
+                });
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                cloudinary.Object);
+
             var dto = new CreateBrandDTO
             {
                 BrandName = "Royal Canin",
-                BrandDescription = "Pet food",
                 BrandLogo = file
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(false);
-
-            var uploadResult = new ImageUploadResult
-            {
-                StatusCode = HttpStatusCode.OK,
-                PublicId = "brand/logo1",
-                SecureUrl = new Uri("https://res.cloudinary.com/demo/image/upload/logo.jpg")
-            };
-
-            _cloudinaryServiceMock
-                .Setup(x => x.UploadImageAsync(It.IsAny<IFormFile>(), "brands"))
-                .ReturnsAsync(uploadResult);
-
-            _brandRepositoryMock
-                .Setup(x => x.AddBrandAsync(It.IsAny<Brand>()))
-                .Returns(Task.CompletedTask);
-
             // Act
-            await _service.AddBrandAsync(dto);
+
+            await service.AddBrandAsync(dto);
 
             // Assert
-            _cloudinaryServiceMock.Verify(
-                x => x.UploadImageAsync(It.IsAny<IFormFile>(), "brands"),
-                Times.Once);
 
-            _brandRepositoryMock.Verify(
-                x => x.AddBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            var brand = await context.Brands.FirstAsync();
+
+            Assert.Equal("brand/logo", brand.PublicId);
+            Assert.Equal("https://demo.com/logo.jpg", brand.BrandLogo);
         }
 
 
@@ -683,13 +857,46 @@ namespace PetCenterTestProject
         public async Task UTCID08_AddBrandAsync_UploadImageFail_ShouldThrowException()
         {
             // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var cloudinary = new Mock<ICloudinaryService>();
+
             var stream = new MemoryStream(new byte[100]);
 
-            var file = new FormFile(stream, 0, stream.Length, "BrandLogo", "logo.jpg")
+            IFormFile file = new FormFile(
+                stream,
+                0,
+                stream.Length,
+                "BrandLogo",
+                "logo.jpg")
             {
                 Headers = new HeaderDictionary(),
                 ContentType = "image/jpeg"
             };
+
+            cloudinary
+                .Setup(x => x.UploadImageAsync(file, "brands"))
+                .ReturnsAsync(new ImageUploadResult
+                {
+                    StatusCode = HttpStatusCode.BadRequest
+                });
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                cloudinary.Object);
 
             var dto = new CreateBrandDTO
             {
@@ -697,25 +904,15 @@ namespace PetCenterTestProject
                 BrandLogo = file
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(false);
-
-            _cloudinaryServiceMock
-                .Setup(x => x.UploadImageAsync(It.IsAny<IFormFile>(), "brands"))
-                .ReturnsAsync(new ImageUploadResult
-                {
-                    StatusCode = HttpStatusCode.BadRequest
-                });
-
             // Act
+
             var ex = await Assert.ThrowsAsync<Exception>(() =>
-                _service.AddBrandAsync(dto));
+                service.AddBrandAsync(dto));
 
             // Assert
+
             Assert.Equal("Failed to upload brand logo", ex.Message);
         }
-
 
         /// <summary>
         /// UTCID09
@@ -747,21 +944,33 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID10_AddBrandAsync_DescriptionLength2000_ShouldSuccess()
         {
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                new Mock<ICloudinaryService>().Object);
+
             var dto = new CreateBrandDTO
             {
                 BrandName = "Royal",
                 BrandDescription = new string('A', 2000)
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(false);
+            await service.AddBrandAsync(dto);
 
-            await _service.AddBrandAsync(dto);
-
-            _brandRepositoryMock.Verify(
-                x => x.AddBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            Assert.Single(context.Brands);
         }
 
         /// <summary>
@@ -773,20 +982,32 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID11_AddBrandAsync_BrandNameLength200_ShouldSuccess()
         {
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                new Mock<ICloudinaryService>().Object);
+
             var dto = new CreateBrandDTO
             {
                 BrandName = new string('A', 200)
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(false);
+            await service.AddBrandAsync(dto);
 
-            await _service.AddBrandAsync(dto);
-
-            _brandRepositoryMock.Verify(
-                x => x.AddBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            Assert.Single(context.Brands);
         }
 
         /// <summary>
@@ -799,21 +1020,44 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID12_AddBrandAsync_BrandName200AndDescriptionEmpty_ShouldSuccess()
         {
+            // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var cloudinary = new Mock<ICloudinaryService>();
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                cloudinary.Object);
+
             var dto = new CreateBrandDTO
             {
                 BrandName = new string('A', 200),
                 BrandDescription = ""
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(false);
+            // Act
 
-            await _service.AddBrandAsync(dto);
+            await service.AddBrandAsync(dto);
 
-            _brandRepositoryMock.Verify(
-                x => x.AddBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            // Assert
+
+            var brand = await context.Brands.FirstAsync();
+
+            Assert.Equal(new string('A', 200), brand.BrandName);
+            Assert.Equal("", brand.BrandDescription);
         }
 
         /// <summary>
@@ -825,21 +1069,44 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID13_AddBrandAsync_ValidDescription_ShouldSuccess()
         {
+            // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var cloudinary = new Mock<ICloudinaryService>();
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                cloudinary.Object);
+
             var dto = new CreateBrandDTO
             {
                 BrandName = "Royal Canin",
                 BrandDescription = "High quality pet food."
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, null))
-                .ReturnsAsync(false);
+            // Act
 
-            await _service.AddBrandAsync(dto);
+            await service.AddBrandAsync(dto);
 
-            _brandRepositoryMock.Verify(
-                x => x.AddBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            // Assert
+
+            var brand = await context.Brands.FirstAsync();
+
+            Assert.Equal("Royal Canin", brand.BrandName);
+            Assert.Equal("High quality pet food.", brand.BrandDescription);
         }
 
 
@@ -941,19 +1208,39 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID05_UpdateBrandAsync_BrandNotFound_ShouldThrowKeyNotFoundException()
         {
+            // Arrange
+
             var id = Guid.NewGuid();
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var dto = new UpdateBrandDTO
             {
                 BrandName = "Royal"
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync((Brand?)null);
+            // Act
 
-            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(
-                () => _service.UpdateBrandAsync(id, dto));
+            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                service.UpdateBrandAsync(id, dto));
+
+            // Assert
 
             Assert.Equal("Brand not found", ex.Message);
         }
@@ -967,29 +1254,57 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID06_UpdateBrandAsync_DuplicateBrand_ShouldThrowInvalidOperationException()
         {
+            // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.AddRange(
+
+            new Brand
             {
                 BrandId = id,
-                BrandName = "Old Brand"
-            };
+                BrandName = "Old Brand",
+                Status = Status.Active
+            },
+
+            new Brand
+            {
+                BrandId = Guid.NewGuid(),
+                BrandName = "Royal Canin",
+                Status = Status.Active
+            });
+
+            await context.SaveChangesAsync();
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var dto = new UpdateBrandDTO
             {
                 BrandName = "Royal Canin"
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            // Act
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(true);
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.UpdateBrandAsync(id, dto));
 
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _service.UpdateBrandAsync(id, dto));
+            // Assert
 
             Assert.Equal("Brand already exists", ex.Message);
         }
@@ -1003,22 +1318,53 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID07_UpdateBrandAsync_UploadImageSuccess_ShouldUpdateSuccessfully()
         {
+            // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.Add(new Brand
             {
                 BrandId = id,
                 BrandName = "Royal",
                 PublicId = ""
-            };
+            });
+
+            await context.SaveChangesAsync();
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var stream = new MemoryStream(new byte[100]);
 
-            IFormFile file = new FormFile(stream, 0, 100, "BrandLogo", "logo.jpg")
+            IFormFile file = new FormFile(stream, 0, stream.Length, "BrandLogo", "logo.jpg")
             {
                 Headers = new HeaderDictionary(),
                 ContentType = "image/jpeg"
             };
+
+            _cloudinaryServiceMock
+                .Setup(x => x.UploadImageAsync(file, "brands"))
+                .ReturnsAsync(new ImageUploadResult
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    PublicId = "logo123",
+                    SecureUrl = new Uri("https://demo.com/logo.jpg")
+                });
 
             var dto = new UpdateBrandDTO
             {
@@ -1026,30 +1372,17 @@ namespace PetCenterTestProject
                 BrandLogo = file
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            // Act
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(false);
+            await service.UpdateBrandAsync(id, dto);
 
-            var upload = new CloudinaryDotNet.Actions.ImageUploadResult
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                SecureUrl = new Uri("https://demo.com/logo.jpg"),
-                PublicId = "logo123"
-            };
+            // Assert
 
-            _cloudinaryServiceMock
-                .Setup(x => x.UploadImageAsync(file, "brands"))
-                .ReturnsAsync(upload);
+            var brand = await context.Brands.FindAsync(id);
 
-            await _service.UpdateBrandAsync(id, dto);
-
-            _brandRepositoryMock.Verify(
-                x => x.UpdateBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            Assert.Equal("Royal Updated", brand!.BrandName);
+            Assert.Equal("logo123", brand.PublicId);
+            Assert.Equal("https://demo.com/logo.jpg", brand.BrandLogo);
         }
 
         /// <summary>
@@ -1062,21 +1395,48 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID08_UpdateBrandAsync_UploadImageFail_ShouldThrowException()
         {
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.Add(new Brand
             {
                 BrandId = id,
                 BrandName = "Royal"
-            };
+            });
+
+            await context.SaveChangesAsync();
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var stream = new MemoryStream(new byte[100]);
 
-            IFormFile file = new FormFile(stream, 0, 100, "BrandLogo", "logo.jpg")
+            IFormFile file = new FormFile(stream, 0, stream.Length, "BrandLogo", "logo.jpg")
             {
                 Headers = new HeaderDictionary(),
                 ContentType = "image/jpeg"
             };
+
+            _cloudinaryServiceMock
+                .Setup(x => x.UploadImageAsync(file, "brands"))
+                .ReturnsAsync(new ImageUploadResult
+                {
+                    StatusCode = HttpStatusCode.BadRequest
+                });
 
             var dto = new UpdateBrandDTO
             {
@@ -1084,20 +1444,8 @@ namespace PetCenterTestProject
                 BrandLogo = file
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
-
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(false);
-
-            _cloudinaryServiceMock
-                .Setup(x => x.UploadImageAsync(file, "brands"))
-                .ReturnsAsync(new CloudinaryDotNet.Actions.ImageUploadResult());
-
-            var ex = await Assert.ThrowsAsync<Exception>(
-                () => _service.UpdateBrandAsync(id, dto));
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                service.UpdateBrandAsync(id, dto));
 
             Assert.Equal("Failed to upload brand logo", ex.Message);
         }
@@ -1166,34 +1514,50 @@ namespace PetCenterTestProject
         public async Task UTCID11_UpdateBrandAsync_BrandNameLength200_ShouldSuccess()
         {
             // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.Add(new Brand
             {
                 BrandId = id,
                 BrandName = "Old"
-            };
+            });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var dto = new UpdateBrandDTO
             {
                 BrandName = new string('A', 200)
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
-
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(false);
-
             // Act
-            await _service.UpdateBrandAsync(id, dto);
+
+            await service.UpdateBrandAsync(id, dto);
 
             // Assert
-            _brandRepositoryMock.Verify(
-                x => x.UpdateBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+
+            var brand = await context.Brands.FindAsync(id);
+
+            Assert.NotNull(brand);
+            Assert.Equal(new string('A', 200), brand!.BrandName);
         }
 
         /// <summary>
@@ -1205,14 +1569,33 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID12_UpdateBrandAsync_DescriptionLength2000_ShouldSuccess()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.Add(new Brand
             {
                 BrandId = id,
                 BrandName = "Old"
-            };
+            });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var dto = new UpdateBrandDTO
             {
@@ -1220,21 +1603,11 @@ namespace PetCenterTestProject
                 BrandDescription = new string('A', 2000)
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            await service.UpdateBrandAsync(id, dto);
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(false);
+            var brand = await context.Brands.FindAsync(id);
 
-            // Act
-            await _service.UpdateBrandAsync(id, dto);
-
-            // Assert
-            _brandRepositoryMock.Verify(
-                x => x.UpdateBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            Assert.Equal(new string('A', 2000), brand!.BrandDescription);
         }
 
         /// <summary>
@@ -1249,15 +1622,34 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID13_UpdateBrandAsync_DeleteOldLogo_ShouldSuccess()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.Add(new Brand
             {
                 BrandId = id,
                 BrandName = "Royal",
                 PublicId = "old-public-id"
-            };
+            });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var stream = new MemoryStream(new byte[100]);
 
@@ -1267,45 +1659,35 @@ namespace PetCenterTestProject
                 ContentType = "image/jpeg"
             };
 
+            _cloudinaryServiceMock
+                .Setup(x => x.UploadImageAsync(file, "brands"))
+                .ReturnsAsync(new ImageUploadResult
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    SecureUrl = new Uri("https://demo.com/logo.jpg"),
+                    PublicId = "new-public-id"
+                });
+
+            _cloudinaryServiceMock
+                .Setup(x => x.DeleteImageAsync("old-public-id"))
+                .ReturnsAsync(new DeletionResult());
+
             var dto = new UpdateBrandDTO
             {
                 BrandName = "Royal Updated",
                 BrandLogo = file
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            await service.UpdateBrandAsync(id, dto);
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(false);
+            var brand = await context.Brands.FindAsync(id);
 
-            var uploadResult = new CloudinaryDotNet.Actions.ImageUploadResult
-            {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                SecureUrl = new Uri("https://demo.com/logo.jpg"),
-                PublicId = "new-public-id"
-            };
+            Assert.Equal("Royal Updated", brand!.BrandName);
+            Assert.Equal("new-public-id", brand.PublicId);
+            Assert.Equal("https://demo.com/logo.jpg", brand.BrandLogo);
 
-            _cloudinaryServiceMock
-                .Setup(x => x.UploadImageAsync(file, "brands"))
-                .ReturnsAsync(uploadResult);
-
-            _cloudinaryServiceMock
-                .Setup(x => x.DeleteImageAsync("old-public-id"))
-                .ReturnsAsync(new CloudinaryDotNet.Actions.DeletionResult());
-
-            // Act
-            await _service.UpdateBrandAsync(id, dto);
-
-            // Assert
             _cloudinaryServiceMock.Verify(
                 x => x.DeleteImageAsync("old-public-id"),
-                Times.Once);
-
-            _brandRepositoryMock.Verify(
-                x => x.UpdateBrandAsync(It.IsAny<Brand>()),
                 Times.Once);
         }
 
@@ -1318,14 +1700,33 @@ namespace PetCenterTestProject
         [Fact]
         public async Task UTCID14_UpdateBrandAsync_ValidDescription_ShouldSuccess()
         {
-            // Arrange
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.Add(new Brand
             {
                 BrandId = id,
                 BrandName = "Old"
-            };
+            });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var dto = new UpdateBrandDTO
             {
@@ -1333,21 +1734,12 @@ namespace PetCenterTestProject
                 BrandDescription = "High quality pet food."
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            await service.UpdateBrandAsync(id, dto);
 
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(false);
+            var brand = await context.Brands.FindAsync(id);
 
-            // Act
-            await _service.UpdateBrandAsync(id, dto);
-
-            // Assert
-            _brandRepositoryMock.Verify(
-                x => x.UpdateBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
+            Assert.Equal("Royal", brand!.BrandName);
+            Assert.Equal("High quality pet food.", brand.BrandDescription);
         }
 
         /// <summary>
@@ -1361,13 +1753,35 @@ namespace PetCenterTestProject
         public async Task UTCID15_UpdateBrandAsync_ValidData_ShouldSuccess()
         {
             // Arrange
+
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
             var id = Guid.NewGuid();
 
-            var brand = new Brand
+            context.Brands.Add(new Brand
             {
                 BrandId = id,
-                BrandName = "Old Brand"
-            };
+                BrandName = "Old Brand",
+                BrandDescription = "Old Description",
+                Status = Status.Active
+            });
+
+            await context.SaveChangesAsync();
+
+            var repository = new BrandRepository(context);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+            var service = new BrandService(
+                repository,
+                mapper,
+                _cloudinaryServiceMock.Object);
 
             var dto = new UpdateBrandDTO
             {
@@ -1375,23 +1789,20 @@ namespace PetCenterTestProject
                 BrandDescription = "Premium pet food."
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
-
-            _brandRepositoryMock
-                .Setup(x => x.CheckBrandExistAsync(dto.BrandName, id))
-                .ReturnsAsync(false);
-
             // Act
-            await _service.UpdateBrandAsync(id, dto);
+
+            await service.UpdateBrandAsync(id, dto);
 
             // Assert
-            _brandRepositoryMock.Verify(
-                x => x.UpdateBrandAsync(It.IsAny<Brand>()),
-                Times.Once);
-        }
 
+            var brand = await context.Brands.FindAsync(id);
+
+            Assert.NotNull(brand);
+
+            Assert.Equal("Royal Canin", brand!.BrandName);
+            Assert.Equal("Premium pet food.", brand.BrandDescription);
+            Assert.Equal(Status.Active, brand.Status);
+        }
 
         //=====================================================================
         // Function: ChangeBrandStatusAsync()
@@ -1409,26 +1820,44 @@ namespace PetCenterTestProject
         public async Task UTCID01_ChangeBrandStatusAsync_Active_ShouldSuccess()
         {
             // Arrange
-            var id = Guid.NewGuid();
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var cloudinary = new Mock<ICloudinaryService>();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                cloudinary.Object);
 
             var brand = new Brand
             {
-                BrandId = id,
-                BrandName = "Royal Canin",
+                BrandId = Guid.NewGuid(),
+                BrandName = "Royal",
                 Status = Status.Inactive
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            context.Brands.Add(brand);
+            await context.SaveChangesAsync();
 
             // Act
-            await _service.ChangeBrandStatusAsync(id, Status.Active);
+            await service.ChangeBrandStatusAsync(brand.BrandId, Status.Active);
 
             // Assert
-            _brandRepositoryMock.Verify(
-                x => x.ChangeBrandStatusAsync(id, Status.Active),
-                Times.Once);
+            var updated = await context.Brands.FindAsync(brand.BrandId);
+
+            Assert.NotNull(updated);
+            Assert.Equal(Status.Active, updated.Status);
         }
 
         /// <summary>
@@ -1441,26 +1870,42 @@ namespace PetCenterTestProject
         public async Task UTCID02_ChangeBrandStatusAsync_Inactive_ShouldSuccess()
         {
             // Arrange
-            var id = Guid.NewGuid();
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                Mock.Of<ICloudinaryService>());
 
             var brand = new Brand
             {
-                BrandId = id,
+                BrandId = Guid.NewGuid(),
                 BrandName = "Royal Canin",
                 Status = Status.Active
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            context.Brands.Add(brand);
+            await context.SaveChangesAsync();
 
             // Act
-            await _service.ChangeBrandStatusAsync(id, Status.Inactive);
+            await service.ChangeBrandStatusAsync(brand.BrandId, Status.Inactive);
 
             // Assert
-            _brandRepositoryMock.Verify(
-                x => x.ChangeBrandStatusAsync(id, Status.Inactive),
-                Times.Once);
+            var updated = await context.Brands.FindAsync(brand.BrandId);
+
+            Assert.NotNull(updated);
+            Assert.Equal(Status.Inactive, updated.Status);
         }
 
         /// <summary>
@@ -1473,28 +1918,43 @@ namespace PetCenterTestProject
         public async Task UTCID03_ChangeBrandStatusAsync_Deleted_ShouldSuccess()
         {
             // Arrange
-            var id = Guid.NewGuid();
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new PetCenterContext(options);
+
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                Mock.Of<ICloudinaryService>());
 
             var brand = new Brand
             {
-                BrandId = id,
+                BrandId = Guid.NewGuid(),
                 BrandName = "Royal Canin",
                 Status = Status.Active
             };
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync(brand);
+            context.Brands.Add(brand);
+            await context.SaveChangesAsync();
 
             // Act
-            await _service.ChangeBrandStatusAsync(id, Status.Deleted);
+            await service.ChangeBrandStatusAsync(brand.BrandId, Status.Deleted);
 
             // Assert
-            _brandRepositoryMock.Verify(
-                x => x.ChangeBrandStatusAsync(id, Status.Deleted),
-                Times.Once);
-        }
+            var updated = await context.Brands.FindAsync(brand.BrandId);
 
+            Assert.NotNull(updated);
+            Assert.Equal(Status.Deleted, updated.Status);
+        }
         /// <summary>
         /// UTCID04
         /// Verify ChangeBrandStatusAsync() throws exception
@@ -1507,23 +1967,31 @@ namespace PetCenterTestProject
         public async Task UTCID04_ChangeBrandStatusAsync_BrandNotFound_ShouldThrowException()
         {
             // Arrange
-            var id = Guid.NewGuid();
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
 
-            _brandRepositoryMock
-                .Setup(x => x.GetBrandByIdAsync(id))
-                .ReturnsAsync((Brand?)null);
+            using var context = new PetCenterContext(options);
 
-            // Act + Assert
+            var mapper = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<BrandProfile>();
+            }, NullLoggerFactory.Instance).CreateMapper();
+
+            var repository = new BrandRepository(context);
+
+            var service = new BrandService(
+                repository,
+                mapper,
+                Mock.Of<ICloudinaryService>());
+
+            // Act
             var ex = await Assert.ThrowsAsync<Exception>(() =>
-                _service.ChangeBrandStatusAsync(id, Status.Active));
+                service.ChangeBrandStatusAsync(Guid.NewGuid(), Status.Active));
 
+            // Assert
             Assert.Equal("Brand not found", ex.Message);
-
-            _brandRepositoryMock.Verify(
-                x => x.ChangeBrandStatusAsync(It.IsAny<Guid>(), It.IsAny<Status>()),
-                Times.Never);
         }
-
         /// <summary>
         /// UTCID05
         /// Verify ChangeBrandStatusAsync() throws exception

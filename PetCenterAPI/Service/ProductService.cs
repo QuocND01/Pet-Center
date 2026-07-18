@@ -190,17 +190,11 @@ namespace PetCenterAPI.Service
         }
 
 
-        public async Task<List<ReadProductDTOForCustomer>> GetAllProductAsync(
-     ODataQueryOptions<ReadProductDTOForCustomer> queryOptions)
+        public async Task<List<ReadProductDTOForCustomer>> GetAllProductAsync()
         {
-            var query = _productRepository
-                .GetAllProduct()
-                .ProjectTo<ReadProductDTOForCustomer>(_mapper.ConfigurationProvider);
+            var products = await _productRepository.GetAllProduct();
 
-            var filtered = (IQueryable<ReadProductDTOForCustomer>)
-                queryOptions.ApplyTo(query);
-
-            return await filtered.ToListAsync();
+            return _mapper.Map<List<ReadProductDTOForCustomer>>(products);
         }
 
 
