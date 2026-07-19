@@ -1,18 +1,14 @@
-﻿namespace PetCenterAPI.DTOs.Responses.Appointment
+﻿namespace PetCenterClient.ViewModels.Appointment
 {
-    public class AppointmentResponseDTO
+    public class AppointmentDetailViewModel
+    
     {
         public Guid AppointmentId { get; set; }
 
-        public Guid CustomerId { get; set; }
         public string CustomerName { get; set; } = string.Empty;
 
-        public Guid PetId { get; set; }
-
-        public Guid StaffId { get; set; }
         public string PetName { get; set; } = string.Empty;
         public string PetAvatar { get; set; } = string.Empty;
-
         public string VetName { get; set; } = string.Empty;
         public string VetAvatar { get; set; } = string.Empty;
         public DateTime AppointmentStart { get; set; }
@@ -25,14 +21,10 @@
 
         public string? Note { get; set; }
 
-        public DateTime? CreatedAt { get; set; }
-
-        public List<AppointmentServiceResponseDTO> AppointmentServices { get; set; }
-    = new();
-
-        public AppointmentSnapshotResponseDTO? Snapshot { get; set; }
+        public List<ServiceDetailViewModel> AppointmentServices { get; set; } = new();
+        public AppointmentSnapshotViewModel? Snapshot { get; set; }
     }
-    public class AppointmentServiceResponseDTO
+    public class ServiceDetailViewModel
     {
         public Guid ServiceId { get; set; }
 
@@ -41,12 +33,12 @@
         public decimal Price { get; set; }
 
         public int Duration { get; set; }
-            
+
         public int? Status { get; set; }
         public int ServiceType { get; set; }
         public DateTime? CompleteAt { get; set; }
     }
-    public class AppointmentSnapshotResponseDTO
+    public class AppointmentSnapshotViewModel
     {
         public string Species { get; set; } = string.Empty;
 

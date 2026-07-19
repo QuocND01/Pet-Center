@@ -13,6 +13,8 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
             --green: #22c55e;
@@ -455,15 +457,41 @@
                             <span class="caret">▾</span>
                         </button>
                         <div class="user-dropdown">
-                            <a asp-controller="Customer" asp-action="Profile"><span class="ic">👤</span> Profile</a>
+                            <a asp-controller="Customer" asp-action="Profile">
+                                <i class="bi bi-person-circle me-2"></i> Profile
+                            </a>
 
-                            <a asp-controller="Pets" asp-action="Index"><span class="ic">🐾</span> My Pets</a>
-                            <a asp-controller="Orders" asp-action="History"><span class="ic">📦</span> My Orders</a>
-                            <a asp-controller="MedicalRecord" asp-action="CustomerIndex"><span class="ic">🏥</span> Medical Records</a>
-                            <a asp-controller="Cart" asp-action="Index"><span class="ic">🛒</span> Cart <span class="cart-badge" id="cartBadge" style="display:none">0</span></a>
-                            <a asp-controller="Addresses" asp-action="Index"><span class="ic">📍</span> Address</a>
+                            <a asp-controller="Pets" asp-action="Index">
+                                <i class="bi bi-heart me-2"></i> My Pets
+                            </a>
+
+                            <a asp-controller="Appointment" asp-action="MyAppointments">
+                                <i class="bi bi-calendar2-check me-2"></i> My Appointments
+                            </a>
+
+                            <a asp-controller="Orders" asp-action="History">
+                                <i class="bi bi-box-seam me-2"></i> My Orders
+                            </a>
+
+                            <a asp-controller="MedicalRecord" asp-action="CustomerIndex">
+                                <i class="bi bi-file-medical me-2"></i> Medical Records
+                            </a>
+
+                            <a asp-controller="Cart" asp-action="Index">
+                                <i class="bi bi-cart3 me-2"></i>
+                                Cart
+                                <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+                            </a>
+
+                            <a asp-controller="Addresses" asp-action="Index">
+                                <i class="bi bi-geo-alt me-2"></i> Address
+                            </a>
+
                             <div class="dropdown-divider"></div>
-                            <a asp-controller="Auth" asp-action="Logout" class="logout-item"><span class="ic">🚪</span> Logout</a>
+
+                            <a asp-controller="Auth" asp-action="Logout" class="logout-item">
+                                <i class="bi bi-box-arrow-right me-2"></i> Logout
+                            </a>
                         </div>
                     </div>
                 }

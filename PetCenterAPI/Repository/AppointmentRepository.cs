@@ -99,6 +99,7 @@ namespace PetCenterAPI.Repository
             return await _context.Appointments
                 .Include(x => x.Pet)
                 .Include(x => x.Staff)
+                .Include(x => x.Customer)
                 .Include(x => x.AppointmentSnapshot)
                 .Include(x => x.AppointmentServices)
                 .FirstOrDefaultAsync(x =>

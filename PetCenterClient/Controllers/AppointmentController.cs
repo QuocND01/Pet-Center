@@ -16,7 +16,7 @@ namespace PetCenterClient.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Book()
+        public async Task<IActionResult> Book(Guid? serviceId = null)
         {   
 
             var role = HttpContext.Session.GetString("Role");
@@ -33,7 +33,7 @@ namespace PetCenterClient.Controllers
                 Staffs = bookingData.Staffs,
                 Services = bookingData.Services
             };
-
+            ViewBag.AutoSelectServiceId = serviceId;
             return View("~/Views/CustomerViews/Appointment/Book.cshtml", vm);
         }
 
@@ -69,11 +69,7 @@ namespace PetCenterClient.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult Detail(Guid id)
-        {
-            return View();
-        }
+        
         [HttpPost]
         public async Task<IActionResult> GetAvailableSlots(
     [FromBody] GetAvailableSlotsRequestViewModel request)
@@ -122,6 +118,76 @@ namespace PetCenterClient.Controllers
                 Staffs = bookingData?.Staffs ?? [],
                 Services = bookingData?.Services ?? []
             };
+        }
+        [HttpGet]
+        public async Task<IActionResult> MyAppointments()
+        {
+            try
+            {
+                var model =
+                    await _appointmentApiService.GetMyAppointmentsAsync();
+
+                return View("~/Views/CustomerViews/Appointment/MyAppointment.cshtml",model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return View("~/Views/CustomerViews/Appointment/MyAppointment.cshtml",new List<AppointmentListViewModel>());
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> Detail(Guid id)
+        {
+            var model =
+                await _appointmentApiService
+                    .GetAppointmentDetailAsync(id);
+
+            if (model == null)
+                return NotFound();
+
+            return View("~/Views/CustomerViews/Appointment/Detail.cshtml", model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Cancel(Guid id)
+        {
+            try
+            {
+                await _appointmentApiService
+                    .CancelAppointmentAsync(id);
+
+                TempData["Success"] =
+                    "Appointment cancelled successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(MyAppointments));
+        }
+        [HttpPost]
+        public async Task<IActionResult> SubmitReview(
+    SubmitReviewViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return RedirectToAction(nameof(Detail),
+                    new { id = model.AppointmentId });
+
+            try
+            {
+                await _appointmentApiService
+                    .SubmitReviewAsync(model);
+
+                TempData["Success"] =
+                    "Review submitted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Detail),
+                new { id = model.AppointmentId });
         }
     }
 }

@@ -1,0 +1,372 @@
+﻿@model List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
+
+@{
+    ViewData["Title"] = "My Appointments";
+    // Sắp xếp danh sách lịch hẹn mặc định từ mới nhất đến cũ nhất
+    var sortedAppointments = Model?.OrderByDescending(a => a.AppointmentStart).ToList() ?? new List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>();
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+<div class="appointment-container py-5" data-bs-theme="light">
+    <div class="container">
+
+        <!-- PAGE HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold text-dark m-0"><i class="fas fa-calendar-alt text-success me-2"></i>My Appointments</h3>
+                <p class="text-muted small m-0 mt-1">Manage and track your pet's healthcare schedules and activities.</p>
+            </div>
+            <a asp-controller="Appointment"
+               asp-action="Book"
+               class="btn btn-modern-success shadow-sm">
+                <i class="fas fa-plus me-2"></i>Book New Appointment
+            </a>
+        </div>
+
+        <!-- TEMP_DATA ALERT NOTIFICATIONS -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- MODERN SEARCH & FILTER CONTROL BAR -->
+        <div class="filter-control-card bg-white p-3 rounded-4 shadow-sm border mb-4">
+            <div class="row align-items-center g-3">
+                <div class="col-md-5">
+                    <label class="form-label xsmall-text fw-bold text-secondary mb-1"><i class="fas fa-search me-1"></i>Filter by Appointment Date</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-2 border-end-0 rounded-start-3" style="border-color: var(--border-color);"><i class="far fa-calendar-alt text-muted"></i></span>
+                        <input type="date" id="searchDateInput" class="form-control border-2 border-start-0 px-2" style="border-color: var(--border-color); font-weight: 600;" />
+                    </div>
+                </div>
+                <div class="col-md-7 d-flex gap-2 align-items-end mt-md-4">
+                    <button type="button" id="btnFilterToday" class="btn btn-filter-pill px-3 py-2 fw-bold active">
+                        <i class="fas fa-clock me-1"></i>Today
+                    </button>
+                    <button type="button" id="btnFilterAll" class="btn btn-filter-pill px-3 py-2 fw-bold">
+                        <i class="fas fa-globe me-1"></i>View All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- APPOINTMENTS LIST CONTAINER -->
+        @if (!sortedAppointments.Any())
+        {
+            <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
+                <div class="mb-3">
+                    <i class="fas fa-calendar-times text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark">No appointments found</h5>
+                <p class="text-muted small px-3">You haven't scheduled any visits yet. Book an appointment today to keep your pet healthy.</p>
+                <a href="/Appointment/Booking" class="btn btn-modern-success px-4 mt-2">Book Now</a>
+            </div>
+        }
+        else
+        {
+            <!-- Khu vực chứa các cụm ngày được sinh ra tự động từ JS -->
+            <div id="groupedAppointmentsContainer">
+                
+                <!-- Vòng lặp chứa dữ liệu gốc ẩn (Raw Data Pool) để JS bóc tách và phân cụm -->
+                <div id="rawAppointmentsPool" style="display: none !important;">
+                    @foreach (var apt in sortedAppointments)
+                    {
+                        <!-- Lưu trữ thông tin ngày (yyyy-MM-dd) và ngày hiển thị (dd/MM/yyyy) làm metadata -->
+                        <div class="raw-appointment-item" 
+                             data-date-iso="@apt.AppointmentStart.ToString("yyyy-MM-dd")" 
+                             data-date-display="@apt.AppointmentStart.ToString("dd/MM/yyyy")">
+                             
+                            <div class="col-md-6 col-lg-4">
+                                <div class="appointment-card bg-white rounded-4 p-4 shadow-sm border position-relative d-flex flex-column h-100">
+
+                                    <div class="position-absolute top-0 end-0 mt-3 me-3">
+                                        @switch (apt.Status)
+                                        {
+                                            case 1: <span class="badge badge-custom bg-warning-subtle text-warning"><i class="far fa-clock me-1"></i>Pending</span> break;
+                                            case 2: <span class="badge badge-custom bg-info-subtle text-info"><i class="fas fa-calendar-check me-1"></i>Confirmed</span> break;
+                                            case 3: <span class="badge badge-custom bg-primary-subtle text-primary"><i class="fas fa-spinner fa-spin me-1"></i>In Progress</span> break;
+                                            case 4: <span class="badge badge-custom bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Completed</span> break;
+                                            case 0: <span class="badge badge-custom bg-danger-subtle text-danger"><i class="fas fa-times-circle me-1"></i>Cancelled</span> break;
+                                            default: <span class="badge badge-custom bg-secondary-subtle text-secondary">Status (@apt.Status)</span> break;
+                                        }
+                                    </div>
+
+                                    <div class="mb-3 pt-2">
+                                        <span class="text-muted small d-block mb-1"><i class="fas fa-paw me-1"></i>Pet Patient</span>
+                                        <h5 class="fw-bold text-dark m-0">@apt.PetName</h5>
+                                    </div>
+
+                                    <div class="card-details-grid my-2 py-3 border-top border-bottom flex-grow-1">
+                                        <div class="mb-2">
+                                            <span class="text-muted small d-block">Assigned Doctor:</span>
+                                            <strong class="text-dark-theme small"><i class="fas fa-user-md text-success me-2"></i>Dr. @apt.VetName</strong>
+                                        </div>
+                                        <div class="mb-2">
+                                            <span class="text-muted small d-block">Schedule Time:</span>
+                                            <strong class="text-dark-theme small"><i class="far fa-clock text-success me-2"></i>@apt.AppointmentStart.ToString("HH:mm")</strong>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small d-block">Total Amount:</span>
+                                            <strong class="text-success fs-5 fw-black">@apt.Total.ToString("N0") đ</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3 pt-1">
+                                        <a href="@Url.Action("Detail", "Appointment", new { id = apt.AppointmentId })" class="btn btn-outline-modern w-100 fw-bold py-2">
+                                            View Details <i class="fas fa-arrow-right ms-2 small"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- NO RESULTS MATCH SCREEN -->
+        <div id="noResultsScreen" class="text-center py-5 bg-white rounded-4 shadow-sm border" style="display: none;">
+            <div class="mb-3">
+                <i class="fas fa-search-minus text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h5 class="fw-bold text-dark">No matching appointments</h5>
+            <p class="text-muted small px-3">There are no scheduled visits matching your selected date filter.</p>
+            <button type="button" id="btnResetSearch" class="btn btn-modern-success px-4 mt-2">View All Appointments</button>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-green: #10b981;
+        --primary-green-hover: #059669;
+        --light-green-bg: #f0fdf4;
+        --accent-light-green: #d1fae5;
+        --dark-theme: #1f2937;
+        --text-muted: #6b7280;
+        --border-color: #e5e7eb;
+        --bg-main: #f9fafb;
+        --white: #ffffff;
+    }
+
+    body {
+        background-color: var(--bg-main);
+    }
+
+    .btn-modern-success {
+        background-color: var(--primary-green);
+        color: var(--white);
+        border: none;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-modern-success:hover {
+        background-color: var(--primary-green-hover);
+        color: var(--white);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+
+    /* ĐỊNH DẠNG KHỐI TIÊU ĐỀ GOM CỤM NGÀY ĐẸP */
+    .date-group-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .date-group-header {
+        position: relative;
+        padding-left: 15px;
+        margin-top: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .date-group-header::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 4px;
+        bottom: 4px;
+        width: 4px;
+        background-color: var(--primary-green);
+        border-radius: 2px;
+    }
+
+    .appointment-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-color: var(--border-color) !important;
+    }
+
+    .appointment-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-green) !important;
+        box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.12) !important;
+    }
+
+    .badge-custom {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 11px;
+    }
+
+    .bg-warning-subtle { background-color: #fffbeb; }
+    .bg-info-subtle { background-color: #f0f9ff; }
+    .bg-primary-subtle { background-color: #eff6ff; }
+    .bg-success-subtle { background-color: #f0fdf4; }
+    .bg-danger-subtle { background-color: #fef2f2; }
+
+    /* FILTERS PILLS STYLE */
+    .btn-filter-pill {
+        background-color: var(--white);
+        color: var(--text-muted);
+        border: 2px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+    .btn-filter-pill:hover, .btn-filter-pill.active {
+        background-color: var(--light-green-bg);
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+    }
+
+    .btn-outline-modern {
+        border: 2px solid var(--border-color);
+        color: var(--dark-theme);
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-modern:hover {
+        border-color: var(--primary-green);
+        background-color: var(--light-green-bg);
+        color: var(--primary-green);
+    }
+
+    .fw-black { font-weight: 900; }
+    .text-dark-theme { color: var(--dark-theme); }
+    .xsmall-text { font-size: 11px; }
+</style>
+
+<!-- CLIENT-SIDE DOM MANIPULATION FILTER SCRIPT -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchDateInput = document.getElementById("searchDateInput");
+        const btnFilterToday = document.getElementById("btnFilterToday");
+        const btnFilterAll = document.getElementById("btnFilterAll");
+        const btnResetSearch = document.getElementById("btnResetSearch");
+        const groupedContainer = document.getElementById("groupedAppointmentsContainer");
+        const noResultsScreen = document.getElementById("noResultsScreen");
+        
+        // Trích xuất danh sách DOM gốc từ Pool ẩn
+        const rawItems = Array.from(document.querySelectorAll(".raw-appointment-item"));
+
+        // Đồng bộ thiết lập giá trị mặc định hôm nay cho ô Picker (Chuỗi định dạng yyyy-MM-dd)
+        const todayISOStr = new Date().toISOString().split('T')[0];
+        searchDateInput.value = todayISOStr;
+
+        // --- HÀM XỬ LÝ CHIA CỤM DÂN CƯ & HIỂN THỊ CHÍNH ---
+        function filterAndGroupAppointments(mode) {
+            // 1. Dọn dẹp sạch sẽ giao diện cũ ngoại trừ Data Pool ẩn
+            const existingGroups = groupedContainer.querySelectorAll(".date-group-section");
+            existingGroups.forEach(el => el.remove());
+
+            btnFilterToday.classList.remove("active");
+            btnFilterAll.classList.remove("active");
+
+            const selectedDate = searchDateInput.value;
+            let hasVisibleItems = false;
+
+            // 2. Thu thập và tạo cấu trúc nhóm động map các phần tử
+            const groupsMap = {};
+
+            rawItems.forEach(item => {
+                const itemDateISO = item.getAttribute("data-date-iso");
+                const itemDateDisplay = item.getAttribute("data-date-display");
+
+                let matchesCondition = false;
+                if (mode === 'today') {
+                    btnFilterToday.classList.add("active");
+                    matchesCondition = (itemDateISO === selectedDate);
+                } else if (mode === 'all') {
+                    btnFilterAll.classList.add("active");
+                    matchesCondition = true;
+                }
+
+                if (matchesCondition) {
+                    hasVisibleItems = true;
+                    if (!groupsMap[itemDateDisplay]) {
+                        groupsMap[itemDateDisplay] = [];
+                    }
+                    // Nhân bản sâu (Clone) cấu trúc card từ pool ẩn để đưa ra màn hình hiển thị
+                    groupsMap[itemDateDisplay].push(item.firstElementChild.cloneNode(true));
+                }
+            });
+
+            // 3. Kết xuất giao diện phân cụm ra màn hình dựa trên dữ liệu đã thu thập
+            if (!hasVisibleItems) {
+                noResultsScreen.style.display = "block";
+                return;
+            }
+            noResultsScreen.style.display = "none";
+
+            // Duyệt qua các Key cụm ngày (đã được sắp xếp tự động từ pool gốc)
+            Object.keys(groupsMap).forEach(dateStr => {
+                // Khởi tạo khối bọc cụm ngày
+                const sectionGroup = document.createElement("div");
+                sectionGroup.className = "date-group-section";
+
+                // Tạo tiêu đề cụm ngày
+                const headerDiv = document.createElement("div");
+                headerDiv.className = "date-group-header";
+                headerDiv.innerHTML = `<h5 class="fw-bold text-dark m-0"><i class="far fa-calendar-check text-success me-2"></i>${dateStr}</h5>`;
+                sectionGroup.appendChild(headerDiv);
+
+                // Tạo row grid chứa danh sách thẻ
+                const rowGrid = document.createElement("div");
+                rowGrid.className = "row g-4";
+
+                groupsMap[dateStr].forEach(cardElement => {
+                    rowGrid.appendChild(cardElement);
+                });
+
+                sectionGroup.appendChild(rowGrid);
+                groupedContainer.appendChild(sectionGroup);
+            });
+        }
+
+        // --- LẮNG NGHE SỰ KIỆN TƯƠNG TÁC ---
+        searchDateInput.addEventListener("change", function () {
+            filterAndGroupAppointments('today');
+        });
+
+        btnFilterToday.addEventListener("click", function () {
+            filterAndGroupAppointments('today');
+        });
+
+        btnFilterAll.addEventListener("click", function () {
+            filterAndGroupAppointments('all');
+        });
+
+        btnResetSearch.addEventListener("click", function () {
+            filterAndGroupAppointments('all');
+        });
+
+        // Kích hoạt mặc định: Lọc tự động hiển thị lịch của ngày hôm nay lúc tải trang
+        filterAndGroupAppointments('today');
+    });
+</script>
