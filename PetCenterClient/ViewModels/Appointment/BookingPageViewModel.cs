@@ -54,7 +54,7 @@
         public decimal Price { get; set; }
 
         public int Duration { get; set; }
-
+        public int ServiceType { get; set; }
 
         public List<string> ServiceImages { get; set; } = new List<string>();
     }

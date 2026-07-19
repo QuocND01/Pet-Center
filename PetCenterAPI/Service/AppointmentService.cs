@@ -242,6 +242,16 @@ namespace PetCenterAPI.Service
                 List<AppointmentListResponseDTO>>
                 (appointments);
         }
+        public async Task<List<AppointmentListResponseDTO>> GetAllAppointmentsAsync()
+        {
+            var appointments =
+                await _repository
+                    .GetAllAppointmentsAsync();
+
+            return _mapper.Map<
+                List<AppointmentListResponseDTO>>
+                (appointments);
+        }
         public async Task<AppointmentResponseDTO> GetAppointmentDetailAsync(Guid appointmentId)
         {
             var appointment =
@@ -299,6 +309,26 @@ namespace PetCenterAPI.Service
 
             await _repository.SaveChangesAsync();
         }
+        public async Task ForwardAppointmentStatusAsync(Guid appointmentId, Guid staffId)
+        {
+            var appointment =
+                await _repository
+                    .GetByIdAsync(appointmentId);
+
+            if (appointment == null)
+                throw new Exception("Appointment not found.");
+
+            if (appointment.StaffId != staffId)
+                throw new Exception("You are not assigned to this appointment.");
+
+            if (appointment.Status is < 1 or > 3)
+                throw new Exception("Appointment status cannot be updated.");
+
+            appointment.Status++;
+            appointment.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.SaveChangesAsync();
+        }
         public async Task SubmitReviewAsync(
     Guid customerId,
     SubmitReviewRequestDTO request)
@@ -345,6 +375,21 @@ namespace PetCenterAPI.Service
 
             await _repository.SaveChangesAsync();
         }
+        public async Task CompleteAppointmentService(Guid appointmentServiceId)
+        {
+            var appointmentService = await _repository.GetAppointmentServiceByIdAsync(appointmentServiceId);
+
+            if (appointmentService == null)
+            {
+                throw new Exception("Appointment service not found.");
+            }
+
+            appointmentService.Status = 2;
+            appointmentService.CompleteAt = DateTime.UtcNow;
+
+            await _repository.SaveChangesAsync();
+        }
+                    
         public async Task<List<AvailableSlotResponseDTO>>
     GetAvailableSlotsAsync(
         GetAvailableSlotsRequestDTO request)

@@ -189,5 +189,88 @@ namespace PetCenterClient.Controllers
             return RedirectToAction(nameof(Detail),
                 new { id = model.AppointmentId });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> StaffAppointments()
+        {
+            try
+            {
+                var model = await _appointmentApiService.GetAllAppointmentsAsync();
+                return View("~/Views/AdminViews/Appointment/StaffAppointments.cshtml",model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return View("~/Views/AdminViews/Appointment/StaffAppointments.cshtml", new List<AppointmentListViewModel>());
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> StaffAppointmentDetail(Guid id)
+        {
+            try
+            {
+                var model = await _appointmentApiService.GetAppointmentDetailAsync(id);
+
+                if (model == null)
+                {
+                    TempData["Error"] = "Appointment not found.";
+                    return RedirectToAction(nameof(StaffAppointments));
+                }
+
+                return View("~/Views/AdminViews/Appointment/StaffAppointmentDetail.cshtml", model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(StaffAppointments));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForwardAppointment(Guid appointmentId)
+        {
+            try
+            {
+                await _appointmentApiService
+                    .ForwardAppointmentStatusAsync(appointmentId);
+
+                TempData["Success"] = "Appointment status updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(StaffAppointmentDetail), new
+            {
+                id = appointmentId
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteAppointmentService(
+            [FromForm] Guid appointmentId,
+            [FromForm] Guid appointmentServiceId)
+        {
+            try
+            {
+                await _appointmentApiService
+                    .CompleteAppointmentServiceAsync(appointmentServiceId);
+
+                TempData["Success"] = "Service completed successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(StaffAppointmentDetail), new
+            {
+                id = appointmentId
+            });
+        }
     }
 }

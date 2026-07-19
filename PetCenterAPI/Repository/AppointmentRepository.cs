@@ -62,7 +62,7 @@ namespace PetCenterAPI.Repository
         }
         public async Task<Pet?> GetPetForSnapshotAsync(Guid petId)
         {
-            
+
             return await _context.Pets
                 .FirstOrDefaultAsync(x => x.PetId == petId);
         }
@@ -79,12 +79,11 @@ namespace PetCenterAPI.Repository
         public async Task<IEnumerable<Staff>> GetActiveVetsAsync()
         {
             return await _context.Staffs
-                .Include(s => s.VetProfile) 
+                .Include(s => s.VetProfile)
                 .Where(s => s.IsActive && s.VetProfile != null && s.VetProfile.IsActive)
                 .ToListAsync();
         }
-        public async Task<List<Appointment>>
-    GetAppointmentsByCustomerAsync(Guid customerId)
+        public async Task<List<Appointment>>GetAppointmentsByCustomerAsync(Guid customerId)
         {
             return await _context.Appointments
                 .Include(x => x.Pet)
@@ -93,8 +92,15 @@ namespace PetCenterAPI.Repository
                 .OrderByDescending(x => x.AppointmentStart)
                 .ToListAsync();
         }
-        public async Task<Appointment?>
-    GetAppointmentDetailAsync(Guid appointmentId)
+        public async Task<List<Appointment>>GetAllAppointmentsAsync()
+        {
+            return await _context.Appointments
+                .Include(x => x.Pet)
+                .Include(x => x.Staff)
+                .OrderByDescending(x => x.AppointmentStart)
+                .ToListAsync();
+        }
+        public async Task<Appointment?> GetAppointmentDetailAsync(Guid appointmentId)
         {
             return await _context.Appointments
                 .Include(x => x.Pet)
@@ -105,14 +111,18 @@ namespace PetCenterAPI.Repository
                 .FirstOrDefaultAsync(x =>
                     x.AppointmentId == appointmentId);
         }
+        public async Task<AppointmentService?> GetAppointmentServiceByIdAsync(Guid appointmentServiceId)
+        {
+            return await _context.AppointmentServices
+                .FirstOrDefaultAsync(x =>x.AppointmentServiceId == appointmentServiceId);
+        }
         public async Task<Appointment?> GetByIdAsync(Guid appointmentId)
         {
-            
+
             return await _context.Appointments
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
         }
-        public async Task<List<Appointment>>
-    GetDoctorAppointmentsByDateAsync(
+        public async Task<List<Appointment>> GetDoctorAppointmentsByDateAsync(
         Guid staffId,
         DateOnly date)
         {

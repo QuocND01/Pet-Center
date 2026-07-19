@@ -5,8 +5,21 @@
 }
 
 <!-- Liên kết CSS & Icon -->
-<link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" asp-append-version="true"/>
+<link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" append-version="true"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+<!-- CẤU TRÚC TOAST NOTIFICATION CONTAINER (NẰM GÓC TRÊN BÊN PHẢI MÀN HÌNH) -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="bookingToast" class="toast align-items-center text-white border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex p-2">
+            <div class="toast-body d-flex align-items-center gap-2 fw-semibold">
+                <i id="toastIcon" class="fas"></i>
+                <span id="toastMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
 <div class="booking-wrapper py-5" data-bs-theme="light">
     <div class="container">
@@ -105,7 +118,7 @@
                         <div class="modern-grid-select grid-services">
                             @foreach (var service in Model.Services)
                             {
-                                <div class="modern-card card-selectable card-service" data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration" data-images="@string.Join(",", service.ServiceImages)">
+                                <div class="modern-card card-selectable card-service" data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration" data-images="@string.Join(",", service.ServiceImages)" data-type="@service.ServiceType">
                                     <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
                                     <div class="card-media service-media">
                                         <img src="@(service.ServiceImages.Any() ? service.ServiceImages.First() : "https://placehold.co/150x100?text=Service")" alt="@service.ServiceName" />
@@ -255,9 +268,36 @@
         const totalSteps = 4;
         let totalDuration = 0;
 
+        // --- HÀM HỖ TRỢ HIỂN THỊ THÔNG BÁO TOAST XỊN MỊN ---
+        function showToast(message, type = 'warning') {
+            const toastEl = document.getElementById('bookingToast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            // Reset lớp màu cũ
+            toastEl.classList.remove('bg-warning', 'bg-danger', 'bg-success', 'bg-info');
+            
+            // Thiết lập style và icon phù hợp theo type
+            if (type === 'danger') {
+                toastEl.classList.add('bg-danger');
+                toastIcon.className = 'fas fa-exclamation-circle fs-5';
+            } else if (type === 'success') {
+                toastEl.classList.add('bg-success');
+                toastIcon.className = 'fas fa-check-circle fs-5';
+            } else {
+                toastEl.classList.add('bg-warning', 'text-dark'); // Warning đổi chữ tối cho dễ nhìn
+                toastIcon.className = 'fas fa-exclamation-triangle fs-5';
+            }
+            
+            toastMessage.innerText = message;
+            
+            // Khởi tạo và kích hoạt Bootstrap Toast
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+        }
+
         // --- HỆ THỐNG ĐIỀU HƯỚNG MULTI-STEP ---
         function updateStepperUI() {
-            // Cập nhật các node bước trên thanh tiến trình
             document.querySelectorAll('.step-node').forEach(node => {
                 const stepNum = parseInt(node.getAttribute('data-step'));
                 if (stepNum <= currentStep) {
@@ -267,12 +307,10 @@
                 }
             });
 
-            // Cập nhật thanh line tiến trình chạy ngang
             const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
             const progressBar = document.getElementById('stepProgressBar');
             if(progressBar) progressBar.style.width = `${progressPercent}%`;
 
-            // Cập nhật content ẩn hiện của từng bước
             document.querySelectorAll('.booking-step-content').forEach(content => {
                 if (parseInt(content.getAttribute('data-step-content')) === currentStep) {
                     content.classList.add('active');
@@ -281,7 +319,6 @@
                 }
             });
 
-            // Điều khiển các nút điều hướng
             document.getElementById('btnPrevStep').style.display = currentStep === 1 ? 'none' : 'block';
             
             if (currentStep === totalSteps) {
@@ -293,15 +330,14 @@
 
         document.getElementById('btnNextStep').addEventListener('click', function() {
             if (currentStep < totalSteps) {
-                // Kiểm tra validation logic cơ bản trước khi qua bước tiếp theo
                 if (currentStep === 1 && !document.getElementById('selectedPetId').value) {
-                    alert("Please select a pet before moving forward."); return;
+                    showToast("Please select a pet before moving forward.", "warning"); return;
                 }
                 if (currentStep === 2 && !document.getElementById('selectedStaffId').value) {
-                    alert("Please select a doctor before moving forward."); return;
+                    showToast("Please select a doctor before moving forward.", "warning"); return;
                 }
                 if (currentStep === 3 && totalDuration === 0) {
-                    alert("Please select at least one service before moving forward."); return;
+                    showToast("Please select at least one service before moving forward.", "warning"); return;
                 }
                 currentStep++;
                 updateStepperUI();
@@ -323,7 +359,7 @@
 
         document.querySelectorAll('.btn-view-detail').forEach(btn => {
             btn.addEventListener('click', function(e) {
-                e.stopPropagation(); // Không kích hoạt hành động chọn thẻ cha
+                e.stopPropagation(); 
                 const card = this.closest('.modern-card');
                 
                 if (card.classList.contains('card-pet')) {
@@ -398,18 +434,37 @@
         });
 
 
-        // --- LOGIC CHỌN DỊCH VỤ (MULTI SELECT) ---
+        // --- LOGIC CHỌN DỊCH VỤ VỚI RÀNG BUỘC TYPE ---
         const serviceCards = document.querySelectorAll('.card-service');
         serviceCards.forEach(card => {
             card.addEventListener('click', function() {
                 const chk = this.querySelector('.service-checkbox-input');
-                chk.checked = !chk.checked;
+                const checkedCards = Array.from(serviceCards).filter(c => c.querySelector('.service-checkbox-input').checked);
+                
+                if (!chk.checked) {
+                    if (checkedCards.length >= 2) {
+                        showToast("You can only select a maximum of 2 services per appointment.", "warning");
+                        return;
+                    }
 
-                if(chk.checked) {
+                    if (checkedCards.length === 1) {
+                        const currentSelectedType = checkedCards[0].getAttribute('data-type');
+                        const clickingType = this.getAttribute('data-type');
+
+                        if (currentSelectedType !== clickingType) {
+                            showToast("You can only select services of the same category (Service Type).", "warning");
+                            return;
+                        }
+                    }
+
+                    chk.checked = true;
                     this.classList.add('selected-active');
-                } else {
+                } 
+                else {
+                    chk.checked = false;
                     this.classList.remove('selected-active');
                 }
+
                 updateServicesSummary();
             });
         });
@@ -457,6 +512,13 @@
             const oldStaff = document.getElementById('selectedStaffId').value;
             if(oldStaff) document.querySelector(`.card-staff[data-id="${oldStaff}"]`)?.click();
 
+            serviceCards.forEach(card => {
+                const chk = card.querySelector('.service-checkbox-input');
+                if (chk.checked) {
+                    card.classList.add('selected-active');
+                }
+            });
+
             updateServicesSummary();
         };
         initOldState();
@@ -472,9 +534,9 @@
             const doctorId = document.getElementById("selectedStaffId").value;
             const date = document.getElementById("AppointmentDate").value;
 
-            if (!doctorId) { alert("Please go back and select a doctor."); return; }
-            if (totalDuration === 0) { alert("Please go back and select services."); return; }
-            if (!date) { alert("Please choose an appointment date."); return; }
+            if (!doctorId) { showToast("Please go back and select a doctor.", "warning"); return; }
+            if (totalDuration === 0) { showToast("Please go back and select services.", "warning"); return; }
+            if (!date) { showToast("Please choose an appointment date.", "warning"); return; }
 
             const loadingElem = document.getElementById("slotLoading");
             const container = document.getElementById("slotContainer");
@@ -503,10 +565,12 @@
                     renderSlots(result.data);
                 } else {
                     container.innerHTML = `<div class="alert alert-danger w-100 small m-0"><i class="fas fa-exclamation-triangle me-2"></i>${result.message || 'Error parsing slot schedules.'}</div>`;
+                    showToast(result.message || 'Could not find any slots.', 'danger');
                 }
             } catch (error) {
                 loadingElem.style.display = "none";
                 container.innerHTML = `<div class="alert alert-danger w-100 small m-0"><i class="fas fa-wifi-slash me-2"></i>Network breakdown or server error.</div>`;
+                showToast("Network breakdown or server error.", "danger");
             }
         }
 
@@ -538,7 +602,6 @@
                     btn.classList.add("active");
                     document.getElementById("SelectedStartTime").value = slot.startTime;
                     
-                    // Điền thời gian vào thanh Sidebar Summary & mở khóa submit (Sử dụng @@ để thoát ký tự cho Razor)
                     const summarySchedule = document.getElementById('summarySchedule');
                     summarySchedule.style.display = "block";
                     summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} @@ ${timeText.split('-')[0]}`;
@@ -550,8 +613,6 @@
             });
         }
 
-
-        // Ủy quyền hành động Submit từ Sidebar sang Form gốc
         document.getElementById('btnSubmitBooking').addEventListener('click', function() {
             if(document.getElementById("SelectedStartTime").value) {
                 document.getElementById('bookingForm').submit();
