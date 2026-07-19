@@ -144,12 +144,12 @@
                                         <div class="staff-avatar @genderClass">@initials</div>
                                     }
                                     <div>
-                                        <div class="staff-name">@s.FullName</div>
+                                        <div class="staff-name" title="@s.FullName">@s.FullName</div>
                                         <div class="staff-id-sub">@s.StaffId.ToString()[..8]…</div>
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="email-cell">@s.Email</span></td>
+                            <td><span class="email-cell" title="@s.Email">@s.Email</span></td>
                             <td><span class="phone-cell">@s.PhoneNumber</span></td>
                             <td><span class="role-pill">@(s.RoleName ?? "—")</span></td>
                             <td>
@@ -242,7 +242,7 @@
                         </div>
                         <div class="field-group">
                             <label class="field-label">Email *</label>
-                            <input name="Email" type="email" class="field-input" required />
+                            <input name="Email" type="email" class="field-input" maxlength="255" required />
                         </div>
                     </div>
                     <div class="field-row">
@@ -290,11 +290,11 @@
                     <div class="field-row">
                         <div class="field-group">
                             <label class="field-label">Password *</label>
-                            <input name="Password" type="password" class="field-input" minlength="6" required />
+                            <input name="Password" type="password" class="field-input" minlength="6" maxlength="100" required />
                         </div>
                         <div class="field-group">
                             <label class="field-label">Confirm Password *</label>
-                            <input name="ConfirmPassword" type="password" class="field-input" minlength="6" required />
+                            <input name="ConfirmPassword" type="password" class="field-input" minlength="6" maxlength="100" required />
                         </div>
                     </div>
 
@@ -348,7 +348,7 @@
                         </div>
                         <div class="field-group">
                             <label class="field-label">Email *</label>
-                            <input name="Email" id="editEmail" type="email" class="field-input" required />
+                            <input name="Email" id="editEmail" type="email" class="field-input" maxlength="255" required />
                         </div>
                     </div>
                     <div class="field-row">
@@ -642,13 +642,18 @@
                     if (!json.success) { alert(json.message || 'Failed to load staff.'); return; }
                     var d = json.data;
                     document.getElementById('vFullName').textContent = d.fullName || '—';
+                    document.getElementById('vFullName').setAttribute('title', d.fullName || '');
                     document.getElementById('vStatus').innerHTML = d.isActive
                         ? '<span class="badge-status badge-active"><span class="badge-dot"></span> Active</span>'
                         : '<span class="badge-status badge-inactive"><span class="badge-dot"></span> Inactive</span>';
                     document.getElementById('vEmail').textContent = d.email || '—';
+                    document.getElementById('vEmail').setAttribute('title', d.email || '');
                     document.getElementById('vPhone').textContent = d.phoneNumber || '—';
+                    document.getElementById('vPhone').setAttribute('title', d.phoneNumber || '');
                     document.getElementById('vGender').textContent = d.gender || '—';
+                    document.getElementById('vGender').setAttribute('title', d.gender || '');
                     document.getElementById('vRole').textContent = d.roleName || '—';
+                    document.getElementById('vRole').setAttribute('title', d.roleName || '');
                     document.getElementById('vBirth').textContent = fmtDate(d.birthDate);
                     document.getElementById('vHire').textContent = fmtDate(d.hireDate);
                     document.getElementById('vCreated').textContent = fmtDateTime(d.createdAt);
@@ -659,9 +664,11 @@
                     if (vet) {
                         wrap.style.display = 'block';
                         document.getElementById('vLicense').textContent = vet.licenseNumber || '—';
+                        document.getElementById('vLicense').setAttribute('title', vet.licenseNumber || '');
                         document.getElementById('vExperience').textContent = (vet.experienceYears ?? 0);
                         document.getElementById('vRating').textContent = '★ ' + (vet.rating ?? 0) + ' / 5';
                         document.getElementById('vDescription').textContent = vet.description || '—';
+                        document.getElementById('vDescription').setAttribute('title', vet.description || '');
                     } else {
                         wrap.style.display = 'none';
                     }

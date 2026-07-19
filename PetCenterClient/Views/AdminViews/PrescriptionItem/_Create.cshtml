@@ -18,21 +18,21 @@
                 <label asp-for="MedicineName" class="form-label fw-semibold">
                     Medicine Name <span class="text-danger">*</span>
                 </label>
-                <input asp-for="MedicineName" class="form-control" placeholder="e.g. Amoxicillin" />
+                <input asp-for="MedicineName" class="form-control" maxlength="255" placeholder="e.g. Amoxicillin" />
                 <span asp-validation-for="MedicineName" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Dosage" class="form-label fw-semibold">
                     Dosage <span class="text-danger">*</span>
                 </label>
-                <input asp-for="Dosage" class="form-control" placeholder="e.g. 250mg twice daily" />
+                <input asp-for="Dosage" class="form-control" maxlength="255" placeholder="e.g. 250mg twice daily" />
                 <span asp-validation-for="Dosage" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Duration" class="form-label fw-semibold">
                     Duration <span class="text-danger">*</span>
                 </label>
-                <input asp-for="Duration" class="form-control" placeholder="e.g. 7 days" />
+                <input asp-for="Duration" class="form-control" maxlength="255" placeholder="e.g. 7 days" />
                 <span asp-validation-for="Duration" class="text-danger"></span>
             </div>
             <div class="col-md-4 mb-3">
@@ -44,7 +44,7 @@
             </div>
             <div class="col-md-8 mb-3">
                 <label asp-for="Note" class="form-label fw-semibold">Note</label>
-                <input asp-for="Note" class="form-control" placeholder="Additional instructions..." />
+                <input asp-for="Note" class="form-control" maxlength="255" placeholder="Additional instructions..." />
                 <span asp-validation-for="Note" class="text-danger"></span>
             </div>
         </div>

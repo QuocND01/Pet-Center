@@ -6,7 +6,7 @@
     .detail-card { background: #fff; border-radius: 16px; padding: 24px; }
     .info-box { background: #f8f9fa; border-radius: 10px; padding: 12px; border: 1px solid #e9ecef; margin-bottom: 10px; }
     .info-label { font-weight: 600; color: #6c757d; font-size: 12px; text-transform: uppercase; margin-bottom: 3px; }
-    .info-value { font-size: 14px; color: #212529; }
+    .info-value { font-size: 14px; color: #212529; word-break: break-word; }
     .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; margin-top: 16px; }
     .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .status-drafted { background: #fef3c7; color: #92400e; }
@@ -112,9 +112,9 @@
                 {
                     <tr>
                         <td>@pi</td>
-                        <td>@item.MedicineName</td>
-                        <td>@item.Dosage</td>
-                        <td>@item.Duration</td>
+                        <td title="@item.MedicineName" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@item.MedicineName</td>
+                        <td title="@item.Dosage" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@item.Dosage</td>
+                        <td title="@item.Duration" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@item.Duration</td>
                         <td>@item.Quantity</td>
                         @if (isVetOrAdmin)
                         {

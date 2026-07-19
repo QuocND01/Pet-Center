@@ -43,19 +43,19 @@
             <div class="detail-grid">
                 <div class="field-group">
                     <label class="field-label">Email</label>
-                    <div class="field-value">@Model.Email</div>
+                    <div class="field-value" title="@Model.Email">@Model.Email</div>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Phone Number</label>
-                    <div class="field-value">@Model.PhoneNumber</div>
+                    <div class="field-value" title="@Model.PhoneNumber">@Model.PhoneNumber</div>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Gender</label>
-                    <div class="field-value">@(Model.Gender ?? "—")</div>
+                    <div class="field-value" title="@Model.Gender">@(Model.Gender ?? "—")</div>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Role</label>
-                    <div class="field-value">@(Model.RoleName ?? "—")</div>
+                    <div class="field-value" title="@Model.RoleName">@(Model.RoleName ?? "—")</div>
                 </div>
                 <div class="field-group">
                     <label class="field-label">Birth Date</label>
@@ -85,7 +85,7 @@
                 <div class="detail-grid">
                     <div class="field-group">
                         <label class="field-label">License Number</label>
-                        <div class="field-value @(string.IsNullOrEmpty(Model.VetProfile.LicenseNumber) ? "empty" : "")">
+                        <div class="field-value @(string.IsNullOrEmpty(Model.VetProfile.LicenseNumber) ? "empty" : "")" title="@Model.VetProfile.LicenseNumber">
                             @(string.IsNullOrEmpty(Model.VetProfile.LicenseNumber) ? "—" : Model.VetProfile.LicenseNumber)
                         </div>
                     </div>
@@ -101,7 +101,7 @@
                     </div>
                     <div class="field-group">
                         <label class="field-label">Description</label>
-                        <div class="field-value @(string.IsNullOrEmpty(Model.VetProfile.Description) ? "empty" : "")">
+                        <div class="field-value multiline @(string.IsNullOrEmpty(Model.VetProfile.Description) ? "empty" : "")" title="@Model.VetProfile.Description">
                             @(string.IsNullOrEmpty(Model.VetProfile.Description) ? "—" : Model.VetProfile.Description)
                         </div>
                     </div>

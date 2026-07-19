@@ -102,9 +102,9 @@
                         <tr>
                             <td>@i</td>
                             <td>@r.AppointmentStart.ToString("dd/MM/yyyy")</td>
-                            <td>@r.CustomerName</td>
-                            <td>@r.PetSpecies - @r.PetBreed</td>
-                            <td>@r.VetName</td>
+                            <td title="@r.CustomerName" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@r.CustomerName</td>
+                            <td title="@r.PetSpecies - @r.PetBreed" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@r.PetSpecies - @r.PetBreed</td>
+                            <td title="@r.VetName" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@r.VetName</td>
                             <td title="@r.Diagnosis" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                                 @r.Diagnosis
                             </td>
