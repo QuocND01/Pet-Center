@@ -1,10 +1,10 @@
-﻿using PetCenterClient.ViewModels.Appointment;   
+﻿using PetCenterClient.ViewModels.Appointment;
 
 namespace PetCenterClient.Services.Interface
 {
     public interface IAppointmentApiService
     {
-        Task<AppointmentViewModel?> BookAppointmentAsync(
+        Task<AppointmentBookingViewModel?> BookAppointmentAsync(
             BookAppointmentViewModel request);
 
         Task<BookingPageViewModel?> GetBookingDataAsync();
@@ -12,5 +12,12 @@ namespace PetCenterClient.Services.Interface
     Guid doctorId,
     DateOnly date,
     List<Guid> serviceIds);
+        Task<List<AppointmentListViewModel>> GetMyAppointmentsAsync();
+
+        Task<AppointmentDetailViewModel?> GetAppointmentDetailAsync(Guid appointmentId);
+
+        Task CancelAppointmentAsync(Guid appointmentId);
+
+        Task SubmitReviewAsync(SubmitReviewViewModel model);
     }
 }

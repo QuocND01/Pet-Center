@@ -11,8 +11,8 @@
     public class BookingPetDTO
     {
         public Guid PetId { get; set; }
-
         public string PetName { get; set; } = string.Empty;
+
         public string? Species { get; set; }
 
         public string? Breed { get; set; }

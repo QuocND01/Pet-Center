@@ -26,11 +26,20 @@ namespace PetCenterAPI.Profiles
             // Appointment -> Response
             CreateMap<Appointment, AppointmentResponseDTO>()
                 .ForMember(
+                    dest => dest.CustomerName,
+                    opt => opt.MapFrom(src => src.Customer.FullName))
+                .ForMember(
                     dest => dest.PetName,
                     opt => opt.MapFrom(src => src.Pet.PetName))
                 .ForMember(
+                    dest => dest.PetAvatar,
+                    opt => opt.MapFrom(src => src.Pet.PetAvatar))
+                .ForMember(
                     dest => dest.VetName,
                     opt => opt.MapFrom(src => src.Staff.FullName))
+                .ForMember(
+                    dest => dest.VetAvatar,
+                    opt => opt.MapFrom(src => src.Staff.Avatar))
                 .ForMember(
                     dest => dest.AppointmentServices,
                     opt => opt.MapFrom(src => src.AppointmentServices))

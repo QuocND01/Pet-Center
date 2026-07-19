@@ -31,7 +31,7 @@ namespace PetCenterClient.Services
                     new AuthenticationHeaderValue("Bearer", token);
             }
         }
-        public async Task<AppointmentViewModel?> BookAppointmentAsync(BookAppointmentViewModel request)
+        public async Task<AppointmentBookingViewModel?> BookAppointmentAsync(BookAppointmentViewModel request)
         {
             AddAuthorizationHeader();
             // 1. Gửi request POST sang API
@@ -72,7 +72,7 @@ namespace PetCenterClient.Services
 
             // 3. Nếu thành công (200 OK / 201 Created) -> Đọc dữ liệu bình thường
             var apiResponse = await response.Content
-                .ReadFromJsonAsync<ApiResponseViewModel<AppointmentViewModel>>();
+                .ReadFromJsonAsync<ApiResponseViewModel<AppointmentBookingViewModel>>();
 
             if (apiResponse == null)
                 throw new Exception("Cannot read response.");
@@ -125,6 +125,78 @@ namespace PetCenterClient.Services
                 throw new Exception(result.Message);
 
             return result.Data ?? [];
+        }
+        public async Task<List<AppointmentListViewModel>> GetMyAppointmentsAsync()
+        {
+            AddAuthorizationHeader();
+
+            var response = await _http.GetAsync("api/Appointment/my");
+
+            var result = await response.Content.ReadFromJsonAsync<
+                ApiResponseViewModel<List<AppointmentListViewModel>>>();
+
+            if (result == null)
+                throw new Exception("Cannot load appointments.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
+
+            return result.Data ?? [];
+        }
+        public async Task<AppointmentDetailViewModel?> GetAppointmentDetailAsync(Guid appointmentId)
+        {
+            AddAuthorizationHeader();
+
+            var response =
+                await _http.GetAsync($"api/Appointment/{appointmentId}");
+
+            var result = await response.Content.ReadFromJsonAsync<
+                ApiResponseViewModel<AppointmentDetailViewModel>>();
+
+            if (result == null)
+                throw new Exception("Cannot load appointment.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
+
+            return result.Data;
+        }
+        public async Task CancelAppointmentAsync(Guid appointmentId)
+        {
+            AddAuthorizationHeader();
+
+            var response =
+                await _http.PutAsync(
+                    $"api/Appointment/{appointmentId}/cancel",
+                    null);
+
+            var result =
+                await response.Content.ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+            if (result == null)
+                throw new Exception("Cancel failed.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
+        }
+        public async Task SubmitReviewAsync(
+    SubmitReviewViewModel model)
+        {
+            AddAuthorizationHeader();
+
+            var response =
+                await _http.PutAsJsonAsync(
+                    "api/Appointment/review",
+                    model);
+
+            var result =
+                await response.Content.ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+            if (result == null)
+                throw new Exception("Submit review failed.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
         }
     }
 }
