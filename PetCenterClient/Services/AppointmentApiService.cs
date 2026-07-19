@@ -179,8 +179,7 @@ namespace PetCenterClient.Services
             if (!response.IsSuccessStatusCode)
                 throw new Exception(result.Message);
         }
-        public async Task SubmitReviewAsync(
-    SubmitReviewViewModel model)
+        public async Task SubmitReviewAsync(SubmitReviewViewModel model)
         {
             AddAuthorizationHeader();
 
@@ -194,6 +193,58 @@ namespace PetCenterClient.Services
 
             if (result == null)
                 throw new Exception("Submit review failed.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
+        }
+
+        public async Task<List<AppointmentListViewModel>> GetAllAppointmentsAsync()
+        {
+            AddAuthorizationHeader();
+
+            var response = await _http.GetAsync("api/Appointment/appointments");
+
+            var result = await response.Content
+                .ReadFromJsonAsync<ApiResponseViewModel<List<AppointmentListViewModel>>>();
+
+            if (result == null)
+                throw new Exception("Cannot load appointments.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
+
+            return result.Data ?? new List<AppointmentListViewModel>();
+        }
+        public async Task ForwardAppointmentStatusAsync(Guid appointmentId)
+        {
+            AddAuthorizationHeader();
+
+            var response = await _http.PutAsync(
+                $"api/Appointment/{appointmentId}/forward",
+                null);
+
+            var result = await response.Content
+                .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+            if (result == null)
+                throw new Exception("Cannot update appointment.");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(result.Message);
+        }
+        public async Task CompleteAppointmentServiceAsync(Guid appointmentServiceId)
+        {
+            AddAuthorizationHeader();
+
+            var response = await _http.PutAsync(
+                $"api/Appointment/{appointmentServiceId}/complete",
+                null);
+
+            var result = await response.Content
+                .ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+            if (result == null)
+                throw new Exception("Cannot complete appointment service.");
 
             if (!response.IsSuccessStatusCode)
                 throw new Exception(result.Message);

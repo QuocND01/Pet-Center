@@ -30,11 +30,10 @@ namespace PetCenterAPI.Repository.Interface
         Task<IEnumerable<Staff>> GetActiveVetsAsync();
 
         //View for customer
-        Task<List<Appointment>> GetAppointmentsByCustomerAsync(
-        Guid customerId);
-
-        Task<Appointment?> GetAppointmentDetailAsync(
-            Guid appointmentId);
+        Task<List<Appointment>> GetAppointmentsByCustomerAsync(Guid customerId);
+        Task<List<Appointment>> GetAllAppointmentsAsync();
+        Task<Appointment?> GetAppointmentDetailAsync(Guid appointmentId);
+        Task<AppointmentService?> GetAppointmentServiceByIdAsync(Guid appointmentServiceId);
         Task<Appointment?> GetByIdAsync(Guid appointmentId);
 
         Task<List<Appointment>> GetDoctorAppointmentsByDateAsync(
