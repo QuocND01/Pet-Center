@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
 
 :root {
     --surface: #ffffff;
@@ -131,7 +131,7 @@
     background: var(--surface);
     border-radius: var(--radius);
     border: 1px solid var(--border);
-    overflow: hidden;
+    overflow-x: auto;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 

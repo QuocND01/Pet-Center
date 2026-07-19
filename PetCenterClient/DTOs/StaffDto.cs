@@ -69,6 +69,7 @@ namespace PetCenterClient.DTOs
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
+        [StringLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "Phone number is required")]
@@ -105,8 +106,13 @@ namespace PetCenterClient.DTOs
         public IFormFile? Avatar { get; set; }
 
         // Vet-only fields (validated server-side when role is Veterinarian)
+        [StringLength(50, ErrorMessage = "License number cannot exceed 50 characters")]
         public string? LicenseNumber { get; set; }
+
+        [StringLength(255, ErrorMessage = "Description cannot exceed 255 characters")]
         public string? Description { get; set; }
+
+        [Range(0, 100, ErrorMessage = "Experience years must be between 0 and 100")]
         public decimal? ExperienceYears { get; set; }
     }
 
@@ -120,6 +126,7 @@ namespace PetCenterClient.DTOs
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
+        [StringLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "Phone number is required")]
@@ -146,6 +153,7 @@ namespace PetCenterClient.DTOs
         public IFormFile? Avatar { get; set; }
 
         /// <summary>Editable vet description (only applied when staff is a Veterinarian).</summary>
+        [StringLength(255, ErrorMessage = "Description cannot exceed 255 characters")]
         public string? Description { get; set; }
 
         /// <summary>When true, resets the password back to the default "123456".</summary>

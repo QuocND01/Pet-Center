@@ -4,7 +4,7 @@
 <style>
     .info-box { background: #f8f9fa; border-radius: 10px; padding: 12px; border: 1px solid #e9ecef; margin-bottom: 10px; }
     .info-label { font-weight: 600; color: #6c757d; font-size: 12px; text-transform: uppercase; margin-bottom: 3px; }
-    .info-value { font-size: 14px; color: #212529; }
+    .info-value { font-size: 14px; color: #212529; word-break: break-word; }
     .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .status-drafted { background: #fef3c7; color: #92400e; }
     .status-completed { background: #d1fae5; color: #065f46; }
@@ -75,11 +75,11 @@
                 @foreach (var item in Model.PrescriptionItems)
                 {
                     <tr>
-                        <td>@item.MedicineName</td>
-                        <td>@item.Dosage</td>
-                        <td>@item.Duration</td>
+                        <td title="@item.MedicineName" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@item.MedicineName</td>
+                        <td title="@item.Dosage" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@item.Dosage</td>
+                        <td title="@item.Duration" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@item.Duration</td>
                         <td>@item.Quantity</td>
-                        <td>@(item.Note ?? "-")</td>
+                        <td title="@item.Note" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@(item.Note ?? "-")</td>
                     </tr>
                 }
             </tbody>

@@ -54,21 +54,21 @@ namespace PetCenterClient.ViewModels.MedicalRecord
             [Display(Name = "Disease")]
             public Guid? DiseaseId { get; set; }
 
-            [MaxLength(200)]
+            [MaxLength(255)]
             [Display(Name = "Custom Disease Name")]
             public string? CustomDiseaseName { get; set; }
 
             [Required(ErrorMessage = "Diagnosis is required")]
-            [MaxLength(500)]
+            [MaxLength(255)]
             [Display(Name = "Diagnosis")]
             public string Diagnosis { get; set; } = null!;
 
             [Required(ErrorMessage = "Treatment is required")]
-            [MaxLength(500)]
+            [MaxLength(255)]
             [Display(Name = "Treatment")]
             public string Treatment { get; set; } = null!;
 
-            [MaxLength(500)]
+            [MaxLength(255)]
             [Display(Name = "Note")]
             public string? Note { get; set; }
         }
@@ -80,21 +80,21 @@ namespace PetCenterClient.ViewModels.MedicalRecord
             [Display(Name = "Disease")]
             public Guid? DiseaseId { get; set; }
 
-            [MaxLength(200)]
+            [MaxLength(255)]
             [Display(Name = "Custom Disease Name")]
             public string? CustomDiseaseName { get; set; }
 
             [Required(ErrorMessage = "Diagnosis is required")]
-            [MaxLength(500)]
+            [MaxLength(255)]
             [Display(Name = "Diagnosis")]
             public string Diagnosis { get; set; } = null!;
 
             [Required(ErrorMessage = "Treatment is required")]
-            [MaxLength(500)]
+            [MaxLength(255)]
             [Display(Name = "Treatment")]
             public string Treatment { get; set; } = null!;
 
-            [MaxLength(500)]
+            [MaxLength(255)]
             [Display(Name = "Note")]
             public string? Note { get; set; }
         }

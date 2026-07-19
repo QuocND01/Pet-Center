@@ -18,21 +18,21 @@
                 <label asp-for="MedicineName" class="form-label fw-semibold">
                     Medicine Name <span class="text-danger">*</span>
                 </label>
-                <input asp-for="MedicineName" class="form-control" />
+                <input asp-for="MedicineName" class="form-control" maxlength="255" />
                 <span asp-validation-for="MedicineName" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Dosage" class="form-label fw-semibold">
                     Dosage <span class="text-danger">*</span>
                 </label>
-                <input asp-for="Dosage" class="form-control" />
+                <input asp-for="Dosage" class="form-control" maxlength="255" />
                 <span asp-validation-for="Dosage" class="text-danger"></span>
             </div>
             <div class="col-md-6 mb-3">
                 <label asp-for="Duration" class="form-label fw-semibold">
                     Duration <span class="text-danger">*</span>
                 </label>
-                <input asp-for="Duration" class="form-control" />
+                <input asp-for="Duration" class="form-control" maxlength="255" />
                 <span asp-validation-for="Duration" class="text-danger"></span>
             </div>
             <div class="col-md-4 mb-3">
@@ -44,7 +44,7 @@
             </div>
             <div class="col-md-8 mb-3">
                 <label asp-for="Note" class="form-label fw-semibold">Note</label>
-                <input asp-for="Note" class="form-control" />
+                <input asp-for="Note" class="form-control" maxlength="255" />
                 <span asp-validation-for="Note" class="text-danger"></span>
             </div>
         </div>
