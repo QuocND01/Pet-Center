@@ -54,7 +54,7 @@
                     <span class="status-badge status-@r.StatusName.ToLower()">@r.StatusName</span>
                 </div>
                 <div class="record-diagnosis">@r.Diagnosis</div>
-                <div class="record-treatment text-truncate mb-3">@r.Treatment</div>
+                <div class="record-treatment text-truncate mb-3" title="@r.Treatment">@r.Treatment</div>
                 <button class="btn-view"
                         data-bs-toggle="modal"
                         data-bs-target="#mrDetailModal"
@@ -91,6 +91,7 @@
 <script>
     $(document).on('click', "[data-bs-target='#mrDetailModal']", function () {
         var url = $(this).data('url');
+        $('#mrDetailBody').html('<div class="text-center py-4"><div class="spinner-border text-success" role="status"></div></div>');
         $('#mrDetailBody').load(url);
     });
 </script>
