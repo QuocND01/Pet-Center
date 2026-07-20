@@ -53,7 +53,9 @@ namespace PetCenterAPI.Repository
             return await _context.Appointments.AnyAsync(x =>
                 x.StaffId == staffId
                 && appointmentStart < x.AppointmentEnd
-                && appointmentEnd > x.AppointmentStart);
+                && appointmentEnd > x.AppointmentStart
+                && x.Status != 0
+                 );
         }
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
