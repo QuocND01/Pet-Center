@@ -233,7 +233,8 @@ namespace PetCenterAPI.Service
             };
         }
         public async Task<List<AppointmentListResponseDTO>> GetMyAppointmentsAsync(Guid customerId)
-        {
+        {   
+
             var appointments =
                 await _repository
                     .GetAppointmentsByCustomerAsync(customerId);

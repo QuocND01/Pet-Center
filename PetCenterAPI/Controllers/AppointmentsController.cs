@@ -86,7 +86,12 @@ namespace PetCenterAPI.Controllers
 
             if (string.IsNullOrEmpty(Claim))
             {
-                return Unauthorized("CustomerId missing in token");
+                return Unauthorized(new
+                {
+                    status = false,
+                    message = "Customer must login to view appointments"
+                });
+
             }
 
             var Id = Guid.Parse(Claim);
