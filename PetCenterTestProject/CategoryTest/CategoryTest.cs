@@ -18,7 +18,7 @@ using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
 using static PetCenterAPI.DTOs.Responses.Category.CategoryAttributeResponseDTO;
 using static PetCenterAPI.DTOs.Responses.Category.CategoryResponseDTO;
 
-namespace PetCenterTestProject
+namespace PetCenterTestProject.CategoryTest
 {
     public class CategoryTest
     {
