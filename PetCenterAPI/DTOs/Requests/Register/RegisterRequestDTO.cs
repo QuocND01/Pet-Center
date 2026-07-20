@@ -5,14 +5,26 @@ namespace PetCenterAPI.DTOs.Requests.Register
 {
     public class RegisterRequestDTO
     {
+        private string _fullName = null!;
         [Required(ErrorMessage = "Full name is required")]
+        [StringLength(50, ErrorMessage = "Full name must not exceed 50 characters")]
         [RegularExpression(@"^[a-zA-ZÀ-ỹ\s]{2,}$",
             ErrorMessage = "Full name must contain letters only and at least 2 characters")]
-        public string FullName { get; set; } = null!;
+        public string FullName
+        {
+            get => _fullName;
+            set => _fullName = value?.Trim() ?? value!;
+        }
 
+        private string _email = null!;
         [Required(ErrorMessage = "Email is required")]
+        [StringLength(50, ErrorMessage = "Email must not exceed 50 characters")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
-        public string Email { get; set; } = null!;
+        public string Email
+        {
+            get => _email;
+            set => _email = value?.Trim() ?? value!;
+        }
 
         [Required(ErrorMessage = "Phone number is required")]
         [RegularExpression(@"^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$",
