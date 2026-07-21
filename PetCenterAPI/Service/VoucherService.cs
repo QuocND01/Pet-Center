@@ -41,6 +41,9 @@ namespace PetCenterAPI.Service
             if (codeExists)
                 return (false, $"Voucher code '{request.Code.ToUpper()}' already exists.", null);
 
+            if (request.UseageLimit < 1 || request.UseageLimit > 500)
+                return (false, "Usage limit must be between 1 and 500.", null);
+
             if (request.MaxDiscountAmount >= request.MinOrderAmount && request.MinOrderAmount > 0)
                 return (false, "Max discount amount must be less than min order amount.", null);
 

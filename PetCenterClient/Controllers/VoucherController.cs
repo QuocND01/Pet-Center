@@ -69,13 +69,27 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Create([FromBody] CreateVoucherViewModel dto)
         {
             if (!IsAuthorized(out var redirect)) return redirect!;
-            if (dto == null)
-                return Json(new { success = false, message = "Invalid data." });
 
-            var (success, message, data) = await _voucherService.CreateAsync(dto);
-            if (!success)
-                return BadRequest(new { message });
-            return Ok(new { message, data });
+            if (dto == null || !ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return BadRequest(new { message = errors.Any() ? string.Join(" | ", errors) : "Invalid data." });
+            }
+
+            try
+            {
+                var (success, message, data) = await _voucherService.CreateAsync(dto);
+                if (!success)
+                    return BadRequest(new { message });
+                return Ok(new { message, data });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Server error while creating voucher: " + ex.Message });
+            }
         }
 
         [HttpPost]
