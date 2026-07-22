@@ -14,8 +14,6 @@ namespace PetCenterClient.Services
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        private const string PREFIX = "voucher-service/voucher";
-
         public VoucherApiService(HttpClient http, IHttpContextAccessor httpContextAccessor)
         {
             _http = http;
@@ -111,39 +109,7 @@ namespace PetCenterClient.Services
             {
                 return (false, ex.Message, null);
             }
-        }
-
-        // ── UPDATE ───────────────────────────────────────────────
-        public async Task<(bool Success, string Message, VoucherDto? Data)> UpdateAsync(Guid id, UpdateVoucherDto dto)
-        {
-            try
-            {
-                AttachToken();
-                var json = JsonConvert.SerializeObject(dto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var response = await _http.PutAsync($"{PREFIX}/vouchers/{id}", content);
-                var body = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var err = JsonConvert.DeserializeObject<dynamic>(body);
-                    string msg = err?.message ?? "Failed to update voucher.";
-                    return (false, msg, null);
-                }
-
-                var result = JsonConvert.DeserializeObject<dynamic>(body);
-                string message = result?.message ?? "Voucher updated successfully.";
-                var dataJson = JsonConvert.SerializeObject(result?.data);
-                var data = JsonConvert.DeserializeObject<VoucherDto>(dataJson);
-
-                return (true, message, data);
-            }
-            catch (Exception ex)
-            {
-                return (false, ex.Message, null);
-            }
-        }
+        }       
 
         // ============================================================
         // VOUCHER — TOGGLE STATUS

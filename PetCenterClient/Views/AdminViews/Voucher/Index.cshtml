@@ -1093,7 +1093,7 @@
     </div>
 </div>
 
-<!-- ══ ADD / EDIT MODAL ══════════════════════════════════════ -->
+<!-- ══ ADD MODAL ══════════════════════════════════════ -->
 <div class="vmodal-overlay" id="voucherModal">
     <div class="vmodal">
         <div class="vmodal-header">
@@ -1105,7 +1105,6 @@
         </div>
 
         <div class="vmodal-body">
-            <input type="hidden" id="editVoucherId" />
 
             <!-- SECTION 1: Basic Info -->
             <div class="form-section">
@@ -1182,7 +1181,7 @@
                     <div class="form-group">
                         <label class="form-label">Usage Limit <span class="req">*</span></label>
                         <input type="number" class="form-control-v" id="fUsageLimit"
-                               placeholder="e.g. 500" min="1" max="500" step="1"
+                               placeholder="e.g. 100" min="1" max="500" step="1"
                                inputmode="numeric"
                                onkeydown="if(['.', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"
                                oninput="sanitizeUsageLimitInput(); validateUsageLimit(); computePreview()" />
@@ -1192,8 +1191,8 @@
                     <div class="form-group">
                         <label class="form-label">Expiry Date <span class="req">*</span></label>
                         <input type="datetime-local" class="form-control-v" id="fExpiry"
-                               oninput="validateExpiry()" />
-                        <span class="form-error" id="errExpiry">Expiry must be in the future.</span>
+                               oninput="validateExpiry()" onchange="validateExpiry()" />
+                        <span class="form-error" id="errExpiry"></span>
                     </div>
                 </div>
             </div>
@@ -1227,7 +1226,9 @@
                             <div class="preview-item-val" id="pvCapApplied">—</div>
                         </div>
                         <div class="preview-item">
-                            <div class="preview-item-label">Total Budget</div>
+                            <div class="preview-item-label" title="The maximum total amount the shop will pay out if this voucher is fully redeemed (up to the Usage Limit), assuming every order is exactly at the Min Order threshold.">
+                                Max Payout <span style="font-weight:600;opacity:.7">(if fully used)</span>
+                            </div>
                             <div class="preview-item-val" id="pvBudget">—</div>
                         </div>
                     </div>
@@ -1262,11 +1263,12 @@
     const BASE     = '/Voucher';
     const PAGE_SIZE = 10;
     const MAX_DISCOUNT_CAP = 50_000_000;
+    const USAGE_LIMIT_MIN = 1;
+    const USAGE_LIMIT_MAX = 500;
 
     let allVouchers      = [];
     let filteredVouchers = [];
     let currentPage      = 1;
-    let isEditMode       = false;
 
     /* ── INIT ── */
     document.addEventListener('DOMContentLoaded', loadVouchers);
@@ -1397,10 +1399,6 @@
                 </td>
                 <td>
                     <div class="action-btns" style="justify-content:center">
-                        <button class="btn-icon edit"
-                            onclick="openEditModal('${v.voucherId}')" title="Edit">
-                            <i class="bi bi-pencil-fill"></i>
-                        </button>
                         <button class="btn-icon toggle"
                             onclick="toggleStatus('${v.voucherId}', ${v.isActive})"
                             title="${v.isActive ? 'Deactivate' : 'Activate'}">
@@ -1418,8 +1416,6 @@
         const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
         const start      = (currentPage - 1) * PAGE_SIZE + 1;
         const end        = Math.min(currentPage * PAGE_SIZE, total);
-        const USAGE_LIMIT_MIN = 1;
-        const USAGE_LIMIT_MAX = 500;
 
         document.getElementById('paginationInfo').textContent = total
             ? `Showing ${start}–${end} of ${total}` : 'No results';
@@ -1464,43 +1460,15 @@
         document.getElementById('modalTitle').textContent    = 'Add New Voucher';
         document.getElementById('modalSubtitle').textContent = 'Fill in the details. Smart preview calculates customer impact.';
         document.getElementById('submitBtnText').textContent = 'Save Voucher';
-        document.getElementById('editVoucherId').value       = '';
         clearForm();
+
+        const now = new Date();
+        now.setSeconds(0, 0);
+        const localMin = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('fExpiry').min = localMin;
+
         document.getElementById('voucherModal').classList.add('open');
         document.getElementById('fCode').focus();
-    }
-
-    /* ── OPEN EDIT MODAL ── */
-    function openEditModal(id) {
-        const v = allVouchers.find(x => x.voucherId === id);
-        if (!v) return;
-
-        isEditMode = true;
-        document.getElementById('modalTitle').textContent    = 'Edit Voucher';
-        document.getElementById('modalSubtitle').textContent = `Editing: ${v.code}`;
-        document.getElementById('submitBtnText').textContent = 'Update Voucher';
-        document.getElementById('editVoucherId').value       = id;
-
-        document.getElementById('fCode').value        = v.code || '';
-        document.getElementById('fDiscount').value    = v.discountPercent || '';
-        document.getElementById('fDescription').value = v.description || '';
-        document.getElementById('fMinOrder').value    = v.minOrderAmount || '';
-        document.getElementById('fMaxDiscount').value = v.maxDiscountAmount || '';
-        document.getElementById('fUsageLimit').value  = v.useageLimit || '';
-
-        if (v.expiredDate) {
-            const d      = new Date(v.expiredDate);
-            const offset = d.getTimezoneOffset() * 60000;
-            document.getElementById('fExpiry').value =
-                new Date(d - offset).toISOString().slice(0, 16);
-        } else {
-            document.getElementById('fExpiry').value = '';
-        }
-
-        hideServerError();
-        document.getElementById('voucherModal').classList.add('open');
-        updateDescCounter();
-        computePreview();
     }
 
     /* ── CLOSE MODAL ── */
@@ -1669,10 +1637,21 @@
     }
 
     function validateExpiry() {
-        const val = document.getElementById('fExpiry').value;
-        const ok  = isEditMode ? !!val : (!!val && new Date(val) > new Date());
-        document.getElementById('fExpiry').classList.toggle('error', !ok);
-        document.getElementById('errExpiry').style.display = ok ? 'none' : 'block';
+        const raw     = document.getElementById('fExpiry').value;
+        const inputEl = document.getElementById('fExpiry');
+        const errEl   = document.getElementById('errExpiry');
+
+        let errMsg = '';
+        if (raw === '') {
+            errMsg = 'Expiry date is required.';
+        } else if (new Date(raw) <= new Date()) {
+        errMsg = 'Expiry date must be in the future.';
+    }
+
+        const ok = errMsg === '';
+        inputEl.classList.toggle('error', !ok);
+        errEl.textContent   = errMsg;
+        errEl.style.display = ok ? 'none' : 'block';
         return ok;
     }
 
@@ -1689,7 +1668,7 @@
             if (!Number.isInteger(val) || val < USAGE_LIMIT_MIN) {
                 errMsg = 'Usage limit must be at least 1.';
             } else if (val > USAGE_LIMIT_MAX) {
-                errMsg = `Usage limit cannot exceed ${USAGE_LIMIT_MAX.toLocaleString('en-US')}.`;
+                errMsg = `Usage limit cannot exceed ${USAGE_LIMIT_MAX}.`;
             }
         }
 
@@ -1758,24 +1737,15 @@
         };
 
         try {
-            if (isEditMode) {
-                const id       = document.getElementById('editVoucherId').value;
-                const original = allVouchers.find(x => x.voucherId === id);
-                payload.isActive = original?.isActive ?? true;
-                await apiFetch('POST', `${BASE}/Update?id=${id}`, payload);
-            } else {
-                await apiFetch('POST', `${BASE}/Create`, payload);
-            }
-
+            await apiFetch('POST', `${BASE}/Create`, payload);   
             closeModal();
             await loadVouchers();
-            showToast(isEditMode ? 'Voucher updated successfully!' : 'Voucher created successfully!', 'success');
-
+            showToast('Voucher created successfully!', 'success');
         } catch (e) {
             showServerError(e.message || 'Operation failed. Please try again.');
         } finally {
             btn.disabled = false;
-            btnText.innerHTML = isEditMode ? 'Update Voucher' : 'Save Voucher';
+            btnText.innerHTML = 'Save Voucher';
         }
     }
 
@@ -1792,7 +1762,7 @@
     }
 
     /* ── HELPERS ── */
-        function clearForm() {
+    function clearForm() {
         ['fCode','fDiscount','fDescription','fMinOrder','fMaxDiscount','fUsageLimit','fExpiry']
             .forEach(id => {
                 document.getElementById(id).value = '';
@@ -1853,7 +1823,7 @@
         return res.json();
     }
 
-        function showToast(message, type = 'primary') {
+    function showToast(message, type = 'primary') {
         const iconMap = {
             success: 'bi-check-circle-fill',
             danger:  'bi-x-circle-fill',
@@ -1880,7 +1850,7 @@
         }, 3000);
     }
 
-    document.getElementById('voucherModal').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
+    // document.getElementById('voucherModal').addEventListener('click', function(e) {
+    //     if (e.target === this) closeModal();
+    // });
 </script>
