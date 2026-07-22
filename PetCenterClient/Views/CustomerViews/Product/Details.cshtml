@@ -672,9 +672,9 @@
         margin: 8px 0 6px;
     }
 
-        .fb-avg-stars .star {
-            font-size: 20px;
-        }
+    .fb-avg-stars .star {
+        font-size: 20px;
+    }
 
     .fb-avg-total {
         font-size: 12px;
@@ -705,9 +705,9 @@
         white-space: nowrap;
     }
 
-        .fb-bar-label .star-sm {
-            color: #f59e0b;
-        }
+    .fb-bar-label .star-sm {
+        color: #f59e0b;
+    }
 
     .fb-bar-track {
         height: 10px;
@@ -769,11 +769,13 @@
         border-radius: var(--radius);
         padding: 20px 24px;
         transition: box-shadow .2s;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
-        .fb-card:hover {
-            box-shadow: 0 4px 20px rgba(0,0,0,.07);
-        }
+    .fb-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,.07);
+     }
 
     .fb-card-header {
         display: flex;
@@ -805,6 +807,8 @@
         font-size: 14px;
         font-weight: 800;
         color: var(--ink);
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
     .fb-meta-date {
@@ -819,24 +823,30 @@
         gap: 2px;
     }
 
-        .fb-stars .star {
-            font-size: 15px;
-        }
+    .fb-stars .star {
+        font-size: 15px;
+    }
 
     .fb-comment {
         font-size: 14px;
         color: var(--ink2);
         line-height: 1.7;
         margin-bottom: 0;
+        white-space: pre-wrap; 
+        overflow-wrap: break-word; 
+        word-break: break-word;
+        max-width: 100%;
     }
 
     /* ── Shop reply ── */
-    .fb-reply {
-        margin-top: 14px;
-        background: var(--g0);
-        border-left: 3px solid var(--g3);
-        border-radius: 0 10px 10px 0;
-        padding: 12px 16px;
+    .fb-reply-text {
+        font-size: 13px;
+        color: var(--ink2);
+        line-height: 1.6;
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        word-break: break-word;
+        max-width: 100%;
     }
 
     .fb-reply-header {
@@ -866,6 +876,16 @@
         font-size: 13px;
         color: var(--ink2);
         line-height: 1.6;
+    }
+
+    .fb-reply {
+        margin-top: 14px;
+        background: var(--g0);
+        border-left: 3px solid var(--g3);
+        border-radius: 0 10px 10px 0;
+        padding: 12px 16px;
+        overflow-wrap: break-word;
+        word-break: break-word; 
     }
 
     /* ── Updated badge ── */
@@ -899,13 +919,13 @@
         flex-shrink: 0;
     }
 
-        .fb-media-item img,
-        .fb-media-item video {
+    .fb-media-item img,
+    .fb-media-item video {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
-        }
+    }
 
     .fb-media-video-badge {
         position: absolute;
@@ -917,6 +937,34 @@
         padding: 1px 6px;
         border-radius: 100px;
         font-weight: 800;
+    }
+
+    /* ── Load more ── */
+    .fb-card.fb-hidden {
+        display: none;
+    }
+
+    .fb-loadmore-wrap {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .btn-loadmore {
+        background: var(--surface);
+        color: var(--g4);
+        border: 1.5px solid var(--g3);
+        border-radius: 100px;
+        font-family: var(--font);
+        font-weight: 800;
+        font-size: 14px;
+        padding: 10px 28px;
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+    .btn-loadmore:hover {
+        background: var(--g1);
     }
 </style>
 
@@ -984,16 +1032,20 @@
 
         <!-- Feedback list -->
         <div class="fb-list">
+            @{
+                int fbInitialShow = 5;
+                int fbIndex = 0;
+            }
             @foreach (var item in ViewBag.Feedbacks)
             {
                 int rating = item.Rating ?? 0;
+                bool isHiddenInitially = fbIndex >= fbInitialShow;
+                fbIndex++;
 
-                // Customer name now comes directly from backend (joined at the repository level)
                 string displayName = !string.IsNullOrEmpty(item.CustomerName)
                 ? item.CustomerName
                 : "Anonymous";
 
-                // Avatar initials derived from the real display name
                 string initials = displayName != "Anonymous" && displayName.Length > 0
                 ? string.Join("", displayName.Split(' ')
                 .Where(w => w.Length > 0)
@@ -1001,12 +1053,11 @@
                 .Select(w => w[0].ToString().ToUpper()))
                 : "?";
 
-                // Full created date
                 string createdDateStr = item.CreatedDate != null
                 ? ((DateTime)item.CreatedDate).ToString("dd/MM/yyyy HH:mm")
                 : "";
 
-                <div class="fb-card">
+                <div class="fb-card @(isHiddenInitially ? "fb-hidden" : "")" data-fb-index="@(fbIndex - 1)">
                     <div class="fb-card-header">
                         <!-- Avatar -->
                         <div class="fb-avatar">@initials</div>
@@ -1085,6 +1136,15 @@
                 </div>
             }
         </div>
+
+        @if ((int)ViewBag.TotalCount > 5)
+        {
+            <div class="fb-loadmore-wrap">
+                <button id="btnLoadMoreFb" class="btn-loadmore" onclick="loadMoreFeedback()">
+                    Load More Reviews (<span id="fbRemainCount"></span> remaining)
+                </button>
+            </div>
+        }
     }
     else
     {
@@ -1096,3 +1156,37 @@
         </div>
     }
 </div>
+
+    <script>
+    var FB_BATCH_SIZE = 5;
+    var fbShownCount = 5;
+    var fbTotalCards = document.querySelectorAll('.fb-card').length;
+
+    function updateRemainText() {
+        var remaining = fbTotalCards - fbShownCount;
+        var span = document.getElementById('fbRemainCount');
+        var btn = document.getElementById('btnLoadMoreFb');
+        if (!btn) return;
+
+        if (remaining <= 0) {
+            btn.style.display = 'none';
+            return;
+        }
+
+        if (span) span.textContent = remaining;
+    }
+
+    function loadMoreFeedback() {
+        var hiddenCards = document.querySelectorAll('.fb-card.fb-hidden');
+        var batch = Array.prototype.slice.call(hiddenCards, 0, FB_BATCH_SIZE);
+
+        batch.forEach(function (card) {
+            card.classList.remove('fb-hidden');
+        });
+
+        fbShownCount += batch.length;
+        updateRemainText();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateRemainText);
+    </script>
