@@ -137,6 +137,7 @@
     table.fb-table {
         width: 100%; border-collapse: collapse;
         font-size: 13px;
+        table-layout: fixed;
     }
     .fb-table thead th {
         padding: 11px 14px;
@@ -157,6 +158,37 @@
         padding: 12px 14px;
         color: var(--fb-ink2);
         vertical-align: middle;
+    }
+
+    .fb-table col.col-no {
+        width: 44px;
+    }
+
+    .fb-table col.col-customer {
+        width: 130px;
+    }
+
+    .fb-table col.col-product {
+        width: 150px;
+    }
+
+    .fb-table col.col-stars {
+        width: 90px;
+    }
+
+    .fb-table col.col-content {
+        width: auto;
+    }
+    .fb-table col.col-status {
+        width: 130px;
+    }
+
+    .fb-table col.col-date {
+        width: 120px;
+    }
+
+    .fb-table col.col-actions {
+        width: 230px;
     }
 
     /* Stars */
@@ -199,10 +231,14 @@
 
     /* Comment truncate */
     .fb-comment {
-        max-width: 200px;
-        white-space: nowrap; overflow: hidden;
-        text-overflow: ellipsis; color: var(--fb-ink2);
+        width: 100%;
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis; 
+        color: var(--fb-ink2);
+        display: block;
     }
+    
 
     /* ── PAGINATION ──────────────────────────────────────── */
     .fb-pagination {
@@ -286,7 +322,11 @@
         transition: all .18s;
     }
     .fb-modal-close:hover { background: var(--fb-red-bg); color: var(--fb-red); border-color: var(--fb-red); }
-    .fb-modal-body { padding: 20px 22px; }
+    .fb-modal-body { 
+        padding: 20px 22px; 
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
     .fb-modal-footer {
         padding: 14px 22px 18px;
         border-top: 1px solid var(--fb-border);
@@ -332,6 +372,9 @@
     .fb-reply-box-content {
         font-size: 13px; color: var(--fb-ink2);
         line-height: 1.6;
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
     .fb-reply-box-meta {
         font-size: 11px; color: var(--fb-muted);
@@ -348,16 +391,28 @@
     .fb-form-label span { color: var(--fb-red); }
     .fb-form-input,
     .fb-form-textarea {
-        width: 100%; border: 1.5px solid var(--fb-border);
-        border-radius: 8px; padding: 9px 12px;
-        font-size: 13px; font-family: inherit;
-        color: var(--fb-ink); outline: none;
-        transition: border .2s; resize: none;
+        width: 100%; 
+        border: 1.5px solid var(--fb-border);
+        border-radius: 8px; 
+        padding: 9px 12px;
+        font-size: 13px; 
+        font-family: inherit;
+        color: var(--fb-ink); 
+        outline: none;
+        transition: border .2s; 
+        resize: none;
         box-sizing: border-box;
     }
     .fb-form-input:focus,
     .fb-form-textarea:focus { border-color: var(--fb-green); }
-    .fb-form-textarea { min-height: 110px; line-height: 1.6; }
+    .fb-form-textarea { 
+        min-height: 110px;
+        max-height: 50vh;
+        line-height: 1.6;
+        overflow-y: hidden;
+        resize: none;
+        transition: height .12s ease;
+    }
     .fb-char-count {
         text-align: right; font-size: 11px;
         color: var(--fb-muted); margin-top: 4px;
@@ -380,8 +435,13 @@
         letter-spacing: .08em; margin-bottom: 6px;
     }
     .fb-context-comment {
-        font-size: 13px; color: var(--fb-ink2);
-        line-height: 1.6; font-style: italic;
+        font-size: 13px; 
+        color: var(--fb-ink2);
+        line-height: 1.6; 
+        font-style: italic;
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
     /* Delete confirm modal */
@@ -482,6 +542,105 @@
             color: #6366f1;
             font-weight: 500;
         }
+
+    .fb-product-name {
+        display: block;
+        width: 100%;
+        max-width: 140px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--fb-ink2);
+        cursor: default;
+    }
+
+    .fb-detail-content-text {
+        font-size: 13px;
+        color: var(--fb-ink2);
+        line-height: 1.7;
+        font-style: italic;
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        word-break: break-word; 
+        max-width: 100%;
+    }
+
+    .fb-context-media {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--fb-border);
+    }
+
+    .fb-context-media-lbl {
+        font-size: 10px;
+        font-weight: 900;
+        color: var(--fb-muted);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 8px;
+    }
+
+    .fb-context-media-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .fb-context-media-thumb {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        flex-shrink: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1.5px solid var(--fb-border);
+        cursor: pointer;
+        transition: border-color .15s;
+    }
+
+    .fb-context-media-thumb:hover {
+            border-color: var(--fb-green);
+    }
+
+    .fb-context-media-thumb img,
+    .fb-context-media-thumb video {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            display: block;
+    }
+
+    .fb-context-media-play {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,.25);
+    }
+
+    .fb-context-media-play span {
+            background: rgba(0,0,0,.6);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 9px;
+    }
+
+    .fb-context-media-loading {
+        font-size: 11px;
+        color: var(--fb-muted);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 </style>
 
 <!-- ══ TOAST CONTAINER ═══════════════════════════════════════ -->
@@ -610,6 +769,7 @@
                     <div id="replyContextStars" class="fb-stars"></div>
                     <span id="replyContextDate" style="font-size:11px;color:var(--fb-muted);font-weight:700"></span>
                 </div>
+                <div id="replyContextMedia" class="fb-context-media" style="display:none"></div>
             </div>
             <div class="fb-form-group">
                 <label class="fb-form-label">
@@ -618,7 +778,7 @@
                 <textarea class="fb-form-textarea" id="replyContent"
                           placeholder="Thank you for your feedback! We..."
                           maxlength="1000"
-                          oninput="updateCharCount(this,'replyCharCount',1000)"></textarea>
+                          oninput="updateCharCount(this,'replyCharCount',1000); autoGrowTextarea(this)"></textarea>
                 <div class="fb-char-count"><span id="replyCharCount">0</span> / 1000 characters</div>
                 <div class="fb-form-hint">
                     <i class="bi bi-lightbulb"></i>
@@ -719,7 +879,7 @@
         }
 
         // ── RENDER TABLE ─────────────────────────────────────────────
-                function renderTable(items) {
+        function renderTable(items) {
             if (!items || items.length === 0) {
                 showTableEmpty('No feedback matches the filter.');
                 return;
@@ -734,16 +894,20 @@
 
                 // ── Cột Product: ảnh + tên ────────────────────────────
                 const productCell = f.productImage
-                    ? `<div style="display:flex;align-items:center;gap:8px">
-                           <img src="${f.productImage}"
-                                style="width:36px;height:36px;object-fit:cover;
-                                       border-radius:6px;border:1px solid var(--fb-border)"
-                                onerror="this.style.display='none'">
-                           <span class="fb-comment" title="${escHtml(f.productName||'')}">
-                               ${escHtml(f.productName || '–')}
-                           </span>
-                       </div>`
-                    : `<span>${escHtml(f.productName || '–')}</span>`;
+                        ? `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+                        <img src="${f.productImage}"
+                        style="width:44px;height:44px;object-fit:cover;
+                           border-radius:6px;border:1px solid var(--fb-border)"
+                        onerror="this.style.display='none'">
+                <span class="fb-product-name" title="${escHtml(f.productName||'')}">
+                   ${escHtml(f.productName || '–')}
+               </span>
+           </div>`
+        : `<div style="text-align:center">
+               <span class="fb-product-name" title="${escHtml(f.productName||'')}">
+                   ${escHtml(f.productName || '–')}
+               </span>
+           </div>`;
 
                 return `
                 <tr>
@@ -766,22 +930,32 @@
                 </tr>`;
             }).join('');
 
-            document.getElementById('fbTableBody').innerHTML = `
-                <table class="fb-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Customer</th>
-                            <th>Product</th>
-                            <th>Stars</th>
-                            <th>Content</th>
-                            <th>Status</th>
-                            <th>Creation date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>`;
+                document.getElementById('fbTableBody').innerHTML = `
+        <table class="fb-table">
+            <colgroup>
+                <col class="col-no">
+                <col class="col-customer">
+                <col class="col-product">
+                <col class="col-stars">
+                <col class="col-content">
+                <col class="col-status">
+                <col class="col-date">
+                <col class="col-actions">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Stars</th>
+                    <th>Content</th>
+                    <th>Status</th>
+                    <th>Creation date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>`;
         }
 
         function renderStars(rating) {
@@ -997,11 +1171,11 @@
                     </div>
                 </div>
 
-                        <div class="fb-detail-section">
-            <div class="fb-detail-section-title">Feedback Content</div>
-            <div style="font-size:13px;color:var(--fb-ink2);line-height:1.7;font-style:italic">
-                "${escHtml(f.comment || 'No Content')}"
-            </div>
+            <div class="fb-detail-section">
+                <div class="fb-detail-section-title">Feedback Content</div>
+                <div class="fb-detail-content-text">
+                    "${escHtml(f.comment || 'No Content')}"
+                </div>
 
             <!-- Media files (images + videos) -->
             ${f.mediaFiles && f.mediaFiles.length > 0 ? `
@@ -1055,6 +1229,7 @@
                 `<i class="bi bi-reply" style="color:var(--fb-green2)"></i> Feedback Reply`;
             document.getElementById('replySubmitBtn').innerHTML =
                 `<i class="bi bi-send"></i> Send Reply`;
+            const textarea = document.getElementById('replyContent');
             document.getElementById('replyContent').value    = '';
             document.getElementById('replyFeedbackId').value = feedbackId;
             document.getElementById('replyMode').value       = 'new';
@@ -1062,8 +1237,10 @@
             document.getElementById('replyContextStars').innerHTML     = renderStars(rating);
             document.getElementById('replyContextDate').textContent    = formatDate(createdDate);
             document.getElementById('replyCharCount').textContent      = '0';
+            autoGrowTextarea(textarea);
             openModal('modalReply');
             setTimeout(() => document.getElementById('replyContent').focus(), 200);
+            loadContextMedia(feedbackId);
         }
 
         function openEditReply(feedbackId, comment, rating, createdDate, existingReply) {
@@ -1071,6 +1248,7 @@
                 `<i class="bi bi-pencil-square" style="color:var(--fb-blue)"></i> Edit Reply`;
             document.getElementById('replySubmitBtn').innerHTML =
                 `<i class="bi bi-check-lg"></i> Edit`;
+            const textarea = document.getElementById('replyContent');
             document.getElementById('replyContent').value    = existingReply || '';
             document.getElementById('replyFeedbackId').value = feedbackId;
             document.getElementById('replyMode').value       = 'edit';
@@ -1079,7 +1257,59 @@
             document.getElementById('replyContextDate').textContent    = formatDate(createdDate);
             document.getElementById('replyCharCount').textContent      = (existingReply||'').length;
             openModal('modalReply');
-            setTimeout(() => document.getElementById('replyContent').focus(), 200);
+            setTimeout(() => {
+                autoGrowTextarea(textarea);
+                textarea.focus();
+            }, 50);
+            loadContextMedia(feedbackId);
+        }
+
+        async function loadContextMedia(feedbackId) {
+            const wrap = document.getElementById('replyContextMedia');
+
+            wrap.style.display = 'block';
+            wrap.innerHTML = `
+                <div class="fb-context-media-loading">
+                    <i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite"></i>
+                    Loading attachments...
+                </div>`;
+
+            try {
+                const res  = await fetch(`/AdminFeedback/GetDetail?feedbackId=${feedbackId}`);
+                const json = await res.json();
+
+                const media = json?.success ? (json.data?.mediaFiles || []) : [];
+
+                if (!media.length) {
+                    wrap.style.display = 'none'; 
+                    wrap.innerHTML = '';
+                    return;
+                }
+
+                const thumbs = media.map(m => {
+                    if (m.mediaType === 'video') {
+                        return `
+                            <div class="fb-context-media-thumb" onclick="window.open('${m.mediaUrl}', '_blank')">
+                                <video src="${m.mediaUrl}" muted></video>
+                                <div class="fb-context-media-play"><span>▶</span></div>
+                            </div>`;
+                    }
+                    return `
+                        <div class="fb-context-media-thumb" onclick="window.open('${m.mediaUrl}', '_blank')">
+                            <img src="${m.mediaUrl}" onerror="this.parentElement.style.display='none'">
+                        </div>`;
+                }).join('');
+
+                wrap.innerHTML = `
+                    <div class="fb-context-media-lbl">
+                        Attachments (${media.length} file${media.length > 1 ? 's' : ''})
+                    </div>
+                    <div class="fb-context-media-grid">${thumbs}</div>`;
+
+            } catch {
+                wrap.style.display = 'none';
+                wrap.innerHTML = '';
+            }
         }
 
         async function submitReply() {
@@ -1256,6 +1486,26 @@
                 .replace(/"/g,'&quot;')
                 .replace(/'/g,'&#39;');
         }
+
+        function autoGrowTextarea(el) {
+            el.style.height = 'auto';
+            const maxHeightPx = window.innerHeight * 0.5;
+
+            if (el.scrollHeight > maxHeightPx) {
+                el.style.height = maxHeightPx + 'px';
+                el.style.overflowY = 'auto';
+            } else {
+                el.style.height = el.scrollHeight + 'px';
+                el.style.overflowY = 'hidden';
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            const textarea = document.getElementById('replyContent');
+            if (document.getElementById('modalReply').classList.contains('open')) {
+                autoGrowTextarea(textarea);
+            }
+        });
     </script>
 
     <style>
