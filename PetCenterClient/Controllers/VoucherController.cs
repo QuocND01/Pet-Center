@@ -92,19 +92,6 @@ namespace PetCenterClient.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVoucherDto dto)
-        {
-            if (!IsAuthorized(out var redirect)) return redirect!;
-            if (dto == null || id == Guid.Empty)
-                return Json(new { success = false, message = "Invalid data." });
-
-            var (success, message, data) = await _voucherService.UpdateAsync(id, dto);
-            if (!success)
-                return BadRequest(new { message });
-            return Ok(new { message, data });
-        }
-
         // ============================================================
         // VOUCHER — TOGGLE STATUS
         // ============================================================
