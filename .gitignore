@@ -24,3 +24,4 @@ rasa-chatbot/.rasa/
 rasa-chatbot/**/__pycache__/
 rasa-chatbot/**/*.pyc
 rasa-chatbot/*.log
+.calm/

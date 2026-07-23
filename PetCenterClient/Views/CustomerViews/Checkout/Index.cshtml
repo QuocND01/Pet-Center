@@ -633,11 +633,31 @@
                         <span class="label">Total</span>
                         <span class="amount" id="finalDisplay">@Model.SubTotal.ToString("N0") ₫</span>
                     </div>
-                    <div style="background:#f0f9ff;border-radius:10px;padding:10px 14px;margin-top:12px;display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:22px;">🚚</span>
-                        <div>
-                            <div style="font-weight:700;font-size:13px;color:#1e2d3d;">Cash on Delivery (COD)</div>
-                            <div style="font-size:11px;color:var(--muted);">You will pay when you receive your order</div>
+                    <div style="margin-top:12px;">
+                        <div style="font-weight:700;font-size:14px;color:#1e2d3d;margin-bottom:10px;">Payment Method</div>
+                        <div class="payment-option selected" data-method="COD" onclick="selectPayment(this)"
+                             style="border:2px solid var(--green);background:var(--green-soft);border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;">
+                            <span style="font-size:22px;">🚚</span>
+                            <div>
+                                <div style="font-weight:700;font-size:13px;color:#1e2d3d;">Cash on Delivery (COD)</div>
+                                <div style="font-size:11px;color:var(--muted);">You will pay when you receive your order</div>
+                            </div>
+                        </div>
+                        <div class="payment-option" data-method="VNPAY" onclick="selectPayment(this)"
+                             style="border:2px solid var(--border);background:white;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;">
+                            <span style="font-size:22px;">🏦</span>
+                            <div>
+                                <div style="font-weight:700;font-size:13px;color:#1e2d3d;">VNPay</div>
+                                <div style="font-size:11px;color:var(--muted);">Pay via VNPay (ATM, Visa, MasterCard, QR)</div>
+                            </div>
+                        </div>
+                        <div class="payment-option" data-method="MOMO" onclick="selectPayment(this)"
+                             style="border:2px solid var(--border);background:white;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;">
+                            <span style="font-size:22px;">📱</span>
+                            <div>
+                                <div style="font-weight:700;font-size:13px;color:#1e2d3d;">MoMo Wallet</div>
+                                <div style="font-size:11px;color:var(--muted);">Pay via MoMo e-wallet</div>
+                            </div>
                         </div>
                     </div>
                     <button class="btn-place-order" id="placeBtn" type="button"
@@ -679,6 +699,7 @@
 
     // ─── State ───────────────────────────────────────────────────
     var selAddressId = '', selAddressText = '', selVoucherId = null;
+    var selPaymentMethod = 'COD';
 
     document.addEventListener('DOMContentLoaded', function() {
         var def = document.querySelector('.addr-card.selected');
@@ -691,6 +712,19 @@
         card.classList.add('selected');
         selAddressId   = card.dataset.addressId;
         selAddressText = card.dataset.addressText;
+    }
+
+    // ─── Payment Method ──────────────────────────────────────────
+    function selectPayment(card) {
+        document.querySelectorAll('.payment-option').forEach(function(c){
+            c.classList.remove('selected');
+            c.style.borderColor = 'var(--border)';
+            c.style.background = 'white';
+        });
+        card.classList.add('selected');
+        card.style.borderColor = 'var(--green)';
+        card.style.background = 'var(--green-soft)';
+        selPaymentMethod = card.dataset.method;
     }
 
     // ─── Voucher ─────────────────────────────────────────────────
@@ -795,12 +829,25 @@
         try {
             var res  = await fetch('/Checkout/PlaceOrder', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ addressId:selAddressId, addressSnapshot:selAddressText, voucherId:selVoucherId||null, items:items })
+                body: JSON.stringify({
+                    addressId: selAddressId,
+                    addressSnapshot: selAddressText,
+                    voucherId: selVoucherId || null,
+                    paymentMethod: selPaymentMethod,
+                    items: items
+                })
             });
             var data = await res.json();
             if (data.success) {
-                showToast(data.message || 'Order placed!', 's');
-                setTimeout(function(){ window.location.href = data.redirectUrl || '/Checkout/Success'; }, 1200);
+                if (data.isOnlinePayment && data.paymentUrl) {
+                    // Online payment: redirect to gateway
+                    showToast('Redirecting to payment gateway...', 's');
+                    setTimeout(function(){ window.location.href = data.paymentUrl; }, 800);
+                } else {
+                    // COD: redirect to success page
+                    showToast(data.message || 'Order placed!', 's');
+                    setTimeout(function(){ window.location.href = data.redirectUrl || '/Checkout/Success'; }, 1200);
+                }
             } else {
                 showToast(data.message || 'Order failed.', 'e');
                 setLoading(false);

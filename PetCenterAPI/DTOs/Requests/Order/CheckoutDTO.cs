@@ -30,4 +30,23 @@ namespace PetCenterAPI.DTOs.Requests.Order
         [Required, MinLength(1)]
         public List<CodOrderItemDTO> Items { get; set; } = new();
     }
+
+    public class PlaceOnlineOrderDTO
+    {
+        [Required]
+        public Guid CustomerId { get; set; }
+
+        [Required]
+        public Guid AddressId { get; set; }
+
+        public Guid? VoucherId { get; set; }
+
+        [Required]
+        public string PaymentMethod { get; set; } = null!; // "VNPAY" or "MOMO"
+
+        [Required, MinLength(1)]
+        public List<CodOrderItemDTO> Items { get; set; } = new();
+
+        public string ClientIpAddress { get; set; } = string.Empty;
+    }
 }

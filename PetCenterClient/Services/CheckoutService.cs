@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
@@ -69,6 +69,48 @@ namespace PetCenterClient.Services
             }
 
             return JsonSerializer.Deserialize<CheckoutResponseDTO>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        // POST api/Payments/{vnpay|momo}/create — online payment
+        public async Task<OnlineCheckoutResponseDTO?> ProcessOnlineCheckoutAsync(
+            CheckoutRequestDTO dto, string paymentMethod)
+        {
+            AddAuthHeader();
+            var gateway = paymentMethod.ToUpper() == "MOMO" ? "momo" : "vnpay";
+
+            var apiDto = new
+            {
+                dto.CustomerId,
+                dto.AddressId,
+                dto.VoucherId,
+                PaymentMethod = paymentMethod.ToUpper(),
+                Items = dto.Items.Select(i => new
+                {
+                    i.CartDetailId,
+                    i.ProductId,
+                    i.Quantity,
+                    i.UnitPrice
+                }),
+                ClientIpAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1"
+            };
+
+            var response = await _http.PostAsJsonAsync($"api/Payments/{gateway}/create", apiDto);
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string msg = "Online checkout failed.";
+                try
+                {
+                    var err = JsonSerializer.Deserialize<JsonElement>(json);
+                    if (err.TryGetProperty("message", out var m)) msg = m.GetString() ?? msg;
+                }
+                catch { }
+                return new OnlineCheckoutResponseDTO { Success = false, Message = msg };
+            }
+
+            return JsonSerializer.Deserialize<OnlineCheckoutResponseDTO>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 

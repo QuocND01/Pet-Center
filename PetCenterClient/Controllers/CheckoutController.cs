@@ -177,25 +177,56 @@ namespace PetCenterClient.Controllers
                 }).ToList()
             };
 
-            CheckoutResponseDTO? result;
-            try { result = await _checkoutService.ProcessCheckoutAsync(request); }
+            // ── Determine payment method ─────────────────────────────────
+            var paymentMethod = (dto.PaymentMethod ?? "COD").ToUpper();
+
+            if (paymentMethod == "VNPAY" || paymentMethod == "MOMO")
+            {
+                // ── Online Payment Flow ──────────────────────────────────
+                try
+                {
+                    var result = await _checkoutService.ProcessOnlineCheckoutAsync(request, paymentMethod);
+
+                    if (result == null || !result.Success)
+                        return Json(new { success = false, message = result?.Message ?? "Online checkout failed." });
+
+                    // Return payment URL for JS to redirect
+                    return Json(new
+                    {
+                        success = true,
+                        message = result.Message,
+                        orderId = result.OrderId,
+                        paymentUrl = result.PaymentUrl,
+                        isOnlinePayment = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[Checkout.PlaceOrder] Online payment error ({Method})", paymentMethod);
+                    return Json(new { success = false, message = $"Payment error: {ex.Message}" });
+                }
+            }
+
+            // ── COD Flow (existing) ──────────────────────────────────────
+            CheckoutResponseDTO? codResult;
+            try { codResult = await _checkoutService.ProcessCheckoutAsync(request); }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[Checkout.PlaceOrder] Exception");
                 return Json(new { success = false, message = $"Server error: {ex.Message}" });
             }
 
-            if (result == null || !result.Success)
-                return Json(new { success = false, message = result?.Message ?? "Checkout failed." });
+            if (codResult == null || !codResult.Success)
+                return Json(new { success = false, message = codResult?.Message ?? "Checkout failed." });
 
             return Json(new
             {
                 success = true,
-                message = result.Message,
-                orderId = result.OrderId,
-                finalAmount = result.FinalAmount,
-                discountAmount = result.DiscountAmount,
-                redirectUrl = Url.Action("Success", "Checkout", new { orderId = result.OrderId })
+                message = codResult.Message,
+                orderId = codResult.OrderId,
+                finalAmount = codResult.FinalAmount,
+                discountAmount = codResult.DiscountAmount,
+                redirectUrl = Url.Action("Success", "Checkout", new { orderId = codResult.OrderId })
             });
         }
 
@@ -210,6 +241,29 @@ namespace PetCenterClient.Controllers
             ViewBag.OrderId = orderId;
             return View("~/Views/CustomerViews/Checkout/Success.cshtml");
         }
+
+        // ── Payment Return URL — gateway redirects user here after payment ──
+        [HttpGet]
+        [Route("Checkout/PaymentReturn")]
+        public IActionResult PaymentReturn(
+            [FromQuery] bool success,
+            [FromQuery] Guid? orderId,
+            [FromQuery] string? message)
+        {
+            ViewBag.PaymentSuccess = success;
+            ViewBag.OrderId = orderId;
+            ViewBag.Message = message ?? (success ? "Payment completed successfully!" : "Payment was not successful.");
+            return View("~/Views/CustomerViews/Checkout/PaymentReturn.cshtml");
+        }
+
+        // ── Payment Failed page ─────────────────────────────────────────────
+        [HttpGet]
+        [Route("Checkout/PaymentFailed")]
+        public IActionResult PaymentFailed([FromQuery] string? message)
+        {
+            ViewBag.Message = message ?? "Payment failed. Please try again.";
+            return View("~/Views/CustomerViews/Checkout/PaymentFailed.cshtml");
+        }
     }
 
     public class PlaceOrderBody
@@ -217,6 +271,7 @@ namespace PetCenterClient.Controllers
         public Guid AddressId { get; set; }
         public string? AddressSnapshot { get; set; }
         public Guid? VoucherId { get; set; }
+        public string? PaymentMethod { get; set; }
         public List<OrderLineItem> Items { get; set; } = new();
     }
 

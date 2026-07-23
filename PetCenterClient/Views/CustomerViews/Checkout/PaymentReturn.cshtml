@@ -1,0 +1,223 @@
+@{
+    ViewData["Title"] = "Payment Result";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var paymentSuccess = ViewBag.PaymentSuccess as bool? ?? false;
+    var orderId = ViewBag.OrderId as Guid?;
+    var message = ViewBag.Message as string ?? "";
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --green: #2ecc71;
+        --green-dark: #27ae60;
+        --green-soft: #f0fdf4;
+        --red: #ef4444;
+        --red-dark: #dc2626;
+        --red-soft: #fef2f2;
+    }
+
+    .result-page {
+        font-family: 'DM Sans', sans-serif;
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.10);
+        padding: 56px 48px;
+        text-align: center;
+        max-width: 520px;
+        width: 100%;
+        animation: popIn 0.5s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @@keyframes popIn {
+        from { opacity: 0; transform: scale(0.9) translateY(24px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .result-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 46px;
+        margin: 0 auto 24px;
+        animation: bounceIn 0.6s 0.2s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .result-icon.success { background: var(--green-soft); }
+    .result-icon.failed { background: var(--red-soft); }
+
+    @@keyframes bounceIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .result-title {
+        font-size: 30px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+    .result-title.success { color: #166534; }
+    .result-title.failed { color: #991b1b; }
+
+    .result-sub {
+        font-size: 15px;
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 28px;
+    }
+
+    .order-id-box {
+        border-radius: 12px;
+        padding: 14px 20px;
+        margin-bottom: 28px;
+        font-size: 13px;
+    }
+    .order-id-box.success {
+        background: var(--green-soft);
+        border: 1px solid #bbf7d0;
+        color: #166534;
+    }
+    .order-id-box.failed {
+        background: var(--red-soft);
+        border: 1px solid #fecaca;
+        color: #991b1b;
+    }
+
+    .order-id-box strong {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        opacity: 0.7;
+    }
+
+    .order-id-val {
+        font-family: monospace;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary-co {
+        background: linear-gradient(135deg, var(--green), var(--green-dark));
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 16px rgba(46,204,113,0.35);
+        transition: all 0.2s;
+    }
+
+    .btn-primary-co:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(46,204,113,0.45);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-outline-co {
+        background: none;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-outline-co:hover {
+        border-color: var(--green);
+        color: var(--green-dark);
+        text-decoration: none;
+    }
+</style>
+
+<div class="result-page">
+    <div class="result-card">
+        @if (paymentSuccess)
+        {
+            <div class="result-icon success">🎉</div>
+            <div class="result-title success">Payment Successful!</div>
+            <p class="result-sub">
+                Your payment has been confirmed. Your order is now being processed.
+            </p>
+
+            @if (orderId.HasValue)
+            {
+                <div class="order-id-box success">
+                    <strong>Order ID</strong>
+                    <div class="order-id-val">@orderId.Value.ToString().ToUpper()</div>
+                </div>
+            }
+
+            <div class="actions">
+                <a asp-controller="Orders" asp-action="History" class="btn-primary-co">
+                    📦 View My Orders
+                </a>
+                <a asp-controller="Products" asp-action="Index" class="btn-outline-co">
+                    🛍 Continue Shopping
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="result-icon failed">😔</div>
+            <div class="result-title failed">Payment Failed</div>
+            <p class="result-sub">
+                @message
+            </p>
+
+            @if (orderId.HasValue)
+            {
+                <div class="order-id-box failed">
+                    <strong>Order ID</strong>
+                    <div class="order-id-val">@orderId.Value.ToString().ToUpper()</div>
+                </div>
+            }
+
+            <div class="actions">
+                <a asp-controller="Orders" asp-action="History" class="btn-primary-co">
+                    📦 View My Orders
+                </a>
+                <a asp-controller="Products" asp-action="Index" class="btn-outline-co">
+                    🛍 Continue Shopping
+                </a>
+            </div>
+        }
+    </div>
+</div>
