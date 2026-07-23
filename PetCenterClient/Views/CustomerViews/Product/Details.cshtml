@@ -939,6 +939,126 @@
         font-weight: 800;
     }
 
+    /* ── Media Lightbox ── */
+    .fb-lightbox-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.9);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .fb-lightbox-overlay.fb-lightbox-entering {
+            animation: fbLightboxFade .2s ease;
+        }
+
+    @@keyframes fbLightboxFade {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .fb-lightbox-content {
+        max-width: 90vw;
+        max-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+        transition: opacity .15s ease;
+    }
+
+        .fb-lightbox-content.fb-lightbox-fading {
+            opacity: 0;
+        }
+
+    .fb-lightbox-content {
+        max-width: 90vw;
+        max-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .fb-lightbox-content img,
+        .fb-lightbox-content video {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 12px;
+            object-fit: contain;
+        }
+
+    .fb-lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.15);
+        border: none;
+        color: #fff;
+        font-size: 22px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .2s;
+    }
+
+        .fb-lightbox-close:hover {
+            background: rgba(255,255,255,.28);
+        }
+
+    .fb-lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.15);
+        border: none;
+        color: #fff;
+        font-size: 22px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .2s;
+    }
+
+        .fb-lightbox-nav:hover {
+            background: rgba(255,255,255,.28);
+        }
+
+    .fb-lightbox-prev {
+        left: 20px;
+    }
+
+    .fb-lightbox-next {
+        right: 20px;
+    }
+
+    .fb-lightbox-counter {
+        position: absolute;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255,255,255,.15);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 16px;
+        border-radius: 100px;
+    }
+
     /* ── Load more ── */
     .fb-card.fb-hidden {
         display: none;
@@ -1098,10 +1218,16 @@
                     <!-- Media files (images + videos uploaded with the feedback) -->
                     @if (item.MediaFiles != null && item.MediaFiles.Count > 0)
                     {
-                        <div class="fb-media-list">
-                            @foreach (var media in item.MediaFiles)
+                        var mediaFilesEnumerable = (IEnumerable<dynamic>)item.MediaFiles;
+                        var mediaGroupJson = System.Text.Json.JsonSerializer.Serialize(
+                        mediaFilesEnumerable.Select(m => new { url = (string)m.MediaUrl, type = (string)m.MediaType })
+                        );
+
+                        <div class="fb-media-list" data-media-group='@mediaGroupJson'>
+                            @for (int mIdx = 0; mIdx < item.MediaFiles.Count; mIdx++)
                             {
-                                <div class="fb-media-item" onclick="window.open('@media.MediaUrl', '_blank')">
+                                var media = item.MediaFiles[mIdx];
+                                <div class="fb-media-item" onclick="openFbLightbox(this.closest('.fb-media-list'), @mIdx)">
                                     @if (media.MediaType == "video")
                                     {
                                         <video src="@media.MediaUrl" muted></video>
@@ -1186,6 +1312,87 @@
 
         fbShownCount += batch.length;
         updateRemainText();
+    }
+
+    let fbLightboxMedia = [];
+    let fbLightboxIndex = 0;
+
+    function openFbLightbox(groupEl, startIndex) {
+        if (!groupEl) return;
+        try {
+            fbLightboxMedia = JSON.parse(groupEl.getAttribute('data-media-group')) || [];
+        } catch (e) {
+            fbLightboxMedia = [];
+        }
+        if (fbLightboxMedia.length === 0) return;
+
+        fbLightboxIndex = startIndex;
+        buildFbLightboxShell();
+        document.addEventListener('keydown', handleFbLightboxKeydown);
+    }
+
+    function buildFbLightboxShell() {
+        document.getElementById('fbLightboxOverlay')?.remove();
+
+        const showNav = fbLightboxMedia.length > 1;
+
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="fbLightboxOverlay" class="fb-lightbox-overlay fb-lightbox-entering" onclick="closeFbLightboxOnOverlay(event)">
+                <button class="fb-lightbox-close" onclick="closeFbLightbox()">✕</button>
+                ${showNav ? `<button class="fb-lightbox-nav fb-lightbox-prev" onclick="fbLightboxStep(-1, event)">‹</button>` : ''}
+                <div class="fb-lightbox-content" id="fbLightboxContent"></div>
+                ${showNav ? `<button class="fb-lightbox-nav fb-lightbox-next" onclick="fbLightboxStep(1, event)">›</button>` : ''}
+                ${showNav ? `<div class="fb-lightbox-counter" id="fbLightboxCounter"></div>` : ''}
+            </div>`);
+
+        renderFbLightboxMedia(false);
+    }
+
+    function renderFbLightboxMedia(animate) {
+        const contentEl = document.getElementById('fbLightboxContent');
+        const counterEl = document.getElementById('fbLightboxCounter');
+        if (!contentEl) return;
+
+        const media = fbLightboxMedia[fbLightboxIndex];
+        if (!media) return;
+
+        const mediaEl = media.type === 'video'
+            ? `<video src="${media.url}" controls autoplay></video>`
+            : `<img src="${media.url}" alt="Feedback media">`;
+
+        if (!animate) {
+            contentEl.innerHTML = mediaEl;
+            if (counterEl) counterEl.textContent = `${fbLightboxIndex + 1} / ${fbLightboxMedia.length}`;
+            return;
+        }
+
+        contentEl.classList.add('fb-lightbox-fading');
+        setTimeout(() => {
+            contentEl.innerHTML = mediaEl;
+            if (counterEl) counterEl.textContent = `${fbLightboxIndex + 1} / ${fbLightboxMedia.length}`;
+            contentEl.classList.remove('fb-lightbox-fading');
+        }, 150);
+    }
+
+    function fbLightboxStep(direction, event) {
+        if (event) event.stopPropagation();
+        fbLightboxIndex = (fbLightboxIndex + direction + fbLightboxMedia.length) % fbLightboxMedia.length;
+        renderFbLightboxMedia(true);
+    }
+
+    function closeFbLightbox() {
+        document.getElementById('fbLightboxOverlay')?.remove();
+        document.removeEventListener('keydown', handleFbLightboxKeydown);
+    }
+
+    function closeFbLightboxOnOverlay(event) {
+        if (event.target.id === 'fbLightboxOverlay') closeFbLightbox();
+    }
+
+    function handleFbLightboxKeydown(e) {
+        if (e.key === 'Escape') closeFbLightbox();
+        else if (e.key === 'ArrowLeft') fbLightboxStep(-1);
+        else if (e.key === 'ArrowRight') fbLightboxStep(1);
     }
 
     document.addEventListener('DOMContentLoaded', updateRemainText);
