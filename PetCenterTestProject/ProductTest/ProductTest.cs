@@ -14,7 +14,7 @@ using PetCenterAPI.Service.Interface;
 using System.ComponentModel.DataAnnotations;
 using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
 
-namespace PetCenterTestProject
+namespace PetCenterTestProject.ProductTest
 {
     public class ProductTest
     {

@@ -1,4 +1,4 @@
-namespace PetCenterTestProject
+namespace PetCenterTestProject.ServiceTest
 {
     public class ServiceTest
     {

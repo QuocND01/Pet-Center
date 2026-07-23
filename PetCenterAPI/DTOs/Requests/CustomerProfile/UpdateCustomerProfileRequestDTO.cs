@@ -5,6 +5,7 @@ namespace PetCenterAPI.DTOs.Requests.CustomerProfile
     public class UpdateCustomerProfileRequestDTO
     {
         [Required(ErrorMessage = "Full name is required")]
+        [StringLength(50, ErrorMessage = "Full name must not exceed 50 characters")]
         [RegularExpression(@"^[a-zA-ZÀ-ỹ\s]{2,}$",
             ErrorMessage = "Full name must contain letters only and at least 2 characters")]
         public string FullName { get; set; } = null!;

@@ -107,7 +107,26 @@
         .sb-nav {
             padding: 6px 8px;
             flex: 1;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
+
+        .sb-nav::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sb-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sb-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,.15);
+            border-radius: 100px;
+        }
+
+        .sb-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,.28);
         }
 
         .sb-section-label {
@@ -532,6 +551,9 @@
                 </a>
                 <a asp-controller="Diseases" asp-action="Index" class="sb-link">
                     <i class="bi bi-virus"></i> Disease Dictionary
+                </a>
+                <a asp-controller="Appointment" asp-action="StaffAppointments" class="sb-link">
+                    <i class="bi bi-calendar-check"></i> Appointments
                 </a>
             }
             @if (isAdmin || isVet || isSaleStaff)

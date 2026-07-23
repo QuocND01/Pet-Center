@@ -230,7 +230,15 @@
         letter-spacing: .06em;
         cursor: pointer;
         transition: background .15s;
+        max-width: 160px; /* NEW */
+        overflow: hidden; /* NEW */
     }
+
+        .voucher-code-badge span.code-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         .voucher-code-badge:hover {
             background: #fde68a;
@@ -613,6 +621,13 @@
             color: var(--muted);
             font-size: 11px;
             margin-left: auto;
+            transition: color .15s;
+        }
+
+        .form-label .hint.hint-error {
+                color: var(--v-red);
+                font-weight: 900;
+                animation: hintPulse .3s ease;
         }
 
     .form-control-v {
@@ -691,6 +706,7 @@
         border-radius: 8px;
         padding: 10px 12px;
         border: 1px solid rgba(245,158,11,.2);
+        min-width: 0;
     }
 
     .preview-item-label {
@@ -705,6 +721,9 @@
         font-size: 14px;
         font-weight: 900;
         color: var(--ink);
+        overflow-wrap: break-word;
+        word-break: break-word;
+        line-height: 1.3;
     }
 
         .preview-item-val.positive {
@@ -845,9 +864,139 @@
     .desc-counter.warn  { color: var(--v-gold-dark); }
     .desc-counter.danger { color: var(--v-red); }
 
+    /* ── CUSTOM TOAST ── */
+    .v-toast-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 3000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
+
+    .v-toast {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 260px;
+        max-width: 360px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 12px 32px rgba(0,0,0,.14);
+        border-left: 4px solid var(--v-green);
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+        opacity: 0;
+        transform: translateX(20px);
+        transition: opacity .25s ease, transform .25s ease;
+        pointer-events: auto;
+    }
+
+        .v-toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .v-toast .v-toast-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .v-toast.success .v-toast-icon {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .v-toast.danger .v-toast-icon {
+            background: var(--v-red-light);
+            color: #991b1b;
+        }
+
+        .v-toast.warning .v-toast-icon {
+            background: var(--v-gold-light);
+            color: var(--v-gold-dark);
+        }
+
+        .v-toast.primary .v-toast-icon {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .v-toast.success {
+            border-left-color: var(--v-green);
+        }
+
+        .v-toast.danger {
+            border-left-color: var(--v-red);
+        }
+
+        .v-toast.warning {
+            border-left-color: var(--v-gold);
+        }
+
+        .v-toast.primary {
+            border-left-color: var(--v-blue);
+        }
+
+        .v-toast .v-toast-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 14px;
+            flex-shrink: 0;
+            padding: 2px;
+        }
+
+    /* ── DESCRIPTION IN TABLE ── */
+    .voucher-desc-text {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+        font-weight: 600;
+        max-width: 220px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.4;
+        cursor: default;
+    }
+
+    .voucher-table td:first-child {
+        max-width: 260px;
+    }
+
     @@keyframes spin {
         to {
             transform: rotate(360deg)
+        }
+    }
+
+    @@keyframes hintPulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.08);
+        }
+
+        100% {
+            transform: scale(1);
         }
     }
 
@@ -944,7 +1093,7 @@
     </div>
 </div>
 
-<!-- ══ ADD / EDIT MODAL ══════════════════════════════════════ -->
+<!-- ══ ADD MODAL ══════════════════════════════════════ -->
 <div class="vmodal-overlay" id="voucherModal">
     <div class="vmodal">
         <div class="vmodal-header">
@@ -956,7 +1105,6 @@
         </div>
 
         <div class="vmodal-body">
-            <input type="hidden" id="editVoucherId" />
 
             <!-- SECTION 1: Basic Info -->
             <div class="form-section">
@@ -968,7 +1116,7 @@
                             <input type="text" class="form-control-v" id="fCode"
                                    placeholder="e.g. SUMMER25"
                                    oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,''); validateCode()"
-                                   maxlength="50" />
+                                   maxlength="20" />
                             <button class="btn-gen-code" type="button" onclick="generateCode()">
                                 <i class="bi bi-lightning-charge-fill"></i> Auto
                             </button>
@@ -982,8 +1130,10 @@
                             <span class="hint" id="discountHint"></span>
                         </label>
                         <input type="number" class="form-control-v" id="fDiscount"
-                               placeholder="e.g. 20" min="1" max="100"
-                               oninput="validateDiscount(); computePreview()" />
+                               placeholder="e.g. 20" min="1" max="80" step="1"
+                               inputmode="numeric"
+                               onkeydown="if(['.', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"
+                               oninput="sanitizeDiscountInput(); validateDiscount(); computePreview()" />
                         <span class="form-error" id="errDiscount">Must be between 1% and 80%.</span>
                         <span class="form-help">Recommended: 5–30%. Max 80%.</span>
                     </div>
@@ -1009,34 +1159,40 @@
                     <div class="form-group">
                         <label class="form-label">Min Order Amount (₫) <span class="req">*</span></label>
                         <input type="number" class="form-control-v" id="fMinOrder"
-                               placeholder="e.g. 200000" min="0"
-                               oninput="validateMinOrder(); computePreview()" />
+                               placeholder="e.g. 200000" min="1" max="999999999" step="1"
+                               inputmode="numeric"
+                               onkeydown="if(['.', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"
+                               oninput="sanitizeMoneyInput(this, 9); validateMinOrder(); computePreview()" />
                         <span class="form-error" id="errMinOrder">Min order must be > 0.</span>
                         <span class="form-help">Minimum cart value to unlock this voucher.</span>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Max Discount Cap (₫) <span class="req">*</span></label>
                         <input type="number" class="form-control-v" id="fMaxDiscount"
-                               placeholder="e.g. 50000" min="0"
-                               oninput="validateMaxDiscount(); computePreview()" />
+                               placeholder="e.g. 50000" min="1" max="50000000" step="1"
+                               inputmode="numeric"
+                               onkeydown="if(['.', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"
+                               oninput="sanitizeMoneyInput(this, 8); validateMaxDiscount(); computePreview()" />
                         <span class="form-error" id="errMaxDiscount"></span>
                         <span class="form-help">Hard cap on discount amount.</span>
                     </div>
                 </div>
                 <div class="form-row" style="margin-top:14px">
                     <div class="form-group">
-                        <label class="form-label">Usage Limit</label>
+                        <label class="form-label">Usage Limit <span class="req">*</span></label>
                         <input type="number" class="form-control-v" id="fUsageLimit"
-                               placeholder="Leave blank = unlimited" min="1"
-                               oninput="validateUsageLimit(); computePreview()" />
-                        <span class="form-error" id="errUsageLimit">Usage limit must be at least 1, or leave blank for unlimited.</span>
-                        <span class="form-help">Total times this voucher can be redeemed.</span>
+                               placeholder="e.g. 100" min="1" max="500" step="1"
+                               inputmode="numeric"
+                               onkeydown="if(['.', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();"
+                               oninput="sanitizeUsageLimitInput(); validateUsageLimit(); computePreview()" />
+                        <span class="form-error" id="errUsageLimit"></span>
+                        <span class="form-help">Required. Total redemptions allowed across all customers (max 500).</span>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Expiry Date <span class="req">*</span></label>
                         <input type="datetime-local" class="form-control-v" id="fExpiry"
-                               oninput="validateExpiry()" />
-                        <span class="form-error" id="errExpiry">Expiry must be in the future.</span>
+                               oninput="validateExpiry()" onchange="validateExpiry()" />
+                        <span class="form-error" id="errExpiry"></span>
                     </div>
                 </div>
             </div>
@@ -1070,7 +1226,9 @@
                             <div class="preview-item-val" id="pvCapApplied">—</div>
                         </div>
                         <div class="preview-item">
-                            <div class="preview-item-label">Total Budget</div>
+                            <div class="preview-item-label" title="The maximum total amount the shop will pay out if this voucher is fully redeemed (up to the Usage Limit), assuming every order is exactly at the Min Order threshold.">
+                                Max Payout <span style="font-weight:600;opacity:.7">(if fully used)</span>
+                            </div>
                             <div class="preview-item-val" id="pvBudget">—</div>
                         </div>
                     </div>
@@ -1097,6 +1255,7 @@
         </div>
     </div>
 </div>
+<div class="v-toast-container" id="vToastContainer"></div>
 
 <script>
     /* ── STATE ── */
@@ -1104,11 +1263,12 @@
     const BASE     = '/Voucher';
     const PAGE_SIZE = 10;
     const MAX_DISCOUNT_CAP = 50_000_000;
+    const USAGE_LIMIT_MIN = 1;
+    const USAGE_LIMIT_MAX = 500;
 
     let allVouchers      = [];
     let filteredVouchers = [];
     let currentPage      = 1;
-    let isEditMode       = false;
 
     /* ── INIT ── */
     document.addEventListener('DOMContentLoaded', loadVouchers);
@@ -1194,13 +1354,13 @@
             <tr>
                 <td>
                     <div class="voucher-code-badge"
-                         onclick="copyCode('${v.code}')" title="Click to copy">
+                         onclick="copyCode('${v.code}')" title="${v.code} (Click To Copy)">
                         <i class="bi bi-ticket-perforated-fill" style="font-size:11px"></i>
-                        ${v.code}
+                        <span class="code-text">${v.code}</span>
                         <i class="bi bi-copy" style="font-size:11px;opacity:.5"></i>
                     </div>
                     ${v.description
-                        ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600">
+                        ? `<div class="voucher-desc-text" title="${v.description.replace(/"/g, '&quot;')}">
                                ${v.description}</div>`
                         : ''}
                 </td>
@@ -1239,10 +1399,6 @@
                 </td>
                 <td>
                     <div class="action-btns" style="justify-content:center">
-                        <button class="btn-icon edit"
-                            onclick="openEditModal('${v.voucherId}')" title="Edit">
-                            <i class="bi bi-pencil-fill"></i>
-                        </button>
                         <button class="btn-icon toggle"
                             onclick="toggleStatus('${v.voucherId}', ${v.isActive})"
                             title="${v.isActive ? 'Deactivate' : 'Activate'}">
@@ -1304,43 +1460,15 @@
         document.getElementById('modalTitle').textContent    = 'Add New Voucher';
         document.getElementById('modalSubtitle').textContent = 'Fill in the details. Smart preview calculates customer impact.';
         document.getElementById('submitBtnText').textContent = 'Save Voucher';
-        document.getElementById('editVoucherId').value       = '';
         clearForm();
+
+        const now = new Date();
+        now.setSeconds(0, 0);
+        const localMin = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('fExpiry').min = localMin;
+
         document.getElementById('voucherModal').classList.add('open');
         document.getElementById('fCode').focus();
-    }
-
-    /* ── OPEN EDIT MODAL ── */
-    function openEditModal(id) {
-        const v = allVouchers.find(x => x.voucherId === id);
-        if (!v) return;
-
-        isEditMode = true;
-        document.getElementById('modalTitle').textContent    = 'Edit Voucher';
-        document.getElementById('modalSubtitle').textContent = `Editing: ${v.code}`;
-        document.getElementById('submitBtnText').textContent = 'Update Voucher';
-        document.getElementById('editVoucherId').value       = id;
-
-        document.getElementById('fCode').value        = v.code || '';
-        document.getElementById('fDiscount').value    = v.discountPercent || '';
-        document.getElementById('fDescription').value = v.description || '';
-        document.getElementById('fMinOrder').value    = v.minOrderAmount || '';
-        document.getElementById('fMaxDiscount').value = v.maxDiscountAmount || '';
-        document.getElementById('fUsageLimit').value  = v.useageLimit || '';
-
-        if (v.expiredDate) {
-            const d      = new Date(v.expiredDate);
-            const offset = d.getTimezoneOffset() * 60000;
-            document.getElementById('fExpiry').value =
-                new Date(d - offset).toISOString().slice(0, 16);
-        } else {
-            document.getElementById('fExpiry').value = '';
-        }
-
-        hideServerError();
-        document.getElementById('voucherModal').classList.add('open');
-        updateDescCounter();
-        computePreview();
     }
 
     /* ── CLOSE MODAL ── */
@@ -1388,7 +1516,7 @@
         document.getElementById('pvOrderVal').textContent      = fmtVnd(minOrder);
         document.getElementById('pvDiscountGiven').textContent = `−${fmtVnd(actualDiscount)}`;
         document.getElementById('pvCustomerPays').textContent  = fmtVnd(customerPays);
-        document.getElementById('pvEffRate').textContent       = effectiveRate.toFixed(1) + '%';
+        document.getElementById('pvEffRate').textContent = fmtPercent(effectiveRate);
 
         const pvEffEl = document.getElementById('pvEffRate');
         pvEffEl.className = 'preview-item-val '
@@ -1409,7 +1537,7 @@
                 + `customers saving up to ${fmtVnd(rawDiscount)} per order.`;
         } else if (effectiveRate > 30) {
             warn.classList.add('show');
-            warnText.textContent = `Note: Effective rate is ${effectiveRate.toFixed(1)}%. `
+            warnText.textContent = `Note: Effective rate is ${fmtPercent(effectiveRate)}. `
                 + `Ensure your margins can absorb this.`;
         } else {
             warn.classList.remove('show');
@@ -1419,33 +1547,55 @@
     /* ── VALIDATION ── */
     function validateCode() {
         const val = document.getElementById('fCode').value.trim();
-        const ok  = val.length >= 2 && /^[A-Z0-9]+$/.test(val);
+        const ok  = val.length >= 2 && val.length <= 20 && /^[A-Z0-9]+$/.test(val);
         document.getElementById('fCode').classList.toggle('error', !ok);
         document.getElementById('errCode').style.display = ok ? 'none' : 'block';
         return ok;
     }
 
     function validateDiscount() {
-        const val = parseFloat(document.getElementById('fDiscount').value);
-        const ok  = val >= 1 && val <= 80;
+        const raw = document.getElementById('fDiscount').value;
+        const val = parseInt(raw, 10);
+        const ok  = raw !== '' && Number.isInteger(val) && val >= 1 && val <= 80;
+
         document.getElementById('fDiscount').classList.toggle('error', !ok);
         document.getElementById('errDiscount').style.display = ok ? 'none' : 'block';
-        document.getElementById('discountHint').textContent = val > 50 ? '⚠️ Very high'
-            : val > 30 ? '✓ Moderate' : val > 0 ? '✓ Conservative' : '';
+
+        const hintEl = document.getElementById('discountHint');
+        if (raw === '') {
+            hintEl.textContent = '';
+            hintEl.classList.remove('hint-error');
+        } else if (!ok) {
+            hintEl.textContent = val > 80 ? '⚠️ Exceeds 80% — Invalid' : '⚠️ Invalid Value';
+            hintEl.classList.add('hint-error');
+        } else {
+            hintEl.classList.remove('hint-error');
+            hintEl.textContent = val > 50 ? '⚠️ Very High'
+                : val > 30 ? '✓ Moderate' : '✓ Safe';
+        }
         return ok;
     }
 
-        function validateMinOrder() {
+    function sanitizeDiscountInput() {
+        const el = document.getElementById('fDiscount');
+        let cleaned = el.value.replace(/[^0-9]/g, '');
+        if (cleaned.length > 1) cleaned = cleaned.replace(/^0+(?=\d)/, '');
+        el.value = cleaned;
+    }
+
+    function validateMinOrder() {
         const raw = document.getElementById('fMinOrder').value;
-        const val = parseFloat(raw);
+        const val = parseInt(raw, 10);
         const inputEl = document.getElementById('fMinOrder');
         const errEl   = document.getElementById('errMinOrder');
 
         let errMsg = '';
-        if (raw === '' || raw === null) {
+        if (raw === '') {
             errMsg = 'Min order amount is required.';
-        } else if (isNaN(val) || val <= 0) {
+        } else if (!Number.isInteger(val) || val <= 0) {
             errMsg = 'Min order amount must be greater than 0₫.';
+        } else if (val > 999_999_999) {
+            errMsg = 'Min order amount cannot exceed 999,999,999₫.';
         }
 
         const ok = errMsg === '';
@@ -1457,7 +1607,7 @@
         return ok;
     }
 
-        function validateMaxDiscount() {
+    function validateMaxDiscount() {
         const val      = parseFloat(document.getElementById('fMaxDiscount').value);
         const minOrder = parseFloat(document.getElementById('fMinOrder').value);
         const errEl    = document.getElementById('errMaxDiscount');
@@ -1479,30 +1629,62 @@
         return ok;
     }
 
+    function sanitizeMoneyInput(el, maxDigits) {
+        let cleaned = el.value.replace(/[^0-9]/g, '');       
+        if (cleaned.length > 1) cleaned = cleaned.replace(/^0+(?=\d)/, ''); 
+        if (cleaned.length > maxDigits) cleaned = cleaned.slice(0, maxDigits);
+        el.value = cleaned;
+    }
+
     function validateExpiry() {
-        const val = document.getElementById('fExpiry').value;
-        const ok  = isEditMode ? !!val : (!!val && new Date(val) > new Date());
-        document.getElementById('fExpiry').classList.toggle('error', !ok);
-        document.getElementById('errExpiry').style.display = ok ? 'none' : 'block';
+        const raw     = document.getElementById('fExpiry').value;
+        const inputEl = document.getElementById('fExpiry');
+        const errEl   = document.getElementById('errExpiry');
+
+        let errMsg = '';
+        if (raw === '') {
+            errMsg = 'Expiry date is required.';
+        } else if (new Date(raw) <= new Date()) {
+        errMsg = 'Expiry date must be in the future.';
+    }
+
+        const ok = errMsg === '';
+        inputEl.classList.toggle('error', !ok);
+        errEl.textContent   = errMsg;
+        errEl.style.display = ok ? 'none' : 'block';
         return ok;
     }
 
-        function validateUsageLimit() {
-        const raw = document.getElementById('fUsageLimit').value;
+    function validateUsageLimit() {
+        const raw     = document.getElementById('fUsageLimit').value;
         const inputEl = document.getElementById('fUsageLimit');
         const errEl   = document.getElementById('errUsageLimit');
 
-        if (raw === '' || raw === null) {
-            inputEl.classList.remove('error');
-            errEl.style.display = 'none';
-            return true;
+        let errMsg = '';
+        if (raw === '') {
+            errMsg = 'Usage limit is required.';
+        } else {
+            const val = parseInt(raw, 10);
+            if (!Number.isInteger(val) || val < USAGE_LIMIT_MIN) {
+                errMsg = 'Usage limit must be at least 1.';
+            } else if (val > USAGE_LIMIT_MAX) {
+                errMsg = `Usage limit cannot exceed ${USAGE_LIMIT_MAX}.`;
+            }
         }
 
-        const val = parseInt(raw);
-        const ok  = !isNaN(val) && val >= 1;
+        const ok = errMsg === '';
         inputEl.classList.toggle('error', !ok);
+        errEl.textContent   = errMsg;
         errEl.style.display = ok ? 'none' : 'block';
         return ok;
+    }
+
+    function sanitizeUsageLimitInput() {
+        const el = document.getElementById('fUsageLimit');
+        let cleaned = el.value.replace(/[^0-9]/g, '');
+        if (cleaned.length > 1) cleaned = cleaned.replace(/^0+(?=\d)/, '');
+        if (cleaned.length > 3) cleaned = cleaned.slice(0, 3);
+        el.value = cleaned;
     }
 
     function validateAll() {
@@ -1549,32 +1731,21 @@
             description:       document.getElementById('fDescription').value.trim() || null,
             minOrderAmount:    parseFloat(document.getElementById('fMinOrder').value),
             maxDiscountAmount: parseFloat(document.getElementById('fMaxDiscount').value),
-            useageLimit:       document.getElementById('fUsageLimit').value
-                                   ? parseInt(document.getElementById('fUsageLimit').value)
-                                   : null,
+            useageLimit:       parseInt(document.getElementById('fUsageLimit').value, 10),
             expiredDate:       expiryVal ? new Date(expiryVal).toISOString() : null,
             isActive:          true
         };
 
         try {
-            if (isEditMode) {
-                const id       = document.getElementById('editVoucherId').value;
-                const original = allVouchers.find(x => x.voucherId === id);
-                payload.isActive = original?.isActive ?? true;
-                await apiFetch('POST', `${BASE}/Update?id=${id}`, payload);
-            } else {
-                await apiFetch('POST', `${BASE}/Create`, payload);
-            }
-
+            await apiFetch('POST', `${BASE}/Create`, payload);   
             closeModal();
             await loadVouchers();
-            showToast(isEditMode ? 'Voucher updated successfully!' : 'Voucher created successfully!', 'success');
-
+            showToast('Voucher created successfully!', 'success');
         } catch (e) {
             showServerError(e.message || 'Operation failed. Please try again.');
         } finally {
             btn.disabled = false;
-            btnText.innerHTML = isEditMode ? 'Update Voucher' : 'Save Voucher';
+            btnText.innerHTML = 'Save Voucher';
         }
     }
 
@@ -1591,7 +1762,7 @@
     }
 
     /* ── HELPERS ── */
-        function clearForm() {
+    function clearForm() {
         ['fCode','fDiscount','fDescription','fMinOrder','fMaxDiscount','fUsageLimit','fExpiry']
             .forEach(id => {
                 document.getElementById(id).value = '';
@@ -1624,6 +1795,11 @@
         });
     }
 
+    function fmtPercent(val) {
+        const rounded = Math.round(val * 10) / 10;
+        return (Number.isInteger(rounded) ? rounded : rounded.toFixed(1)) + '%';
+    }
+
     /* ── API FETCH ── */
     async function apiFetch(method, url, body = null) {
         const opts = {
@@ -1648,19 +1824,33 @@
     }
 
     function showToast(message, type = 'primary') {
-        const colorMap = {
-            success: 'text-bg-success',
-            danger:  'text-bg-danger',
-            primary: 'text-bg-primary',
-            warning: 'text-bg-warning'
+        const iconMap = {
+            success: 'bi-check-circle-fill',
+            danger:  'bi-x-circle-fill',
+            warning: 'bi-exclamation-triangle-fill',
+            primary: 'bi-info-circle-fill'
         };
-        const toast = document.getElementById('liveToast');
-        toast.className = `toast align-items-center border-0 ${colorMap[type] || 'text-bg-primary'}`;
-        toast.querySelector('.toast-body').textContent = message;
-        new bootstrap.Toast(toast, { delay: 3000 }).show();
+
+        const container = document.getElementById('vToastContainer');
+        const toast = document.createElement('div');
+        toast.className = `v-toast ${type}`;
+        toast.innerHTML = `
+            <div class="v-toast-icon"><i class="bi ${iconMap[type] || iconMap.primary}"></i></div>
+            <span>${message}</span>
+            <button class="v-toast-close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>`;
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 250);
+        }, 3000);
     }
 
-    document.getElementById('voucherModal').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
+    // document.getElementById('voucherModal').addEventListener('click', function(e) {
+    //     if (e.target === this) closeModal();
+    // });
 </script>

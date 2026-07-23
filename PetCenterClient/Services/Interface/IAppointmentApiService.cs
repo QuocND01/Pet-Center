@@ -19,5 +19,11 @@ namespace PetCenterClient.Services.Interface
         Task CancelAppointmentAsync(Guid appointmentId);
 
         Task SubmitReviewAsync(SubmitReviewViewModel model);
+
+        Task<List<AppointmentListViewModel>> GetAllAppointmentsAsync();
+
+        Task ForwardAppointmentStatusAsync(Guid appointmentId);
+
+        Task CompleteAppointmentServiceAsync(Guid appointmentServiceId);
     }
 }

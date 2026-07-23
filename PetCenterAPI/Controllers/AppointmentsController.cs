@@ -86,7 +86,12 @@ namespace PetCenterAPI.Controllers
 
             if (string.IsNullOrEmpty(Claim))
             {
-                return Unauthorized("CustomerId missing in token");
+                return Unauthorized(new
+                {
+                    status = false,
+                    message = "Customer must login to view appointments"
+                });
+
             }
 
             var Id = Guid.Parse(Claim);
@@ -222,6 +227,90 @@ namespace PetCenterAPI.Controllers
                 {
                     status = true,
                     message = "Get available slots successfully.",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+        
+        [HttpPut("{appointmentId}/forward")]
+        public async Task<IActionResult>ForwardAppointmentStatus(Guid appointmentId)
+        {
+            var Claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(Claim))
+            {
+                return Unauthorized("Staff Id missing in token");
+            }
+
+            var staffId = Guid.Parse(Claim);
+
+            try
+            {
+                await _appointmentService
+                    .ForwardAppointmentStatusAsync(
+                        appointmentId,
+                        staffId);
+
+                return Ok(new
+                {
+                    status = true,
+                    message = "Appointment status forwarded successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+        [HttpPut("{appointmentserviceId}/complete")]
+        public async Task<IActionResult> CompleteAppointmentService(Guid appointmentserviceId)   
+        {
+            try
+            {
+                await _appointmentService
+                    .CompleteAppointmentService(
+                        appointmentserviceId);
+
+                return Ok(new
+                {
+                    status = true,
+                    message = "Appointment service completed successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+        }
+        [HttpGet("appointments")]
+        public async Task<IActionResult> GetAllAppointments()
+        {
+            try
+            {
+                var result =
+                    await _appointmentService
+                        .GetAllAppointmentsAsync();
+
+                return Ok(new
+                {
+                    status = true,
+                    message = "Get appointments successfully.",
                     data = result
                 });
             }

@@ -84,16 +84,22 @@
             <div class="error">@ViewBag.Error</div>
         }
         <form method="post" id="registerForm">
-            <input id="fullName" name="FullName" class="form-control mb-3" placeholder="Full Name" required />
-            <input type="email" id="email" name="Email" class="form-control mb-3" placeholder="Email" required />
+            <input id="fullName" name="FullName" maxlength="50" class="form-control mb-3" placeholder="Full Name" required />
+
+            <input type="email" id="email" name="Email" maxlength="50" class="form-control mb-3" placeholder="Email" required />
+
             <input id="phoneNumber" name="PhoneNumber" pattern="[0-9]{10}"
                    class="form-control mb-3" placeholder="Phone Number" required />
+
             <input type="password" id="password" name="Password" class="form-control mb-2" placeholder="Password" required />
             <div id="passwordStrength" style="font-size:14px;margin-bottom:10px;"></div>
+
             <input type="password" id="confirmPassword" class="form-control mb-2" placeholder="Confirm Password" required />
             <div id="passwordMatch" class="password-match-error">Passwords do not match</div>
             <div id="passwordMatchSuccess" class="password-match-success">Passwords match</div>
+
             <input type="date" id="birthDay" name="BirthDay" class="form-control mb-3" />
+
             <select id="gender" name="Gender" class="form-control mb-3" required>
                 <option value="">-- Select Gender --</option>
                 <option value="Male">Male</option>
@@ -127,6 +133,7 @@
     function validateFullName(val) {
         const trimmed = val.trim();
         if (trimmed.length < 2)                         return "Full name must be at least 2 characters";
+            if (trimmed.length > 50)                        return "Full name must not exceed 50 characters";
         if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(trimmed))         return "Full name must contain letters only";
         if (trimmed.split(/\s+/).length < 2)            return "Please enter your full name (first and last name)";
         return "";
@@ -148,11 +155,13 @@
     emailMsg.style.cssText = "font-size:13px;margin-top:-10px;margin-bottom:10px;display:none;";
     emailInput.insertAdjacentElement("afterend", emailMsg);
 
-    function validateEmail(val) {
-        if (!val)                                              return "Email is required";
-        if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(val))         return "Invalid email format";
-        return "";
-    }
+            function validateEmail(val) {
+            const trimmed = val.trim();
+            if (!trimmed)                                              return "Email is required";
+            if (trimmed.length > 50)                                   return "Email must not exceed 50 characters";
+            if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(trimmed))         return "Invalid email format";
+            return "";
+        }
 
     emailInput.addEventListener("input", function () {
         const err = validateEmail(this.value);

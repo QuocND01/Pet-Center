@@ -1,0 +1,223 @@
+﻿@model IEnumerable<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
+
+@{
+    ViewData["Title"] = "Staff Console - Appointments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+<style>
+    .admin-console-wrapper {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .status-badge {
+        padding: 0.5rem 0.75rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .badge-status-0 {
+        background-color: #ffe5e5;
+        color: #cc0000;
+    }
+
+    .badge-status-1 {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .badge-status-2 {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .badge-status-3 {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+
+    .badge-status-4 {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .btn-emerald-outline {
+        border: 2px solid #198754;
+        color: #198754;
+        background: transparent;
+        font-weight: bold;
+    }
+
+        .btn-emerald-outline:hover {
+            background-color: #198754;
+            color: white;
+        }
+
+    .sticky-sidebar {
+        position: sticky;
+        top: 24px;
+        z-index: 10;
+    }
+
+    .clickable-row {
+        cursor: pointer;
+    }
+</style>
+
+<div class="admin-console-wrapper py-5">
+    <div class="container">
+
+        <!-- ALERT THÔNG BÁO TỪ TEMP DATA -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 small mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- HEADER CONSOLE -->
+        <div class="mb-4">
+            <h3 class="fw-bold text-dark m-0"><i class="fas fa-layer-group text-success me-2"></i>Appointment Console</h3>
+            <p class="text-muted small m-0">Monitor workspace operations, patient tracking, and shift workflows.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- CỘT TRÁI: TABLE DANH SÁCH CHÍNH -->
+            <div class="col-lg-9">
+                <div class="bg-white rounded-4 shadow-sm p-4 border-0">
+
+                    <div class="d-flex gap-2 mb-4">
+                        <input type="text" id="consoleSearchInput" class="form-control rounded-3 bg-light border-0 small px-3" placeholder="Search Pet name or Doctor..." style="max-width: 350px;">
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle table-hover border-top" id="appointmentsTable">
+                            <thead class="table-light text-secondary small">
+                                <tr>
+                                    <th>Patient Name</th>
+                                    <th>Assigned Doctor</th>
+                                    <th>Schedule Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var app in Model)
+                                    {
+                                        string statusText = app.Status switch
+                                        {
+                                            0 => "Cancelled",
+                                            1 => "Pending",
+                                            2 => "Confirmed",
+                                            3 => "In Progress",
+                                            4 => "Completed",
+                                            _ => "Unknown"
+                                        };
+
+                                        <tr class="appointment-row" data-status="@app.Status" data-search="@app.PetName.ToLower() @(app.VetName?.ToLower() ?? "")">
+                                            <td class="fw-bold text-dark fs-6">@app.PetName</td>
+                                            <td class="text-secondary"><i class="fas fa-user-md text-success me-1"></i>Dr. @(app.VetName ?? "Unassigned")</td>
+                                            <td>
+                                                <div class="fw-bold text-dark">@app.AppointmentStart.ToString("dd/MM/yyyy")</div>
+                                                <div class="text-muted small">@app.AppointmentStart.ToString("hh:mm tt")</div>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge badge-status-@app.Status">@app.Status: @statusText</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-action="StaffAppointmentDetail" asp-route-id="@app.AppointmentId" class="btn btn-emerald-outline btn-sm py-1 px-3 rounded-2">
+                                                    Open Track <i class="fas fa-folder-open ms-1"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr id="emptyRow">
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            <i class="fas fa-folder-open d-block fs-3 mb-2"></i> No records available.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: SIDEBAR LỌC TRẠNG THÁI KHÔNG TẢI LẠI TRANG -->
+            <div class="col-lg-3">
+                <div class="bg-white rounded-4 shadow-sm p-4 sticky-sidebar border-0">
+                    <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom"><i class="fas fa-filter text-success me-2"></i>Quick Filters</h5>
+
+                    <div class="d-flex flex-column gap-2" id="filterButtonGroup">
+                        <button class="btn btn-light text-start fw-bold text-dark p-3 rounded-3 active border-start border-success border-4" data-target-status="all">
+                            <i class="fas fa-list me-2 text-secondary"></i> All Tracks
+                        </button>
+                        <button class="btn btn-light text-start fw-bold text-warning p-3 rounded-3" data-target-status="1">
+                            <i class="far fa-clock me-2"></i> 1: Pending
+                        </button>
+                        <button class="btn btn-light text-start fw-bold text-primary p-3 rounded-3" data-target-status="2">
+                            <i class="fas fa-check me-2"></i> 2: Confirmed
+                        </button>
+                        <button class="btn btn-light text-start fw-bold text-secondary p-3 rounded-3" data-target-status="3">
+                            <i class="fas fa-spinner fa-spin me-2"></i> 3: In Progress
+                        </button>
+                        <button class="btn btn-light text-start fw-bold text-success p-3 rounded-3" data-target-status="4">
+                            <i class="fas fa-check-double me-2"></i> 4: Completed
+                        </button>
+                        <button class="btn btn-light text-start fw-bold text-danger p-3 rounded-3" data-target-status="0">
+                            <i class="fas fa-times-circle me-2"></i> 0: Cancelled
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const filterButtons = document.querySelectorAll("#filterButtonGroup button");
+        const searchInput = document.getElementById("consoleSearchInput");
+        const rows = document.querySelectorAll(".appointment-row");
+
+        function filterTable() {
+            const activeFilter = document.querySelector("#filterButtonGroup button.active").getAttribute("data-target-status");
+            const query = searchInput.value.toLowerCase().trim();
+
+            rows.forEach(row => {
+                const status = row.getAttribute("data-status");
+                const searchContent = row.getAttribute("data-search");
+
+                const matchesFilter = (activeFilter === "all") || (status === activeFilter);
+                const matchesSearch = !query || searchContent.includes(query);
+
+                if (matchesFilter && matchesSearch) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                filterButtons.forEach(b => b.classList.remove("active", "border-start", "border-success", "border-4"));
+                this.classList.add("active", "border-start", "border-success", "border-4");
+                filterTable();
+            });
+        });
+
+        searchInput.addEventListener("input", filterTable);
+    });
+</script>
