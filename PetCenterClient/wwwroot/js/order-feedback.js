@@ -3,6 +3,7 @@ const MAX_IMAGES = 2;
 const MAX_VIDEOS = 1;
 const MAX_IMAGE_MB = 5;
 const MAX_VIDEO_MB = 30;
+const MAX_COMMENT_LENGTH = 1000;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/mov', 'video/webm'];
 const ACCEPTED_TYPES = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES];
@@ -100,77 +101,88 @@ const OrderFeedback = (function () {
                 const mediaHtml = renderMediaGrid(fb.mediaFiles || []);
 
                 bodyHtml += `
-                <div style="padding:18px 0;${isLast ? '' : 'border-bottom:1.5px solid #f1f5f9;'}">
-                    <!-- Product row -->
-                    <div style="display:flex;align-items:center;gap:10px;
-                                background:#f8fafc;border-radius:10px;
-                                padding:10px 12px;margin-bottom:14px;">
-                        <img src="${imgUrl}"
-                             style="width:44px;height:44px;object-fit:cover;
-                                    border-radius:8px;flex-shrink:0;border:1px solid #e2e8f0;"
-                             onerror="this.onerror=null;this.style.display='none'">
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:600;color:#1e293b;
-                                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                ${product?.productName || 'Product'}
-                            </div>
-                        </div>
-                        <div style="display:flex;gap:1px;flex-shrink:0;">${starsHtml}</div>
-                    </div>
+<div style="border:1.5px solid #e2e8f0;border-radius:14px;
+            padding:18px;margin-bottom:${isLast ? '0' : '16px'};
+            background:#fff;transition:box-shadow .2s;">
 
-                    <!-- Reviewer row -->
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                        <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;
-                                    background:linear-gradient(135deg,#6366f1,#8b5cf6);
-                                    color:#fff;display:flex;align-items:center;
-                                    justify-content:center;font-size:13px;font-weight:700;">
-                            ${initials}
-                        </div>
-                        <div>
-                            <div style="font-size:13px;font-weight:600;color:#1e293b;">${name}</div>
-                            <div style="font-size:11px;color:#94a3b8;">${formatDate(fb.createdDate)}</div>
-                        </div>
-                        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
-                            <span style="font-size:11px;font-weight:600;color:${STAR_COLOR};">
-                                ${STAR_LABELS[rating] || ''}
-                            </span>
-                            <button onclick="OrderFeedback.openEditPopup('${fb.feedbackId}')"
-                                    style="font-size:11px;padding:3px 12px;
-                                           border:1.5px solid #6366f1;border-radius:6px;
-                                           background:#fff;color:#6366f1;cursor:pointer;
-                                           font-weight:600;transition:all .15s;"
-                                    onmouseover="this.style.background='#ede9fe'"
-                                    onmouseout="this.style.background='#fff'">
-                                ✏ Edit
-                            </button>
-                        </div>
-                    </div>
+    <!-- Product header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;
+                padding-bottom:14px;border-bottom:1px solid #f1f5f9;">
+        <img src="${imgUrl}"
+             style="width:48px;height:48px;object-fit:cover;
+                    border-radius:8px;flex-shrink:0;border:1px solid #e2e8f0;"
+             onerror="this.onerror=null;this.style.display='none'">
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:#1e293b;
+                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${product?.productName || 'Product'}
+            </div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">
+                Review ${index + 1} of ${result.data.length}
+            </div>
+        </div>
+        <div style="display:flex;gap:1px;flex-shrink:0;">${starsHtml}</div>
+    </div>
 
-                    <!-- Comment -->
-                    <div style="font-size:13px;color:#374151;line-height:1.7;
-                                padding:10px 12px;background:#f8fafc;
-                                border-radius:8px;margin-bottom:${mediaHtml ? '10px' : '0'};">
-                        ${fb.comment
-                        ? fb.comment
+    <!-- Reviewer row -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;
+                    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                    color:#fff;display:flex;align-items:center;
+                    justify-content:center;font-size:13px;font-weight:700;">
+            ${initials}
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;color:#1e293b;">${name}</div>
+            <div style="font-size:11px;color:#94a3b8;">${formatDate(fb.createdDate)}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+            <span style="font-size:11px;font-weight:700;color:${STAR_COLOR};
+                         background:#fffbeb;padding:2px 10px;border-radius:100px;">
+                ${STAR_LABELS[rating] || ''}
+            </span>
+            <button onclick="OrderFeedback.openEditPopup('${fb.feedbackId}')"
+                    style="font-size:11px;padding:4px 12px;
+                           border:1.5px solid #6366f1;border-radius:6px;
+                           background:#fff;color:#6366f1;cursor:pointer;
+                           font-weight:600;transition:all .15s;white-space:nowrap;"
+                    onmouseover="this.style.background='#ede9fe'"
+                    onmouseout="this.style.background='#fff'">
+                ✏ Edit
+            </button>
+        </div>
+    </div>
+
+    <!-- Comment -->
+    <div style="font-size:13px;color:#374151;line-height:1.7;
+                padding:12px 14px;background:#f8fafc;
+                border-radius:10px;margin-bottom:${mediaHtml ? '12px' : '0'};
+                white-space:pre-wrap;overflow-wrap:break-word;
+                word-break:break-word;max-width:100%;box-sizing:border-box;">
+        ${fb.comment
+                        ? escapeHtml(fb.comment)
                         : '<span style="color:#94a3b8;font-style:italic;">No comment provided.</span>'}
-                    </div>
+    </div>
 
-                    <!-- Media -->
-                    ${mediaHtml}
+    <!-- Media -->
+    ${mediaHtml}
 
-                    <!-- Shop reply -->
-                    ${fb.reply ? `
-                    <div style="margin-top:12px;padding:12px 14px;
-                                background:linear-gradient(135deg,#f0fdf4,#dcfce7);
-                                border-left:3px solid #22c55e;border-radius:0 8px 8px 0;">
-                        <div style="font-size:11px;font-weight:700;color:#16a34a;
-                                    margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                            🏪 Shop Reply
-                            ${fb.replyDate ? `<span style="font-weight:400;color:#86efac;">· ${formatDate(fb.replyDate)}</span>` : ''}
-                        </div>
-                        <div style="font-size:13px;color:#15803d;line-height:1.6;">${fb.reply}</div>
-                    </div>` : ''}
-                </div>`;
+    <!-- Shop reply -->
+    ${fb.reply ? `
+    <div style="margin-top:12px;padding:12px 14px;
+                background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+                border-left:3px solid #22c55e;border-radius:0 10px 10px 0;
+                overflow-wrap:break-word;word-break:break-word;max-width:100%;box-sizing:border-box;">
+        <div style="font-size:11px;font-weight:700;color:#16a34a;
+                    margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+            🏪 Shop Reply
+            ${fb.replyDate ? `<span style="font-weight:600;color:#4d7c5f;">· ${formatDate(fb.replyDate)}</span>` : ''}
+        </div>
+        <div style="font-size:13px;color:#15803d;line-height:1.6;
+                    white-space:pre-wrap;overflow-wrap:break-word;
+                    word-break:break-word;max-width:100%;box-sizing:border-box;">${escapeHtml(fb.reply)}</div>
+    </div>` : ''}
+</div>`;
             });
 
             showFeedbackModal('feedbackViewModal', `My Reviews (${result.data.length})`, bodyHtml,
@@ -253,21 +265,25 @@ const OrderFeedback = (function () {
                 </div>
 
                 <!-- Comment -->
-                <div style="margin-bottom:12px;">
+                <div style="margin-bottom:16px;">
                     <div style="font-size:11px;font-weight:700;color:#64748b;
-                                text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
-                        Comment <span style="color:#94a3b8;font-weight:400;">(optional)</span>
-                    </div>
-                    <textarea class="comment-input"
-                              rows="3"
-                              style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;
-                                     padding:10px 12px;font-size:13px;resize:none;
-                                     outline:none;transition:border .2s;box-sizing:border-box;
-                                     font-family:inherit;color:#374151;"
-                              placeholder="Share your experience with this product..."
-                              onfocus="this.style.borderColor='#6366f1'"
-                              onblur="this.style.borderColor='#e2e8f0'"></textarea>
+                         text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                         Comment <span style="color:#94a3b8;font-weight:400;">(optional)</span>
                 </div>
+                <textarea class="comment-input" rows="3"
+                    maxlength="${MAX_COMMENT_LENGTH}"
+                    style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;
+                           padding:10px 12px;font-size:13px;resize:none;overflow:hidden;
+                           outline:none;transition:border .2s;box-sizing:border-box;
+                           font-family:inherit;color:#374151;min-height:72px;"
+                    placeholder="Share your experience with this product..."
+                    oninput="OrderFeedback.handleCommentInput(this)"
+                    onfocus="this.style.borderColor='#6366f1'"
+                    onblur="this.style.borderColor='#e2e8f0'"></textarea>
+                <div class="comment-counter" style="text-align:right;font-size:11px;color:#94a3b8;margin-top:4px;">
+                    0 / ${MAX_COMMENT_LENGTH}
+                </div>
+            </div>
 
                 <!-- Media upload -->
                 <div>
@@ -314,7 +330,10 @@ const OrderFeedback = (function () {
         document.getElementById('btnSubmitWrite')
             ?.addEventListener('click', submitFeedback);
 
-        setTimeout(attachWriteStarEvents, 50);
+        setTimeout(() => {
+            attachWriteStarEvents();
+            document.querySelectorAll('.comment-input').forEach(autoGrowTextarea);
+        }, 50);
     }
 
     // ============================================================
@@ -400,18 +419,23 @@ const OrderFeedback = (function () {
         <!-- Comment -->
         <div style="margin-bottom:16px;">
             <div style="font-size:11px;font-weight:700;color:#64748b;
-                        text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
-                Comment <span style="color:#94a3b8;font-weight:400;">(optional)</span>
-            </div>
-            <textarea id="editCommentInput" rows="4"
-                      style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;
-                             padding:10px 12px;font-size:13px;resize:none;
-                             outline:none;transition:border .2s;box-sizing:border-box;
-                             font-family:inherit;color:#374151;"
-                      placeholder="Share your experience..."
-                      onfocus="this.style.borderColor='#6366f1'"
-                      onblur="this.style.borderColor='#e2e8f0'">${fb.comment || ''}</textarea>
+                text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+        Comment <span style="color:#94a3b8;font-weight:400;">(optional)</span>
         </div>
+        <textarea id="editCommentInput" rows="4"
+              maxlength="${MAX_COMMENT_LENGTH}"
+              style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;
+                     padding:10px 12px;font-size:13px;resize:none;overflow:hidden;
+                     outline:none;transition:border .2s;box-sizing:border-box;
+                     font-family:inherit;color:#374151;min-height:96px;"
+              placeholder="Share your experience..."
+              oninput="OrderFeedback.handleCommentInput(this)"
+              onfocus="this.style.borderColor='#6366f1'"
+              onblur="this.style.borderColor='#e2e8f0'">${fb.comment || ''}</textarea>
+        <div class="comment-counter" style="text-align:right;font-size:11px;color:#94a3b8;margin-top:4px;">
+            ${(fb.comment || '').length} / ${MAX_COMMENT_LENGTH}
+        </div>
+    </div>
 
         <!-- Existing media -->
         ${existingMediaHtml}
@@ -473,7 +497,10 @@ const OrderFeedback = (function () {
             document.getElementById('btnCloseX_feedbackEditModal')?.addEventListener('click', goBackToView);
             document.getElementById('btnSubmitEdit')?.addEventListener('click', submitEdit);
 
-            setTimeout(attachEditStarEvents, 100);
+            setTimeout(() => {
+                attachEditStarEvents();
+                autoGrowTextarea(document.getElementById('editCommentInput'));
+            }, 100);
         }, 350);
     }
 
@@ -491,6 +518,8 @@ const OrderFeedback = (function () {
             }
         });
         if (!isValid) return;
+
+        lockModalDuringSubmit('feedbackWriteModal');
 
         const submitBtn = document.getElementById('btnSubmitWrite');
         if (submitBtn) {
@@ -520,10 +549,12 @@ const OrderFeedback = (function () {
             }
             const result = await response.json();
             if (result.success) {
+                unlockModalAfterSubmit('feedbackWriteModal');
                 closeFeedbackModal('feedbackWriteModal', () => {
                     showAlert('Your review has been submitted successfully! 🎉', 'success');
                     checkAndRenderButton();
                 });
+                return;
             } else {
                 showAlert(result.message || 'An error occurred. Please try again.', 'danger');
             }
@@ -531,6 +562,7 @@ const OrderFeedback = (function () {
             console.error('[OrderFeedback] submitFeedback error:', error);
             showAlert('Network error. Please try again.', 'danger');
         } finally {
+            unlockModalAfterSubmit('feedbackWriteModal');
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Submit Review';
@@ -557,7 +589,6 @@ const OrderFeedback = (function () {
         const hasNewFiles = Array.from(newMediaItems).some(el => el._file && el._ready);
 
         if (hasNewFiles) {
-            // Đếm existing còn lại sau khi đã remove
             let existingImageCount = 0;
             let existingVideoCount = 0;
             const existingContainer = document.getElementById('existingMediaContainer');
@@ -569,7 +600,6 @@ const OrderFeedback = (function () {
                 });
             }
 
-            // Đếm file mới sẽ upload
             let newImageCount = 0;
             let newVideoCount = 0;
             newMediaItems.forEach(el => {
@@ -591,6 +621,8 @@ const OrderFeedback = (function () {
                 return;
             }
         }
+
+        lockModalDuringSubmit('feedbackEditModal');
 
         const submitBtn = document.getElementById('btnSubmitEdit');
         if (submitBtn) {
@@ -618,10 +650,12 @@ const OrderFeedback = (function () {
             }
             const result = await response.json();
             if (result.success) {
+                unlockModalAfterSubmit('feedbackEditModal');
                 closeFeedbackModal('feedbackEditModal', () => {
                     showAlert('Review updated successfully!', 'success');
                     checkAndRenderButton();
                 });
+                return;
             } else {
                 showAlert(result.message || 'An error occurred.', 'danger');
             }
@@ -629,6 +663,7 @@ const OrderFeedback = (function () {
             console.error('[OrderFeedback] submitEdit error:', error);
             showAlert('Network error. Please try again.', 'danger');
         } finally {
+            unlockModalAfterSubmit('feedbackEditModal');
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Save Changes';
@@ -1049,6 +1084,10 @@ const OrderFeedback = (function () {
     }
 
     function closeFeedbackModal(modalId, callback) {
+        if (isSubmitting) {
+            showAlert('Please wait until the upload finishes before closing.', 'warning');
+            return;
+        }
         const el = document.getElementById(modalId);
         const backdropEl = document.getElementById(`${modalId}_backdrop`);
         if (backdropEl) backdropEl.remove();
@@ -1112,6 +1151,85 @@ const OrderFeedback = (function () {
         }
     }
 
+    let isSubmitting = false;
+
+    function beforeUnloadHandler(e) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+
+    function lockModalDuringSubmit(modalId) {
+        isSubmitting = true;
+        const modalEl = document.getElementById(modalId);
+        if (!modalEl) return;
+
+        // Disable the X close button
+        const xBtn = modalEl.querySelector('.btn-close');
+        if (xBtn) {
+            xBtn.disabled = true;
+            xBtn.style.opacity = '0.35';
+            xBtn.style.pointerEvents = 'none';
+        }
+
+        // Disable every footer button except the submit button itself
+        modalEl.querySelectorAll('.modal-footer button').forEach(btn => {
+            if (btn.id !== 'btnSubmitWrite' && btn.id !== 'btnSubmitEdit') {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            }
+        });
+
+        // Warn if the user tries to close/refresh the tab mid-upload
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+
+        showSubmitOverlay(modalId);
+    }
+
+    function unlockModalAfterSubmit(modalId) {
+        isSubmitting = false;
+        const modalEl = document.getElementById(modalId);
+        if (modalEl) {
+            const xBtn = modalEl.querySelector('.btn-close');
+            if (xBtn) {
+                xBtn.disabled = false;
+                xBtn.style.opacity = '1';
+                xBtn.style.pointerEvents = 'auto';
+            }
+            modalEl.querySelectorAll('.modal-footer button').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        hideSubmitOverlay(modalId);
+    }
+
+    function showSubmitOverlay(modalId) {
+        const modalBody = document.querySelector(`#${modalId} .modal-body`);
+        if (!modalBody) return;
+        modalBody.style.position = 'relative';
+
+        const overlay = document.createElement('div');
+        overlay.id = `${modalId}_submitOverlay`;
+        overlay.style.cssText = `position:absolute;inset:0;background:rgba(255,255,255,.8);
+        z-index:50;display:flex;align-items:center;justify-content:center;
+        flex-direction:column;gap:10px;cursor:wait;`;
+        overlay.innerHTML = `
+        <div style="width:36px;height:36px;border-radius:50%;
+                    border:3px solid #e2e8f0;border-top-color:#6366f1;
+                    animation:fb-spin .7s linear infinite;"></div>
+        <div style="font-size:13px;font-weight:700;color:#475569;">
+            Uploading your review, please wait...
+        </div>`;
+        modalBody.appendChild(overlay);
+    }
+
+    function hideSubmitOverlay(modalId) {
+        document.getElementById(`${modalId}_submitOverlay`)?.remove();
+    }
+
     // ============================================================
     // UTILITY
     // ============================================================
@@ -1167,6 +1285,27 @@ const OrderFeedback = (function () {
         return url;
     }
 
+    function autoGrowTextarea(el) {
+        if (!el) return;
+        el.style.height = '0px';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    function handleCommentInput(textarea) {
+        autoGrowTextarea(textarea);
+        const counter = textarea.nextElementSibling;
+        if (counter && counter.classList.contains('comment-counter')) {
+            counter.textContent = `${textarea.value.length} / ${MAX_COMMENT_LENGTH}`;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     return {
         init,
         openViewFeedbackPopup,
@@ -1177,6 +1316,7 @@ const OrderFeedback = (function () {
         handleEditDrop,
         handleWriteFileSelect,
         handleWriteDrop,
-        openMediaViewer
+        openMediaViewer,
+        handleCommentInput
     };
 })();

@@ -16,6 +16,7 @@ namespace PetCenterAPI.Service
         private const int MaxMediaPerFeedback = MaxImagesPerFeedback + MaxVideosPerFeedback;
         private const long MaxImageSizeBytes = 5 * 1024 * 1024;   
         private const long MaxVideoSizeBytes = 30 * 1024 * 1024;
+        private const int MaxCommentLength = 1000;
 
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
         private static readonly string[] AllowedVideoExtensions = { ".mp4", ".mov", ".webm" };
@@ -62,6 +63,9 @@ namespace PetCenterAPI.Service
 
             if (request.Feedbacks.Any(f => f.Rating < 1 || f.Rating > 5))
                 throw new ArgumentException("Rating must be between 1 and 5.");
+
+            if (request.Feedbacks.Any(f => !string.IsNullOrEmpty(f.Comment) && f.Comment.Length > MaxCommentLength))
+                throw new ArgumentException($"Comment cannot exceed {MaxCommentLength} characters.");
 
             var orderId = request.Feedbacks.First().OrderId;
             var alreadyReviewed = await _productFeedbackRepository.HasFeedbackForOrderAsync(orderId, customerId);
@@ -122,6 +126,9 @@ namespace PetCenterAPI.Service
 
             if (existing.CustomerId != customerId)
                 throw new UnauthorizedAccessException("You are not allowed to edit this feedback.");
+
+            if (!string.IsNullOrEmpty(request.Comment) && request.Comment.Length > MaxCommentLength)
+                throw new ArgumentException($"Comment cannot exceed {MaxCommentLength} characters.");
 
             existing.Rating = request.Rating;
             existing.Comment = request.Comment;
