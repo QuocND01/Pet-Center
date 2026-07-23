@@ -1,0 +1,140 @@
+@{
+    ViewData["Title"] = "Payment Failed";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var message = ViewBag.Message as string ?? "Payment failed. Please try again.";
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --red: #ef4444;
+        --red-dark: #dc2626;
+        --red-soft: #fef2f2;
+    }
+
+    .failed-page {
+        font-family: 'DM Sans', sans-serif;
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .failed-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.10);
+        padding: 56px 48px;
+        text-align: center;
+        max-width: 520px;
+        width: 100%;
+        animation: popIn 0.5s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @@keyframes popIn {
+        from { opacity: 0; transform: scale(0.9) translateY(24px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .failed-icon {
+        width: 90px;
+        height: 90px;
+        background: var(--red-soft);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 46px;
+        margin: 0 auto 24px;
+        animation: bounceIn 0.6s 0.2s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @@keyframes bounceIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .failed-title {
+        font-size: 30px;
+        font-weight: 800;
+        color: #991b1b;
+        margin-bottom: 10px;
+    }
+
+    .failed-sub {
+        font-size: 15px;
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 28px;
+    }
+
+    .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-retry {
+        background: linear-gradient(135deg, var(--red), var(--red-dark));
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 16px rgba(239,68,68,0.35);
+        transition: all 0.2s;
+    }
+
+    .btn-retry:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(239,68,68,0.45);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-outline-co {
+        background: none;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-outline-co:hover {
+        border-color: #2ecc71;
+        color: #27ae60;
+        text-decoration: none;
+    }
+</style>
+
+<div class="failed-page">
+    <div class="failed-card">
+        <div class="failed-icon">❌</div>
+        <div class="failed-title">Payment Failed</div>
+        <p class="failed-sub">@message</p>
+        <div class="actions">
+            <a href="/Cart" class="btn-retry">🔄 Try Again</a>
+            <a asp-controller="Products" asp-action="Index" class="btn-outline-co">🛍 Continue Shopping</a>
+        </div>
+    </div>
+</div>

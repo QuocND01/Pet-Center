@@ -10,6 +10,12 @@ namespace PetCenterAPI.DTOs.Responses.Order
         public decimal FinalAmount { get; set; }
     }
 
+    public class PlaceOnlineOrderResponseDTO : PlaceOrderResponseDTO
+    {
+        public string? PaymentUrl { get; set; }
+        public string? TransactionRef { get; set; }
+    }
+
     public class AvailableVoucherDTO
     {
         public Guid VoucherId { get; set; }

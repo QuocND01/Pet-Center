@@ -27,6 +27,12 @@ namespace PetCenterClient.DTOs
         public decimal FinalAmount { get; set; }
     }
 
+    public class OnlineCheckoutResponseDTO : CheckoutResponseDTO
+    {
+        public string? PaymentUrl { get; set; }
+        public string? TransactionRef { get; set; }
+    }
+
     public class VoucherValidateRequestDTO
     {
         public string Code { get; set; } = string.Empty;

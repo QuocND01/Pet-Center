@@ -239,6 +239,8 @@ builder.Services.AddScoped<IAppointmentService,PetCenterAPI.Service.AppointmentS
 builder.Services.AddScoped<IDiseaseService, DiseaseService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IClassifyAIService, ClassifyAIService>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddHttpClient<IMoMoService, MoMoService>();
 
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
