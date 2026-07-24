@@ -1,4 +1,6 @@
-﻿namespace PetCenterAPI.DTOs.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PetCenterAPI.DTOs.Requests
 {
     public class DiseaseDTO
     {
@@ -15,7 +17,9 @@
 
         public class MutateDiseaseDTO
         {
+            [Required(ErrorMessage = "Name is required")]
             public string Name { get; set; } = null!;
+
             public string? Description { get; set; }
             public string? Recommendation { get; set; }
             public int Species { get; set; }
