@@ -24,13 +24,21 @@ namespace PetCenterTestProject.AddressTest
         }
 
         //=========================================================
-        // Create InMemory Context
+        // Create SQL Server Context
         //=========================================================
+
         private PetCenterContext CreateContext()
         {
             var options = new DbContextOptionsBuilder<PetCenterContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
+        .UseSqlServer(
+            "Server=.;" +
+            "Database=PetCenter_Test;" +
+            "User Id=sa;" +
+            "Password=123456;" +
+            "TrustServerCertificate=True;" +
+            "Trusted_Connection=True;",
+            builder => builder.EnableRetryOnFailure())
+        .Options;
 
             return new PetCenterContext(options);
         }
@@ -50,7 +58,20 @@ namespace PetCenterTestProject.AddressTest
 
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
+            // 1. Xóa các bảng phụ thuộc cấp sâu nhất (Chắt, chút...)
+            context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
+            context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
+
+            // 2. Xóa các bảng cấp con
+            context.OrderDetails.RemoveRange(context.OrderDetails);
+            context.Payments.RemoveRange(context.Payments);
+
+            // 3. Xóa bảng con trực tiếp của Address
+            context.Orders.RemoveRange(context.Orders);
+
+            // 4. Xóa bảng chính
             context.Addresses.RemoveRange(context.Addresses);
+
             await context.SaveChangesAsync();
         }
 
@@ -77,7 +98,7 @@ namespace PetCenterTestProject.AddressTest
             };
         }
 
-        // Helper sinh entity hợp lệ để nạp vào InMemory DB không bị lỗi Required
+        // Helper sinh entity hợp lệ
         private Address CreateValidAddressEntity(Guid customerId, bool isDefault = false)
         {
             return new Address
@@ -91,6 +112,20 @@ namespace PetCenterTestProject.AddressTest
                 IsDefault = isDefault,
                 IsActive = true
             };
+        }
+
+        // HELPER MỚI: Đảm bảo Customer tồn tại để không bị lỗi Khóa Ngoại (Foreign Key)
+        private async Task EnsureCustomerExistsAsync(PetCenterContext context, Guid customerId)
+        {
+            if (!await context.Customers.AnyAsync(c => c.CustomerId == customerId))
+            {
+                context.Customers.Add(new Customer
+                {
+                    CustomerId = customerId,
+                    FullName = "Test Customer" // Bạn có thể thêm các field bắt buộc khác của Customer vào đây nếu bị báo thiếu
+                });
+                await context.SaveChangesAsync();
+            }
         }
 
         //=====================================================================
@@ -147,6 +182,8 @@ namespace PetCenterTestProject.AddressTest
             var service = CreateService(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId); // Fix FK
+
             var dto = CreateValidDTO();
             dto.IsDefault = false;
 
@@ -165,6 +202,8 @@ namespace PetCenterTestProject.AddressTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId); // Fix FK
+
             context.Addresses.Add(CreateValidAddressEntity(customerId, true));
             await context.SaveChangesAsync();
 
@@ -188,6 +227,8 @@ namespace PetCenterTestProject.AddressTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId); // Fix FK
+
             var oldAddress = CreateValidAddressEntity(customerId, true);
             oldAddress.AddressDetails = "Old";
             context.Addresses.Add(oldAddress);
@@ -273,6 +314,8 @@ namespace PetCenterTestProject.AddressTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId); // Fix FK
+
             var existingAddress = CreateValidAddressEntity(customerId, false);
             context.Addresses.Add(existingAddress);
             await context.SaveChangesAsync();
@@ -296,6 +339,8 @@ namespace PetCenterTestProject.AddressTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId); // Fix FK
+
             var addr1 = CreateValidAddressEntity(customerId, true);
             var addr2 = CreateValidAddressEntity(customerId, false);
 
@@ -350,6 +395,8 @@ namespace PetCenterTestProject.AddressTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId); // Fix FK
+
             var address = CreateValidAddressEntity(customerId, false);
             context.Addresses.Add(address);
             await context.SaveChangesAsync();
@@ -370,6 +417,8 @@ namespace PetCenterTestProject.AddressTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId); // Fix FK
+
             var address = CreateValidAddressEntity(customerId, true);
             context.Addresses.Add(address);
             await context.SaveChangesAsync();
@@ -417,9 +466,13 @@ namespace PetCenterTestProject.AddressTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            var customerId2 = Guid.NewGuid();
+            await EnsureCustomerExistsAsync(context, customerId);  // Fix FK
+            await EnsureCustomerExistsAsync(context, customerId2); // Fix FK
+
             var addr1 = CreateValidAddressEntity(customerId, true);
             var addr2 = CreateValidAddressEntity(customerId, false);
-            var addr3 = CreateValidAddressEntity(Guid.NewGuid(), true);
+            var addr3 = CreateValidAddressEntity(customerId2, true);
 
             context.Addresses.AddRange(addr1, addr2, addr3);
             await context.SaveChangesAsync();
