@@ -29,6 +29,7 @@ namespace PetCenterAPI.DTOs.Requests.Register
         [Required(ErrorMessage = "Phone number is required")]
         [RegularExpression(@"^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$",
             ErrorMessage = "Invalid Vietnamese phone number")]
+        [StringLength(15, ErrorMessage = "Phone Number cannot exceed 15 characters")]
         public string PhoneNumber { get; set; } = null!;
 
         [Required(ErrorMessage = "Password is required")]
@@ -37,6 +38,7 @@ namespace PetCenterAPI.DTOs.Requests.Register
             ErrorMessage = "Password must start with uppercase, contain @, a number, and no spaces")]
         public string Password { get; set; } = null!;
 
+        [Required(ErrorMessage = "Please select a birthday")]
         [CustomValidation(typeof(RegisterRequestDTO), nameof(ValidateBirthDay))]
         public DateOnly? BirthDay { get; set; }
 
