@@ -1,4 +1,8 @@
-﻿namespace PetCenterAPI.DTOs.Requests.CustomerProfile
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+
+namespace PetCenterAPI.DTOs.Requests.CustomerProfile
 {
     public class AddressRequestDTO
     {
@@ -18,10 +22,21 @@
 
         public class MutateAddressDTO
         {
+            [Required(ErrorMessage = "Province is required")]
+            [StringLength(100, ErrorMessage = "Province cannot exceed 100 characters")]
             public string? Province { get; set; }
+
+            [Required(ErrorMessage = "District is required")]
+            [StringLength(100, ErrorMessage = "District cannot exceed 100 characters")]
             public string? District { get; set; }
+
+            [StringLength(100, ErrorMessage = "Ward cannot exceed 100 characters")]
             public string? Ward { get; set; }
+
+            [Required(ErrorMessage = "AddressDetails is required")]
+            [StringLength(300, ErrorMessage = "AddressDetails cannot exceed 300 characters")]
             public string? AddressDetails { get; set; }
+
             public bool IsDefault { get; set; }
         }
     }
