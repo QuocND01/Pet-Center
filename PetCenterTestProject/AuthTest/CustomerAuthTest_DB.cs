@@ -119,6 +119,10 @@ namespace PetCenterTestProject.AuthTest
         //=========================================================
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM FeedbackImages");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductFeedbacks");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM VetFeedbacks");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM Orders");
             await context.Database.ExecuteSqlRawAsync("DELETE FROM Pets");
             await context.Database.ExecuteSqlRawAsync("DELETE FROM OtpCodes");
             await context.Database.ExecuteSqlRawAsync("DELETE FROM Addresses");

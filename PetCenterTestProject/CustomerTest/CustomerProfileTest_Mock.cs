@@ -706,5 +706,109 @@ namespace PetCenterTestProject.CustomerTest
             // Assert
             Assert.Equal("Service Temporarily Unavailable", ex.Message);
         }
+
+        //=========================================================
+        //=========================================================
+        // ChangeCustomerStatusAsync()
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID01 - Customer exists, UpdateAsync returns true
+        // Expected: Return true, status + UpdatedAt assigned
+        //=========================================================
+        [Fact]
+        public async Task UTCID01_ChangeCustomerStatusAsync_CustomerExistsUpdateSucceeds_ReturnTrue()
+        {
+            // Arrange
+            var customer = BuildCustomer(isActive: false);
+            var oldUpdatedAt = customer.UpdatedAt;
+
+            _customerRepositoryMock
+                .Setup(x => x.GetByIdAsync(customer.CustomerId))
+                .ReturnsAsync(customer);
+            _customerRepositoryMock
+                .Setup(x => x.UpdateAsync(customer))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _service.ChangeCustomerStatusAsync(customer.CustomerId, true);
+
+            // Assert
+            Assert.True(result);
+            Assert.True(customer.IsActive);
+            Assert.NotEqual(oldUpdatedAt, customer.UpdatedAt);
+            _customerRepositoryMock.Verify(x => x.UpdateAsync(customer), Times.Once);
+        }
+
+        //=========================================================
+        // UTCID02 - Customer not found
+        // Expected: Return false
+        //=========================================================
+        [Fact]
+        public async Task UTCID02_ChangeCustomerStatusAsync_CustomerNotFound_ReturnFalse()
+        {
+            // Arrange
+            var customerId = Guid.NewGuid();
+
+            _customerRepositoryMock
+                .Setup(x => x.GetByIdAsync(customerId))
+                .ReturnsAsync((Customer?)null);
+
+            // Act
+            var result = await _service.ChangeCustomerStatusAsync(customerId, true);
+
+            // Assert
+            Assert.False(result);
+            _customerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Customer>()), Times.Never);
+        }
+
+        //=========================================================
+        // UTCID03 - Customer exists, UpdateAsync returns false
+        // Expected: Return false, status + UpdatedAt vẫn đã bị gán trước khi update
+        //=========================================================
+        [Fact]
+        public async Task UTCID03_ChangeCustomerStatusAsync_UpdateFails_ReturnFalse()
+        {
+            // Arrange
+            var customer = BuildCustomer(isActive: true);
+
+            _customerRepositoryMock
+                .Setup(x => x.GetByIdAsync(customer.CustomerId))
+                .ReturnsAsync(customer);
+            _customerRepositoryMock
+                .Setup(x => x.UpdateAsync(customer))
+                .ReturnsAsync(false);
+
+            // Act
+            var result = await _service.ChangeCustomerStatusAsync(customer.CustomerId, false);
+
+            // Assert
+            Assert.False(result);
+            Assert.False(customer.IsActive);
+            _customerRepositoryMock.Verify(x => x.UpdateAsync(customer), Times.Once);
+        }
+
+        //=========================================================
+        // UTCID04 - Customer exists, GetByIdAsync throws exception
+        // Expected: Exception thrown
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_ChangeCustomerStatusAsync_GetByIdAsyncThrows_ThrowException()
+        {
+            // Arrange
+            var customerId = Guid.NewGuid();
+
+            _customerRepositoryMock
+                .Setup(x => x.GetByIdAsync(customerId))
+                .ThrowsAsync(new Exception("Service Temporarily Unavailable"));
+
+            // Act
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                _service.ChangeCustomerStatusAsync(customerId, true));
+
+            // Assert
+            Assert.Equal("Service Temporarily Unavailable", ex.Message);
+        }
     }
 }
