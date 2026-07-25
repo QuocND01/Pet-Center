@@ -64,34 +64,57 @@ namespace PetCenterClient.Services
             return result?.Data;
         }
 
-        public async Task<ViewSupplierViewModel?> CreateAsync(
-            CreateSupplierViewModel model)
+        public async Task<ApiResponseViewModel<ViewSupplierViewModel>?> CreateAsync(
+    CreateSupplierViewModel model)
         {
             AddAuthorizationHeader();
 
-            var response = await _httpClient.PostAsJsonAsync(
-                "/api/suppliers",
-                model);
+            // 1. Gửi request đến API
+            var response = await _httpClient.PostAsJsonAsync("/api/suppliers", model);
 
-            response.EnsureSuccessStatusCode();
-
+            // 2. Đọc kết quả JSON trả về (cho cả trường hợp Success lẫn Failure)
             var result = await response.Content
                 .ReadFromJsonAsync<ApiResponseViewModel<ViewSupplierViewModel>>();
 
-            return result?.Data;
+            // 3. Nếu API trả về thành công (HTTP status 2xx)
+            if (response.IsSuccessStatusCode)
+            {
+                return result;
+            }
+
+            // 4. Nếu thất bại (400, 409, 500...), trả về object chứa Message lỗi từ API
+            return result ?? new ApiResponseViewModel<ViewSupplierViewModel>
+            {
+                Status = false,
+                Message = "Có lỗi xảy ra trong quá trình xử lý yêu cầu."
+            };
         }
 
-        public async Task<bool> UpdateAsync(
-            Guid id,
-            CreateSupplierViewModel model)
+        public async Task<ApiResponseViewModel<bool>?> UpdateAsync(
+    Guid id,
+    CreateSupplierViewModel model)
         {
             AddAuthorizationHeader();
 
-            var response = await _httpClient.PutAsJsonAsync(
-                $"/api/suppliers/{id}",
-                model);
+            // 1. Gửi request PUT sang API
+            var response = await _httpClient.PutAsJsonAsync($"/api/suppliers/{id}", model);
 
-            return response.IsSuccessStatusCode;
+            // 2. Đọc kết quả JSON trả về từ API
+            var result = await response.Content
+                .ReadFromJsonAsync<ApiResponseViewModel<bool>>();
+
+            // 3. Nếu thành công (HTTP status 2xx)
+            if (response.IsSuccessStatusCode)
+            {
+                return result;
+            }
+
+            // 4. Nếu thất bại (400, 404, 500...), trả về object chứa Message lỗi từ API
+            return result ?? new ApiResponseViewModel<bool>
+            {
+                Status = false,
+                Message = "Có lỗi xảy ra trong quá trình cập nhật nhà cung cấp."
+            };
         }
 
         public async Task<bool> DeleteAsync(Guid id)

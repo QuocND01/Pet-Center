@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using PetCenterAPI.DTOs;
+using PetCenterAPI.DTOs.Requests.Supplier;
 using PetCenterAPI.DTOs.Responses.Supplier;
 using PetCenterAPI.Models;
 

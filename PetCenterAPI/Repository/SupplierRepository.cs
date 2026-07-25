@@ -27,6 +27,11 @@ namespace PetCenterAPI.Repository
             return await _context.Suppliers
                 .FirstOrDefaultAsync(x => x.SupplierId == id && x.IsActive);
         }
+        public async Task<bool> GetByTaxIdAsync(string taxId)
+        {
+            return await _context.Suppliers
+                .AnyAsync(x => x.TaxId == taxId && x.IsActive);
+        }
 
         public async Task AddAsync(Supplier supplier)
         {
