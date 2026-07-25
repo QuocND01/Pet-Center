@@ -16,7 +16,7 @@ using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
 using Xunit;
 
-namespace PetCenterTestProject
+namespace PetCenterTestProject.StaffTest
 {
     public class StaffTest
     {
