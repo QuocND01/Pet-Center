@@ -58,19 +58,23 @@ namespace PetCenterTestProject.AddressTest
 
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            // 1. Xóa các bảng phụ thuộc cấp sâu nhất (Chắt, chút...)
-            context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
+            // Dọn dẹp tầng chắt/chút (Ăn theo ProductFeedbacks và OrderDetails)
+            context.FeedbackImages.RemoveRange(context.FeedbackImages);
             context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
 
-            // 2. Xóa các bảng cấp con
+            // Dọn dẹp tầng cháu (Ăn theo Orders và Products)
+            context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
             context.OrderDetails.RemoveRange(context.OrderDetails);
             context.Payments.RemoveRange(context.Payments);
 
-            // 3. Xóa bảng con trực tiếp của Address
+            // Dọn dẹp tầng con (Ăn theo Addresses)
             context.Orders.RemoveRange(context.Orders);
 
-            // 4. Xóa bảng chính
+            // Dọn dẹp tầng cha (Bảng Address đang test)
             context.Addresses.RemoveRange(context.Addresses);
+
+            // BỎ HẲN LỆNH XÓA CUSTOMERS Ở ĐÂY!
+            // context.Customers.RemoveRange(context.Customers);
 
             await context.SaveChangesAsync();
         }
@@ -114,15 +118,22 @@ namespace PetCenterTestProject.AddressTest
             };
         }
 
-        // HELPER MỚI: Đảm bảo Customer tồn tại để không bị lỗi Khóa Ngoại (Foreign Key)
         private async Task EnsureCustomerExistsAsync(PetCenterContext context, Guid customerId)
         {
             if (!await context.Customers.AnyAsync(c => c.CustomerId == customerId))
             {
+                // Cắt lấy 8 ký tự đầu của Guid để đảm bảo vừa Unique vừa Ngắn gọn
+                string shortGuid = Guid.NewGuid().ToString("N").Substring(0, 8);
+
                 context.Customers.Add(new Customer
                 {
                     CustomerId = customerId,
-                    FullName = "Test Customer" // Bạn có thể thêm các field bắt buộc khác của Customer vào đây nếu bị báo thiếu
+                    FullName = "Test Customer",
+                    Email = $"test_{shortGuid}@gmail.com", // Dài tối đa 23 ký tự, quá an toàn cho chuẩn VARCHAR(50)
+                    PhoneNumber = "0999999999",
+                    Gender = "Other",
+                    IsVerified = true,
+                    IsActive = true
                 });
                 await context.SaveChangesAsync();
             }
