@@ -70,10 +70,48 @@ namespace PetCenterTestProject.PetTest
                 _cloudinaryServiceMock.Object);
         }
 
+        //=========================================================
+        // Helpers: DB Cleanup & Data Seeding
+        //=========================================================
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
+            // Xóa các bảng con phụ thuộc vào Pets trước để tránh lỗi Foreign Key
+            context.PrescriptionItems.RemoveRange(context.PrescriptionItems);
+            context.MedicalRecords.RemoveRange(context.MedicalRecords);
+            context.AppointmentSnapshots.RemoveRange(context.AppointmentSnapshots);
+            context.AppointmentServices.RemoveRange(context.AppointmentServices);
+            context.Appointments.RemoveRange(context.Appointments);
+
+            // Sau đó mới xóa Pets
             context.Pets.RemoveRange(context.Pets);
+
+            // Xóa các Customer mồi do test tạo ra để tránh rác và lỗi Unique Email
+            var dummyCustomers = context.Customers.Where(c => c.Email != null && c.Email.StartsWith("pet_test_"));
+            context.Customers.RemoveRange(dummyCustomers);
+
             await context.SaveChangesAsync();
+        }
+
+        private async Task<Customer> EnsureCustomerAsync(PetCenterContext context, Guid customerId)
+        {
+            var cus = await context.Customers.FindAsync(customerId);
+            if (cus == null)
+            {
+                string shortGuid = Guid.NewGuid().ToString("N").Substring(0, 8);
+                cus = new Customer
+                {
+                    CustomerId = customerId,
+                    FullName = "Test Pet Customer",
+                    Email = $"pet_test_{shortGuid}@gmail.com",
+                    PhoneNumber = "0999999999",
+                    Gender = "Other",
+                    IsVerified = true,
+                    IsActive = true
+                };
+                context.Customers.Add(cus);
+                await context.SaveChangesAsync();
+            }
+            return cus;
         }
 
         //=========================================================
@@ -172,6 +210,7 @@ namespace PetCenterTestProject.PetTest
             var service = CreateService(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
             var dto = new MutatePetDTO { PetName = "Milo", Species = "Dog", Breed = "Poodle", Gender = "Male", Weight = 10m };
 
             var result = await service.AddPetAsync(customerId, dto);
@@ -191,6 +230,8 @@ namespace PetCenterTestProject.PetTest
             var service = CreateService(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             var stream = new MemoryStream(new byte[100]);
             var file = new FormFile(stream, 0, 100, "ImageFile", "avatar.jpg")
             {
@@ -234,6 +275,8 @@ namespace PetCenterTestProject.PetTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, PetName = "Old", IsActive = true };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
@@ -254,7 +297,10 @@ namespace PetCenterTestProject.PetTest
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
 
-            var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = Guid.NewGuid(), PetName = "Old" };
+            var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
+            var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, PetName = "Old" };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
 
@@ -300,6 +346,8 @@ namespace PetCenterTestProject.PetTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, PetAvatar = "old.jpg" };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
@@ -320,6 +368,8 @@ namespace PetCenterTestProject.PetTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
@@ -348,6 +398,8 @@ namespace PetCenterTestProject.PetTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, IsActive = true };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
@@ -377,7 +429,10 @@ namespace PetCenterTestProject.PetTest
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
 
-            var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = Guid.NewGuid(), IsActive = true };
+            var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
+            var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, IsActive = true };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
 
@@ -425,6 +480,8 @@ namespace PetCenterTestProject.PetTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             context.Pets.Add(new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, PetName = "Milo", IsActive = true });
             await context.SaveChangesAsync();
 
@@ -441,6 +498,8 @@ namespace PetCenterTestProject.PetTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             context.Pets.Add(new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, IsActive = false });
             await context.SaveChangesAsync();
 
@@ -473,6 +532,8 @@ namespace PetCenterTestProject.PetTest
             await ClearDatabaseAsync(context);
 
             var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Tạo Customer trước
+
             var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, PetName = "Milo" };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
@@ -490,12 +551,15 @@ namespace PetCenterTestProject.PetTest
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
 
-            var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = Guid.NewGuid() };
+            var petOwnerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, petOwnerId); // Tạo Customer sở hữu Pet
+
+            var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = petOwnerId };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
 
             var service = CreateService(context);
-            var result = await service.GetPetDetailsAsync(pet.PetId, Guid.NewGuid()); // Wrong CustomerId
+            var result = await service.GetPetDetailsAsync(pet.PetId, Guid.NewGuid()); // Truyền sai CustomerId
 
             Assert.Null(result);
         }
@@ -533,8 +597,10 @@ namespace PetCenterTestProject.PetTest
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
 
-            var customer = new Customer { CustomerId = Guid.NewGuid(), FullName = "Owner" };
-            context.Pets.Add(new Pet { PetId = Guid.NewGuid(), Customer = customer, IsActive = true });
+            var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Đảm bảo Customer tồn tại hợp lệ
+
+            context.Pets.Add(new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, IsActive = true });
             await context.SaveChangesAsync();
 
             var service = CreateService(context);
@@ -549,8 +615,10 @@ namespace PetCenterTestProject.PetTest
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
 
-            var customer = new Customer { CustomerId = Guid.NewGuid(), FullName = "Owner" };
-            context.Pets.Add(new Pet { PetId = Guid.NewGuid(), Customer = customer, IsActive = false }); // Inactive
+            var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Đảm bảo Customer tồn tại hợp lệ
+
+            context.Pets.Add(new Pet { PetId = Guid.NewGuid(), CustomerId = customerId, IsActive = false }); // Inactive
             await context.SaveChangesAsync();
 
             var service = CreateService(context);
@@ -569,7 +637,10 @@ namespace PetCenterTestProject.PetTest
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
 
-            var pet = new Pet { PetId = Guid.NewGuid(), Customer = new Customer { FullName = "Vet" } };
+            var customerId = Guid.NewGuid();
+            await EnsureCustomerAsync(context, customerId); // Đảm bảo Customer tồn tại hợp lệ
+
+            var pet = new Pet { PetId = Guid.NewGuid(), CustomerId = customerId };
             context.Pets.Add(pet);
             await context.SaveChangesAsync();
 
