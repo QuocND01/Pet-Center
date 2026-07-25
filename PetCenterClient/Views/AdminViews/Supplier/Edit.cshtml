@@ -2,10 +2,35 @@
 @model CreateSupplierViewModel
 @{
     Layout = null;
+
+    // Xử lý định dạng TaxId trước khi render lên input
+    string formattedTaxId = string.Empty;
+    if (!string.IsNullOrWhiteSpace(Model?.TaxId))
+    {
+        // 1. Loại bỏ các ký tự không phải số
+        string rawDigits = new string(Model.TaxId.Where(char.IsDigit).ToArray());
+
+        // 2. Nếu đủ 13 số -> Định dạng lại thành 10 số - 3 số
+        if (rawDigits.Length == 13)
+        {
+            formattedTaxId = $"{rawDigits.Substring(0, 10)}-{rawDigits.Substring(10, 3)}";
+        }
+        // 3. Nếu là 10 số hoặc các trường hợp khác -> Lấy nguyên chuỗi số (tối đa 10 số nếu lớn hơn)
+        else if (rawDigits.Length >= 10)
+        {
+            formattedTaxId = rawDigits.Substring(0, Math.Min(rawDigits.Length, 10));
+        }
+        else
+        {
+            formattedTaxId = rawDigits;
+        }
+    }
 }
+
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="~/css/AdminViews/ManageSupplier/edit_supplier.css" asp-append-version="true" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
 <form id="editForm" class="custom-form-modal">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="SupplierId" />
@@ -15,7 +40,8 @@
     <div class="form-grid">
         <div class="form-group mb-3">
             <label class="form-label-custom" asp-for="TaxId">Tax ID</label>
-            <input class="form-input-custom" asp-for="TaxId" placeholder="e.g. TAX123456" />
+            <!-- Sử dụng value="@formattedTaxId" để gán giá trị đã được định dạng -->
+            <input class="form-input-custom" asp-for="TaxId" value="@formattedTaxId" placeholder="e.g. 0101234567 or 0101234567-001" maxlength="14" />
             <span asp-validation-for="TaxId" class="validation-message"></span>
         </div>
 
@@ -64,6 +90,7 @@
         </button>
     </div>
 </form>
+
 <script>
     toastr.options = {
         closeButton: true,

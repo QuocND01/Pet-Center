@@ -37,6 +37,7 @@ namespace PetCenterClient.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateSupplierViewModel dto)
         {
+            // 1. Validate Form ở phía Client ViewModel
             if (!ModelState.IsValid)
             {
                 return PartialView("~/Views/AdminViews/Supplier/Create.cshtml", dto);
@@ -44,20 +45,33 @@ namespace PetCenterClient.Controllers
 
             try
             {
-                await _supplierService.CreateAsync(dto);
+                // 2. Gọi Service gửi request sang API
+                var result = await _supplierService.CreateAsync(dto);
 
+                // 3. Kiểm tra kết quả phản hồi từ API
+                if (result != null && result.Status)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = result.Message // Thông báo thành công từ API
+                    });
+                }
+
+                // 4. API trả về thất bại (Trùng TaxId, Lỗi nghiệp vụ...)
                 return Json(new
                 {
-                    success = true,
-                    message = "Supplier created successfully."
+                    success = false,
+                    message = result?.Message ?? "Không thể tạo nhà cung cấp. Vui lòng thử lại!"
                 });
             }
             catch (Exception ex)
             {
+                // 5. Bắt các lỗi hệ thống không lường trước (Mất kết nối mạng, sập server...)
                 return Json(new
                 {
                     success = false,
-                    message = ex.Message
+                    message = "Đã xảy ra lỗi kết nối đến máy chủ: " + ex.Message
                 });
             }
         }
@@ -90,19 +104,43 @@ namespace PetCenterClient.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(CreateSupplierViewModel dto)
         {
+            // 1. Kiểm tra validation ở ViewModel
             if (!ModelState.IsValid)
             {
                 return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", dto);
             }
 
-            var result = await _supplierService.UpdateAsync(dto.SupplierId, dto);
+            try
+            {
+                // 2. Gọi Service gửi dữ liệu cập nhật
+                var result = await _supplierService.UpdateAsync(dto.SupplierId, dto);
 
-            if (result)
-                return Json(new { success = true });
+                // 3. Kiểm tra kết quả trả về từ API
+                if (result != null && result.Status)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = result.Message ?? "Supplier updated successfully."
+                    });
+                }
 
-            ModelState.AddModelError("", "Error updating supplier");
-
-            return PartialView("~/Views/AdminViews/Supplier/Edit.cshtml", dto);
+                // 4. Khi API trả về thất bại (Ví dụ: trùng TaxId, không tìm thấy Supplier...)
+                return Json(new
+                {
+                    success = false,
+                    message = result?.Message ?? "Error updating supplier."
+                });
+            }
+            catch (Exception ex)
+            {
+                // 5. Bắt các ngoại lệ ngoài ý muốn (sập server API, mất mạng...)
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred: " + ex.Message
+                });
+            }
         }
 
         // DELETE

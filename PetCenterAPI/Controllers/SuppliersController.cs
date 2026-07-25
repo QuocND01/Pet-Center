@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PetCenterAPI.DTOs.Responses.Supplier;
+using PetCenterAPI.DTOs.Requests.Supplier;
 using PetCenterAPI.Service.Interface;
 using System;
 using System.Threading.Tasks;
@@ -59,61 +59,108 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateSupplier([FromBody] CreateSupplierRequestDTO dto)
         {
+            // 1. Kiểm tra validation từ Data Annotations (DTO)
             if (!ModelState.IsValid)
             {
                 return BadRequest(new
                 {
-                    status = false, // Thất bại -> false
+                    status = false,
                     message = "Validation failed",
                     errors = ModelState
                 });
             }
 
-            var supplier = await _service.CreateAsync(dto);
+            try
+            {
+                // 2. Gọi Service xử lý logic
+                var supplier = await _service.CreateAsync(dto);
 
-            return CreatedAtAction(
-                nameof(GetSupplierById),
-                new { id = supplier.SupplierId },
-                new
+                // 3. Trả về Response 201 Created thành công
+                return CreatedAtAction(
+                    nameof(GetSupplierById),
+                    new { id = supplier.SupplierId },
+                    new
+                    {
+                        status = true,
+                        message = "Create supplier successfully",
+                        data = supplier
+                    });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // 4. Bắt lỗi nghiệp vụ từ Service (như trùng TaxId) -> Trả về 400 Bad Request
+                return BadRequest(new
                 {
-                    status = true, // Thành công -> true
-                    message = "Create supplier successfully",
-                    data = supplier
+                    status = false,
+                    message = ex.Message
                 });
+            }
+            catch (Exception ex)
+            {
+                // 5. Bắt các lỗi hệ thống không lường trước -> Trả về 500 Internal Server Error
+                return StatusCode(500, new
+                {
+                    status = false,
+                    message = "An error occurred while creating the supplier."
+                });
+            }
         }
 
         // PUT: api/suppliers/{id}
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> UpdateSupplier(
             Guid id,
-            [FromBody] CreateSupplierRequestDTO dto)
+            [FromBody] UpdateSupplierRequestDTO dto)
         {
+            // 1. Validate dữ liệu đầu vào
             if (!ModelState.IsValid)
             {
                 return BadRequest(new
                 {
-                    status = false, // Thất bại -> false
+                    status = false,
                     message = "Validation failed",
                     errors = ModelState
                 });
             }
 
-            var success = await _service.UpdateAsync(id, dto);
-
-            if (!success)
+            try
             {
-                return NotFound(new
+                // 2. Gọi Service thực hiện Cập nhật
+                var success = await _service.UpdateAsync(id, dto);
+
+                if (!success)
                 {
-                    status = false, // Thất bại -> false
-                    message = "Supplier not found"
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Supplier not found"
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    message = "Update supplier successfully"
                 });
             }
-
-            return Ok(new
+            catch (InvalidOperationException ex)
             {
-                status = true, // Thành công -> true
-                message = "Update supplier successfully"
-            });
+                // 3. Bắt lỗi nghiệp vụ từ Service (VD: TaxId bị trùng với nhà cung cấp KHÁC)
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                // 4. Bắt lỗi hệ thống không lường trước
+                return StatusCode(500, new
+                {
+                    status = false,
+                    message = "An error occurred while updating the supplier."
+                });
+            }
         }
 
         // DELETE: api/suppliers/{id}

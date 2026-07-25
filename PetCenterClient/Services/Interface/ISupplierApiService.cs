@@ -1,4 +1,5 @@
-﻿using PetCenterClient.ViewModels.Supplier;
+﻿using PetCenterClient.ViewModels;
+using PetCenterClient.ViewModels.Supplier;
 
 namespace PetCenterClient.Services.Interface
 {
@@ -8,10 +9,9 @@ namespace PetCenterClient.Services.Interface
 
         Task<ViewSupplierViewModel?> GetByIdAsync(Guid id);
 
-        Task<ViewSupplierViewModel?> CreateAsync(
-            CreateSupplierViewModel model);
+        Task<ApiResponseViewModel<ViewSupplierViewModel>?> CreateAsync(CreateSupplierViewModel model);
 
-        Task<bool> UpdateAsync(
+        Task<ApiResponseViewModel<bool>?> UpdateAsync(
             Guid id,
             CreateSupplierViewModel model);
 
