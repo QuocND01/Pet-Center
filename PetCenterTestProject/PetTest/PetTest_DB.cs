@@ -37,13 +37,19 @@ namespace PetCenterTestProject.PetTest
         //=========================================================
         // Create SQL Server Context
         //=========================================================
+
         private PetCenterContext CreateContext()
         {
             var options = new DbContextOptionsBuilder<PetCenterContext>()
-                .UseSqlServer(
-                    "Server=127.0.0.1,1433;Database=PetCenter_Test;User Id=sa;Password=123456;TrustServerCertificate=True;",
-                    builder => builder.EnableRetryOnFailure()) // <--- THÊM DÒNG NÀY
-                .Options;
+        .UseSqlServer(
+            "Server=.;" +
+            "Database=PetCenter_Test;" + // Nhớ giữ tên này để Test không đụng DB thật
+            "User Id=sa;" +
+            "Password=123456;" +
+            "TrustServerCertificate=True;" +
+            "Trusted_Connection=True;",
+            builder => builder.EnableRetryOnFailure()) // Vẫn nên giữ dòng này để xUnit chạy song song không bị rớt
+        .Options;
 
             return new PetCenterContext(options);
         }
