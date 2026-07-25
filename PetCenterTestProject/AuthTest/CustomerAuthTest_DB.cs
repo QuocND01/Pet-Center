@@ -12,6 +12,8 @@ using PetCenterAPI.Service.Interface;
 using PetCenterAPI.Service;
 using Microsoft.Extensions.Options;
 using PetCenterAPI.DTOs.Requests.Register;
+using Microsoft.Extensions.Configuration;
+using PetCenterAPI.DTOs.Requests.CustomerProfile;
 
 namespace PetCenterTestProject.AuthTest
 {
@@ -25,6 +27,7 @@ namespace PetCenterTestProject.AuthTest
         private readonly PasswordService _passwordService;
         private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
         private readonly IOptions<GoogleAuthSettings> _googleSettings;
+        private readonly Mock<IConfiguration> _configurationMock;
 
         //=========================================================
         // Constructor
@@ -43,6 +46,10 @@ namespace PetCenterTestProject.AuthTest
                 ClientId = "test-client-id",
                 ClientSecret = "test-client-secret"
             });
+            _configurationMock = new Mock<IConfiguration>();
+            _configurationMock
+                .Setup(x => x["ClientBaseUrl"])
+                .Returns("https://localhost:7010");
         }
 
         //=========================================================
@@ -93,6 +100,18 @@ namespace PetCenterTestProject.AuthTest
                 _emailServiceMock.Object,
                 _passwordService,
                 _httpClientFactoryMock.Object);
+        }
+
+        //=========================================================
+        // Create Forgot Password Service
+        //=========================================================
+        private ForgotPasswordService CreateForgotPasswordService(PetCenterContext context)
+        {
+            return new ForgotPasswordService(
+                CreateRepository(context),
+                _emailServiceMock.Object,
+                _passwordService,
+                _configurationMock.Object);
         }
 
         //=========================================================
@@ -150,6 +169,72 @@ namespace PetCenterTestProject.AuthTest
                 Password = password,
                 BirthDay = birthDay ?? DateOnly.FromDateTime(DateTime.Today.AddYears(-20)),
                 Gender = gender
+            };
+        }
+
+        //=========================================================
+        // Helper: Build a valid VerifyOtpRequestDTO
+        //=========================================================
+        private VerifyOtpRequestDTO BuildVerifyOtpRequest(
+            string email,
+            string code = "123456")
+        {
+            return new VerifyOtpRequestDTO
+            {
+                Email = email,
+                Code = code
+            };
+        }
+
+        //=========================================================
+        // Helper: Build an OtpCode entity
+        //=========================================================
+        private OtpCode BuildOtp(
+            Guid customerId,
+            string code = "123456",
+            DateTime? verificationExpire = null,
+            int? otpAttemptCount = 0)
+        {
+            return new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customerId,
+                VerificationCode = code,
+                VerificationExpire = verificationExpire ?? DateTime.UtcNow.AddMinutes(5),
+                LastOtpSentAt = DateTime.UtcNow,
+                OtpAttemptCount = otpAttemptCount
+            };
+        }
+
+        //=========================================================
+        // Helper: Build an OtpCode with a hashed reset token
+        //=========================================================
+        private OtpCode BuildResetOtp(Guid customerId, string rawToken, bool expired = false)
+        {
+            return new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customerId,
+                PasswordResetToken = _passwordService.Hash(rawToken),
+                PasswordResetExpire = expired
+                    ? DateTime.UtcNow.AddMinutes(-1)
+                    : DateTime.UtcNow.AddMinutes(10)
+            };
+        }
+
+        //=========================================================
+        // Helper: Build a valid ChangePasswordRequestDTO
+        //=========================================================
+        private ChangePasswordRequestDTO BuildChangePasswordRequest(
+            string currentPassword,
+            string newPassword,
+            string? confirmNewPassword = null)
+        {
+            return new ChangePasswordRequestDTO
+            {
+                CurrentPassword = currentPassword,
+                NewPassword = newPassword,
+                ConfirmNewPassword = confirmNewPassword ?? newPassword
             };
         }
 
@@ -653,6 +738,1147 @@ namespace PetCenterTestProject.AuthTest
 
             var newOtp = await context.OtpCodes.FirstOrDefaultAsync(o => o.CustomerId == newCustomer.CustomerId);
             Assert.NotNull(newOtp);
+        }
+
+        //=========================================================
+        //=========================================================
+        // VerifyOtpAsync()
+        // Bỏ UTCID09 (UpdateOtpAsync throws) vì không giả lập được
+        // lỗi repository qua DB thật.
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID03 - Customer not found
+        // Expected: "Registration session not found. Please register again."
+        //=========================================================
+        [Fact]
+        public async Task UTCID03_VerifyOtpAsync_CustomerNotFound_ReturnSessionNotFound()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var request = BuildVerifyOtpRequest("notfound@petcenter.com");
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.VerifyOtpAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Registration session not found. Please register again.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID04 - Customer exists, IsVerified = true
+        // Expected: "Email already verified. Please login."
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_VerifyOtpAsync_CustomerAlreadyVerified_ReturnAlreadyVerified()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "verified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var request = BuildVerifyOtpRequest(customer.Email!);
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.VerifyOtpAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Email already verified. Please login.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID05 - Customer exists, IsVerified = false, OTP not found
+        // Expected: "No OTP found. Please register again."
+        //=========================================================
+        [Fact]
+        public async Task UTCID05_VerifyOtpAsync_OtpNotFound_ReturnNoOtpFound()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var request = BuildVerifyOtpRequest(customer.Email!);
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.VerifyOtpAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("No OTP found. Please register again.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID06 - OTP record exists, OtpAttemptCount >= 5
+        // Expected: "Too many incorrect attempts. Please register again."
+        //=========================================================
+        [Fact]
+        public async Task UTCID06_VerifyOtpAsync_TooManyAttempts_ReturnTooManyAttempts()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildOtp(customer.CustomerId, otpAttemptCount: 5);
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var request = BuildVerifyOtpRequest(customer.Email!);
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.VerifyOtpAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Too many incorrect attempts. Please register again.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID07 - OTP record exists, OTP expired
+        // Expected: "Verification code expired. Please resend OTP."
+        //=========================================================
+        [Fact]
+        public async Task UTCID07_VerifyOtpAsync_OtpExpired_ReturnCodeExpired()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildOtp(
+                customer.CustomerId,
+                otpAttemptCount: 0,
+                verificationExpire: DateTime.UtcNow.AddMinutes(-1)); // đã hết hạn
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var request = BuildVerifyOtpRequest(customer.Email!);
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.VerifyOtpAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Verification code expired. Please resend OTP.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID08 - OTP code not matched, UpdateOtpAsync succeeds
+        // Expected: "Invalid code. 4 attempts left."
+        //=========================================================
+        [Fact]
+        public async Task UTCID08_VerifyOtpAsync_CodeNotMatched_ReturnInvalidCodeWithAttemptsLeft()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildOtp(customer.CustomerId, code: "123456", otpAttemptCount: 0);
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var request = BuildVerifyOtpRequest(customer.Email!, code: "999999");
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.VerifyOtpAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Invalid code. 4 attempts left.", result.Message);
+
+            var updatedOtp = await context.OtpCodes
+                .FirstOrDefaultAsync(o => o.OtpId == otp.OtpId);
+            Assert.NotNull(updatedOtp);
+            Assert.Equal(1, updatedOtp!.OtpAttemptCount);
+        }
+
+        //=========================================================
+        // UTCID010 - OTP code matched, UpdateAsync(Customer) fails
+        // Ghi chú: không thể giả lập UpdateAsync throw qua DB thật với
+        // repository chuẩn, nên bỏ qua case này ở file DB (chỉ có ở Mock).
+        //=========================================================
+
+        //=========================================================
+        // UTCID011 - OTP code matched, DeleteOtpAsync fails
+        // Ghi chú: tương tự UTCID010, chỉ có ở file Mock.
+        //=========================================================
+
+        //=========================================================
+        // UTCID012 - OTP code matched, Update customer succeeds,
+        //            Delete OTP succeeds
+        // Expected: Verification completed successfully
+        //=========================================================
+        [Fact]
+        public async Task UTCID012_VerifyOtpAsync_ValidCode_ReturnVerificationSuccess()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildOtp(customer.CustomerId, code: "123456", otpAttemptCount: 0);
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var request = BuildVerifyOtpRequest(customer.Email!, code: "123456");
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.VerifyOtpAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Email verified successfully. You can now login.", result.Message);
+
+            var updatedCustomer = await context.Customers
+                .FirstOrDefaultAsync(c => c.CustomerId == customer.CustomerId);
+            Assert.NotNull(updatedCustomer);
+            Assert.True(updatedCustomer!.IsVerified);
+            Assert.True(updatedCustomer.IsActive);
+
+            var deletedOtp = await context.OtpCodes
+                .FirstOrDefaultAsync(o => o.OtpId == otp.OtpId);
+            Assert.Null(deletedOtp);
+        }
+
+        //=========================================================
+        //=========================================================
+        // ResendOtpAsync()
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID02 - Customer not found
+        // Expected: "Registration session not found. Please register again."
+        //=========================================================
+        [Fact]
+        public async Task UTCID02_ResendOtpAsync_CustomerNotFound_ReturnSessionNotFound()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.ResendOtpAsync("notfound@petcenter.com");
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Registration session not found. Please register again.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID03 - Customer exists, IsVerified = true
+        // Expected: "Email already verified. Please login."
+        //=========================================================
+        [Fact]
+        public async Task UTCID03_ResendOtpAsync_CustomerAlreadyVerified_ReturnAlreadyVerified()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "verified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.ResendOtpAsync(customer.Email!);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Email already verified. Please login.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID04 - OTP record exists, Last OTP sent < 30 seconds
+        // Expected: "Please wait {N} seconds before resending."
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_ResendOtpAsync_CooldownNotElapsed_ReturnPleaseWait()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildOtp(customer.CustomerId, otpAttemptCount: 0);
+            otp.LastOtpSentAt = DateTime.UtcNow.AddSeconds(-10); // mới gửi cách đây 10s
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.ResendOtpAsync(customer.Email!);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.StartsWith("Please wait", result.Message);
+            Assert.EndsWith("seconds before resending.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID05 - OTP record does not exist, AddOtpAsync succeeds,
+        //           Send verification email succeeds
+        // Expected: "New verification code sent."
+        //=========================================================
+        [Fact]
+        public async Task UTCID05_ResendOtpAsync_OtpNotExist_ReturnNewCodeSent()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            _emailServiceMock
+                .Setup(x => x.SendVerificationEmail(customer.Email!, It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.ResendOtpAsync(customer.Email!);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("New verification code sent.", result.Message);
+
+            var createdOtp = await context.OtpCodes
+                .FirstOrDefaultAsync(o => o.CustomerId == customer.CustomerId);
+            Assert.NotNull(createdOtp);
+        }
+
+        //=========================================================
+        // UTCID06 - OTP record exists, Last OTP sent >= 30 seconds,
+        //           UpdateOtpAsync succeeds, Send verification email succeeds
+        // Expected: "New verification code sent."
+        //=========================================================
+        [Fact]
+        public async Task UTCID06_ResendOtpAsync_CooldownElapsedOtpExists_ReturnNewCodeSent()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildOtp(customer.CustomerId, otpAttemptCount: 2, code: "111111");
+            otp.LastOtpSentAt = DateTime.UtcNow.AddSeconds(-31); // đã qua cooldown
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            _emailServiceMock
+                .Setup(x => x.SendVerificationEmail(customer.Email!, It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.ResendOtpAsync(customer.Email!);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("New verification code sent.", result.Message);
+
+            var updatedOtp = await context.OtpCodes
+                .FirstOrDefaultAsync(o => o.OtpId == otp.OtpId);
+            Assert.NotNull(updatedOtp);
+            Assert.Equal(0, updatedOtp!.OtpAttemptCount); // reset về 0 sau khi resend
+            Assert.NotEqual("111111", updatedOtp.VerificationCode); // code mới khác code cũ
+        }
+
+        //=========================================================
+        // UTCID09 - OTP record exists, Last OTP sent >= 30 seconds,
+        //           UpdateOtpAsync succeeds, Send verification email throws
+        // Expected: Exception
+        //=========================================================
+        [Fact]
+        public async Task UTCID09_ResendOtpAsync_SendEmailThrows_ThrowException()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildOtp(customer.CustomerId, otpAttemptCount: 1);
+            otp.LastOtpSentAt = DateTime.UtcNow.AddSeconds(-31);
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            _emailServiceMock
+                .Setup(x => x.SendVerificationEmail(customer.Email!, It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Email service unavailable"));
+
+            var service = CreateService(context);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                service.ResendOtpAsync(customer.Email!));
+
+            // Assert
+            Assert.Equal("Email service unavailable", ex.Message);
+        }
+
+        //=========================================================
+        //=========================================================
+        // SendResetPasswordEmailAsync()
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID02 - Customer not found
+        // Expected: "This email is not registered in our system."
+        //=========================================================
+        [Fact]
+        public async Task UTCID02_SendResetPasswordEmailAsync_CustomerNotFound_ReturnNotRegistered()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.SendResetPasswordEmailAsync("notfound@petcenter.com");
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("This email is not registered in our system.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID03 - Customer exists, IsVerified = false
+        // Expected: "This email has not been verified yet. Please complete your registration first."
+        //=========================================================
+        [Fact]
+        public async Task UTCID03_SendResetPasswordEmailAsync_EmailNotVerified_ReturnNotVerified()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "unverified@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: false,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.SendResetPasswordEmailAsync(customer.Email!);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal(
+                "This email has not been verified yet. Please complete your registration first.",
+                result.Message);
+        }
+
+        //=========================================================
+        // UTCID04 - Customer exists, IsVerified = true, IsActive = false
+        // Expected: "This account has been deactivated. Please contact support."
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_SendResetPasswordEmailAsync_AccountInactive_ReturnDeactivated()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "inactive@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: false);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.SendResetPasswordEmailAsync(customer.Email!);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("This account has been deactivated. Please contact support.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID05 - OTP record does not exist, AddOtpAsync succeeds,
+        //           Send reset email succeeds
+        // Expected: "If this email is registered, you will receive a password reset link shortly."
+        //=========================================================
+        [Fact]
+        public async Task UTCID05_SendResetPasswordEmailAsync_OtpNotExist_ReturnResetLinkSent()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            _emailServiceMock
+                .Setup(x => x.SendResetPasswordEmailAsync(
+                    customer.Email!, It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(true);
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.SendResetPasswordEmailAsync(customer.Email!);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal(
+                "If this email is registered, you will receive a password reset link shortly.",
+                result.Message);
+
+            var createdOtp = await context.OtpCodes
+                .FirstOrDefaultAsync(o => o.CustomerId == customer.CustomerId);
+            Assert.NotNull(createdOtp);
+            Assert.NotNull(createdOtp!.PasswordResetToken);
+            Assert.NotNull(createdOtp.PasswordResetExpire);
+        }
+
+        //=========================================================
+        // UTCID06 - OTP record exists, UpdateOtpAsync succeeds,
+        //           Send reset email succeeds
+        // Expected: "If this email is registered, you will receive a password reset link shortly."
+        //=========================================================
+        [Fact]
+        public async Task UTCID06_SendResetPasswordEmailAsync_OtpExists_ReturnResetLinkSent()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customer.CustomerId,
+                PasswordResetToken = "old-hash",
+                PasswordResetExpire = DateTime.UtcNow.AddMinutes(-1)
+            };
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            _emailServiceMock
+                .Setup(x => x.SendResetPasswordEmailAsync(
+                    customer.Email!, It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(true);
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.SendResetPasswordEmailAsync(customer.Email!);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal(
+                "If this email is registered, you will receive a password reset link shortly.",
+                result.Message);
+
+            var updatedOtp = await context.OtpCodes
+                .FirstOrDefaultAsync(o => o.OtpId == otp.OtpId);
+            Assert.NotNull(updatedOtp);
+            Assert.NotEqual("old-hash", updatedOtp!.PasswordResetToken);
+        }
+
+        //=========================================================
+        // UTCID09 - OTP record exists, Send reset email throws
+        // Expected: Exception
+        //=========================================================
+        [Fact]
+        public async Task UTCID09_SendResetPasswordEmailAsync_SendEmailThrows_ThrowException()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customer.CustomerId
+            };
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            _emailServiceMock
+                .Setup(x => x.SendResetPasswordEmailAsync(
+                    customer.Email!, It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Email service unavailable"));
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                service.SendResetPasswordEmailAsync(customer.Email!));
+
+            // Assert
+            Assert.Equal("Email service unavailable", ex.Message);
+        }
+
+        //=========================================================
+        //=========================================================
+        // ValidateResetTokenAsync()
+        // Bỏ UTCID01 (Email empty check nằm ở đầu Service, không đụng
+        // repository/DB, đã kiểm chứng đủ ở Mock).
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID02 - Customer not found
+        // Expected: "Invalid or expired reset link."
+        //=========================================================
+        [Fact]
+        public async Task UTCID02_ValidateResetTokenAsync_CustomerNotFound_ReturnInvalidLink()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ValidateResetTokenAsync("notfound@petcenter.com", "some-token");
+
+            // Assert
+            Assert.False(result.Valid);
+            Assert.Equal("Invalid or expired reset link.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID03 - Customer exists, OTP record not found
+        // Expected: "Invalid or expired reset link."
+        //=========================================================
+        [Fact]
+        public async Task UTCID03_ValidateResetTokenAsync_OtpNotFound_ReturnInvalidLink()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ValidateResetTokenAsync(customer.Email!, "some-token");
+
+            // Assert
+            Assert.False(result.Valid);
+            Assert.Equal("Invalid or expired reset link.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID04 - OTP record exists, PasswordResetToken = null
+        // Expected: "Invalid or expired reset link."
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_ValidateResetTokenAsync_TokenHashNull_ReturnInvalidLink()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customer.CustomerId,
+                PasswordResetToken = null,
+                PasswordResetExpire = DateTime.UtcNow.AddMinutes(10)
+            };
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ValidateResetTokenAsync(customer.Email!, "some-token");
+
+            // Assert
+            Assert.False(result.Valid);
+            Assert.Equal("Invalid or expired reset link.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID05 - OTP record exists, PasswordResetExpire = null
+        // Expected: "Invalid or expired reset link."
+        //=========================================================
+        [Fact]
+        public async Task UTCID05_ValidateResetTokenAsync_ExpireNull_ReturnInvalidLink()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customer.CustomerId,
+                PasswordResetToken = _passwordService.Hash("some-token"),
+                PasswordResetExpire = null
+            };
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ValidateResetTokenAsync(customer.Email!, "some-token");
+
+            // Assert
+            Assert.False(result.Valid);
+            Assert.Equal("Invalid or expired reset link.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID06 - OTP record exists, PasswordResetExpire < Current Time
+        // Expected: "This reset link has expired. Please request a new one."
+        //=========================================================
+        [Fact]
+        public async Task UTCID06_ValidateResetTokenAsync_TokenExpired_ReturnExpiredLink()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customer.CustomerId,
+                PasswordResetToken = _passwordService.Hash("some-token"),
+                PasswordResetExpire = DateTime.UtcNow.AddMinutes(-1) // đã hết hạn
+            };
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ValidateResetTokenAsync(customer.Email!, "some-token");
+
+            // Assert
+            Assert.False(result.Valid);
+            Assert.Equal("This reset link has expired. Please request a new one.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID07 - OTP record exists, PasswordResetToken does not match
+        // Expected: "Invalid or expired reset link."
+        //=========================================================
+        [Fact]
+        public async Task UTCID07_ValidateResetTokenAsync_TokenNotMatch_ReturnInvalidLink()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customer.CustomerId,
+                PasswordResetToken = _passwordService.Hash("correct-token"),
+                PasswordResetExpire = DateTime.UtcNow.AddMinutes(10)
+            };
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ValidateResetTokenAsync(customer.Email!, "wrong-token");
+
+            // Assert
+            Assert.False(result.Valid);
+            Assert.Equal("Invalid or expired reset link.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID08 - OTP record exists, PasswordResetToken matches
+        // Expected: Valid = true, "Token is valid."
+        //=========================================================
+        [Fact]
+        public async Task UTCID08_ValidateResetTokenAsync_TokenMatches_ReturnTokenValid()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = new OtpCode
+            {
+                OtpId = Guid.NewGuid(),
+                CustomerId = customer.CustomerId,
+                PasswordResetToken = _passwordService.Hash("correct-token"),
+                PasswordResetExpire = DateTime.UtcNow.AddMinutes(10)
+            };
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ValidateResetTokenAsync(customer.Email!, "correct-token");
+
+            // Assert
+            Assert.True(result.Valid);
+            Assert.Equal("Token is valid.", result.Message);
+        }
+
+        //=========================================================
+        //=========================================================
+        // ResetPasswordAsync()
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID04 - ValidateResetTokenAsync = Invalid (customer not found)
+        // Expected: "Invalid or expired reset link."
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_ResetPasswordAsync_TokenInvalid_ReturnInvalidLink()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ResetPasswordAsync(
+                "notfound@petcenter.com", "some-token", "Abc@123");
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Invalid or expired reset link.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID07 - Valid token, Customer exists, OTP record exists,
+        //           UpdateAsync succeeds, UpdateOtpAsync succeeds
+        // Expected: Password reset completed successfully, reset token cleared
+        //=========================================================
+        [Fact]
+        public async Task UTCID07_ResetPasswordAsync_OtpExists_ReturnSuccessAndClearToken()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "valid@petcenter.com",
+                rawPassword: "Customer@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var otp = BuildResetOtp(customer.CustomerId, "correct-token");
+            context.OtpCodes.Add(otp);
+            await context.SaveChangesAsync();
+
+            var service = CreateForgotPasswordService(context);
+
+            // Act
+            var result = await service.ResetPasswordAsync(
+                customer.Email!, "correct-token", "NewPass@123");
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal(
+                "Your password has been reset successfully. You can now login.",
+                result.Message);
+
+            var updatedCustomer = await context.Customers
+                .FirstOrDefaultAsync(c => c.CustomerId == customer.CustomerId);
+            Assert.NotNull(updatedCustomer);
+            Assert.True(_passwordService.Verify("NewPass@123", updatedCustomer!.PasswordHash!));
+
+            var updatedOtp = await context.OtpCodes
+                .FirstOrDefaultAsync(o => o.OtpId == otp.OtpId);
+            Assert.NotNull(updatedOtp);
+            Assert.Null(updatedOtp!.PasswordResetToken);
+            Assert.Null(updatedOtp.PasswordResetExpire);
+        }
+
+        //=========================================================
+        //=========================================================
+        // ChangePasswordAsync()
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID04 - Customer not found
+        // Expected: "Customer not found."
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_ChangePasswordAsync_CustomerNotFound_ReturnCustomerNotFound()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var service = CreateService(context);
+            var request = BuildChangePasswordRequest("OldPass@123", "NewPass@123");
+
+            // Act
+            var result = await service.ChangePasswordAsync(Guid.NewGuid(), request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Customer not found.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID05 - Customer exists, PasswordHash = null
+        // Expected: "Current password is incorrect."
+        //=========================================================
+        [Fact]
+        public async Task UTCID05_ChangePasswordAsync_PasswordHashNull_ReturnCurrentPasswordIncorrect()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "nohash@petcenter.com",
+                rawPassword: null,
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var service = CreateService(context);
+            var request = BuildChangePasswordRequest("AnyPassword@123", "NewPass@123");
+
+            // Act
+            var result = await service.ChangePasswordAsync(customer.CustomerId, request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Current password is incorrect.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID06 - Customer exists, Current password incorrect
+        // Expected: "Current password is incorrect."
+        //=========================================================
+        [Fact]
+        public async Task UTCID06_ChangePasswordAsync_CurrentPasswordIncorrect_ReturnIncorrect()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "customer@petcenter.com",
+                rawPassword: "OldPass@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var service = CreateService(context);
+            var request = BuildChangePasswordRequest("WrongPassword", "NewPass@123");
+
+            // Act
+            var result = await service.ChangePasswordAsync(customer.CustomerId, request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Current password is incorrect.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID08 - Customer exists, Current password correct, UpdateAsync succeeds
+        // Expected: "Password changed successfully."
+        //=========================================================
+        [Fact]
+        public async Task UTCID08_ChangePasswordAsync_ValidRequest_ReturnPasswordChangedSuccess()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = BuildCustomer(
+                "customer@petcenter.com",
+                rawPassword: "OldPass@123",
+                isVerified: true,
+                isActive: true);
+
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            context.ChangeTracker.Clear();
+
+            var service = CreateService(context);
+            var request = BuildChangePasswordRequest("OldPass@123", "NewPass@456");
+
+            // Act
+            var result = await service.ChangePasswordAsync(customer.CustomerId, request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Password changed successfully.", result.Message);
+
+            var updatedCustomer = await context.Customers
+                .FirstOrDefaultAsync(c => c.CustomerId == customer.CustomerId);
+            Assert.NotNull(updatedCustomer);
+            Assert.True(_passwordService.Verify("NewPass@456", updatedCustomer!.PasswordHash!));
         }
     }
 }

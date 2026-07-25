@@ -13,6 +13,7 @@ namespace PetCenterAPI.DTOs.Requests.CustomerProfile
         [Required(ErrorMessage = "Phone number is required")]
         [RegularExpression( @"^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$",
             ErrorMessage = "Invalid Vietnamese phone number")]
+        [StringLength(15, ErrorMessage = "Phone Number cannot exceed 15 characters")]
         public string PhoneNumber { get; set; } = null!;
 
         [Required(ErrorMessage = "Date of birth is required")]

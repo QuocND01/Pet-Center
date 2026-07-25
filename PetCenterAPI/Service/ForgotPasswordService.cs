@@ -79,6 +79,9 @@ namespace PetCenterAPI.Service
         // ============================================================
         public async Task<(bool Valid, string Message)> ValidateResetTokenAsync(string email, string token)
         {
+            if (string.IsNullOrWhiteSpace(email))
+                return (false, "Email is required");
+
             var customer = await _customerRepository.GetByEmailAsyncWithoutActiveCheck(email);
             if (customer == null)
                 return (false, "Invalid or expired reset link.");
