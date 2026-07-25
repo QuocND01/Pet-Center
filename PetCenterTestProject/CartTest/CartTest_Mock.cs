@@ -11,7 +11,7 @@ using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using Xunit;
 
-namespace PetCenterTestProject
+namespace PetCenterTestProject.CartTest
 {
     public class CartTest
     {

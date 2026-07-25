@@ -11,7 +11,7 @@ using Xunit;
 using static PetCenterAPI.DTOs.Requests.MedicalRecord.MedicalRecordRequestDTO;
 using static PetCenterAPI.DTOs.Responses.MedicalRecord.MedicalRecordResponseDTO;
 
-namespace PetCenterTestProject
+namespace PetCenterTestProject.MedicalRecordTest
 {
     public class MedicalRecordTest
     {

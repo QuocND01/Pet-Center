@@ -11,7 +11,7 @@ using Xunit;
 using static PetCenterAPI.DTOs.Requests.PrescriptionItem.PrescriptionItemRequestDTO;
 using static PetCenterAPI.DTOs.Responses.PrescriptionItem.PrescriptionItemResponseDTO;
 
-namespace PetCenterTestProject
+namespace PetCenterTestProject.PrescriptionItemTest
 {
     public class PrescriptionItemTest
     {
