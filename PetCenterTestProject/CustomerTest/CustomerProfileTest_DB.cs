@@ -74,6 +74,10 @@ namespace PetCenterTestProject.CustomerTest
         //=========================================================
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM FeedbackImages");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductFeedbacks");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM VetFeedbacks");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM Orders");
             await context.Database.ExecuteSqlRawAsync("DELETE FROM Pets");
             await context.Database.ExecuteSqlRawAsync("DELETE FROM OtpCodes");
             await context.Database.ExecuteSqlRawAsync("DELETE FROM Addresses");
@@ -472,6 +476,80 @@ namespace PetCenterTestProject.CustomerTest
 
             // Assert
             Assert.Null(result);
+        }
+
+        //=========================================================
+        //=========================================================
+        // ChangeCustomerStatusAsync()
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID01 - Customer exists, UpdateAsync returns true
+        // Expected: Return true, status + UpdatedAt assigned
+        //=========================================================
+        [Fact]
+        public async Task UTCID01_ChangeCustomerStatusAsync_CustomerExistsUpdateSucceeds_ReturnTrue()
+        {
+            Guid customerId;
+            DateTime? oldUpdatedAt;
+
+            // Seed dữ liệu bằng context riêng, dispose ngay sau khi xong
+            using (var seedContext = CreateContext())
+            {
+                await ClearDatabaseAsync(seedContext);
+
+                var customer = BuildCustomer(
+                    "customer@petcenter.com",
+                    "Nguyen Van A",
+                    "0912345678",
+                    isVerified: true,
+                    isActive: false);
+
+                seedContext.Customers.Add(customer);
+                await seedContext.SaveChangesAsync();
+
+                customerId = customer.CustomerId;
+                oldUpdatedAt = customer.UpdatedAt;
+            }
+
+            // Act — dùng context MỚI, hoàn toàn độc lập với context seed
+            using var context = CreateContext();
+            var service = CreateService(context);
+            var result = await service.ChangeCustomerStatusAsync(customerId, true);
+
+            // Assert
+            Assert.True(result);
+
+            using var verifyContext = CreateContext();
+            var updatedCustomer = await verifyContext.Customers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+            Assert.NotNull(updatedCustomer);
+            Assert.True(updatedCustomer!.IsActive);
+            Assert.NotEqual(oldUpdatedAt, updatedCustomer.UpdatedAt);
+        }
+
+        //=========================================================
+        // UTCID02 - Customer not found
+        // Expected: Return false
+        //=========================================================
+        [Fact]
+        public async Task UTCID02_ChangeCustomerStatusAsync_CustomerNotFound_ReturnFalse()
+        {
+            using (var seedContext = CreateContext())
+            {
+                await ClearDatabaseAsync(seedContext);
+            }
+
+            using var context = CreateContext();
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.ChangeCustomerStatusAsync(Guid.NewGuid(), true);
+
+            // Assert
+            Assert.False(result);
         }
     }
 }

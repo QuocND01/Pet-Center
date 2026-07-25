@@ -48,6 +48,9 @@ namespace PetCenterAPI.Service
             if (string.IsNullOrWhiteSpace(request.ReplyContent))
                 return ApiResponse<bool>.Fail("Reply content cannot be empty.");
 
+            if (request.ReplyContent.Length > 1000)
+                return ApiResponse<bool>.Fail("Reply content cannot exceed 1000 characters.");
+
             var existing = await _adminFeedbackRepository.GetByIdAsync(request.FeedbackId);
             if (existing == null)
                 return ApiResponse<bool>.Fail("Feedback does not exist.");
@@ -70,6 +73,9 @@ namespace PetCenterAPI.Service
         {
             if (string.IsNullOrWhiteSpace(request.ReplyContent))
                 return ApiResponse<bool>.Fail("Reply content cannot be empty.");
+
+            if (request.ReplyContent.Length > 1000)
+                return ApiResponse<bool>.Fail("Reply content cannot exceed 1000 characters.");
 
             var success = await _adminFeedbackRepository.UpdateReplyAsync(
                 request.FeedbackId, request.ReplyContent);
