@@ -649,32 +649,13 @@ namespace PetCenterAPI.Service
                     };
                 }
 
-                // ── 4b. Deduct inventory directly (no Reserved involved) ─
+                // ── 4b. Reserve inventory (identical to COD order placement) ─
                 foreach (var detail in order.OrderDetails)
                 {
                     var inv = inventories.First(i => i.ProductId == detail.ProductId);
-
-                    int qtyBefore = inv.QuantityAvailable + inv.QuantityReserved;
+                    inv.QuantityReserved += detail.Quantity;
                     inv.QuantityAvailable -= detail.Quantity;
-                    int qtyAfter = inv.QuantityAvailable + inv.QuantityReserved;
                     inv.LastUpdated = DateTime.Now;
-
-                    // Record inventory transaction
-                    _db.InventoryTransactions.Add(new InventoryTransaction
-                    {
-                        TransactionId = Guid.NewGuid(),
-                        InventoryId = inv.InventoryId,
-                        TransactionType = TransactionType.StockOut,
-                        QuantityChange = -detail.Quantity,
-                        QuantityBefore = qtyBefore,
-                        QuantityAfter = qtyAfter,
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = order.CustomerId,
-                        ReferenceId = order.OrderId,
-                        ReferenceType = ReferenceType.Order,
-                        ImportStockDetailId = null,
-                        Note = $"Online payment stock deduction ({payment.PaymentMethod})"
-                    });
                 }
 
                 // ── 4c. Update Payment ──────────────────────────────────
