@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using PetCenterAPI.DTOs.Requests.ManageVoucher;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
@@ -56,6 +58,68 @@ namespace PetCenterTestProject.VoucherTest
                 CreateAt = createAt ?? DateTime.UtcNow,
                 Description = description
             };
+        }
+
+        //=========================================================
+        // Helper: Build a valid CreateVoucherRequestDTO, override fields as needed
+        //=========================================================
+        private CreateVoucherRequestDTO BuildCreateVoucherRequest(
+            string code = "SALE10",
+            int discountPercent = 10,
+            string? description = "10% off",
+            decimal minOrderAmount = 100000,
+            decimal maxDiscountAmount = 50000,
+            int? useageLimit = 100,
+            DateTime? expiredDate = null)
+        {
+            return new CreateVoucherRequestDTO
+            {
+                Code = code,
+                DiscountPercent = discountPercent,
+                Description = description,
+                MinOrderAmount = minOrderAmount,
+                MaxDiscountAmount = maxDiscountAmount,
+                UseageLimit = useageLimit,
+                ExpiredDate = expiredDate ?? DateTime.UtcNow.AddDays(30) // mặc định chưa hết hạn
+            };
+        }
+
+        //=========================================================
+        // Helper: Chạy DataAnnotations validation thủ công trên DTO
+        //=========================================================
+        private List<ValidationResult> Validate(object model)
+        {
+            var context = new ValidationContext(model, serviceProvider: null, items: null);
+            var results = new List<ValidationResult>();
+            Validator.TryValidateObject(model, context, results, validateAllProperties: true);
+            return results;
+        }
+
+        //=========================================================
+        // Helper: Setup CodeExistsAsync mock
+        //=========================================================
+        private void SetupCodeExists(bool exists)
+        {
+            _voucherRepositoryMock
+                .Setup(x => x.CodeExistsAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
+                .ReturnsAsync(exists);
+        }
+
+        //=========================================================
+        // Helper: Setup CreateAsync mock trả về entity đã gán VoucherId,
+        // mô phỏng đúng hành vi repository thật
+        //=========================================================
+        private void SetupCreateAsyncSuccess()
+        {
+            _voucherRepositoryMock
+                .Setup(x => x.CreateAsync(It.IsAny<Voucher>()))
+                .ReturnsAsync((Voucher v) =>
+                {
+                    v.VoucherId = Guid.NewGuid();
+                    v.CreateAt = DateTime.UtcNow;
+                    v.IsActive = true;
+                    return v;
+                });
         }
 
         //=========================================================
@@ -472,6 +536,508 @@ namespace PetCenterTestProject.VoucherTest
 
             // Assert
             Assert.Equal("Service Temporarily Unavailable", ex.Message);
+        }
+
+        //=========================================================
+        //=========================================================
+        // CreateVoucherRequestDTO Validation (DataAnnotations)
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID01 - All fields empty/default
+        //=========================================================
+        [Fact]
+        public void UTCID01_CreateVoucherRequestDTO_AllFieldsEmpty_ReturnRequiredAndRangeErrors()
+        {
+            // Arrange
+            var request = new CreateVoucherRequestDTO
+            {
+                Code = "",
+                DiscountPercent = 0,
+                Description = null,
+                MinOrderAmount = 0,
+                MaxDiscountAmount = 0,
+                UseageLimit = null,
+                ExpiredDate = null
+            };
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Code is required.", messages);
+            Assert.Contains("Discount must be between 1% and 80%.", messages);
+            Assert.Contains("Min order amount must be between 1₫ and 999,999,999₫.", messages);
+            Assert.Contains("Max discount must be between 1₫ and 50,000,000₫.", messages);
+        }
+
+        //=========================================================
+        // UTCID02 - Code length < 2
+        // Expected: "Code must be 2–20 characters."
+        //=========================================================
+        [Fact]
+        public void UTCID02_CreateVoucherRequestDTO_CodeUnder2Chars_ReturnLengthError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(code: "A");
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Code must be 2–20 characters.", messages);
+        }
+
+        //=========================================================
+        // UTCID03 - Code length > 20
+        // Expected: "Code must be 2–20 characters."
+        //=========================================================
+        [Fact]
+        public void UTCID03_CreateVoucherRequestDTO_CodeOver20Chars_ReturnLengthError()
+        {
+            // Arrange
+            var longCode = new string('A', 21);
+            var request = BuildCreateVoucherRequest(code: longCode);
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Code must be 2–20 characters.", messages);
+        }
+
+        //=========================================================
+        // UTCID05 - Code invalid format (lowercase/special)
+        //=========================================================
+        [Fact]
+        public void UTCID05_CreateVoucherRequestDTO_CodeInvalidFormat_ReturnFormatError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(code: "sale-10");
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Code must be uppercase letters and numbers only.", messages);
+        }
+
+        //=========================================================
+        // UTCID06 - DiscountPercent < 1
+        // Expected: "Discount must be between 1% and 80%."
+        //=========================================================
+        [Fact]
+        public void UTCID06_CreateVoucherRequestDTO_DiscountPercentUnder1_ReturnRangeError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(discountPercent: 0);
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Discount must be between 1% and 80%.", messages);
+        }
+
+        //=========================================================
+        // UTCID14 - Description length > 100
+        // Expected: "Description must not exceed 100 characters."
+        //=========================================================
+        [Fact]
+        public void UTCID14_CreateVoucherRequestDTO_DescriptionOver100Chars_ReturnLengthError()
+        {
+            // Arrange
+            var longDescription = new string('A', 101);
+            var request = BuildCreateVoucherRequest(description: longDescription);
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Description must not exceed 100 characters.", messages);
+        }
+
+        //=========================================================
+        // UTCID16 - MinOrderAmount < 0
+        //=========================================================
+        [Fact]
+        public void UTCID16_CreateVoucherRequestDTO_MinOrderAmountNegative_ReturnRangeError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(minOrderAmount: -100);
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Min order amount must be between 1₫ and 999,999,999₫.", messages);
+        }
+
+        //=========================================================
+        // UTCID17 - MinOrderAmount = 0
+        //=========================================================
+        [Fact]
+        public void UTCID17_CreateVoucherRequestDTO_MinOrderAmountZero_ReturnRangeError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(minOrderAmount: 0);
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Min order amount must be between 1₫ and 999,999,999₫.", messages);
+        }
+
+        //=========================================================
+        // UTCID18 - MaxDiscountAmount < 1
+        // Expected: "Max discount must be between 1₫ and 50,000,000₫."
+        //=========================================================
+        [Fact]
+        public void UTCID18_CreateVoucherRequestDTO_MaxDiscountAmountUnder1_ReturnRangeError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(maxDiscountAmount: 0);
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Max discount must be between 1₫ and 50,000,000₫.", messages);
+        }
+
+        //=========================================================
+        // UTCID21 - MaxDiscountAmount > 50,000,000
+        // Expected: "Max discount must be between 1₫ and 50,000,000₫."
+        //=========================================================
+        [Fact]
+        public void UTCID21_CreateVoucherRequestDTO_MaxDiscountAmountOver50Million_ReturnRangeError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(maxDiscountAmount: 50_000_001);
+
+            // Act
+            var errors = Validate(request);
+            var messages = errors.Select(e => e.ErrorMessage).ToList();
+
+            // Assert
+            Assert.Contains("Max discount must be between 1₫ and 50,000,000₫.", messages);
+        }
+
+        //=========================================================
+        //=========================================================
+        // CreateAsync() — Service Logic
+        //=========================================================
+        //=========================================================
+
+        //=========================================================
+        // UTCID04 - Code length = 20 (boundary hợp lệ), CodeExists = false,
+        //           CreateAsync succeeds, ExpiredDate in future
+        // Expected: (true, "Voucher created successfully.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID04_CreateAsync_CodeExactly20Chars_ReturnSuccess()
+        {
+            // Arrange
+            var code20 = new string('A', 20);
+            Assert.Equal(20, code20.Length);
+            var request = BuildCreateVoucherRequest(code: code20);
+
+            SetupCodeExists(false);
+            SetupCreateAsyncSuccess();
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Voucher created successfully.", result.Message);
+            Assert.NotNull(result.Data);
+            Assert.Equal(code20, result.Data!.Code);
+        }
+
+        //=========================================================
+        // UTCID07 - DiscountPercent = 1 (boundary hợp lệ), CodeExists = false,
+        //           CreateAsync succeeds, ExpiredDate in future
+        // Expected: (true, "Voucher created successfully.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID07_CreateAsync_DiscountPercentExactly1_ReturnSuccess()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(discountPercent: 1);
+
+            SetupCodeExists(false);
+            SetupCreateAsyncSuccess();
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Voucher created successfully.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID08 - DiscountPercent = 80 (boundary hợp lệ),
+        //           EffectiveRate = 80% (Max/Min ratio, cũng là boundary hợp lệ),
+        //           CodeExists = false, CreateAsync succeeds
+        // Expected: (true, "Voucher created successfully.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID08_CreateAsync_DiscountPercent80AndEffectiveRate80_ReturnSuccess()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(
+                discountPercent: 80,
+                minOrderAmount: 100000,
+                maxDiscountAmount: 80000); // 80000/100000*100 = 80% đúng biên
+
+            SetupCodeExists(false);
+            SetupCreateAsyncSuccess();
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Voucher created successfully.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID09 - EffectiveRate (Max/Min ratio) > 80%
+        //=========================================================
+        [Fact]
+        public async Task UTCID09_CreateAsync_EffectiveRateOver80Percent_ReturnEffectiveRateError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(
+                discountPercent: 50, // hợp lệ, không liên quan tới lỗi này
+                minOrderAmount: 100000,
+                maxDiscountAmount: 90000); // 90000/100000*100 = 90% > 80%, Max < Min nên không vi phạm rule khác
+
+            SetupCodeExists(false);
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Contains("Effective discount rate (90.0%) exceeds 80%.", result.Message);
+            _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
+        }
+
+        //=========================================================
+        // UTCID10 - Trường hợp hợp lệ tổng quát (happy path)
+        // Expected: (true, "Voucher created successfully.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID10_CreateAsync_ValidRequest_ReturnSuccess()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest();
+
+            SetupCodeExists(false);
+            SetupCreateAsyncSuccess();
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Voucher created successfully.", result.Message);
+            Assert.NotNull(result.Data);
+            _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Once);
+        }
+
+        //=========================================================
+        // UTCID11 - CodeExists = true
+        // Expected: (false, "Voucher code 'XXX' already exists.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID11_CreateAsync_CodeAlreadyExists_ReturnCodeExistsError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(code: "DUPLICATE10");
+
+            SetupCodeExists(true);
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal($"Voucher code '{request.Code.ToUpper()}' already exists.", result.Message);
+            _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
+        }
+
+        //=========================================================
+        // UTCID12 - CodeExists = false, Repository CreateAsync throws
+        // Expected: Exception thrown
+        //=========================================================
+        [Fact]
+        public async Task UTCID12_CreateAsync_CreateAsyncThrows_ThrowException()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest();
+
+            SetupCodeExists(false);
+            _voucherRepositoryMock
+                .Setup(x => x.CreateAsync(It.IsAny<Voucher>()))
+                .ThrowsAsync(new Exception("Service Temporarily Unavailable"));
+
+            // Act
+            var ex = await Assert.ThrowsAsync<Exception>(() => _service.CreateAsync(request));
+
+            // Assert
+            Assert.Equal("Service Temporarily Unavailable", ex.Message);
+        }
+
+        //=========================================================
+        // UTCID13 - CodeExists = false, ExpiredDate in past
+        // Expected: (false, "Expiry date must be in the future.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID13_CreateAsync_ExpiredDateInPast_ReturnExpiryError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(expiredDate: DateTime.UtcNow.AddDays(-1));
+
+            SetupCodeExists(false);
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Expiry date must be in the future.", result.Message);
+            _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
+        }
+
+        //=========================================================
+        // UTCID15 - Description length = 100 (boundary hợp lệ),
+        //           CodeExists = false, CreateAsync succeeds
+        // Expected: (true, "Voucher created successfully.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID15_CreateAsync_DescriptionExactly100Chars_ReturnSuccess()
+        {
+            // Arrange
+            var description100 = new string('A', 100);
+            var request = BuildCreateVoucherRequest(description: description100);
+
+            SetupCodeExists(false);
+            SetupCreateAsyncSuccess();
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Voucher created successfully.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID19 - MaxDiscountAmount = 1 (boundary hợp lệ),
+        //           CodeExists = false, CreateAsync succeeds
+        // Expected: (true, "Voucher created successfully.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID19_CreateAsync_MaxDiscountAmountExactly1_ReturnSuccess()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(
+                minOrderAmount: 100000,
+                maxDiscountAmount: 1);
+
+            SetupCodeExists(false);
+            SetupCreateAsyncSuccess();
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Voucher created successfully.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID20 - MaxDiscountAmount = 50,000,000 (boundary hợp lệ),
+        //           CodeExists = false, CreateAsync succeeds
+        // Expected: (true, "Voucher created successfully.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID20_CreateAsync_MaxDiscountAmountExactly50Million_ReturnSuccess()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(
+                minOrderAmount: 100_000_000,
+                maxDiscountAmount: 50_000_000); // ratio 50%, Max < Min
+
+            SetupCodeExists(false);
+            SetupCreateAsyncSuccess();
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Equal("Voucher created successfully.", result.Message);
+        }
+
+        //=========================================================
+        // UTCID22 - UsageLimit < 1
+        // [SỬA message theo quyết định: dùng đúng message Service hiện có]
+        // Expected: (false, "Usage limit must be between 1 and 500.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID22_CreateAsync_UsageLimitBelow1_ReturnUsageLimitError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(useageLimit: 0);
+
+            SetupCodeExists(false);
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Usage limit must be between 1 and 500.", result.Message);
+            _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
+        }
+
+        //=========================================================
+        // UTCID23 - MaxDiscountAmount >= MinOrderAmount
+        // Expected: (false, "Max discount amount must be less than min order amount.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID23_CreateAsync_MaxDiscountGreaterOrEqualMinOrder_ReturnMaxDiscountError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(
+                minOrderAmount: 100000,
+                maxDiscountAmount: 100000); // bằng nhau, vi phạm Max < Min
+
+            SetupCodeExists(false);
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Max discount amount must be less than min order amount.", result.Message);
+            _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
         }
     }
 }
