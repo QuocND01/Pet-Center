@@ -6,6 +6,6 @@
         public Guid StaffId { get; set; }
         public string InvoiceNumber { get; set; } = null!;
         public string? Note { get; set; }
-        public List<CreateImportDetailRequestDTO> Details { get; set; } = new();
+        public List<CreateImportDetailRequestDTO> Details { get; set; } = null!;
     }
 }

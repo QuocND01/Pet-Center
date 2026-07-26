@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using PetCenterAPI.DTOs;
 using PetCenterAPI.DTOs.Requests.Import;
 using PetCenterAPI.DTOs.Responses.Import;
 using PetCenterAPI.Models;
@@ -15,17 +14,16 @@ namespace PetCenterAPI.Service
         private readonly IImportStockRepository _repo;
         private readonly PetCenterContext _context;
         private readonly IMapper _mapper;
-        private readonly IHttpClientFactory _httpClientFactory;
+        
         public ImportStockService(
             IImportStockRepository repo,
             PetCenterContext context,
-            IMapper mapper,
-            IHttpClientFactory httpClientFactory)
+            IMapper mapper)
         {
             _repo = repo;
             _context = context;
             _mapper = mapper;
-            _httpClientFactory = httpClientFactory;
+            
         }
 
         public async Task<Guid> CreateAsync(
