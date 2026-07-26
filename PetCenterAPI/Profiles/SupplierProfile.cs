@@ -12,6 +12,7 @@ namespace PetCenterAPI.Profiles
         {
             CreateMap<Supplier, ReadSupplierResponseDTO>();
             CreateMap<CreateSupplierRequestDTO, Supplier>();
+            CreateMap<UpdateSupplierRequestDTO, Supplier>();
         }
     }
 }
