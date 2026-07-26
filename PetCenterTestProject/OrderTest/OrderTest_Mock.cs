@@ -1,3 +1,8 @@
+using PetCenterAPI.Service.Interface;
+using PetCenterAPI.DTOs.Requests.Order;
+using PetCenterAPI.DTOs.Responses.Order;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OData.Query;
@@ -511,5 +516,689 @@ namespace PetCenterTestProject.OrderTest
             var ex = await Assert.ThrowsAsync<Exception>(() => _service.CancelOrderAsync(orderId));
             Assert.Equal("Database connection failed", ex.Message);
         }
-    }
+    
+
+        //=====================================================================
+        // Helper: Create CheckoutService with InMemory DB (behaves like Mock)
+        //=====================================================================
+        private (PetCenterContext context, CheckoutService service) CreateInMemoryCheckoutService()
+        {
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase("DbMock_" + Guid.NewGuid().ToString())
+                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .Options;
+
+            var context = new PetCenterContext(options);
+
+            var hubMock = new Mock<IHubContext<AppHub>>();
+            var clientsMock = new Mock<IHubClients>();
+            var clientProxyMock = new Mock<IClientProxy>();
+            clientsMock.Setup(x => x.Group(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            clientsMock.Setup(x => x.User(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            hubMock.Setup(x => x.Clients).Returns(clientsMock.Object);
+
+            var vnPayMock = new Mock<IVnPayService>();
+            var moMoMock = new Mock<IMoMoService>();
+
+            var service = new CheckoutService(context, hubMock.Object, vnPayMock.Object, moMoMock.Object, NullLogger<CheckoutService>.Instance);
+            return (context, service);
+        }
+
+        private async Task<Customer> EnsureCustomerInMemoryAsync(PetCenterContext context, Guid customerId)
+        {
+            var cus = new Customer
+            {
+                CustomerId = customerId,
+                FullName = "Test Order",
+                Email = $"ord_{Guid.NewGuid():N}@gmail.com",
+                PhoneNumber = "0999999999",
+                Gender = "Other",
+                IsVerified = true,
+                IsActive = true
+            };
+            context.Customers.Add(cus);
+            await context.SaveChangesAsync();
+            return cus;
+        }
+
+        private async Task<Address> EnsureAddressInMemoryAsync(PetCenterContext context, Guid customerId)
+        {
+            var addr = new Address { AddressId = Guid.NewGuid(), CustomerId = customerId, Province = "Test", District = "Test", Ward = "Test", AddressDetails = "123", IsDefault = true, IsActive = true };
+            context.Addresses.Add(addr);
+            await context.SaveChangesAsync();
+            return addr;
+        }
+
+        private async Task<(Guid productId, Guid categoryId, Guid brandId)> SeedProductAndInventoryInMemoryAsync(
+            PetCenterContext context,
+            string productName,
+            int qtyAvailable,
+            int qtyReserved)
+        {
+            var brand = new Brand { BrandId = Guid.NewGuid(), BrandName = "Test Brand", Status = PetCenterAPI.Common.Status.Active };
+            var category = new Category { CategoryId = Guid.NewGuid(), CategoryName = "Test Category", Status = PetCenterAPI.Common.Status.Active };
+            context.Brands.Add(brand);
+            context.Categories.Add(category);
+            await context.SaveChangesAsync();
+
+            var product = new Product
+            {
+                ProductId = Guid.NewGuid(),
+                ProductName = productName,
+                ProductPrice = 100000,
+                CategoryId = category.CategoryId,
+                BrandId = brand.BrandId,
+                Status = PetCenterAPI.Common.Status.Active,
+                AddedAt = DateTime.UtcNow
+            };
+            context.Products.Add(product);
+            await context.SaveChangesAsync();
+
+            var inventory = new Inventory
+            {
+                InventoryId = Guid.NewGuid(),
+                ProductId = product.ProductId,
+                SKU = "SKU-" + Guid.NewGuid().ToString("N").Substring(0, 8),
+                QuantityAvailable = qtyAvailable,
+                QuantityReserved = qtyReserved,
+                LastUpdated = DateTime.UtcNow
+            };
+            context.Inventories.Add(inventory);
+            await context.SaveChangesAsync();
+
+            return (product.ProductId, category.CategoryId, brand.BrandId);
+        }
+
+        //=====================================================================
+        // PlaceCodOrderAsync() Mock Tests (UTCID01 to UTCID17)
+        //=====================================================================
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID01_Success()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER1",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(5),
+                MinOrderAmount = 50000,
+                MaxDiscountAmount = 20000,
+                UseageLimit = 5,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+            Assert.Equal("Order placed successfully!", result.Message);
+            Assert.NotNull(result.OrderId);
+
+            var order = await context.Orders.FindAsync(result.OrderId.Value);
+            Assert.NotNull(order);
+            Assert.Equal(180000, order.TotalAmount); // 200000 - 20000 discount
+            Assert.Equal(20000, order.DiscountAmount);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID02_Success_VoucherExpiredDateNull_MinOrderAmountNull_UsageLimitNull()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER2",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = null,
+                MinOrderAmount = null,
+                UseageLimit = null,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID03_Success_VoucherExpiredDateEqualNow()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER3",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddHours(2), // equal/greater than now
+                MinOrderAmount = 50000,
+                UseageLimit = 5,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID04_Success_VoucherMinOrderAmountEqualOrderAmount()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER4",
+                DiscountPercent = 10,
+                IsActive = true,
+                MinOrderAmount = 200000, // equals subtotal
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID05_Success_VoucherUsageLimitEqualOne_RemainingOne()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER5",
+                DiscountPercent = 10,
+                IsActive = true,
+                UseageLimit = 1,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+
+            var updatedVoucher = await context.Vouchers.FindAsync(voucher.VoucherId);
+            Assert.Equal(0, updatedVoucher.UseageLimit);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID06_Success_VoucherMaxDiscountAmountApplied()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER6",
+                DiscountPercent = 50, // 50% of 200000 = 100000
+                MaxDiscountAmount = 30000, // Capped at 30000
+                IsActive = true,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+            var order = await context.Orders.FindAsync(result.OrderId.Value);
+            Assert.Equal(30000, order.DiscountAmount);
+            Assert.Equal(170000, order.TotalAmount);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID07_Success_InventoryStockEqualQuantityRequested()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 2, 0); // available = 2
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID08_Fail_AddressInvalid()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = Guid.NewGuid(), // Invalid address
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The address is invalid or does not belong to this account.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID09_Fail_VoucherAlreadyUsed()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "USED123",
+                DiscountPercent = 10,
+                IsActive = true,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            context.CustomerVouchers.Add(new CustomerVoucher
+            {
+                CustomerId = customer.CustomerId,
+                VoucherId = voucher.VoucherId,
+                IsUsed = true
+            });
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("You have already used this voucher.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID10_Fail_VoucherInactive()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "INACTIVE",
+                DiscountPercent = 10,
+                IsActive = false,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The voucher is invalid or has been deactivated.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID11_Fail_VoucherExpired()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "EXPIRED",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(-1), // Expired
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The voucher has expired.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID12_Fail_VoucherMinOrderAmountNotReached()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "HIGHMIN",
+                DiscountPercent = 10,
+                IsActive = true,
+                MinOrderAmount = 300000, // min = 300k, order = 200k
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("A minimum order of 300,000 ₫ is required to apply this voucher.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID13_Fail_VoucherUsageLimitReached()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "LIMITREACHED",
+                DiscountPercent = 10,
+                IsActive = true,
+                UseageLimit = 0, // usage limit is 0
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The voucher has reached its usage limit.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID14_Fail_InventoryStockInsufficient()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 1, 0); // only 1 stock available
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 } // requesting 2
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Contains("does not have enough stock", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID15_Fail_SupplierNotFound_WhenProductDetailsNotFoundInInventory()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var productId = Guid.NewGuid(); // No inventory seeded
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("Inventory information for the product was not found.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID16_Fail_InventoryStockInsufficient_Edge()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 5, 4); // available = 5 - 4 = 1
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 } // requesting 2
+                }
+            };
+
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Contains("does not have enough stock", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID17_Fail_DatabaseSaveThrowsException()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 10, 0);
+
+            var brandId = Guid.NewGuid();
+            context.Brands.Add(new Brand { BrandId = brandId, BrandName = "Dup-Mock-1-" + Guid.NewGuid().ToString("N"), Status = PetCenterAPI.Common.Status.Active });
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+            context.Brands.Add(new Brand { BrandId = brandId, BrandName = "Dup-Mock-2-" + Guid.NewGuid().ToString("N"), Status = PetCenterAPI.Common.Status.Active });
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            await Assert.ThrowsAnyAsync<Exception>(() => service.PlaceCodOrderAsync(request));
+        }
+
+}
 }

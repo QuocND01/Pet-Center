@@ -1,3 +1,9 @@
+using PetCenterAPI.Service.Interface;
+using PetCenterAPI.DTOs.Responses.Order;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using Microsoft.AspNetCore.SignalR;
+using PetCenterAPI.Hubs;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,24 +55,29 @@ namespace PetCenterTestProject.VoucherTest
         //=========================================================
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM CustomerVouchers");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Vouchers");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM FeedbackImages");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductFeedbacks");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Orders");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductAttributes");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductImages");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Products");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM CategoryAttributes");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Brands");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Addresses");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM OtpCodes");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Pets");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Customers");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM StaffRoles");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Staffs");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Roles");
+            context.ChangeTracker.Clear();
+
+            context.PrescriptionItems.RemoveRange(context.PrescriptionItems);
+            context.MedicalRecords.RemoveRange(context.MedicalRecords);
+            context.AppointmentSnapshots.RemoveRange(context.AppointmentSnapshots);
+            context.AppointmentServices.RemoveRange(context.AppointmentServices);
+            context.Appointments.RemoveRange(context.Appointments);
+            context.Pets.RemoveRange(context.Pets);
+            context.CartDetails.RemoveRange(context.CartDetails);
+            context.Carts.RemoveRange(context.Carts);
+            context.OtpCodes.RemoveRange(context.OtpCodes);
+            context.FeedbackImages.RemoveRange(context.FeedbackImages);
+            context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
+            context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
+            context.OrderDetails.RemoveRange(context.OrderDetails);
+            context.Payments.RemoveRange(context.Payments);
+            context.Orders.RemoveRange(context.Orders);
+            context.Addresses.RemoveRange(context.Addresses);
+            context.CustomerVouchers.RemoveRange(context.CustomerVouchers);
+            context.Vouchers.RemoveRange(context.Vouchers);
+            context.Customers.RemoveRange(context.Customers);
+
+            await context.SaveChangesAsync();
         }
 
         //=========================================================
@@ -877,5 +888,176 @@ namespace PetCenterTestProject.VoucherTest
                 .FirstOrDefaultAsync(v => v.Code == "SALE23");
             Assert.Null(saved);
         }
-    }
+    
+
+        //=====================================================================
+        // Helper: Create CheckoutService
+        //=====================================================================
+        private CheckoutService CreateCheckoutService(PetCenterContext context)
+        {
+            var hubMock = new Mock<IHubContext<AppHub>>();
+            var clientsMock = new Mock<IHubClients>();
+            var clientProxyMock = new Mock<IClientProxy>();
+            clientsMock.Setup(x => x.Group(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            clientsMock.Setup(x => x.User(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            hubMock.Setup(x => x.Clients).Returns(clientsMock.Object);
+
+            var vnPayMock = new Mock<IVnPayService>();
+            var moMoMock = new Mock<IMoMoService>();
+
+            return new CheckoutService(context, hubMock.Object, vnPayMock.Object, moMoMock.Object, NullLogger<CheckoutService>.Instance);
+        }
+
+        private async Task<Customer> EnsureCustomerAsync(PetCenterContext context, Guid customerId)
+        {
+            var cus = await context.Customers.FindAsync(customerId);
+            if (cus == null)
+            {
+                cus = new Customer
+                {
+                    CustomerId = customerId,
+                    FullName = "Test Customer",
+                    Email = $"voucher_{Guid.NewGuid():N}@gmail.com",
+                    PhoneNumber = "0988888888",
+                    Gender = "Male",
+                    IsVerified = true,
+                    IsActive = true
+                };
+                context.Customers.Add(cus);
+                await context.SaveChangesAsync();
+            }
+            return cus;
+        }
+
+        //=====================================================================
+        // GetAvailableVouchersAsync() DB Tests (UTCID01 to UTCID07)
+        //=====================================================================
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID01_Success()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = await EnsureCustomerAsync(context, Guid.NewGuid());
+            var voucher = BuildVoucher("SALE10", discountPercent: 10, isActive: true, expiredDate: DateTime.Now.AddDays(5), minOrderAmount: 100000);
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var service = CreateCheckoutService(context);
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Single(result);
+            Assert.Equal("SALE10", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID02_Success_ExpiredDateNull_MinOrderAmountNull_UsageLimitNull()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = await EnsureCustomerAsync(context, Guid.NewGuid());
+            var voucher = BuildVoucher("SALENULL", discountPercent: 10, isActive: true, expiredDate: null, minOrderAmount: null, useageLimit: null);
+            voucher.ExpiredDate = null;
+            voucher.MinOrderAmount = null;
+            voucher.UseageLimit = null;
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var service = CreateCheckoutService(context);
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 50000);
+
+            Assert.Single(result);
+            Assert.Equal("SALENULL", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID03_Success_ExpiredDateEqualNow()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = await EnsureCustomerAsync(context, Guid.NewGuid());
+            var voucher = BuildVoucher("SALEBORDER", discountPercent: 10, isActive: true, expiredDate: DateTime.Now.AddHours(1), minOrderAmount: 100000);
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var service = CreateCheckoutService(context);
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Single(result);
+            Assert.Equal("SALEBORDER", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID04_Success_MinOrderAmountEqualOrderAmount()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = await EnsureCustomerAsync(context, Guid.NewGuid());
+            var voucher = BuildVoucher("SALEEXACT", discountPercent: 10, isActive: true, expiredDate: DateTime.Now.AddDays(5), minOrderAmount: 100000);
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var service = CreateCheckoutService(context);
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 100000);
+
+            Assert.Single(result);
+            Assert.Equal("SALEEXACT", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID05_ExcludesVoucher_WhenInactive()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = await EnsureCustomerAsync(context, Guid.NewGuid());
+            var voucher = BuildVoucher("INACTIVE", discountPercent: 10, isActive: false, expiredDate: DateTime.Now.AddDays(5), minOrderAmount: 100000);
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var service = CreateCheckoutService(context);
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID06_ExcludesVoucher_WhenExpired()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = await EnsureCustomerAsync(context, Guid.NewGuid());
+            var voucher = BuildVoucher("EXPIRED", discountPercent: 10, isActive: true, expiredDate: DateTime.Now.AddDays(-1), minOrderAmount: 100000);
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var service = CreateCheckoutService(context);
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID07_ExcludesVoucher_WhenMinOrderAmountGreaterThanOrderAmount()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var customer = await EnsureCustomerAsync(context, Guid.NewGuid());
+            var voucher = BuildVoucher("HIGHMIN", discountPercent: 10, isActive: true, expiredDate: DateTime.Now.AddDays(5), minOrderAmount: 200000);
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var service = CreateCheckoutService(context);
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Empty(result);
+        }
+
+}
 }

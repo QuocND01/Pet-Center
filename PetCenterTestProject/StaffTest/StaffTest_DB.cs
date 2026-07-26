@@ -22,6 +22,7 @@ using Role = PetCenterAPI.Models.Role;
 
 namespace PetCenterTestProject.StaffTest
 {
+    [Collection("DatabaseTests")]
     public class StaffTest_DB
     {
         private readonly Mock<ICloudinaryService> _cloudinaryServiceMock;

@@ -1,3 +1,8 @@
+using PetCenterAPI.Service.Interface;
+using PetCenterAPI.DTOs.Requests.Order;
+using PetCenterAPI.DTOs.Responses.Order;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OData.Query;
@@ -19,6 +24,7 @@ using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
 
 namespace PetCenterTestProject.OrderTest
 {
+    [Collection("DatabaseTests")]
     public class OrderTest_DB : IDisposable
     {
         private readonly PetCenterContext _context;
@@ -32,7 +38,7 @@ namespace PetCenterTestProject.OrderTest
         public OrderTest_DB()
         {
             var options = new DbContextOptionsBuilder<PetCenterContext>()
-                .UseSqlServer("Server=localhost;Database=PetCenter_Test;Trusted_Connection=True;TrustServerCertificate=True;")
+                .UseSqlServer("Server=.;Database=PetCenter_Test;User Id=sa;Password=123456;TrustServerCertificate=True;")
                 .Options;
 
             _context = new PetCenterContext(options);
@@ -58,11 +64,13 @@ namespace PetCenterTestProject.OrderTest
             _service = new OrderService(orderRepo, inventoryRepo, invenTransactionRepo, _mapper, NullLogger<OrderService>.Instance, _hubContextMock.Object);
 
             ClearDatabaseAsync(_context).Wait();
+            EnsureSeedProductAsync(_context).Wait();
         }
 
         public void Dispose()
         {
             ClearDatabaseAsync(_context).Wait();
+            EnsureSeedProductAsync(_context).Wait();
             _context.Dispose();
         }
 
@@ -71,23 +79,58 @@ namespace PetCenterTestProject.OrderTest
         //=====================================================================
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            context.InventoryTransactions.RemoveRange(context.InventoryTransactions);
+            context.ChangeTracker.Clear();
 
-            // Fix AggregateException: Phải xóa Feedbacks trước khi xóa Orders
+            context.PrescriptionItems.RemoveRange(context.PrescriptionItems);
+            context.MedicalRecords.RemoveRange(context.MedicalRecords);
+            context.AppointmentSnapshots.RemoveRange(context.AppointmentSnapshots);
+            context.AppointmentServices.RemoveRange(context.AppointmentServices);
+            context.Appointments.RemoveRange(context.Appointments);
+            context.Pets.RemoveRange(context.Pets);
+            context.CartDetails.RemoveRange(context.CartDetails);
+            context.Carts.RemoveRange(context.Carts);
+            context.OtpCodes.RemoveRange(context.OtpCodes);
+            context.InventoryTransactions.RemoveRange(context.InventoryTransactions);
             context.FeedbackImages.RemoveRange(context.FeedbackImages);
             context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
-
             context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
             context.OrderDetails.RemoveRange(context.OrderDetails);
             context.Payments.RemoveRange(context.Payments);
             context.Orders.RemoveRange(context.Orders);
             context.Addresses.RemoveRange(context.Addresses);
 
-            var dummyBatches = context.ImportStockDetails.Where(b => b.BatchCode.StartsWith("BATCH-TEST-"));
-            context.ImportStockDetails.RemoveRange(dummyBatches);
+            var dummyStockDetails = context.ImportStockDetails.Where(b => b.BatchCode.StartsWith("BATCH-TEST-") || b.BatchCode == "SEED-BATCH");
+            context.ImportStockDetails.RemoveRange(dummyStockDetails);
 
-            var dummyProducts = context.Products.Where(p => p.ProductName == "TestFakeProduct");
-            context.Products.RemoveRange(dummyProducts);
+            var dummyStocks = context.ImportStocks.Where(s => s.Note == "Seed Import Stock");
+            context.ImportStocks.RemoveRange(dummyStocks);
+
+            var dummySuppliers = context.Suppliers.Where(s => s.SupplierName == "Test Supplier");
+            context.Suppliers.RemoveRange(dummySuppliers);
+
+            var dummyStaffs = context.Staffs.Where(s => s.Email == "staff@test.com");
+            context.Staffs.RemoveRange(dummyStaffs);
+
+            // Selective delete for our new test objects to preserve seed database script data:
+            context.CustomerVouchers.RemoveRange(context.CustomerVouchers);
+            
+            var ourVouchers = context.Vouchers.Where(v => v.Code.StartsWith("VOUCHER") || v.Code.StartsWith("SALE") || v.Code.StartsWith("USED") || v.Code.StartsWith("INACTIVE") || v.Code.StartsWith("EXPIRED") || v.Code.StartsWith("HIGHMIN") || v.Code.StartsWith("LIMITREACHED"));
+            context.Vouchers.RemoveRange(ourVouchers);
+
+            var ourInventories = context.Inventories.Where(i => i.SKU.StartsWith("SKU-"));
+            context.Inventories.RemoveRange(ourInventories);
+
+            var ourProducts = context.Products.Where(p => p.ProductName.StartsWith("Product") || p.ProductName == "TestFakeProduct");
+            context.Products.RemoveRange(ourProducts);
+
+            var ourCategories = context.Categories.Where(c => c.CategoryName.StartsWith("Test"));
+            context.Categories.RemoveRange(ourCategories);
+
+            var ourBrands = context.Brands.Where(b => b.BrandName.StartsWith("Test"));
+            context.Brands.RemoveRange(ourBrands);
+
+            var ourCustomers = context.Customers.Where(c => c.FullName.StartsWith("Test"));
+            context.Customers.RemoveRange(ourCustomers);
 
             await context.SaveChangesAsync();
         }
@@ -529,5 +572,818 @@ namespace PetCenterTestProject.OrderTest
         {
             await Assert.ThrowsAnyAsync<Exception>(() => CreateServiceWithDisposedContext().CancelOrderAsync(Guid.NewGuid()));
         }
-    }
+    
+
+        //=====================================================================
+        // Helper: Create CheckoutService
+        //=====================================================================
+        private CheckoutService CreateCheckoutService(PetCenterContext context)
+        {
+            var hubMock = new Mock<IHubContext<AppHub>>();
+            var clientsMock = new Mock<IHubClients>();
+            var clientProxyMock = new Mock<IClientProxy>();
+            clientsMock.Setup(x => x.Group(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            clientsMock.Setup(x => x.User(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            hubMock.Setup(x => x.Clients).Returns(clientsMock.Object);
+
+            var vnPayMock = new Mock<IVnPayService>();
+            var moMoMock = new Mock<IMoMoService>();
+
+            return new CheckoutService(context, hubMock.Object, vnPayMock.Object, moMoMock.Object, NullLogger<CheckoutService>.Instance);
+        }
+
+        private async Task EnsureSeedProductAsync(PetCenterContext context)
+        {
+            var brandId21 = Guid.Parse("beb6c5b4-348f-48ce-a596-373759553999");
+            var brand21 = await context.Brands.FindAsync(brandId21);
+            if (brand21 == null)
+            {
+                brand21 = new Brand { BrandId = brandId21, BrandName = "Seed Brand UTC03", Status = PetCenterAPI.Common.Status.Active };
+                context.Brands.Add(brand21);
+                await context.SaveChangesAsync();
+            }
+
+            var catId11 = Guid.Parse("82310f10-ce1b-47ee-9c20-614921d6ae57");
+            var cat11 = await context.Categories.FindAsync(catId11);
+            if (cat11 == null)
+            {
+                cat11 = new Category { CategoryId = catId11, CategoryName = "Seed Category UTC03", Status = PetCenterAPI.Common.Status.Active };
+                context.Categories.Add(cat11);
+                await context.SaveChangesAsync();
+            }
+
+            var product = await context.Products.FindAsync(SeedProductId);
+            if (product == null)
+            {
+                var brand = await context.Brands.FirstOrDefaultAsync(b => b.BrandName == "Seed Brand");
+                if (brand == null)
+                {
+                    brand = new Brand { BrandId = Guid.NewGuid(), BrandName = "Seed Brand", Status = PetCenterAPI.Common.Status.Active };
+                    context.Brands.Add(brand);
+                    await context.SaveChangesAsync();
+                }
+
+                var category = await context.Categories.FirstOrDefaultAsync(c => c.CategoryName == "Seed Category");
+                if (category == null)
+                {
+                    category = new Category { CategoryId = Guid.NewGuid(), CategoryName = "Seed Category", Status = PetCenterAPI.Common.Status.Active };
+                    context.Categories.Add(category);
+                    await context.SaveChangesAsync();
+                }
+
+                product = new Product
+                {
+                    ProductId = SeedProductId,
+                    ProductName = "Seed Product",
+                    ProductPrice = 50000,
+                    CategoryId = category.CategoryId,
+                    BrandId = brand.BrandId,
+                    Status = PetCenterAPI.Common.Status.Active,
+                    AddedAt = DateTime.UtcNow
+                };
+                context.Products.Add(product);
+                await context.SaveChangesAsync();
+            }
+
+            var inventory = await context.Inventories.FirstOrDefaultAsync(i => i.ProductId == SeedProductId);
+            if (inventory == null)
+            {
+                inventory = new Inventory
+                {
+                    InventoryId = Guid.NewGuid(),
+                    ProductId = SeedProductId,
+                    SKU = "SEED-SKU",
+                    QuantityAvailable = 1000,
+                    QuantityReserved = 100,
+                    LastUpdated = DateTime.UtcNow
+                };
+                context.Inventories.Add(inventory);
+                await context.SaveChangesAsync();
+            }
+
+            var importStockId = Guid.Parse("51000000-0000-0000-0000-000000000001");
+            var importStock = await context.ImportStocks.FindAsync(importStockId);
+            if (importStock == null)
+            {
+                var staff = await context.Staffs.FirstOrDefaultAsync();
+                if (staff == null)
+                {
+                    staff = new Staff
+                    {
+                        StaffId = Guid.NewGuid(),
+                        FullName = "Test Staff",
+                        Email = "staff@test.com",
+                        PhoneNumber = "0123456789",
+                        PasswordHash = "password",
+                        Gender = "Male",
+                        BirthDate = DateTime.UtcNow.AddYears(-25),
+                        HireDate = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        IsActive = true
+                    };
+                    context.Staffs.Add(staff);
+                    await context.SaveChangesAsync();
+                }
+
+                var supplier = await context.Suppliers.FirstOrDefaultAsync();
+                if (supplier == null)
+                {
+                    supplier = new Supplier
+                    {
+                        SupplierId = Guid.NewGuid(),
+                        TaxId = "TAX-123",
+                        SupplierName = "Test Supplier",
+                        SupplierEmail = "supplier@test.com",
+                        SupplierPhoneNumber = "0123456789",
+                        SupplierAddress = "Test Address",
+                        IsActive = true
+                    };
+                    context.Suppliers.Add(supplier);
+                    await context.SaveChangesAsync();
+                }
+
+                importStock = new ImportStock
+                {
+                    ImportId = importStockId,
+                    StaffId = staff.StaffId,
+                    SupplierId = supplier.SupplierId,
+                    ImportDate = DateTime.UtcNow,
+                    TotalAmount = 100000,
+                    InvoiceNumber = "INV-SEED",
+                    Status = ImportStock.ImportStatus.Confirmed,
+                    Note = "Seed Import Stock"
+                };
+                context.ImportStocks.Add(importStock);
+                await context.SaveChangesAsync();
+            }
+
+            var batch = await context.ImportStockDetails.FirstOrDefaultAsync(b => b.ProductId == SeedProductId);
+            if (batch == null)
+            {
+                batch = new ImportStockDetail
+                {
+                    ImportStockDetailsId = Guid.NewGuid(),
+                    ImportId = importStockId,
+                    ProductId = SeedProductId,
+                    SKU = "SEED-SKU",
+                    BatchCode = "SEED-BATCH",
+                    ImportPrice = 10000,
+                    Quantity = 20,
+                    StockLeft = 20, // less than 50 for UTCID06
+                    ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30))
+                };
+                context.ImportStockDetails.Add(batch);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private async Task<(Guid productId, Guid categoryId, Guid brandId)> SeedProductAndInventoryAsync(
+            PetCenterContext context,
+            string productName,
+            int qtyAvailable,
+            int qtyReserved)
+        {
+            var brand = new Brand { BrandId = Guid.NewGuid(), BrandName = "Test Brand", Status = PetCenterAPI.Common.Status.Active };
+            var category = new Category { CategoryId = Guid.NewGuid(), CategoryName = "Test Category", Status = PetCenterAPI.Common.Status.Active };
+            context.Brands.Add(brand);
+            context.Categories.Add(category);
+            await context.SaveChangesAsync();
+
+            var product = new Product
+            {
+                ProductId = Guid.NewGuid(),
+                ProductName = productName,
+                ProductPrice = 100000,
+                CategoryId = category.CategoryId,
+                BrandId = brand.BrandId,
+                Status = PetCenterAPI.Common.Status.Active,
+                AddedAt = DateTime.UtcNow
+            };
+            context.Products.Add(product);
+            await context.SaveChangesAsync();
+
+            var inventory = new Inventory
+            {
+                InventoryId = Guid.NewGuid(),
+                ProductId = product.ProductId,
+                SKU = "SKU-" + Guid.NewGuid().ToString("N").Substring(0, 8),
+                QuantityAvailable = qtyAvailable,
+                QuantityReserved = qtyReserved,
+                LastUpdated = DateTime.UtcNow
+            };
+            context.Inventories.Add(inventory);
+            await context.SaveChangesAsync();
+
+            return (product.ProductId, category.CategoryId, brand.BrandId);
+        }
+
+        //=====================================================================
+        // PlaceCodOrderAsync() Tests (UTCID01 to UTCID17)
+        //=====================================================================
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID01_Success()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER1",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(5),
+                MinOrderAmount = 50000,
+                MaxDiscountAmount = 20000,
+                UseageLimit = 5,
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+            Assert.Equal("Order placed successfully!", result.Message);
+            Assert.NotNull(result.OrderId);
+
+            var order = await _context.Orders.FindAsync(result.OrderId.Value);
+            Assert.NotNull(order);
+            Assert.Equal(180000, order.TotalAmount); // 200000 - 20000 discount
+            Assert.Equal(20000, order.DiscountAmount);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID02_Success_VoucherExpiredDateNull_MinOrderAmountNull_UsageLimitNull()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER2",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = null,
+                MinOrderAmount = null,
+                UseageLimit = null,
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID03_Success_VoucherExpiredDateEqualNow()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER3",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddHours(2), // equal/greater than now
+                MinOrderAmount = 50000,
+                UseageLimit = 5,
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID04_Success_VoucherMinOrderAmountEqualOrderAmount()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER4",
+                DiscountPercent = 10,
+                IsActive = true,
+                MinOrderAmount = 200000, // equals subtotal
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID05_Success_VoucherUsageLimitEqualOne_RemainingOne()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER5",
+                DiscountPercent = 10,
+                IsActive = true,
+                UseageLimit = 1,
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+
+            var updatedVoucher = await _context.Vouchers.FindAsync(voucher.VoucherId);
+            Assert.Equal(0, updatedVoucher.UseageLimit);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID06_Success_VoucherMaxDiscountAmountApplied()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "VOUCHER6",
+                DiscountPercent = 50, // 50% of 200000 = 100000
+                MaxDiscountAmount = 30000, // Capped at 30000
+                IsActive = true,
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+            var order = await _context.Orders.FindAsync(result.OrderId.Value);
+            Assert.Equal(30000, order.DiscountAmount);
+            Assert.Equal(170000, order.TotalAmount);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID07_Success_InventoryStockEqualQuantityRequested()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 2, 0); // available = 2
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID08_Fail_AddressInvalid()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = Guid.NewGuid(), // Invalid address
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The address is invalid or does not belong to this account.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID09_Fail_VoucherAlreadyUsed()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "USED123",
+                DiscountPercent = 10,
+                IsActive = true,
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            _context.CustomerVouchers.Add(new CustomerVoucher
+            {
+                CustomerId = customer.CustomerId,
+                VoucherId = voucher.VoucherId,
+                IsUsed = true
+            });
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("You have already used this voucher.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID10_Fail_VoucherInactive()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "INACTIVE",
+                DiscountPercent = 10,
+                IsActive = false,
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The voucher is invalid or has been deactivated.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID11_Fail_VoucherExpired()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "EXPIRED",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(-1), // Expired
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The voucher has expired.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID12_Fail_VoucherMinOrderAmountNotReached()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "HIGHMIN",
+                DiscountPercent = 10,
+                IsActive = true,
+                MinOrderAmount = 300000, // min = 300k, order = 200k
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("A minimum order of 300,000 ₫ is required to apply this voucher.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID13_Fail_VoucherUsageLimitReached()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "LIMITREACHED",
+                DiscountPercent = 10,
+                IsActive = true,
+                UseageLimit = 0, // usage limit is 0
+                CreateAt = DateTime.Now
+            };
+            _context.Vouchers.Add(voucher);
+            await _context.SaveChangesAsync();
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                VoucherId = voucher.VoucherId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("The voucher has reached its usage limit.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID14_Fail_InventoryStockInsufficient()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 1, 0); // only 1 stock available
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 } // requesting 2
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Contains("does not have enough stock", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID15_Fail_SupplierNotFound_WhenProductDetailsNotFoundInInventory()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var productId = Guid.NewGuid(); // No inventory seeded
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Equal("Inventory information for the product was not found.", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID16_Fail_InventoryStockInsufficient_Edge()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 5, 4); // available = 5 - 4 = 1
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 } // requesting 2
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            var result = await service.PlaceCodOrderAsync(request);
+
+            Assert.False(result.Success);
+            Assert.Contains("does not have enough stock", result.Message);
+        }
+
+        [Fact]
+        public async Task PlaceCodOrderAsync_UTCID17_Fail_DatabaseSaveThrowsException()
+        {
+            await ClearDatabaseAsync(_context);
+
+            var customer = await EnsureCustomerAsync(Guid.NewGuid());
+            var address = await EnsureAddressAsync(customer.CustomerId);
+            var (productId, _, _) = await SeedProductAndInventoryAsync(_context, "Product 1", 10, 0);
+
+            var brandId = Guid.NewGuid();
+            _context.Brands.Add(new Brand { BrandId = brandId, BrandName = "Dup-DB-1-" + Guid.NewGuid().ToString("N"), Status = PetCenterAPI.Common.Status.Active });
+            await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
+            _context.Brands.Add(new Brand { BrandId = brandId, BrandName = "Dup-DB-2-" + Guid.NewGuid().ToString("N"), Status = PetCenterAPI.Common.Status.Active });
+
+            var request = new PlaceCodOrderDTO
+            {
+                CustomerId = customer.CustomerId,
+                AddressId = address.AddressId,
+                Items = new List<CodOrderItemDTO>
+                {
+                    new CodOrderItemDTO { ProductId = productId, Quantity = 2, UnitPrice = 100000 }
+                }
+            };
+
+            var service = CreateCheckoutService(_context);
+            await Assert.ThrowsAnyAsync<Exception>(() => service.PlaceCodOrderAsync(request));
+        }
+
+}
 }
