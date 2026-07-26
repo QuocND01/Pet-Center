@@ -1,3 +1,10 @@
+using PetCenterAPI.Service.Interface;
+using PetCenterAPI.DTOs.Responses.Order;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using Microsoft.AspNetCore.SignalR;
+using PetCenterAPI.Hubs;
+using Microsoft.EntityFrameworkCore;
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -1039,5 +1046,226 @@ namespace PetCenterTestProject.VoucherTest
             Assert.Equal("Max discount amount must be less than min order amount.", result.Message);
             _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
         }
-    }
+    
+
+        //=====================================================================
+        // Helper: Create CheckoutService in Memory (for Mock tests)
+        //=====================================================================
+        private (PetCenterContext context, CheckoutService service) CreateInMemoryCheckoutService()
+        {
+            var options = new DbContextOptionsBuilder<PetCenterContext>()
+                .UseInMemoryDatabase("DbVoucherMock_" + Guid.NewGuid().ToString())
+                .Options;
+
+            var context = new PetCenterContext(options);
+
+            var hubMock = new Mock<IHubContext<AppHub>>();
+            var clientsMock = new Mock<IHubClients>();
+            var clientProxyMock = new Mock<IClientProxy>();
+            clientsMock.Setup(x => x.Group(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            clientsMock.Setup(x => x.User(It.IsAny<string>())).Returns(clientProxyMock.Object);
+            hubMock.Setup(x => x.Clients).Returns(clientsMock.Object);
+
+            var vnPayMock = new Mock<IVnPayService>();
+            var moMoMock = new Mock<IMoMoService>();
+
+            var service = new CheckoutService(context, hubMock.Object, vnPayMock.Object, moMoMock.Object, NullLogger<CheckoutService>.Instance);
+            return (context, service);
+        }
+
+        private async Task<Customer> EnsureCustomerInMemoryAsync(PetCenterContext context, Guid customerId)
+        {
+            var cus = new Customer
+            {
+                CustomerId = customerId,
+                FullName = "Test Customer",
+                Email = $"voucher_{Guid.NewGuid():N}@gmail.com",
+                PhoneNumber = "0988888888",
+                Gender = "Male",
+                IsVerified = true,
+                IsActive = true
+            };
+            context.Customers.Add(cus);
+            await context.SaveChangesAsync();
+            return cus;
+        }
+
+        //=====================================================================
+        // GetAvailableVouchersAsync() Mock Tests (UTCID01 to UTCID07)
+        //=====================================================================
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID01_Success()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "SALE10",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(5),
+                MinOrderAmount = 100000,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Single(result);
+            Assert.Equal("SALE10", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID02_Success_ExpiredDateNull_MinOrderAmountNull_UsageLimitNull()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "SALENULL",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = null,
+                MinOrderAmount = null,
+                UseageLimit = null,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 50000);
+
+            Assert.Single(result);
+            Assert.Equal("SALENULL", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID03_Success_ExpiredDateEqualNow()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "SALEBORDER",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddHours(1),
+                MinOrderAmount = 100000,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Single(result);
+            Assert.Equal("SALEBORDER", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID04_Success_MinOrderAmountEqualOrderAmount()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "SALEEXACT",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(5),
+                MinOrderAmount = 100000,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 100000);
+
+            Assert.Single(result);
+            Assert.Equal("SALEEXACT", result[0].Code);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID05_ExcludesVoucher_WhenInactive()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "INACTIVE",
+                DiscountPercent = 10,
+                IsActive = false,
+                ExpiredDate = DateTime.Now.AddDays(5),
+                MinOrderAmount = 100000,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID06_ExcludesVoucher_WhenExpired()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "EXPIRED",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(-1),
+                MinOrderAmount = 100000,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetAvailableVouchersAsync_UTCID07_ExcludesVoucher_WhenMinOrderAmountGreaterThanOrderAmount()
+        {
+            var (context, service) = CreateInMemoryCheckoutService();
+
+            var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
+            var voucher = new Voucher
+            {
+                VoucherId = Guid.NewGuid(),
+                Code = "HIGHMIN",
+                DiscountPercent = 10,
+                IsActive = true,
+                ExpiredDate = DateTime.Now.AddDays(5),
+                MinOrderAmount = 200000,
+                CreateAt = DateTime.Now
+            };
+            context.Vouchers.Add(voucher);
+            await context.SaveChangesAsync();
+
+            var result = await service.GetAvailableVouchersAsync(customer.CustomerId, 150000);
+
+            Assert.Empty(result);
+        }
+
+}
 }

@@ -15,6 +15,7 @@ using Xunit;
 
 namespace PetCenterTestProject.CartTest
 {
+    [Collection("DatabaseTests")]
     public class CartTest_DB
     {
         private PetCenterContext CreateContext()
@@ -49,15 +50,26 @@ namespace PetCenterTestProject.CartTest
             context.AppointmentSnapshots.RemoveRange(context.AppointmentSnapshots);
             context.AppointmentServices.RemoveRange(context.AppointmentServices);
             context.Appointments.RemoveRange(context.Appointments);
+            context.FeedbackImages.RemoveRange(context.FeedbackImages);
+            context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
+            context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
+            context.OrderDetails.RemoveRange(context.OrderDetails);
+            context.Payments.RemoveRange(context.Payments);
+            context.Orders.RemoveRange(context.Orders);
             context.Pets.RemoveRange(context.Pets);
             context.CartDetails.RemoveRange(context.CartDetails);
             context.Carts.RemoveRange(context.Carts);
+            context.CustomerVouchers.RemoveRange(context.CustomerVouchers);
+            context.OtpCodes.RemoveRange(context.OtpCodes);
+            context.Addresses.RemoveRange(context.Addresses);
+            context.Customers.RemoveRange(context.Customers);
+            context.ImportStockDetails.RemoveRange(context.ImportStockDetails);
+            context.ImportStocks.RemoveRange(context.ImportStocks);
             context.Inventories.RemoveRange(context.Inventories);
             context.Products.RemoveRange(context.Products);
             context.Brands.RemoveRange(context.Brands);
             context.Categories.RemoveRange(context.Categories);
             context.VetFeedbacks.RemoveRange(context.VetFeedbacks);
-            context.Customers.RemoveRange(context.Customers);
             context.VetProfiles.RemoveRange(context.VetProfiles);
             context.Set<Dictionary<string, object>>("StaffRole").RemoveRange(context.Set<Dictionary<string, object>>("StaffRole"));
             context.Staffs.RemoveRange(context.Staffs);

@@ -14,6 +14,7 @@ using static PetCenterAPI.DTOs.Requests.PrescriptionItem.PrescriptionItemRequest
 
 namespace PetCenterTestProject.PrescriptionItemTest
 {
+    [Collection("DatabaseTests")]
     public class PrescriptionItemTest_DB
     {
         private PetCenterContext CreateContext()
