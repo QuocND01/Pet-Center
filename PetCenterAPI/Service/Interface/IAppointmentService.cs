@@ -1,5 +1,6 @@
 ﻿using PetCenterAPI.DTOs.Requests.Appointment;
 using PetCenterAPI.DTOs.Responses.Appointment;
+using System.Text.Json;
 
 namespace PetCenterAPI.Service.Interface
 {
@@ -19,6 +20,9 @@ namespace PetCenterAPI.Service.Interface
         Task SubmitReviewAsync(Guid customerId,SubmitReviewRequestDTO request);
         Task CompleteAppointmentService(Guid AppointmentServiceId);
         Task<List<AvailableSlotResponseDTO>>GetAvailableSlotsAsync(GetAvailableSlotsRequestDTO request);
+        Task<AppointmentPaymentResponseDTO> CreatePaymentUrlAsync(AppointmentPaymentRequestDTO request);
+        Task<PaymentCallbackResponseDTO> ProcessVnPayCallbackAsync(IQueryCollection query);
+        Task<PaymentCallbackResponseDTO> ProcessMoMoCallbackAsync(JsonElement body, string rawBody, string signature);
 
     }
 }

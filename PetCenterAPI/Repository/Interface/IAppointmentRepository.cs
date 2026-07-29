@@ -39,6 +39,7 @@ namespace PetCenterAPI.Repository.Interface
         Task<List<Appointment>> GetDoctorAppointmentsByDateAsync(
         Guid staffId,
         DateOnly date);
+        Task UpdateAsync(Appointment appointment);
 
     }
 }

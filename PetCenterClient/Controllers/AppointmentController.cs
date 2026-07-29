@@ -272,5 +272,64 @@ namespace PetCenterClient.Controllers
                 id = appointmentId
             });
         }
+        /// <summary>
+        /// Action xử lý gửi request khởi tạo thanh toán từ AJAX View
+        /// Route: POST /Appointment/CreatePayment
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreatePayment([FromBody] AppointmentPaymentRequestViewModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Json(new { status = false, message = "Dữ liệu không hợp lệ." });
+            }
+
+            try
+            {
+                // Lấy Token từ Session/Cookie/Claims của Client
+                var token = HttpContext.Session.GetString("JWToken")
+                         ?? User.FindFirst("JWToken")?.Value
+                         ?? string.Empty;
+
+                // Lấy IP Client nếu không có
+                if (string.IsNullOrEmpty(request.ClientIpAddress))
+                {
+                    var ip = HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
+                    request.ClientIpAddress = (ip == "0.0.0.1" || string.IsNullOrEmpty(ip)) ? "127.0.0.1" : ip;
+                }
+
+                var paymentResponse = await _appointmentApiService.CreatePaymentUrlAsync(request, token);
+
+                if (paymentResponse != null && !string.IsNullOrEmpty(paymentResponse.PaymentUrl))
+                {
+                    return Json(new
+                    {
+                        status = true,
+                        message = "Khởi tạo thanh toán thành công.",
+                        data = paymentResponse
+                    });
+                }
+
+                return Json(new { status = false, message = "Không thể tạo liên kết thanh toán. Vui lòng thử lại." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Trang hiển thị kết quả trả về sau khi khách thanh toán xong trên VNPay / MoMo
+        /// Route: GET /Appointment/PaymentReturn
+        /// </summary>
+        [HttpGet]
+        public IActionResult PaymentReturn([FromQuery] bool success, [FromQuery] string? message, [FromQuery] Guid? appointmentId)
+        {
+            ViewBag.Success = success;
+            ViewBag.Message = message ?? (success ? "Thanh toán lịch hẹn thành công!" : "Thanh toán thất bại.");
+            ViewBag.AppointmentId = appointmentId;
+
+            return View("~/Views/CustomerViews/Appointment/PaymentReturn.cshtml");
+        }
     }
 }

@@ -1,7 +1,9 @@
-﻿using PetCenterClient.Services.Interface;
+﻿using PetCenterClient.DTOs;
+using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels;
 using PetCenterClient.ViewModels.Appointment;
 using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace PetCenterClient.Services
 {
@@ -9,14 +11,18 @@ namespace PetCenterClient.Services
     {
         private readonly HttpClient _http;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<AppointmentApiService> _logger;
         public AppointmentApiService(
             HttpClient http,
             IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<AppointmentApiService> logger)
+            
         {
             _http = http;
             _http.BaseAddress = new Uri(configuration["Api:Url"]!);
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
         // Hàm helper để gán Token vào header cho mọi request
         private void AddAuthorizationHeader()
@@ -248,6 +254,41 @@ namespace PetCenterClient.Services
 
             if (!response.IsSuccessStatusCode)
                 throw new Exception(result.Message);
+        }
+        public async Task<AppointmentPaymentResponseViewModel?> CreatePaymentUrlAsync(
+            AppointmentPaymentRequestViewModel request,
+            string token)
+        {
+            try
+            {
+                // Gắn JWT Token vào Request Header
+                if (!string.IsNullOrEmpty(token))
+                {
+                    _http.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", token);
+                }
+
+                var response = await _http.PostAsJsonAsync("api/Appointment/payment/create", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponseViewModel<AppointmentPaymentResponseViewModel>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    return result?.Data;
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("[AppointmentApiService] CreatePaymentUrl failed with status {Code}: {Error}",
+                    response.StatusCode, errorContent);
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[AppointmentApiService] Exception in CreatePaymentUrlAsync");
+                throw;
+            }
         }
     }
 }

@@ -1,31 +1,40 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using PetCenterAPI.DTOs.Requests.Appointment;
 using PetCenterAPI.DTOs.Requests.Order;
+using PetCenterAPI.Models;
 using PetCenterAPI.Service.Interface;
+using System.Text.Json;
 
 namespace PetCenterAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class PaymentsController : ControllerBase
-    {
+    {   
         private readonly ICheckoutService _checkoutService;
         private readonly IVnPayService _vnPayService;
         private readonly IMoMoService _moMoService;
         private readonly ILogger<PaymentsController> _logger;
+        private readonly IAppointmentService _appointmentService;
+        private readonly PetCenterContext _petCenterContext;
 
         public PaymentsController(
             ICheckoutService checkoutService,
             IVnPayService vnPayService,
             IMoMoService moMoService,
-            ILogger<PaymentsController> logger)
+            ILogger<PaymentsController> logger,
+            IAppointmentService appointmentService,
+            PetCenterContext petCenterContext)
         {
             _checkoutService = checkoutService;
             _vnPayService = vnPayService;
             _moMoService = moMoService;
             _logger = logger;
+            _appointmentService = appointmentService;
+            _petCenterContext = petCenterContext;
         }
 
         // POST api/Payments/vnpay/create
@@ -66,6 +75,13 @@ namespace PetCenterAPI.Controllers
                 }
 
                 var cbResult = _vnPayService.ParseCallback(Request.Query);
+
+                // 1. Tìm bản ghi Payment để kiểm tra loại giao dịch (Appointment hay Order)
+                var payment = await _petCenterContext.Payments
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.TransactionRef == cbResult.TransactionRef);
+
+                // 2. Xử lý logic cập nhật DB (ProcessPaymentCallbackAsync đã phân nhánh ở bước trước)
                 var processResult = await _checkoutService.ProcessPaymentCallbackAsync(
                     cbResult.TransactionRef,
                     cbResult.GatewayTransactionNo,
@@ -75,8 +91,27 @@ namespace PetCenterAPI.Controllers
                     cbResult.RawData,
                     cbResult.IsSuccess);
 
-                var redirectUrl = $"https://localhost:7010/Checkout/PaymentReturn?success={processResult.Success}&orderId={processResult.OrderId}&message={Uri.EscapeDataString(processResult.Message ?? "")}";
-                return Redirect(redirectUrl);
+                // 3. Phân nhánh Redirect dựa vào Payment Entity
+                if (payment != null && payment.AppointmentId != Guid.Empty)
+                {
+                    // Direct sang Client Action: /Appointment/PaymentReturn
+                    var appointmentRedirectUrl = $"https://localhost:7010/Appointment/PaymentReturn" +
+                        $"?success={processResult.Success}" +
+                        $"&appointmentId={payment.AppointmentId}" +
+                        $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
+
+                    return Redirect(appointmentRedirectUrl);
+                }
+                else
+                {
+                    // Direct sang Client Action: /Checkout/PaymentReturn (Order)
+                    var orderRedirectUrl = $"https://localhost:7010/Checkout/PaymentReturn" +
+                        $"?success={processResult.Success}" +
+                        $"&orderId={processResult.OrderId}" +
+                        $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
+
+                    return Redirect(orderRedirectUrl);
+                }
             }
             catch (Exception ex)
             {
@@ -158,16 +193,22 @@ namespace PetCenterAPI.Controllers
             {
                 // MoMo sends parameters in query string for redirect
                 var resultCode = Request.Query["resultCode"].FirstOrDefault();
-                var orderId = Request.Query["orderId"].FirstOrDefault();
+                var transactionRef = Request.Query["orderId"].FirstOrDefault() ?? string.Empty; // MoMo's orderId is our TransactionRef
                 var message = Request.Query["message"].FirstOrDefault() ?? "";
                 var transId = Request.Query["transId"].FirstOrDefault() ?? "";
                 var amountStr = Request.Query["amount"].FirstOrDefault();
-                
+
                 var success = resultCode == "0";
                 decimal.TryParse(amountStr, out var amount);
 
+                // 1. Kiểm tra bản ghi Payment trong DB để xác định loại giao dịch
+                var payment = await _petCenterContext.Payments
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.TransactionRef == transactionRef);
+
+                // 2. Xử lý cập nhật trạng thái thanh toán & đặt lịch/đơn hàng
                 var processResult = await _checkoutService.ProcessPaymentCallbackAsync(
-                    orderId ?? string.Empty,
+                    transactionRef,
                     transId,
                     resultCode ?? "99",
                     string.Empty, // MoMo doesn't provide BankCode
@@ -175,13 +216,31 @@ namespace PetCenterAPI.Controllers
                     Request.QueryString.ToString(),
                     success);
 
-                var redirectUrl = $"https://localhost:7010/Checkout/PaymentReturn?success={processResult.Success}&orderId={processResult.OrderId}&message={Uri.EscapeDataString(processResult.Message)}";
-                return Redirect(redirectUrl);
+                // 3. Phân nhánh Redirect dựa trên Payment Entity
+                if (payment != null && payment.AppointmentId.HasValue && payment.AppointmentId.Value != Guid.Empty)
+                {
+                    // Redirect về Client Appointment Result
+                    var appointmentRedirectUrl = $"https://localhost:7010/Appointment/PaymentReturn" +
+                        $"?success={processResult.Success}" +
+                        $"&appointmentId={payment.AppointmentId}" +
+                        $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
+
+                    return Redirect(appointmentRedirectUrl);
+                }
+
+                // Redirect về Client Order Result (mặc định cho Order)
+                var orderRedirectUrl = $"https://localhost:7010/Checkout/PaymentReturn" +
+                    $"?success={processResult.Success}" +
+                    $"&orderId={processResult.OrderId}" +
+                    $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
+
+                return Redirect(orderRedirectUrl);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[MoMo] Error processing Return URL");
-                return Redirect($"https://localhost:7010/Checkout/PaymentReturn?success=false&message={Uri.EscapeDataString(ex.Message)}");
+                // Khi xảy ra Exception, ưu tiên fallback về Appointment/PaymentReturn nếu thất bại
+                return Redirect($"https://localhost:7010/Appointment/PaymentReturn?success=false&message={Uri.EscapeDataString(ex.Message)}");
             }
         }
 

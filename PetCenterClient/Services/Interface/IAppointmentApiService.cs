@@ -25,5 +25,6 @@ namespace PetCenterClient.Services.Interface
         Task ForwardAppointmentStatusAsync(Guid appointmentId);
 
         Task CompleteAppointmentServiceAsync(Guid appointmentServiceId);
+        Task<AppointmentPaymentResponseViewModel?> CreatePaymentUrlAsync(AppointmentPaymentRequestViewModel request, string token);
     }
 }

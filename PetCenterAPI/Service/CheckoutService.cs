@@ -501,13 +501,13 @@ namespace PetCenterAPI.Service
         //  On failure: mark Payment failed, cancel Order.
         // ═══════════════════════════════════════════════════════════════════
         public async Task<PlaceOrderResponseDTO> ProcessPaymentCallbackAsync(
-            string transactionRef,
-            string gatewayTransactionNo,
-            string responseCode,
-            string bankCode,
-            decimal paidAmount,
-            string rawResponse,
-            bool isSuccess)
+    string transactionRef,
+    string gatewayTransactionNo,
+    string responseCode,
+    string bankCode,
+    decimal paidAmount,
+    string rawResponse,
+    bool isSuccess)
         {
             // ── 1. Find Payment by TransactionRef ────────────────────────
             var payment = await _db.Payments
@@ -523,7 +523,7 @@ namespace PetCenterAPI.Service
                 };
             }
 
-            // ── 2. Idempotency check ────────────────────────────────────
+            // ── 2. Idempotency check (2: Success, 3: Failed) ─────────────
             if (payment.Status == 2 || payment.Status == 3)
             {
                 _logger.LogInformation("[PaymentCallback] Payment {Ref} has already been processed (Status={Status}). Skipping.",
@@ -532,10 +532,86 @@ namespace PetCenterAPI.Service
                 {
                     Success = true,
                     Message = "This payment has already been processed.",
-                    OrderId = payment.OrderId
+                    OrderId = payment.OrderId != Guid.Empty ? payment.OrderId : payment.AppointmentId
                 };
             }
 
+            // ── 3. CẢI TIẾN: Phân nhánh xử lý APPOINTMENT vs ORDER ───────
+
+            // =============================================================
+            // NHÁNH A: XỬ LÝ CHO APPOINTMENT (LỊCH HẸN)
+            // =============================================================
+            if (payment.AppointmentId != Guid.Empty)
+            {
+                var appointment = await _db.Appointments
+                    .FirstOrDefaultAsync(a => a.AppointmentId == payment.AppointmentId);
+
+                if (appointment == null)
+                {
+                    return new PlaceOrderResponseDTO
+                    {
+                        Success = false,
+                        Message = "Appointment not found for this payment."
+                    };
+                }
+
+                // Cập nhật thông tin Payment từ Cổng thanh toán
+                payment.GatewayTransactionNo = gatewayTransactionNo;
+                payment.ResponseCode = responseCode;
+                payment.BankCode = bankCode;
+                payment.RawResponse = rawResponse;
+                payment.UpdatedAt = DateTime.Now;
+
+                if (isSuccess)
+                {
+                    payment.Status = 2; // Success
+                    payment.PaidAmount = paidAmount;
+                    payment.PaidAt = DateTime.Now;
+
+                    // Cập nhật trạng thái Appointment
+                    appointment.Status = 2; // Confirmed (Đã xác nhận & thanh toán)
+                    appointment.PaidAmount += paidAmount;
+                    appointment.UpdatedAt = DateTime.Now;
+
+                    await _db.SaveChangesAsync();
+
+                    _logger.LogInformation("[PaymentCallback] Payment SUCCESS for Appointment {AppointmentId}. Ref={Ref}",
+                        appointment.AppointmentId, transactionRef);
+
+                    // SignalR thông báo (nếu có)
+                    try
+                    {
+                        await _hub.Clients.Group("Admins").SendAsync("AppointmentUpdated", new { AppointmentId = appointment.AppointmentId, Status = appointment.Status });
+                        if (appointment.CustomerId != Guid.Empty)
+                            await _hub.Clients.User(appointment.CustomerId.ToString()).SendAsync("AppointmentUpdated", new { AppointmentId = appointment.AppointmentId, Status = appointment.Status });
+                    }
+                    catch { }
+
+                    return new PlaceOrderResponseDTO
+                    {
+                        Success = true,
+                        Message = "Thanh toán lịch hẹn thành công.",
+                        OrderId = appointment.AppointmentId,
+                        FinalAmount = appointment.Total
+                    };
+                }
+                else
+                {
+                    payment.Status = 3; // Failed
+                    await _db.SaveChangesAsync();
+
+                    return new PlaceOrderResponseDTO
+                    {
+                        Success = false,
+                        Message = "Thanh toán lịch hẹn thất bại.",
+                        OrderId = appointment.AppointmentId
+                    };
+                }
+            }
+
+            // =============================================================
+            // NHÁNH B: XỬ LÝ CHO ORDER (MUA HÀNG ONLINE - GIỮ NGUYÊN CODE CŨ)
+            // =============================================================
             var order = await _db.Orders
                 .Include(o => o.OrderDetails)
                 .FirstOrDefaultAsync(o => o.OrderId == payment.OrderId);
@@ -612,7 +688,6 @@ namespace PetCenterAPI.Service
 
                 if (inventoryInsufficient)
                 {
-                    // Payment succeeded at gateway but we can't fulfill — mark for refund
                     payment.Status = 3;  // Failed (can't fulfill)
                     payment.ResponseCode = responseCode;
                     payment.GatewayTransactionNo = gatewayTransactionNo;
@@ -649,7 +724,7 @@ namespace PetCenterAPI.Service
                     };
                 }
 
-                // ── 4b. Reserve inventory (identical to COD order placement) ─
+                // ── 4b. Reserve inventory ────────────────────────────────
                 foreach (var detail in order.OrderDetails)
                 {
                     var inv = inventories.First(i => i.ProductId == detail.ProductId);

@@ -1,30 +1,39 @@
 ﻿using AutoMapper;
+using PetCenterAPI.DTOs;
 using PetCenterAPI.DTOs.Requests.Appointment;
 using PetCenterAPI.DTOs.Responses.Appointment;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
+using System.Text.Json;
 namespace PetCenterAPI.Service
 {
     public class AppointmentService : IAppointmentService
     {
-        private readonly IAppointmentRepository _repository;
+        private readonly IAppointmentRepository _appointmentRepo;
         private readonly IPetRepository _petRepo;
         private readonly IServiceRepository _serviceRepo;
         private readonly IMapper _mapper;
         private readonly IScheduleRepository _scheduleRepo;
+        private readonly IVnPayService _vnPayService;
+        private readonly IMoMoService _moMoService;
+        private readonly IPaymentRepository _paymentRepo;
+
 
         public AppointmentService(
             IAppointmentRepository repository, IPetRepository petRepo, IServiceRepository serviceRepo,
-            IMapper mapper, IScheduleRepository scheduleRepository)
+            IMapper mapper, IScheduleRepository scheduleRepository,IMoMoService moMoService, IVnPayService vnPayService, IPaymentRepository paymentRepository)
         {   
-            _repository = repository;
+            _appointmentRepo = repository;
             _petRepo = petRepo;
             _serviceRepo = serviceRepo;
             _mapper = mapper;
             _scheduleRepo = scheduleRepository;
-        }
+            _moMoService = moMoService;
+            _vnPayService = vnPayService;
+            _paymentRepo = paymentRepository;
+        } 
         public async Task<AppointmentResponseDTO> BookAppointmentAsync(
             BookAppointmentRequestDTO request)
         {
@@ -40,7 +49,7 @@ namespace PetCenterAPI.Service
 
             #region Get Services
 
-            var services = await _repository.GetServicesAsync(request.ServiceIds);
+            var services = await _appointmentRepo.GetServicesAsync(request.ServiceIds);
 
             if (services.Count != request.ServiceIds.Count)
                 throw new Exception("One or more services do not exist.");
@@ -64,7 +73,7 @@ namespace PetCenterAPI.Service
                 DateOnly.FromDateTime(request.AppointmentStart);
 
             var staffException =
-                await _repository.GetStaffExceptionAsync(
+                await _appointmentRepo.GetStaffExceptionAsync(
                     request.StaffId,
                     appointmentDate);
 
@@ -89,7 +98,7 @@ namespace PetCenterAPI.Service
             if (staffException == null)
             {
                 var globalException =
-                    await _repository.GetGlobalExceptionAsync(
+                    await _appointmentRepo.GetGlobalExceptionAsync(
                         appointmentDate);
 
                 if (globalException != null)
@@ -112,7 +121,7 @@ namespace PetCenterAPI.Service
             #region Check Global Schedule
 
             var schedule =
-                await _repository.GetGlobalScheduleAsync(
+                await _appointmentRepo.GetGlobalScheduleAsync(
                     request.AppointmentStart.DayOfWeek);
 
             if (schedule == null)
@@ -134,7 +143,7 @@ namespace PetCenterAPI.Service
             #region Check Time Conflict
 
             bool conflict =
-                await _repository.IsTimeConflictAsync(
+                await _appointmentRepo.IsTimeConflictAsync(
                     request.StaffId,
                     request.AppointmentStart,
                     appointmentEnd);
@@ -178,12 +187,12 @@ namespace PetCenterAPI.Service
                     ServiceType = service.ServiceType
                 });
             }
-            var pet = await _repository.GetPetForSnapshotAsync(request.PetId);
+            var pet = await _appointmentRepo.GetPetForSnapshotAsync(request.PetId);
 
             if (pet == null)
                 throw new Exception("Pet not found.");
 
-            var staff = await _repository.GetStaffForSnapshotAsync(request.StaffId);
+            var staff = await _appointmentRepo.GetStaffForSnapshotAsync(request.StaffId);
 
             if (staff == null)
                 throw new Exception("Doctor not found.");
@@ -209,9 +218,9 @@ namespace PetCenterAPI.Service
         Rating = 0
 
     };
-            await _repository.CreateAppointmentAsync(appointment);
+            await _appointmentRepo.CreateAppointmentAsync(appointment);
 
-            await _repository.SaveChangesAsync();
+            await _appointmentRepo.SaveChangesAsync();
             return _mapper.Map<AppointmentResponseDTO>(appointment);
         }
 
@@ -219,7 +228,7 @@ namespace PetCenterAPI.Service
         {
             var pets = await _petRepo.GetPetsByCustomerIdAsync(customerId);
 
-            var staffs = await _repository.GetActiveVetsAsync();
+            var staffs = await _appointmentRepo.GetActiveVetsAsync();
 
             var services = await _serviceRepo.GetAllActiveServicesAsync();
 
@@ -236,7 +245,7 @@ namespace PetCenterAPI.Service
         {   
 
             var appointments =
-                await _repository
+                await _appointmentRepo
                     .GetAppointmentsByCustomerAsync(customerId);
 
             return _mapper.Map<
@@ -246,7 +255,7 @@ namespace PetCenterAPI.Service
         public async Task<List<AppointmentListResponseDTO>> GetAllAppointmentsAsync()
         {
             var appointments =
-                await _repository
+                await _appointmentRepo
                     .GetAllAppointmentsAsync();
 
             return _mapper.Map<
@@ -256,7 +265,7 @@ namespace PetCenterAPI.Service
         public async Task<AppointmentResponseDTO> GetAppointmentDetailAsync(Guid appointmentId)
         {
             var appointment =
-                await _repository
+                await _appointmentRepo
                     .GetAppointmentDetailAsync(appointmentId);
 
             if (appointment == null)
@@ -273,7 +282,7 @@ namespace PetCenterAPI.Service
     Guid customerId)
         {
             var appointment =
-                await _repository
+                await _appointmentRepo
                     .GetByIdAsync(appointmentId);
 
             if (appointment == null)
@@ -308,12 +317,12 @@ namespace PetCenterAPI.Service
             appointment.Status = 0;
             appointment.UpdatedAt = DateTime.UtcNow;
 
-            await _repository.SaveChangesAsync();
+            await _appointmentRepo.SaveChangesAsync();
         }
         public async Task ForwardAppointmentStatusAsync(Guid appointmentId, Guid staffId)
         {
             var appointment =
-                await _repository
+                await _appointmentRepo
                     .GetByIdAsync(appointmentId);
 
             if (appointment == null)
@@ -328,14 +337,14 @@ namespace PetCenterAPI.Service
             appointment.Status++;
             appointment.UpdatedAt = DateTime.UtcNow;
 
-            await _repository.SaveChangesAsync();
+            await _appointmentRepo.SaveChangesAsync();
         }
         public async Task SubmitReviewAsync(
     Guid customerId,
     SubmitReviewRequestDTO request)
         {
             var appointment =
-                await _repository
+                await _appointmentRepo
                     .GetAppointmentDetailAsync(
                         request.AppointmentId);
 
@@ -374,11 +383,11 @@ namespace PetCenterAPI.Service
             appointment.AppointmentSnapshot.Feedback =
                 request.Feedback;
 
-            await _repository.SaveChangesAsync();
+            await _appointmentRepo.SaveChangesAsync();
         }
         public async Task CompleteAppointmentService(Guid appointmentServiceId)
         {
-            var appointmentService = await _repository.GetAppointmentServiceByIdAsync(appointmentServiceId);
+            var appointmentService = await _appointmentRepo.GetAppointmentServiceByIdAsync(appointmentServiceId);
 
             if (appointmentService == null)
             {
@@ -388,7 +397,7 @@ namespace PetCenterAPI.Service
             appointmentService.Status = 2;
             appointmentService.CompleteAt = DateTime.UtcNow;
 
-            await _repository.SaveChangesAsync();
+            await _appointmentRepo.SaveChangesAsync();
         }
                     
         public async Task<List<AvailableSlotResponseDTO>>
@@ -403,7 +412,7 @@ namespace PetCenterAPI.Service
                 services.Sum(x => x.Duration);
 
             var appointments =
-                await _repository
+                await _appointmentRepo
                     .GetDoctorAppointmentsByDateAsync(
                         request.StaffId,
                         request.Date);
@@ -550,6 +559,193 @@ namespace PetCenterAPI.Service
                 date.ToDateTime(global.StartTime!.Value),
                 date.ToDateTime(global.EndTime!.Value)
             );
+        }
+        public async Task<AppointmentPaymentResponseDTO> CreatePaymentUrlAsync(AppointmentPaymentRequestDTO request)
+        {
+            var appointment = await _appointmentRepo.GetByIdAsync(request.AppointmentId);
+            if (appointment == null)
+                throw new KeyNotFoundException("Appointment not found.");
+
+            // 1: Reserved
+            if (appointment.Status != 1)
+                throw new InvalidOperationException("Appointment is not in a valid state for payment.");
+
+            if (appointment.ReservedUntil.HasValue && appointment.ReservedUntil.Value < DateTime.UtcNow)
+            {
+                appointment.Status = 5; // Expired
+                await _appointmentRepo.UpdateAsync(appointment);
+                throw new InvalidOperationException("Time to hold the appointment has expired.");
+            }
+
+            string transactionRef = $"{appointment.AppointmentId.ToString()[..8]}_{DateTime.UtcNow.Ticks}";
+            decimal remainingAmount = appointment.Total - appointment.PaidAmount;
+            string paymentUrl = string.Empty;
+
+            var payment = new Payment
+            {
+                PaymentId = Guid.NewGuid(),
+                AppointmentId = appointment.AppointmentId,
+                PaymentMethod = request.PaymentMethod,
+                Amount = remainingAmount,
+                Status = 0, // 0: Pending, 1: Success, 2: Failed
+                TransactionRef = transactionRef,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            string orderInfo = $"Thanh toan lich hen #{appointment.AppointmentId}";
+
+            //  AN TOÀN: string.Equals xử lý được trường hợp arg1 bị null
+            if (string.Equals(request.PaymentMethod, "VNPAY", StringComparison.OrdinalIgnoreCase))
+            {
+                paymentUrl = _vnPayService.CreatePaymentUrl(
+                    appointment.AppointmentId,
+                    remainingAmount,
+                    transactionRef,
+                    request.ClientIpAddress ?? "127.0.0.1",
+                    orderInfo
+                );
+            }
+            else if (request.PaymentMethod.Equals("MOMO", StringComparison.OrdinalIgnoreCase))
+            {
+                var momoUrl = await _moMoService.CreatePaymentUrlAsync(
+                    appointment.AppointmentId,
+                    remainingAmount,
+                    transactionRef,
+                    orderInfo
+                );
+
+                if (string.IsNullOrEmpty(momoUrl))
+                    throw new Exception("Failed to initialize MoMo payment.");
+
+                paymentUrl = momoUrl;
+            }
+            else
+            {
+                throw new BadHttpRequestException("Payment method is invalid.");
+            }
+
+            // Lưu trực tiếp vào Database
+            await _paymentRepo.AddAsync(payment);
+
+            return new AppointmentPaymentResponseDTO
+            {
+                PaymentId = payment.PaymentId,
+                PaymentMethod = payment.PaymentMethod,
+                TransactionRef = transactionRef,
+                Amount = remainingAmount,
+                PaymentUrl = paymentUrl
+            };
+        }
+
+        public async Task<PaymentCallbackResponseDTO> ProcessVnPayCallbackAsync(IQueryCollection query)
+        {
+            if (!_vnPayService.ValidateCallback(query))
+            {
+                return new PaymentCallbackResponseDTO { IsSuccess = false, Message = "Signature is invalid." };
+            }
+
+            var result = _vnPayService.ParseCallback(query); // Giả định ParseCallback trả về Obj có TransactionRef, ResponseCode...
+            var payment = await _paymentRepo.GetByTransactionRefAsync(result.TransactionRef);
+
+            if (payment == null)
+                return new PaymentCallbackResponseDTO { IsSuccess = false, Message = "Cant find payment." };
+
+            if (payment.Status == 1)
+                return new PaymentCallbackResponseDTO { IsSuccess = true, Message = "Payment has been processed before.", AppointmentId = payment.AppointmentId };
+
+            if (result.ResponseCode == "00") // Thành công trên VnPay
+            {
+                payment.Status = 1; // Success
+                payment.PaidAmount = payment.Amount;
+                payment.PaidAt = DateTime.UtcNow;
+                payment.ResponseCode = result.ResponseCode;
+                await _paymentRepo.UpdateAsync(payment);
+
+                // Update Appointment State -> Confirmed (2)
+                var appointment = payment.Appointment;
+                if (appointment != null)
+                {
+                    appointment.Status = 2; // Confirmed
+                    appointment.PaidAmount += payment.Amount;
+                    appointment.UpdatedAt = DateTime.UtcNow;
+                    await _appointmentRepo.UpdateAsync(appointment);
+                }
+
+                return new PaymentCallbackResponseDTO
+                {
+                    IsSuccess = true,
+                    Message = "Payment succesful!",
+                    AppointmentId = payment.AppointmentId,
+                    TransactionRef = payment.TransactionRef!
+                };
+            }
+
+            payment.Status = 2; // Failed
+            payment.ResponseCode = result.ResponseCode;
+            await _paymentRepo.UpdateAsync(payment);
+
+            return new PaymentCallbackResponseDTO
+            {
+                IsSuccess = false,
+                Message = $"Payment failed with error code: {result.ResponseCode}",
+                AppointmentId = payment.AppointmentId,
+                TransactionRef = payment.TransactionRef!
+            };
+        }
+
+        public async Task<PaymentCallbackResponseDTO> ProcessMoMoCallbackAsync(JsonElement body, string rawBody, string signature)
+        {
+            if (!_moMoService.ValidateCallback(rawBody, signature))
+            {
+                return new PaymentCallbackResponseDTO { IsSuccess = false, Message = "Signature is invalid." };
+            }
+
+            var result = _moMoService.ParseCallback(body, rawBody);
+            var payment = await _paymentRepo.GetByTransactionRefAsync(result.TransactionRef);
+
+            if (payment == null)
+                return new PaymentCallbackResponseDTO { IsSuccess = false, Message = "Cant find payment." };
+
+            if (payment.Status == 1)
+                return new PaymentCallbackResponseDTO { IsSuccess = true, Message = "Payment has been processed before.", AppointmentId = payment.AppointmentId };
+
+            if (result.ResponseCode == "0") // Thành công trên MoMo
+            {
+                payment.Status = 1;
+                payment.PaidAmount = payment.Amount;
+                payment.PaidAt = DateTime.UtcNow;
+                payment.ResponseCode = result.ResponseCode.ToString();
+                await _paymentRepo.UpdateAsync(payment);
+
+                var appointment = payment.Appointment;
+                if (appointment != null)
+                {
+                    appointment.Status = 2; // Confirmed
+                    appointment.PaidAmount += payment.Amount;
+                    appointment.UpdatedAt = DateTime.UtcNow;
+                    await _appointmentRepo.UpdateAsync(appointment);
+                }
+
+                return new PaymentCallbackResponseDTO
+                {
+                    IsSuccess = true,
+                    Message = "Payment successful.",
+                    AppointmentId = payment.AppointmentId,
+                    TransactionRef = payment.TransactionRef!
+                };
+            }
+
+            payment.Status = 2;
+            payment.ResponseCode = result.ResponseCode.ToString();
+            await _paymentRepo.UpdateAsync(payment);
+
+            return new PaymentCallbackResponseDTO
+            {
+                IsSuccess = false,
+                Message = $"Payment failed with error code: {result.ResponseCode}",
+                AppointmentId = payment.AppointmentId,
+                TransactionRef = payment.TransactionRef!
+            };
         }
     }
 }
