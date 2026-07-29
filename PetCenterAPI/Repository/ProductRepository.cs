@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Common;
@@ -311,6 +311,7 @@ namespace PetCenterAPI.Repository
                 .AsNoTracking()
                 .Include(x => x.Brand)
                 .Include(x => x.Category)
+                .Include(x => x.ProductImages)
                 .Where(x => productIds.Contains(x.ProductId))
                 .ToListAsync();
         }

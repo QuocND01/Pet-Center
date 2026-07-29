@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.DTOs.Requests.Inventory;
 using PetCenterAPI.DTOs.Responses.Inventory;
 using PetCenterAPI.Models;
@@ -152,6 +152,19 @@ namespace PetCenterAPI.Repository
                 .ThenBy(x => x.ExpiryDate)
                 .ThenBy(x => x.CreatedAt)
                 .ToListAsync();
+        }
+
+        public async Task<List<Inventory>> GetInventoriesByProductIdsAsync(List<Guid> productIds)
+        {
+            return await _db.Inventories
+                .Include(inv => inv.Product)
+                .Where(inv => productIds.Contains(inv.ProductId))
+                .ToListAsync();
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _db.SaveChangesAsync();
         }
     }
 }

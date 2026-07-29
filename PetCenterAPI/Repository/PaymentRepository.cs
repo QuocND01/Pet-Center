@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 
@@ -19,6 +19,8 @@ namespace PetCenterAPI.Repository
             await _context.SaveChangesAsync();
         }
 
+        public Task AddPaymentAsync(Payment payment) => AddAsync(payment);
+
         public async Task<Payment?> GetByTransactionRefAsync(string transactionRef)
         {
             return await _context.Payments
@@ -26,9 +28,18 @@ namespace PetCenterAPI.Repository
                 .FirstOrDefaultAsync(p => p.TransactionRef == transactionRef);
         }
 
+        public Task<Payment?> GetPaymentByTransactionRefAsync(string transactionRef) => GetByTransactionRefAsync(transactionRef);
+
         public async Task UpdateAsync(Payment payment)
         {
             _context.Payments.Update(payment);
+            await _context.SaveChangesAsync();
+        }
+
+        public Task UpdatePaymentAsync(Payment payment) => UpdateAsync(payment);
+
+        public async Task SaveChangesAsync()
+        {
             await _context.SaveChangesAsync();
         }
     }
