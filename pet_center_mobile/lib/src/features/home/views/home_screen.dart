@@ -3,6 +3,7 @@ import '../../../constants/app_colors.dart';
 import '../../products/views/product_list_screen.dart';
 import '../../cart/views/cart_screen.dart';
 import '../../customer/views/profile_screen.dart';
+import '../../services/views/service_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -138,12 +139,21 @@ class HomeDashboard extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
+                // ===================================================================
+                // TODO: Team member - Connect Appointment Booking feature route here
+                // ===================================================================
                 _buildMenuCard(
                   icon: Icons.calendar_today_outlined,
                   title: 'Book Appointment',
                   subtitle: 'Schedule care services',
                   color: Colors.blue.shade100,
                   iconColor: Colors.blue.shade700,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ServiceListScreen()),
+                    );
+                  },
                 ),
                 _buildMenuCard(
                   icon: Icons.pets_outlined,
@@ -151,6 +161,11 @@ class HomeDashboard extends StatelessWidget {
                   subtitle: 'Manage pet profiles',
                   color: Colors.orange.shade100,
                   iconColor: Colors.orange.shade700,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('My Pets feature.')),
+                    );
+                  },
                 ),
                 _buildMenuCard(
                   icon: Icons.medical_services_outlined,
@@ -158,6 +173,12 @@ class HomeDashboard extends StatelessWidget {
                   subtitle: 'View care packages',
                   color: Colors.teal.shade100,
                   iconColor: Colors.teal.shade700,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ServiceListScreen()),
+                    );
+                  },
                 ),
                 _buildMenuCard(
                   icon: Icons.history_outlined,
@@ -165,6 +186,11 @@ class HomeDashboard extends StatelessWidget {
                   subtitle: 'Track your orders',
                   color: Colors.purple.shade100,
                   iconColor: Colors.purple.shade700,
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Booking History feature.')),
+                    );
+                  },
                 ),
               ],
             ),
@@ -180,45 +206,50 @@ class HomeDashboard extends StatelessWidget {
     required String subtitle,
     required Color color,
     required Color iconColor,
+    required VoidCallback onTap,
   }) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 28),
               ),
-              child: Icon(icon, color: iconColor, size: 28),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textSecondary,
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

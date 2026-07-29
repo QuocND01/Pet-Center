@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../services/api_service.dart';
@@ -19,9 +20,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _birthdayController = TextEditingController();
   String? _selectedGender;
   bool _isLoading = false;
+  bool _isPasswordObscure = true;
+  bool _isConfirmObscure = true;
 
   final RegExp _nameRegex = RegExp(r'^[a-zA-ZÀ-ỹ\s]{2,}$');
   final RegExp _phoneRegex = RegExp(r'^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$');
@@ -73,11 +77,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _isLoading = true;
       });
 
+      final String trimmedName = _nameController.text.trim();
+      final String trimmedEmail = _emailController.text.trim();
+      final String trimmedPhone = _phoneController.text.trim();
+      final String rawPassword = _passwordController.text;
+
       _apiService.customerRegister(
-        fullName: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
-        password: _passwordController.text,
+        fullName: trimmedName,
+        email: trimmedEmail,
+        phoneNumber: trimmedPhone,
+        password: rawPassword,
         gender: _selectedGender!,
         birthDay: _birthdayController.text,
       ).then((result) {
@@ -98,14 +107,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => OtpVerificationScreen(email: _emailController.text.trim()),
+              builder: (context) => OtpVerificationScreen(
+                email: trimmedEmail,
+                password: rawPassword,
+              ),
             ),
           );
         } else {
+          final errorMessage = result['message'] ?? result['Message'] ?? 'Registration failed. Please check your inputs.';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message'] ?? result['Message'] ?? 'Registration failed. Please check your data.'),
+              content: Text('Registration Error: $errorMessage'),
               backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -156,40 +170,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const Divider(height: 24),
 
-                    // Full name
+                    // Full name (max 50 chars hard cap as per RegisterRequestDTO.cs)
                     TextFormField(
                       controller: _nameController,
+                      maxLength: 50,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(50, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Full Name',
+                        hintText: 'e.g. John Doe',
+                        counterText: '',
                         prefixIcon: const Icon(Icons.person_outline),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your full name';
+                          return 'Full name is required';
                         }
-                        if (!_nameRegex.hasMatch(value.trim())) {
-                          return 'At least 2 characters (letters only)';
+                        final trimmed = value.trim();
+                        if (trimmed.length > 50) {
+                          return 'Full name must not exceed 50 characters';
+                        }
+                        if (!_nameRegex.hasMatch(trimmed)) {
+                          return 'Must contain letters only and at least 2 characters';
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
 
-                    // Email
+                    // Email (max 50 chars hard cap as per RegisterRequestDTO.cs)
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
+                      maxLength: 50,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(50, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Email',
+                        hintText: 'example@email.com',
+                        counterText: '',
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Email is required';
                         }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                        final trimmed = value.trim();
+                        if (trimmed.length > 50) {
+                          return 'Email must not exceed 50 characters';
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(trimmed)) {
                           return 'Invalid email format';
                         }
                         return null;
@@ -197,20 +231,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Phone number
+                    // Phone number (max 15 chars hard cap as per RegisterRequestDTO.cs, digits only)
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      maxLength: 15,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(15, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Phone Number',
+                        hintText: 'e.g. 0987654321',
+                        counterText: '',
                         prefixIcon: const Icon(Icons.phone_outlined),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your phone number';
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Phone number is required';
                         }
-                        if (!_phoneRegex.hasMatch(value)) {
+                        final trimmed = value.trim();
+                        if (trimmed.length > 15) {
+                          return 'Phone number cannot exceed 15 characters';
+                        }
+                        if (!_phoneRegex.hasMatch(trimmed)) {
                           return 'Invalid Vietnamese phone number';
                         }
                         return null;
@@ -218,23 +263,82 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Password
+                    // Password (max 50 chars hard cap)
                     TextFormField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: _isPasswordObscure,
+                      maxLength: 50,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(50, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Password',
+                        counterText: '',
                         prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordObscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordObscure = !_isPasswordObscure;
+                            });
+                          },
+                        ),
                         helperText: '6+ chars, start with Uppercase, contains @ and a number',
                         helperMaxLines: 2,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return 'Password is required';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        if (value.length > 50) {
+                          return 'Password must not exceed 50 characters';
                         }
                         if (!_passwordRegex.hasMatch(value)) {
-                          return 'Password does not meet security requirements';
+                          return 'Password must start with Uppercase, contain @ and a number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Confirm Password (max 50 chars hard cap)
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: _isConfirmObscure,
+                      maxLength: 50,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(50, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        counterText: '',
+                        prefixIcon: const Icon(Icons.lock_reset_outlined),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isConfirmObscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isConfirmObscure = !_isConfirmObscure;
+                            });
+                          },
+                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Confirm password does not match password';
                         }
                         return null;
                       },
@@ -307,7 +411,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _birthdayController.dispose();
     super.dispose();
   }
 }
+

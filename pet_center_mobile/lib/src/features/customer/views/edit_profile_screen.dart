@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/customer_model.dart';
 import '../../../services/api_service.dart';
@@ -58,7 +59,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
 
   String? _validateBirthday(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please select your birthday';
+      return 'Date of birth is required';
     }
     final birthDate = DateTime.tryParse(value);
     if (birthDate == null) {
@@ -75,7 +76,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
       return 'You must be at least 16 years old';
     }
     if (age > 100) {
-      return 'Age cannot exceed 100 years';
+      return 'Date of birth cannot be more than 100 years ago';
     }
     return null;
   }
@@ -86,10 +87,13 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
         _isLoading = true;
       });
 
+      final String trimmedName = _nameController.text.trim();
+      final String trimmedPhone = _phoneController.text.trim();
+
       final updatedCustomer = CustomerModel(
         customerId: widget.customer.customerId,
-        fullName: _nameController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
+        fullName: trimmedName,
+        phoneNumber: trimmedPhone,
         birthDay: _birthdayController.text,
         gender: _selectedGender,
         email: widget.customer.email,
@@ -173,11 +177,17 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                   ),
                   const Divider(height: 24),
 
-                  // Full name
+                  // Full name (max 50 chars hard cap matching UpdateCustomerProfileRequestDTO.cs)
                   TextFormField(
                     controller: _nameController,
+                    maxLength: 50,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(50, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                    ],
                     decoration: InputDecoration(
                       labelText: 'Full Name',
+                      hintText: 'e.g. John Doe',
+                      counterText: '',
                       prefixIcon: const Icon(Icons.person_outline),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -185,7 +195,11 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Full name is required';
                       }
-                      if (!_nameRegex.hasMatch(value.trim())) {
+                      final trimmed = value.trim();
+                      if (trimmed.length > 50) {
+                        return 'Full name must not exceed 50 characters';
+                      }
+                      if (!_nameRegex.hasMatch(trimmed)) {
                         return 'Full name must contain letters only (minimum 2 chars)';
                       }
                       return null;
@@ -193,20 +207,31 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Phone number
+                  // Phone number (max 15 chars hard cap, digits only, matching UpdateCustomerProfileRequestDTO.cs)
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
+                    maxLength: 15,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(15, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                    ],
                     decoration: InputDecoration(
                       labelText: 'Phone Number',
+                      hintText: 'e.g. 0987654321',
+                      counterText: '',
                       prefixIcon: const Icon(Icons.phone_outlined),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return 'Phone number is required';
                       }
-                      if (!_phoneRegex.hasMatch(value)) {
+                      final trimmed = value.trim();
+                      if (trimmed.length > 15) {
+                        return 'Phone number cannot exceed 15 characters';
+                      }
+                      if (!_phoneRegex.hasMatch(trimmed)) {
                         return 'Invalid Vietnamese phone number';
                       }
                       return null;
@@ -252,7 +277,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                     },
                     validator: (value) {
                       if (value == null) {
-                        return 'Please select your gender';
+                        return 'Gender is required';
                       }
                       return null;
                     },

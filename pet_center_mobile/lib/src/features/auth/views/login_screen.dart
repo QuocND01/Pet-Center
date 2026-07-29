@@ -4,9 +4,17 @@ import '../../../widgets/custom_button.dart';
 import '../../../services/api_service.dart';
 import '../../../services/auth_service.dart';
 import 'otp_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? prefilledEmail;
+  final String? prefilledPassword;
+
+  const LoginScreen({
+    super.key,
+    this.prefilledEmail,
+    this.prefilledPassword,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -28,7 +36,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSavedCredentials();
+    if (widget.prefilledEmail != null || widget.prefilledPassword != null) {
+      if (widget.prefilledEmail != null) {
+        _emailController.text = widget.prefilledEmail!;
+      }
+      if (widget.prefilledPassword != null) {
+        _passwordController.text = widget.prefilledPassword!;
+      }
+    } else {
+      _loadSavedCredentials();
+    }
   }
 
   Future<void> _loadSavedCredentials() async {
@@ -93,10 +110,12 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = false;
       });
+      final String cleanMsg = error.toString().replaceAll('Exception: ', '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('API Connection Error: $error'),
+          content: Text(cleanMsg),
           backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -130,7 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OtpVerificationScreen(email: email),
+                  builder: (context) => OtpVerificationScreen(
+                    email: email,
+                    password: _passwordController.text,
+                  ),
                 ),
               );
             },
@@ -142,52 +164,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPasswordDialog() {
-    final resetEmailController = TextEditingController(text: _emailController.text);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Reset Password', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Enter your registered email address to receive password reset instructions.',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: resetEmailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                prefixIcon: const Icon(Icons.email_outlined),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-          ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ForgotPasswordScreen(
+          initialEmail: _emailController.text.trim(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('If this email exists, password reset instructions have been sent.'),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
-            },
-            child: const Text('Send Reset Link', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
@@ -299,6 +299,16 @@ namespace PetCenterAPI.Controllers
                 return BadRequest(new { success = false, message = result.Message });
 
             return Ok(new { success = true, message = result.Message });
+        }
+
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public IActionResult Logout()
+        {
+            return Ok(new { success = true, message = "Logged out successfully" });
         }
     }
 }
