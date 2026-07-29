@@ -25,11 +25,11 @@ namespace PetCenterAPI.Service
         public ProductFeedbackService(IProductFeedbackRepository productFeedbackRepository, ICloudinaryService cloudinaryService)
         {
             _productFeedbackRepository = productFeedbackRepository;
-            _cloudinaryService = cloudinaryService;
+            _cloudinaryService = cloudinaryService; 
         }
 
         // ============================================================
-        // FEEDBACK — VIEW BY PRODUCT (CUSTOMER SIDE)
+        // FEEDBACK — VIEW BY PRODUCT (CUSTOMER SIDE).
         // ============================================================
         public async Task<List<ProductFeedbackResponseDTO>> GetFeedbacksByProductIdAsync(Guid productId)
         {

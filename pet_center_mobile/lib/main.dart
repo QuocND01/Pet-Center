@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'src/constants/app_colors.dart';
+import 'src/services/api_service.dart';
 import 'src/features/auth/views/login_screen.dart';
 import 'src/features/home/views/home_screen.dart';
 import 'src/features/customer/views/profile_screen.dart';
@@ -15,6 +16,7 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = MyHttpOverrides();
   runApp(const MyApp());
 }
@@ -36,8 +38,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         useMaterial3: true,
       ),
-      // Cấu hình Route chính của ứng dụng
-      initialRoute: '/home',
+      home: const AuthWrapper(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
@@ -45,5 +46,53 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
       },
     );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final loggedIn = await ApiService().initSession();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = loggedIn;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.pets, size: 64, color: AppColors.primary),
+              SizedBox(height: 16),
+              CircularProgressIndicator(color: AppColors.primary),
+            ],
+          ),
+        ),
+      );
+    }
+    return _isLoggedIn ? const HomeScreen() : const LoginScreen();
   }
 }
