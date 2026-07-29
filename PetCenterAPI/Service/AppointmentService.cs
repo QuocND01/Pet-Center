@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.DTOs.Requests.Appointment;
 using PetCenterAPI.DTOs.Responses.Appointment;
@@ -22,17 +22,23 @@ namespace PetCenterAPI.Service
 
 
         public AppointmentService(
-            IAppointmentRepository repository, IPetRepository petRepo, IServiceRepository serviceRepo,
-            IMapper mapper, IScheduleRepository scheduleRepository,IMoMoService moMoService, IVnPayService vnPayService, IPaymentRepository paymentRepository)
+            IAppointmentRepository repository,
+            IPetRepository petRepo,
+            IServiceRepository serviceRepo,
+            IMapper mapper,
+            IScheduleRepository scheduleRepository,
+            IMoMoService? moMoService = null,
+            IVnPayService? vnPayService = null,
+            IPaymentRepository? paymentRepository = null)
         {   
             _appointmentRepo = repository;
             _petRepo = petRepo;
             _serviceRepo = serviceRepo;
             _mapper = mapper;
             _scheduleRepo = scheduleRepository;
-            _moMoService = moMoService;
-            _vnPayService = vnPayService;
-            _paymentRepo = paymentRepository;
+            _moMoService = moMoService!;
+            _vnPayService = vnPayService!;
+            _paymentRepo = paymentRepository!;
         } 
         public async Task<AppointmentResponseDTO> BookAppointmentAsync(
             BookAppointmentRequestDTO request)

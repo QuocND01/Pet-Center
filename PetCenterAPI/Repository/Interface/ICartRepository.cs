@@ -18,6 +18,7 @@ namespace PetCenterAPI.Repository.Interface
         Task AddDetailAsync(CartDetail detail);
         void RemoveDetail(CartDetail detail);
         void RemoveDetails(IEnumerable<CartDetail> details);
+        Task ClearCartByCustomerIdAsync(Guid customerId);
 
         Task SaveChangesAsync();
     }

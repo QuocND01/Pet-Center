@@ -1,4 +1,5 @@
-﻿using PetCenterAPI.Models;
+using PetCenterAPI.DTOs.Responses.Order;
+using PetCenterAPI.Models;
 
 namespace PetCenterAPI.Repository.Interface
 {
@@ -22,8 +23,18 @@ namespace PetCenterAPI.Repository.Interface
         Task<Voucher?> GetByIdAsync(Guid id);
         
         // ============================================================
-        // VOUCHER — TOGGLE STATUS
+        // VOUCHER — TOGGLE STATUS / UPDATE
         // ============================================================
         Task<Voucher> UpdateAsync(Voucher voucher);
+
+        // ============================================================
+        // CUSTOMER VOUCHER OPERATIONS
+        // ============================================================
+        Task<bool> HasCustomerUsedVoucherAsync(Guid customerId, Guid voucherId);
+        Task<CustomerVoucher?> GetCustomerVoucherAsync(Guid customerId, Guid voucherId);
+        Task AddCustomerVoucherAsync(CustomerVoucher customerVoucher);
+        Task UpdateCustomerVoucherAsync(CustomerVoucher customerVoucher);
+        Task<List<AvailableVoucherDTO>> GetAvailableVouchersForCustomerAsync(Guid customerId, decimal orderAmount);
     }
 }
+

@@ -1069,7 +1069,18 @@ namespace PetCenterTestProject.VoucherTest
             var vnPayMock = new Mock<IVnPayService>();
             var moMoMock = new Mock<IMoMoService>();
 
-            var service = new CheckoutService(context, hubMock.Object, vnPayMock.Object, moMoMock.Object, NullLogger<CheckoutService>.Instance);
+            var orderRepo = new PetCenterAPI.Repository.OrderRepository(context);
+            var paymentRepo = new PetCenterAPI.Repository.PaymentRepository(context);
+            var voucherRepo = new PetCenterAPI.Repository.VoucherRepository(context);
+            var inventoryRepo = new PetCenterAPI.Repository.InventoryRepository(context);
+            var productRepo = new PetCenterAPI.Repository.ProductRepository(context, new Mock<AutoMapper.IMapper>().Object);
+            var addressRepo = new PetCenterAPI.Repository.AddressRepository(context);
+            var cartRepo = new PetCenterAPI.Repository.CartRepository(context);
+            var appointmentRepo = new PetCenterAPI.Repository.AppointmentRepository(context);
+
+            var service = new CheckoutService(
+                orderRepo, paymentRepo, voucherRepo, inventoryRepo, productRepo, addressRepo, cartRepo, appointmentRepo,
+                hubMock.Object, vnPayMock.Object, moMoMock.Object, NullLogger<CheckoutService>.Instance);
             return (context, service);
         }
 

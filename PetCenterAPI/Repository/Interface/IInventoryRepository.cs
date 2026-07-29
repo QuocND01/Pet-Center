@@ -1,4 +1,4 @@
-﻿using PetCenterAPI.DTOs.Requests.Inventory;
+using PetCenterAPI.DTOs.Requests.Inventory;
 using PetCenterAPI.DTOs.Responses.Inventory;
 using PetCenterAPI.Models;
 
@@ -15,5 +15,7 @@ namespace PetCenterAPI.Repository.Interface
 
         Task<Inventory?> GetByIdAsync(Guid inventoryId);
         Task<List<ImportStockDetail>> GetAvailableBatchesByProductIdAsync(Guid productId);
+        Task<List<Inventory>> GetInventoriesByProductIdsAsync(List<Guid> productIds);
+        Task SaveChangesAsync();
     }
 }

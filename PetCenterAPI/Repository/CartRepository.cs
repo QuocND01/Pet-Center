@@ -72,6 +72,17 @@ namespace PetCenterAPI.Repository
             _context.CartDetails.RemoveRange(details);
         }
 
+        public async Task ClearCartByCustomerIdAsync(Guid customerId)
+        {
+            var cart = await _context.Carts.FirstOrDefaultAsync(c => c.CustomerId == customerId);
+            if (cart != null)
+            {
+                await _context.CartDetails
+                    .Where(cd => cd.CartId == cart.CartId)
+                    .ExecuteDeleteAsync();
+            }
+        }
+
         // ============================================================
         // PRODUCT / STOCK
         // ============================================================

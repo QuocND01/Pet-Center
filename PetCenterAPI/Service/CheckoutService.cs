@@ -1,29 +1,50 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
-using PetCenterAPI.Hubs;
 using PetCenterAPI.DTOs.Requests.Order;
 using PetCenterAPI.DTOs.Responses.Order;
+using PetCenterAPI.Hubs;
 using PetCenterAPI.Models;
+using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
 
 namespace PetCenterAPI.Service
 {
     public class CheckoutService : ICheckoutService
     {
-        private readonly PetCenterContext _db;
+        private readonly IOrderRepository _orderRepo;
+        private readonly IPaymentRepository _paymentRepo;
+        private readonly IVoucherRepository _voucherRepo;
+        private readonly IInventoryRepository _inventoryRepo;
+        private readonly IProductRepository _productRepo;
+        private readonly IAddressRepository _addressRepo;
+        private readonly ICartRepository _cartRepo;
+        private readonly IAppointmentRepository _appointmentRepo;
         private readonly IHubContext<AppHub> _hub;
         private readonly IVnPayService _vnPayService;
         private readonly IMoMoService _moMoService;
         private readonly ILogger<CheckoutService> _logger;
 
         public CheckoutService(
-            PetCenterContext db,
+            IOrderRepository orderRepo,
+            IPaymentRepository paymentRepo,
+            IVoucherRepository voucherRepo,
+            IInventoryRepository inventoryRepo,
+            IProductRepository productRepo,
+            IAddressRepository addressRepo,
+            ICartRepository cartRepo,
+            IAppointmentRepository appointmentRepo,
             IHubContext<AppHub> hub,
             IVnPayService vnPayService,
             IMoMoService moMoService,
             ILogger<CheckoutService> logger)
         {
-            _db = db;
+            _orderRepo = orderRepo;
+            _paymentRepo = paymentRepo;
+            _voucherRepo = voucherRepo;
+            _inventoryRepo = inventoryRepo;
+            _productRepo = productRepo;
+            _addressRepo = addressRepo;
+            _cartRepo = cartRepo;
+            _appointmentRepo = appointmentRepo;
             _hub = hub;
             _vnPayService = vnPayService;
             _moMoService = moMoService;
@@ -32,14 +53,11 @@ namespace PetCenterAPI.Service
 
         public async Task<PlaceOrderResponseDTO> PlaceCodOrderAsync(PlaceCodOrderDTO dto)
         {
-            await using var tx = await _db.Database.BeginTransactionAsync();
+            await using var tx = await _orderRepo.BeginTransactionAsync();
             try
             {
                 // ── 1. Validate address ──────────────────────────────────────
-                var address = await _db.Addresses
-                    .FirstOrDefaultAsync(a => a.AddressId == dto.AddressId
-                                           && a.CustomerId == dto.CustomerId
-                                           && a.IsActive == true);
+                var address = await _addressRepo.GetAddressByIdAsync(dto.AddressId, dto.CustomerId);
 
                 if (address == null)
                     throw new InvalidOperationException("The address is invalid or does not belong to this account.");
@@ -55,15 +73,11 @@ namespace PetCenterAPI.Service
                 Voucher? voucher = null;
                 if (dto.VoucherId.HasValue)
                 {
-                    var alreadyUsed = await _db.CustomerVouchers
-                        .AnyAsync(cv => cv.CustomerId == dto.CustomerId
-                                     && cv.VoucherId == dto.VoucherId.Value
-                                     && cv.IsUsed == true);
+                    var alreadyUsed = await _voucherRepo.HasCustomerUsedVoucherAsync(dto.CustomerId, dto.VoucherId.Value);
                     if (alreadyUsed)
                         throw new InvalidOperationException("You have already used this voucher.");
 
-                    voucher = await _db.Vouchers
-                        .FirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId.Value);
+                    voucher = await _voucherRepo.GetByIdAsync(dto.VoucherId.Value);
 
                     if (voucher == null || voucher.IsActive != true)
                         throw new InvalidOperationException("The voucher is invalid or has been deactivated.");
@@ -86,10 +100,7 @@ namespace PetCenterAPI.Service
 
                 // ── 4. Check inventory ───────────────────────────────────────
                 var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
-                var inventories = await _db.Inventories
-                    .Include(inv => inv.Product)
-                    .Where(inv => productIds.Contains(inv.ProductId))
-                    .ToListAsync();
+                var inventories = await _inventoryRepo.GetInventoriesByProductIdsAsync(productIds);
 
                 foreach (var item in dto.Items)
                 {
@@ -119,15 +130,13 @@ namespace PetCenterAPI.Service
                     PaymentStatus = 1,
                     UpdateAt = DateTime.Now
                 };
-                _db.Orders.Add(order);
+                await _orderRepo.AddOrderAsync(order);
 
                 // ── 6. OrderDetails + Snapshots ──────────────────────────────
-                var products = await _db.Products
-                    .Include(p => p.Category)
-                    .Include(p => p.Brand)
-                    .Include(p => p.ProductImages)
-                    .Where(p => productIds.Contains(p.ProductId))
-                    .ToListAsync();
+                var products = await _productRepo.GetProductsForSnapshotAsync(productIds);
+
+                var orderDetailsList = new List<OrderDetail>();
+                var snapshotsList = new List<OrderProductSnapshot>();
 
                 foreach (var item in dto.Items)
                 {
@@ -141,9 +150,9 @@ namespace PetCenterAPI.Service
                         UnitPrice = item.UnitPrice,
                         ImportStockDetailsId = null
                     };
-                    _db.OrderDetails.Add(detail);
+                    orderDetailsList.Add(detail);
 
-                    _db.OrderProductSnapshots.Add(new OrderProductSnapshot
+                    snapshotsList.Add(new OrderProductSnapshot
                     {
                         ProductSnapshotId = Guid.NewGuid(),
                         OrderDetailsId = detail.OrderDetailsId,
@@ -155,6 +164,9 @@ namespace PetCenterAPI.Service
                         ProductPrice = item.UnitPrice
                     });
                 }
+
+                await _orderRepo.AddOrderDetailsAsync(orderDetailsList);
+                await _orderRepo.AddOrderProductSnapshotsAsync(snapshotsList);
 
                 // ── 7. Reserve inventory ─────────────────────────────────────
                 foreach (var item in dto.Items)
@@ -168,17 +180,16 @@ namespace PetCenterAPI.Service
                 // ── 8. Mark voucher used + decrement usage limit ─────────────
                 if (dto.VoucherId.HasValue && voucher != null)
                 {
-                    var customerVoucher = await _db.CustomerVouchers
-                        .FirstOrDefaultAsync(cv => cv.CustomerId == dto.CustomerId
-                                             && cv.VoucherId == dto.VoucherId.Value);
+                    var customerVoucher = await _voucherRepo.GetCustomerVoucherAsync(dto.CustomerId, dto.VoucherId.Value);
 
                     if (customerVoucher != null)
                     {
                         customerVoucher.IsUsed = true;
+                        await _voucherRepo.UpdateCustomerVoucherAsync(customerVoucher);
                     }
                     else
                     {
-                        _db.CustomerVouchers.Add(new CustomerVoucher
+                        await _voucherRepo.AddCustomerVoucherAsync(new CustomerVoucher
                         {
                             CustomerId = dto.CustomerId,
                             VoucherId = dto.VoucherId.Value,
@@ -187,19 +198,16 @@ namespace PetCenterAPI.Service
                     }
 
                     if (voucher.UseageLimit.HasValue)
+                    {
                         voucher.UseageLimit = voucher.UseageLimit.Value - 1;
+                        await _voucherRepo.UpdateAsync(voucher);
+                    }
                 }
 
                 // ── 9. Clear cart ────────────────────────────────────────────
-                var cart = await _db.Carts.FirstOrDefaultAsync(c => c.CustomerId == dto.CustomerId);
-                if (cart != null)
-                {
-                    await _db.CartDetails
-                        .Where(cd => cd.CartId == cart.CartId)
-                        .ExecuteDeleteAsync();
-                }
+                await _cartRepo.ClearCartByCustomerIdAsync(dto.CustomerId);
 
-                await _db.SaveChangesAsync();
+                await _orderRepo.SaveChangesAsync();
                 await tx.CommitAsync();
 
                 // Notify admins and the customer about the new order
@@ -249,14 +257,11 @@ namespace PetCenterAPI.Service
         // ═══════════════════════════════════════════════════════════════════
         public async Task<PlaceOnlineOrderResponseDTO> PlaceOnlineOrderAsync(PlaceOnlineOrderDTO dto)
         {
-            await using var tx = await _db.Database.BeginTransactionAsync();
+            await using var tx = await _orderRepo.BeginTransactionAsync();
             try
             {
                 // ── 1. Validate address ──────────────────────────────────────
-                var address = await _db.Addresses
-                    .FirstOrDefaultAsync(a => a.AddressId == dto.AddressId
-                                           && a.CustomerId == dto.CustomerId
-                                           && a.IsActive == true);
+                var address = await _addressRepo.GetAddressByIdAsync(dto.AddressId, dto.CustomerId);
 
                 if (address == null)
                     throw new InvalidOperationException("The address is invalid or does not belong to this account.");
@@ -272,15 +277,11 @@ namespace PetCenterAPI.Service
                 Voucher? voucher = null;
                 if (dto.VoucherId.HasValue)
                 {
-                    var alreadyUsed = await _db.CustomerVouchers
-                        .AnyAsync(cv => cv.CustomerId == dto.CustomerId
-                                     && cv.VoucherId == dto.VoucherId.Value
-                                     && cv.IsUsed == true);
+                    var alreadyUsed = await _voucherRepo.HasCustomerUsedVoucherAsync(dto.CustomerId, dto.VoucherId.Value);
                     if (alreadyUsed)
                         throw new InvalidOperationException("You have already used this voucher.");
 
-                    voucher = await _db.Vouchers
-                        .FirstOrDefaultAsync(v => v.VoucherId == dto.VoucherId.Value);
+                    voucher = await _voucherRepo.GetByIdAsync(dto.VoucherId.Value);
 
                     if (voucher == null || voucher.IsActive != true)
                         throw new InvalidOperationException("The voucher is invalid or has been deactivated.");
@@ -303,10 +304,7 @@ namespace PetCenterAPI.Service
 
                 // ── 4. Check inventory (availability only, NO reservation) ───
                 var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
-                var inventories = await _db.Inventories
-                    .Include(inv => inv.Product)
-                    .Where(inv => productIds.Contains(inv.ProductId))
-                    .ToListAsync();
+                var inventories = await _inventoryRepo.GetInventoriesByProductIdsAsync(productIds);
 
                 foreach (var item in dto.Items)
                 {
@@ -338,15 +336,13 @@ namespace PetCenterAPI.Service
                     PaymentStatus = 1,     // Pending
                     UpdateAt = DateTime.Now
                 };
-                _db.Orders.Add(order);
+                await _orderRepo.AddOrderAsync(order);
 
                 // ── 7. OrderDetails + Snapshots ──────────────────────────────
-                var products = await _db.Products
-                    .Include(p => p.Category)
-                    .Include(p => p.Brand)
-                    .Include(p => p.ProductImages)
-                    .Where(p => productIds.Contains(p.ProductId))
-                    .ToListAsync();
+                var products = await _productRepo.GetProductsForSnapshotAsync(productIds);
+
+                var orderDetailsList = new List<OrderDetail>();
+                var snapshotsList = new List<OrderProductSnapshot>();
 
                 foreach (var item in dto.Items)
                 {
@@ -360,9 +356,9 @@ namespace PetCenterAPI.Service
                         UnitPrice = item.UnitPrice,
                         ImportStockDetailsId = null
                     };
-                    _db.OrderDetails.Add(detail);
+                    orderDetailsList.Add(detail);
 
-                    _db.OrderProductSnapshots.Add(new OrderProductSnapshot
+                    snapshotsList.Add(new OrderProductSnapshot
                     {
                         ProductSnapshotId = Guid.NewGuid(),
                         OrderDetailsId = detail.OrderDetailsId,
@@ -375,6 +371,9 @@ namespace PetCenterAPI.Service
                     });
                 }
 
+                await _orderRepo.AddOrderDetailsAsync(orderDetailsList);
+                await _orderRepo.AddOrderProductSnapshotsAsync(snapshotsList);
+
                 // ── 8. Create Payment record (Pending) ──────────────────────
                 var payment = new Payment
                 {
@@ -386,22 +385,21 @@ namespace PetCenterAPI.Service
                     TransactionRef = transactionRef,
                     CreatedAt = DateTime.Now
                 };
-                _db.Payments.Add(payment);
+                await _paymentRepo.AddPaymentAsync(payment);
 
                 // ── 9. Mark voucher used + decrement usage limit ─────────────
                 if (dto.VoucherId.HasValue && voucher != null)
                 {
-                    var customerVoucher = await _db.CustomerVouchers
-                        .FirstOrDefaultAsync(cv => cv.CustomerId == dto.CustomerId
-                                             && cv.VoucherId == dto.VoucherId.Value);
+                    var customerVoucher = await _voucherRepo.GetCustomerVoucherAsync(dto.CustomerId, dto.VoucherId.Value);
 
                     if (customerVoucher != null)
                     {
                         customerVoucher.IsUsed = true;
+                        await _voucherRepo.UpdateCustomerVoucherAsync(customerVoucher);
                     }
                     else
                     {
-                        _db.CustomerVouchers.Add(new CustomerVoucher
+                        await _voucherRepo.AddCustomerVoucherAsync(new CustomerVoucher
                         {
                             CustomerId = dto.CustomerId,
                             VoucherId = dto.VoucherId.Value,
@@ -410,19 +408,16 @@ namespace PetCenterAPI.Service
                     }
 
                     if (voucher.UseageLimit.HasValue)
+                    {
                         voucher.UseageLimit = voucher.UseageLimit.Value - 1;
+                        await _voucherRepo.UpdateAsync(voucher);
+                    }
                 }
 
                 // ── 10. Clear cart ───────────────────────────────────────────
-                var cart = await _db.Carts.FirstOrDefaultAsync(c => c.CustomerId == dto.CustomerId);
-                if (cart != null)
-                {
-                    await _db.CartDetails
-                        .Where(cd => cd.CartId == cart.CartId)
-                        .ExecuteDeleteAsync();
-                }
+                await _cartRepo.ClearCartByCustomerIdAsync(dto.CustomerId);
 
-                await _db.SaveChangesAsync();
+                await _orderRepo.SaveChangesAsync();
                 await tx.CommitAsync();
 
                 // ── 11. Build payment gateway URL ────────────────────────────
@@ -510,8 +505,7 @@ namespace PetCenterAPI.Service
     bool isSuccess)
         {
             // ── 1. Find Payment by TransactionRef ────────────────────────
-            var payment = await _db.Payments
-                .FirstOrDefaultAsync(p => p.TransactionRef == transactionRef);
+            var payment = await _paymentRepo.GetPaymentByTransactionRefAsync(transactionRef);
 
             if (payment == null)
             {
@@ -541,10 +535,9 @@ namespace PetCenterAPI.Service
             // =============================================================
             // NHÁNH A: XỬ LÝ CHO APPOINTMENT (LỊCH HẸN)
             // =============================================================
-            if (payment.AppointmentId != Guid.Empty)
+            if (payment.AppointmentId.HasValue && payment.AppointmentId.Value != Guid.Empty)
             {
-                var appointment = await _db.Appointments
-                    .FirstOrDefaultAsync(a => a.AppointmentId == payment.AppointmentId);
+                var appointment = await _appointmentRepo.GetByIdAsync(payment.AppointmentId.Value);
 
                 if (appointment == null)
                 {
@@ -573,7 +566,9 @@ namespace PetCenterAPI.Service
                     appointment.PaidAmount += paidAmount;
                     appointment.UpdatedAt = DateTime.Now;
 
-                    await _db.SaveChangesAsync();
+                    await _paymentRepo.UpdateAsync(payment);
+                    await _appointmentRepo.UpdateAsync(appointment);
+                    await _appointmentRepo.SaveChangesAsync();
 
                     _logger.LogInformation("[PaymentCallback] Payment SUCCESS for Appointment {AppointmentId}. Ref={Ref}",
                         appointment.AppointmentId, transactionRef);
@@ -598,7 +593,8 @@ namespace PetCenterAPI.Service
                 else
                 {
                     payment.Status = 3; // Failed
-                    await _db.SaveChangesAsync();
+                    await _paymentRepo.UpdateAsync(payment);
+                    await _paymentRepo.SaveChangesAsync();
 
                     return new PlaceOrderResponseDTO
                     {
@@ -609,12 +605,9 @@ namespace PetCenterAPI.Service
                 }
             }
 
-            // =============================================================
-            // NHÁNH B: XỬ LÝ CHO ORDER (MUA HÀNG ONLINE - GIỮ NGUYÊN CODE CŨ)
-            // =============================================================
-            var order = await _db.Orders
-                .Include(o => o.OrderDetails)
-                .FirstOrDefaultAsync(o => o.OrderId == payment.OrderId);
+            Order? order = payment.OrderId.HasValue
+                ? await _orderRepo.GetOrderWithDetailsByIdAsync(payment.OrderId.Value)
+                : null;
 
             if (order == null)
             {
@@ -639,7 +632,9 @@ namespace PetCenterAPI.Service
                 order.Status = 0;         // Cancelled
                 order.UpdateAt = DateTime.Now;
 
-                await _db.SaveChangesAsync();
+                await _paymentRepo.UpdatePaymentAsync(payment);
+                await _orderRepo.UpdateOrderAsync(order);
+                await _orderRepo.SaveChangesAsync();
 
                 _logger.LogInformation("[PaymentCallback] Payment FAILED for order {OrderId}. TransactionRef={Ref}, ResponseCode={Code}",
                     order.OrderId, transactionRef, responseCode);
@@ -662,15 +657,12 @@ namespace PetCenterAPI.Service
             }
 
             // ── 4. Handle SUCCESSFUL payment ────────────────────────────
-            await using var tx = await _db.Database.BeginTransactionAsync();
+            await using var tx = await _orderRepo.BeginTransactionAsync();
             try
             {
                 // ── 4a. Re-check inventory availability ─────────────────
                 var productIds = order.OrderDetails.Select(d => d.ProductId).Distinct().ToList();
-                var inventories = await _db.Inventories
-                    .Include(inv => inv.Product)
-                    .Where(inv => productIds.Contains(inv.ProductId))
-                    .ToListAsync();
+                var inventories = await _inventoryRepo.GetInventoriesByProductIdsAsync(productIds);
 
                 bool inventoryInsufficient = false;
                 string insufficientProduct = string.Empty;
@@ -700,7 +692,9 @@ namespace PetCenterAPI.Service
                     order.Status = 0;         // Cancelled
                     order.UpdateAt = DateTime.Now;
 
-                    await _db.SaveChangesAsync();
+                    await _paymentRepo.UpdatePaymentAsync(payment);
+                    await _orderRepo.UpdateOrderAsync(order);
+                    await _orderRepo.SaveChangesAsync();
                     await tx.CommitAsync();
 
                     _logger.LogWarning(
@@ -748,7 +742,9 @@ namespace PetCenterAPI.Service
                 order.Status = 2;         // Confirmed
                 order.UpdateAt = DateTime.Now;
 
-                await _db.SaveChangesAsync();
+                await _paymentRepo.UpdatePaymentAsync(payment);
+                await _orderRepo.UpdateOrderAsync(order);
+                await _orderRepo.SaveChangesAsync();
                 await tx.CommitAsync();
 
                 _logger.LogInformation(
@@ -782,30 +778,7 @@ namespace PetCenterAPI.Service
 
         public async Task<List<AvailableVoucherDTO>> GetAvailableVouchersAsync(Guid customerId, decimal orderAmount)
         {
-            var now = DateTime.Now;
-
-            var usedVoucherIds = await _db.CustomerVouchers
-                .Where(cv => cv.CustomerId == customerId && cv.IsUsed == true)
-                .Select(cv => cv.VoucherId)
-                .ToListAsync();
-
-            return await _db.Vouchers
-                .Where(v => v.IsActive == true
-                         && (v.ExpiredDate == null || v.ExpiredDate >= now)
-                         && (v.MinOrderAmount == null || v.MinOrderAmount <= orderAmount)
-                         && (v.UseageLimit == null || v.UseageLimit > 0)
-                         && !usedVoucherIds.Contains(v.VoucherId))
-                .Select(v => new AvailableVoucherDTO
-                {
-                    VoucherId = v.VoucherId,
-                    Code = v.Code,
-                    Description = v.Description,
-                    DiscountPercent = v.DiscountPercent,
-                    MinOrderAmount = v.MinOrderAmount,
-                    MaxDiscountAmount = v.MaxDiscountAmount,
-                    ExpiredDate = v.ExpiredDate
-                })
-                .ToListAsync();
+            return await _voucherRepo.GetAvailableVouchersForCustomerAsync(customerId, orderAmount);
         }
     }
 }
