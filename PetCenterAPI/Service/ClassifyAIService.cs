@@ -24,18 +24,25 @@ namespace PetCenterAPI.Service
             if (ai == null)
                 return null;
 
-            if (ai.DiseaseName == "Not_Disease")
+            // AI xác định ảnh không phải ảnh bệnh
+            if (string.Equals(
+                ai.DiseaseName,
+                "not disease image",
+                StringComparison.OrdinalIgnoreCase))
             {
                 return new AIResultDTO
                 {
-                    DiseaseName = ai.DiseaseName,
+                    DiseaseName = "Not_Disease",
                     Confidence = ai.Confidence,
-                    IsDiseaseImage = false
+                    IsDiseaseImage = false,
+                    HasDiseaseInfo = false,
                 };
             }
 
+            // AI xác định là bệnh
             var disease = await _diseaseRepository.GetByNameAsync(ai.DiseaseName);
 
+            // Có kết quả AI nhưng bệnh chưa có trong database
             if (disease == null)
             {
                 return new AIResultDTO
@@ -43,10 +50,11 @@ namespace PetCenterAPI.Service
                     DiseaseName = ai.DiseaseName,
                     Confidence = ai.Confidence,
                     IsDiseaseImage = true,
-                    HasDiseaseInfo = false
+                    HasDiseaseInfo = false,
                 };
             }
 
+            // Bệnh tồn tại trong database
             return new AIResultDTO
             {
                 DiseaseId = disease.DiseaseId,

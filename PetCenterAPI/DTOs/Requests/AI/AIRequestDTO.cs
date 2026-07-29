@@ -4,7 +4,7 @@ namespace PetCenterAPI.DTOs.Requests.AI
 {
     public class AIRequestDTO
     {
-        [JsonPropertyName("predicted_class")]
+        [JsonPropertyName("result")]
         public string DiseaseName { get; set; } = null!;
 
         [JsonPropertyName("confidence")]

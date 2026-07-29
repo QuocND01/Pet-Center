@@ -45,8 +45,9 @@ namespace PetCenterTestProject.CustomerTest
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
-                    "TrustServerCertificate=True;")
-                .Options;
+                    "Trusted_Connection=True;",
+            builder => builder.EnableRetryOnFailure())
+        .Options;
 
             return new PetCenterContext(options);
         }

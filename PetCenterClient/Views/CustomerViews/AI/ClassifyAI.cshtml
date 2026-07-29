@@ -726,7 +726,6 @@
             </div>
 
         </div>
-
         <div class="disease-section">
 
             <h3>
@@ -736,42 +735,38 @@
             <div class="disease-grid">
 
                 <div class="disease-card">
-                    🌿
-                    <h5>Dermatitis</h5>
-                    <p>
-                        Inflammation of the skin caused by allergies, irritation, or infections, often resulting in redness, itching, and discomfort.
-                    </p>
-                </div>
 
-                <div class="disease-card">
-                    🦠
-                    <h5>Ringworm</h5>
-                    <p>
-                        A contagious fungal infection that causes circular patches of hair loss, scaly skin, and mild to severe itching.
-                    </p>
-                </div>
-
-                <div class="disease-card">
                     🐾
+
                     <h5>Mange</h5>
+
                     <p>
-                        A skin disease caused by microscopic mites, leading to intense itching, hair loss, crusty skin, and irritation.
+                        A skin disease caused by microscopic mites, which may cause
+                        itching, hair loss, redness, crusting, and skin irritation.
                     </p>
+
                 </div>
 
                 <div class="disease-card">
+
                     🌸
+
                     <h5>Papilloma</h5>
+
                     <p>
-                        A viral skin condition that forms wart-like growths on the skin or around the mouth, usually benign but sometimes requiring treatment.
+                        A viral skin condition that can cause wart-like growths
+                        on the skin or around the mouth. Veterinary examination
+                        is recommended for proper diagnosis and treatment.
                     </p>
+
                 </div>
 
             </div>
 
         </div>
 
-        <form asp-controller="AIClassify"
+        <form id="aiForm"
+              asp-controller="AIClassify"
               asp-action="ClassifyAI"
               method="post"
               enctype="multipart/form-data">
@@ -863,10 +858,10 @@
         </form>
 
 
-
         @if (Model != null)
         {
             var confidence = Model.Confidence * 100;
+
             var level = confidence >= 90 ? "Very High"
             : confidence >= 75 ? "High"
             : confidence >= 60 ? "Medium"
@@ -877,13 +872,13 @@
             : confidence >= 60 ? "warning"
             : "danger";
 
-            <div class="result-card" style="display:block;">
+
+            <div class="result-card" id="aiResult" style="display:block;">
 
                 <div class="result-title">
-
                     🤖 AI Prediction Result
-
                 </div>
+
 
                 <div class="result-layout">
 
@@ -899,52 +894,64 @@
 
                     </div>
 
+
                     <!-- RIGHT -->
 
                     <div>
 
+                        <!-- PREDICTION SUMMARY -->
+
                         <div class="summary-box">
 
                             <div class="summary-title">
-
                                 Prediction
-
                             </div>
+
 
                             @if (Model.IsDiseaseImage)
                             {
-                                <h2>@Model.DiseaseName</h2>
+                                <!-- DISEASE IMAGE -->
+
+                                <h2>
+                                    @Model.DiseaseName
+                                </h2>
+
+                                <span class="badge bg-@badge">
+                                    @level Confidence
+                                </span>
                             }
                             else
                             {
-                                <h2 class="text-danger">Not a Pet Skin Disease</h2>
+                                <!-- NOT DISEASE IMAGE -->
+
+                                <h2 class="text-danger">
+                                    Not a Pet Skin Disease
+                                </h2>
+
+                                <span class="badge bg-danger">
+                                    Image Not Recognized
+                                </span>
                             }
 
-                            <span class="badge bg-@badge">
-
-                                @level Confidence
-
-                            </span>
-
                         </div>
+
+
+                        <!-- CONFIDENCE -->
 
                         <div class="confidence-box">
 
                             <div class="confidence-header">
 
                                 <span>
-
                                     Confidence
-
                                 </span>
 
                                 <strong>
-
-                                    @confidence %
-
+                                    @confidence.ToString("F2")%
                                 </strong>
 
                             </div>
+
 
                             <div class="progress">
 
@@ -955,74 +962,153 @@
 
                             </div>
 
+
+                            <!-- AI ASSESSMENT -->
+
                             <div class="diagnosis-summary">
+
                                 @if (!Model.IsDiseaseImage)
                                 {
-                                    <div class="alert alert-danger">
-                                        <strong>Invalid Image</strong><br />
+                                    <!-- NOT DISEASE -->
 
-                                        The uploaded image does not appear to contain a pet skin disease.
+                                    <div class="alert alert-warning">
 
-                                        Please upload a clear image showing the affected skin area.
+                                        <strong>⚠ Image Not Suitable</strong>
+
+                                        <br />
+
+                                        The AI could not identify a supported skin disease
+                                        in the uploaded image.
+
+                                        <br />
+
+                                        Please upload a clearer image that focuses closely
+                                        on your pet's affected skin area.
+
+                                        <br />
+
+                                        For better results, make sure the affected area is
+                                        clearly visible and well-lit.
+
                                     </div>
                                 }
                                 else if (confidence < 50)
                                 {
+                                    <!-- LOW CONFIDENCE -->
+
                                     <div class="alert alert-danger">
+
                                         <strong>AI Assessment:</strong>
+
                                         AI cannot confidently identify this image.
-                                        Please upload a clearer image or consult a veterinarian.
+
+                                        Please upload a clearer image or consult
+                                        a veterinarian.
+
                                     </div>
                                 }
                                 else if (confidence >= 90)
                                 {
+                                    <!-- VERY HIGH CONFIDENCE -->
+
                                     <div class="alert alert-success">
+
                                         <strong>AI Assessment:</strong>
-                                        The prediction confidence is very high.
-                                        However, veterinary confirmation is still recommended.
+
+                                        The AI has detected a possible case of
+                                        <strong>@Model.DiseaseName</strong>
+                                        with very high confidence.
+
+                                        However, veterinary confirmation is still
+                                        recommended.
+
                                     </div>
                                 }
                                 else if (confidence >= 75)
                                 {
+                                    <!-- HIGH CONFIDENCE -->
+
                                     <div class="alert alert-primary">
+
                                         <strong>AI Assessment:</strong>
-                                        The prediction confidence is high.
-                                        Please compare with your pet's clinical symptoms.
+
+                                        The AI has detected a possible case of
+                                        <strong>@Model.DiseaseName</strong>
+                                        with high confidence.
+
+                                        Please compare the result with your pet's
+                                        clinical symptoms.
+
                                     </div>
                                 }
                                 else
                                 {
+                                    <!-- MODERATE CONFIDENCE -->
+
                                     <div class="alert alert-warning">
+
                                         <strong>AI Assessment:</strong>
-                                        Confidence is moderate.
-                                        Additional examination by a veterinarian is recommended.
+
+                                        The AI has detected a possible case of
+                                        <strong>@Model.DiseaseName</strong>,
+                                        but the confidence is moderate.
+
+                                        Additional examination by a veterinarian
+                                        is recommended.
+
                                     </div>
                                 }
+
                             </div>
 
                         </div>
+
+
+                        <!-- DISEASE INFORMATION -->
                         @if (Model.IsDiseaseImage && Model.HasDiseaseInfo)
                         {
                             <div class="info-card">
-                                <h5>📖 Description</h5>
-                                <p>@Model.Description</p>
+
+                                <h5>
+                                    📖 Description
+                                </h5>
+
+                                <p>
+                                    @Model.Description
+                                </p>
+
                             </div>
+
 
                             <div class="info-card">
-                                <h5>💊 Recommendation</h5>
-                                <p>@Model.Recommendation</p>
+
+                                <h5>
+                                    💊 Recommendation
+                                </h5>
+
+                                <p>
+                                    @Model.Recommendation
+                                </p>
+
                             </div>
                         }
-                        else if (Model.IsDiseaseImage)
+                        else if (Model.IsDiseaseImage && !Model.HasDiseaseInfo)
                         {
                             <div class="alert alert-warning mt-3">
-                                <h5>⚠ Disease Information Unavailable</h5>
+
+                                <h5>
+                                    ⚠ Disease Information Unavailable
+                                </h5>
 
                                 <p class="mb-0">
+
                                     AI predicted
                                     <strong>@Model.DiseaseName</strong>,
-                                    but detailed information about this disease is not yet available in our database.
+                                    but detailed information about this disease
+                                    is not yet available in our database.
+
                                 </p>
+
                             </div>
                         }
 
@@ -1030,8 +1116,12 @@
 
                 </div>
 
+
+                <!-- ACTION AREA -->
                 @if (Model.IsDiseaseImage)
                 {
+                    <!-- DISEASE -->
+
                     <div class="save-area">
 
                         <h4>
@@ -1039,53 +1129,80 @@
                         </h4>
 
                         <p class="mb-3">
-                            AI has identified a possible skin disease. To receive an accurate diagnosis and appropriate treatment, please schedule an appointment with one of our veterinarians.
+
+                            AI has identified a possible skin disease.
+                            To receive an accurate diagnosis and appropriate
+                            treatment, please schedule an appointment with
+                            one of our veterinarians.
+
                         </p>
+
 
                         <a asp-action="Create"
                            asp-controller="Appointment"
                            class="save-btn">
+
                             📅 Book Appointment
+
                         </a>
+
 
                         <a asp-action="Index"
                            asp-controller="Home"
                            class="cancel-btn">
+
                             Back to Home
+
                         </a>
 
                     </div>
                 }
                 else
                 {
+                    <!-- NOT DISEASE -->
+
                     <div class="save-area">
 
                         <h4>
-                            Unable to identify a skin disease
+                            Please Upload a More Suitable Image
                         </h4>
 
                         <p class="mb-3">
-                            The uploaded image does not appear to contain a recognizable pet skin disease.
-                            If your pet is showing unusual symptoms, we still recommend scheduling a veterinary consultation.
+
+                            The uploaded image does not appear to show
+                            a recognizable case of Mange or Papilloma.
+
+                            Please try uploading a clear, close-up image
+                            of the affected skin area with good lighting.
+
+                            If your pet is showing unusual symptoms,
+                            we recommend consulting a veterinarian.
+
                         </p>
+
+
+                        <a href="javascript:location.reload();"
+                           class="save-btn">
+
+                            🔄 Upload Another Image
+
+                        </a>
+
 
                         <a asp-action="Create"
                            asp-controller="Appointment"
-                           class="save-btn">
-                            📅 Book Appointment
-                        </a>
-
-                        <a asp-action="Index"
-                           asp-controller="Home"
                            class="cancel-btn">
-                            Back to Home
+
+                            📅 Book Appointment
+
                         </a>
 
                     </div>
                 }
-            </div>
 
+            </div>
         }
+
 
         <div class="modal fade"
              id="medicalRecordModal">
@@ -1241,5 +1358,34 @@
         });
 
     }
+
+
+
+    const form = document.getElementById("aiForm");
+
+    if (form) {
+        form.addEventListener("submit", function() {
+            sessionStorage.setItem(
+                "aiScroll",
+                window.scrollY.toString()
+            );
+        });
+    }
+
+    window.addEventListener("load", function() {
+
+        const scroll = sessionStorage.getItem("aiScroll");
+
+        if (scroll !== null) {
+
+            window.scrollTo({
+                top: parseInt(scroll),
+                behavior: "instant"
+            });
+
+            sessionStorage.removeItem("aiScroll");
+        }
+
+    });
 
 </script>
