@@ -7,7 +7,8 @@ public partial class Payment
 {
     public Guid PaymentId { get; set; }
 
-    public Guid OrderId { get; set; }
+    public Guid? OrderId { get; set; }
+    public Guid? AppointmentId { get; set; }
 
     public string PaymentMethod { get; set; } = null!;
 
@@ -33,5 +34,6 @@ public partial class Payment
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual Order Order { get; set; } = null!;
+    public virtual Order? Order { get; set; } 
+    public virtual Appointment? Appointment { get; set; } 
 }

@@ -148,7 +148,9 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.Status).HasDefaultValue(1);
             entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PaidAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.ReservedUntil).HasColumnType("datetime");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.CustomerId)
@@ -845,6 +847,7 @@ public partial class PetCenterContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false);
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
+            entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
             entity.Property(e => e.PaidAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.PaidAt).HasColumnType("datetime");
             entity.Property(e => e.PaymentMethod)
@@ -861,8 +864,13 @@ public partial class PetCenterContext : DbContext
 
             entity.HasOne(d => d.Order).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.OrderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Payments_Orders");
+            entity.HasOne(d => d.Appointment)
+                .WithMany(a => a.Payments)
+                .HasForeignKey(d => d.AppointmentId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Payments_Appointments");
         });
 
         modelBuilder.Entity<Pet>(entity =>

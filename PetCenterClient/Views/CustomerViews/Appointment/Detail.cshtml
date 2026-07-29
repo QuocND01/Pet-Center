@@ -31,7 +31,7 @@
                             @switch (Model.Status)
                             {
                                 case 1:
-                                    <span class="badge badge-lg bg-warning text-dark rounded-pill fw-bold px-3 py-2"><i class="far fa-clock me-1"></i>Pending</span>
+                                    <span class="badge badge-lg bg-warning text-dark rounded-pill fw-bold px-3 py-2"><i class="far fa-clock me-1"></i>Pending Payment</span>
                                     break;
                                 case 2:
                                     <span class="badge badge-lg bg-info text-white rounded-pill fw-bold px-3 py-2"><i class="fas fa-calendar-check me-1"></i>Confirmed</span>
@@ -141,7 +141,7 @@
 
                 </div>
 
-                <!-- CLINICAL RESULTS & USER REVIEW SECTION (SEPARATED & UPDATEABLE - ONLY SHOW IF COMPLETED - STATUS = 4) -->
+                <!-- CLINICAL RESULTS & USER REVIEW SECTION (STATUS = 4) -->
                 @if (Model.Status == 4)
                 {
                     <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
@@ -157,7 +157,6 @@
 
                         @if (Model.Snapshot != null && Model.Snapshot.Rating > 0)
                         {
-                            <!-- DISPLAY EXISTING REVIEW LAYOUT -->
                             <div id="existingReviewContainer" class="review-display-box">
                                 <div class="mb-2 text-warning fs-5">
                                     @for (int i = 1; i <= 5; i++)
@@ -172,7 +171,6 @@
                             </div>
                         }
 
-                        <!-- EDITABLE / SUBMIT FORM BLOCK (CALLS SAMES SUBMITREVIEW ACTION) -->
                         <div id="reviewFormContainer" style="@(Model.Snapshot != null && Model.Snapshot.Rating > 0 ? "display: none;" : "")" class="mt-2">
                             <form asp-action="SubmitReview" method="post">
                                 <input type="hidden" name="AppointmentId" value="@Model.AppointmentId" />
@@ -226,6 +224,43 @@
                         </div>
                     </div>
 
+                    <!-- PAYMENT SECTION (CHỈ HIỆN KHI STATUS = 1: PENDING/RESERVED) -->
+                    @if (Model.Status == 1)
+                    {
+                        <div class="payment-method-selector mb-4">
+                            <label class="fw-bold text-dark small mb-2 d-block"><i class="fas fa-wallet me-1 text-success"></i>Select Payment Method:</label>
+
+                            <div class="d-flex flex-column gap-2">
+                                <!-- VNPAY OPTION -->
+                                <label class="payment-option-card p-3 rounded-3 border d-flex align-items-center justify-content-between cursor-pointer">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="radio" name="paymentGateway" value="VNPAY" id="payVnPay" checked class="form-check-input mt-0" />
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo.svg" alt="VnPay" style="height: 24px; object-fit: contain;" />
+                                            <span class="fw-bold text-dark small">VNPay QR / ATM</span>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- MOMO OPTION -->
+                                <label class="payment-option-card p-3 rounded-3 border d-flex align-items-center justify-content-between cursor-pointer">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="radio" name="paymentGateway" value="MOMO" id="payMoMo" class="form-check-input mt-0" />
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo" style="height: 24px; width: 24px; object-fit: contain;" />
+                                            <span class="fw-bold text-dark small">MoMo Wallet</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- PAY NOW BUTTON -->
+                            <button type="button" id="btnPayNow" onclick="processAppointmentPayment()" class="btn btn-modern-success w-100 fw-bold py-2 mt-3 shadow-sm">
+                                <i class="fas fa-credit-card me-2"></i>Pay Now (@Model.Total.ToString("N0") đ)
+                            </button>
+                        </div>
+                    }
+
                     <!-- CANCEL BUTTON TRIGGER MODAL -->
                     @if (Model.Status == 1 || Model.Status == 2)
                     {
@@ -237,6 +272,12 @@
                     {
                         <div class="alert alert-secondary small text-center rounded-3 m-0 py-2">
                             <i class="fas fa-ban me-1"></i> This appointment was cancelled
+                        </div>
+                    }
+                    else if (Model.Status == 2)
+                    {
+                        <div class="alert alert-info small text-center rounded-3 m-0 py-2">
+                            <i class="fas fa-check-circle me-1"></i> Appointment Confirmed & Paid
                         </div>
                     }
                     else
@@ -288,6 +329,20 @@
         --white: #ffffff;
         --bg-main: #f9fafb;
     }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .payment-option-card {
+        background-color: var(--white);
+        transition: all 0.2s ease;
+    }
+
+        .payment-option-card:hover {
+            border-color: var(--primary-green) !important;
+            background-color: var(--light-green-bg);
+        }
 
     .profile-mini-card {
         background-color: var(--white);
@@ -375,13 +430,11 @@
         }
     }
 
-    /* ĐỒNG BỘ STICKY-TOP CHO SIDEBAR */
     .col-lg-4 > .sticky-top {
         top: 90px !important;
         z-index: 10 !important;
     }
 
-    /* GIAO DIỆN MODAL CONFIRM CHUYÊN NGHIỆP */
     .modal-confirm {
         max-width: 380px;
     }
@@ -442,7 +495,6 @@
     }
 </style>
 
-<!-- TOGGLE DISCOVERY LOGIC FOR EDITING REVIEW -->
 <script>
     function toggleReviewForm() {
         const formContainer = document.getElementById("reviewFormContainer");
@@ -456,6 +508,51 @@
                 formContainer.style.display = "none";
                 displayContainer.style.display = "block";
             }
+        }
+    }
+
+    async function processAppointmentPayment() {
+        const appointmentId = "@Model.AppointmentId";
+        const selectedMethod = document.querySelector('input[name="paymentGateway"]:checked')?.value;
+        const btnPay = document.getElementById("btnPayNow");
+
+        if (!selectedMethod) {
+            alert("Vui lòng chọn phương thức thanh toán.");
+            return;
+        }
+
+        btnPay.disabled = true;
+        btnPay.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang khởi tạo...';
+
+        try {
+            // Gọi đến Action của Client Controller
+            const response = await fetch('/Appointment/CreatePayment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    appointmentId: appointmentId,
+                    paymentMethod: selectedMethod,
+                    clientIpAddress: ''
+                })
+            });
+
+            const resData = await response.json();
+
+            if (resData.status && resData.data?.paymentUrl) {
+                // Chuyển hướng tới trang thanh toán của VNPay/MoMo
+                window.location.href = resData.data.paymentUrl;
+            } else {
+                alert(resData.message || "Payment initiation failed.");
+                btnPay.disabled = false;
+                btnPay.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
+            }
+        } catch (error) {
+            console.error("Payment error:", error);
+            alert("Unable to connect to the server.");
+            btnPay.disabled = false;
+            btnPay.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
         }
     }
 </script>

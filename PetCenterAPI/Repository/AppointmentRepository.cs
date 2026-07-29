@@ -144,5 +144,10 @@ namespace PetCenterAPI.Repository
                 .OrderBy(a => a.AppointmentStart)
                 .ToListAsync();
         }
+        public async Task UpdateAsync(Appointment appointment)
+        {
+            _context.Appointments.Update(appointment);
+            await _context.SaveChangesAsync();
+        }
     }
 }
