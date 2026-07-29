@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, SocketException;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
@@ -7,6 +8,7 @@ import '../models/customer_model.dart';
 import '../models/product_model.dart';
 import '../models/cart_model.dart';
 import '../models/address_model.dart';
+import '../models/service_model.dart';
 
 class ApiService {
   // Singleton pattern
@@ -77,6 +79,19 @@ class ApiService {
     await AuthService().clearSession();
   }
 
+  Future<void> logout() async {
+    try {
+      await _client.post(
+        Uri.parse('$baseUrl/auths/logout'),
+        headers: _getHeaders(),
+      );
+    } catch (_) {
+      // Ignore network failure on logout
+    } finally {
+      await clearAuthData();
+    }
+  }
+
   Map<String, String> _getHeaders() {
     final headers = {'Content-Type': 'application/json'};
     if (_token != null) {
@@ -85,17 +100,43 @@ class ApiService {
     return headers;
   }
 
+  // Helper to execute any HTTP request with a 20-second timeout & connection error handling
+  Future<http.Response> _sendRequest(Future<http.Response> Function() fn) async {
+    try {
+      final response = await fn().timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => throw Exception('Connection timeout (20s). Please check if backend API server is running.'),
+      );
+      return response;
+    } on SocketException catch (_) {
+      throw Exception('Cannot connect to server ($baseUrl). Please verify backend API server is running.');
+    } on TimeoutException catch (_) {
+      throw Exception('Connection timed out (20s). Backend API server is not responding.');
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Connection refused') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('Cannot connect to backend API server. Please check backend API status.');
+      }
+      rethrow;
+    }
+  }
+
   // ============================================================
   // AUTHENTICATION (AuthsController)
   // ============================================================
 
   // Login
   Future<Map<String, dynamic>> customerLogin(String email, String password) async {
-    final response = await _client.post(
+    final response = await _sendRequest(() => _client.post(
       Uri.parse('$baseUrl/auths/customer-login'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email, 'password': password}),
-    );
+    ));
+
+    if (response.body.isEmpty) {
+      throw Exception('Empty server response. Please verify backend API status.');
+    }
 
     final data = json.decode(response.body);
     final isSuccess = data['success'] == true || data['Success'] == true;
@@ -366,6 +407,85 @@ class ApiService {
       }),
     );
 
+    return json.decode(response.body);
+  }
+
+  // ============================================================
+  // PET SERVICES (ServicesController)
+  // ============================================================
+  Future<List<ServiceModel>> getServices({String? search, int? serviceType}) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/Services'),
+      headers: _getHeaders(),
+    );
+
+    final data = _handleResponse(response);
+    List<ServiceModel> list = [];
+    if (data is List) {
+      list = data.map((json) => ServiceModel.fromJson(json)).toList();
+    } else if (data is Map && data['value'] != null) {
+      final List odataList = data['value'];
+      list = odataList.map((json) => ServiceModel.fromJson(json)).toList();
+    }
+
+    if (search != null && search.trim().isNotEmpty) {
+      final query = search.trim().toLowerCase();
+      list = list.where((s) => s.serviceName.toLowerCase().contains(query)).toList();
+    }
+
+    if (serviceType != null && serviceType > 0) {
+      list = list.where((s) => s.serviceType == serviceType).toList();
+    }
+
+    return list;
+  }
+
+  Future<ServiceModel> getServiceDetails(String serviceId) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/Services/$serviceId'),
+      headers: _getHeaders(),
+    );
+    final data = _handleResponse(response);
+    return ServiceModel.fromJson(data);
+  }
+
+  // ============================================================
+  // FORGOT & RESET PASSWORD (AuthsController)
+  // ============================================================
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    final response = await _sendRequest(() => _client.post(
+      Uri.parse('$baseUrl/Auths/forgot-password'),
+      headers: _getHeaders(),
+      body: json.encode({
+        'Email': email.trim(),
+        'email': email.trim(),
+      }),
+    ));
+    if (response.body.isEmpty) return {'success': false, 'message': 'Empty server response'};
+    return json.decode(response.body);
+  }
+
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String token,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    final response = await _sendRequest(() => _client.post(
+      Uri.parse('$baseUrl/Auths/reset-password'),
+      headers: _getHeaders(),
+      body: json.encode({
+        'Email': email.trim(),
+        'Token': token.trim(),
+        'NewPassword': newPassword,
+        'ConfirmPassword': confirmPassword,
+        'email': email.trim(),
+        'token': token.trim(),
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      }),
+    ));
+    if (response.body.isEmpty) return {'success': false, 'message': 'Empty server response'};
     return json.decode(response.body);
   }
 

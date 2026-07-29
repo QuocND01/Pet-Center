@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../services/api_service.dart';
+import 'login_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String email;
+  final String? password;
 
-  const OtpVerificationScreen({super.key, required this.email});
+  const OtpVerificationScreen({
+    super.key,
+    required this.email,
+    this.password,
+  });
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -61,11 +68,20 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         if (isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Account verified successfully! You can login now.'),
+              content: Text('Account verified successfully! Credentials pre-filled for login.'),
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.popUntil(context, ModalRoute.withName('/login'));
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LoginScreen(
+                prefilledEmail: widget.email,
+                prefilledPassword: widget.password,
+              ),
+            ),
+            (route) => false,
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -188,10 +204,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         TextFormField(
                           controller: _otpController,
                           keyboardType: TextInputType.number,
+                          maxLength: 6,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(6, maxLengthEnforcement: MaxLengthEnforcement.enforced),
+                          ],
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 8),
                           decoration: InputDecoration(
                             hintText: '000000',
+                            counterText: '',
                             hintStyle: TextStyle(color: Colors.grey.shade400, letterSpacing: 8),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
@@ -199,8 +221,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             if (value == null || value.isEmpty) {
                               return 'Please enter the OTP code';
                             }
-                            if (value.length < 4) {
-                              return 'Invalid OTP code';
+                            if (value.length < 6) {
+                              return 'OTP code must be 6 digits';
                             }
                             return null;
                           },
