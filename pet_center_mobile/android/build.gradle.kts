@@ -22,3 +22,16 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+subprojects {
+    plugins.withId("com.android.library") {
+        configure<com.android.build.gradle.LibraryExtension> {
+            testOptions {
+                unitTests.isIncludeAndroidResources = false
+            }
+        }
+        (extensions.findByName("androidComponents") as? com.android.build.api.variant.AndroidComponentsExtension<*, *, *>)?.beforeVariants { variantBuilder ->
+            (variantBuilder as? com.android.build.api.variant.HasUnitTestBuilder)?.enableUnitTest = false
+        }
+    }
+}

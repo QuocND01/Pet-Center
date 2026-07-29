@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 import '../models/customer_model.dart';
 import '../models/product_model.dart';
 import '../models/cart_model.dart';
@@ -11,19 +14,51 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  // Change to your computer's LAN IP when connecting with a physical phone (e.g. http://192.168.1.15:5163/api)
-  static const String baseUrl = 'http://localhost:5163/api';
+  // Dynamic Base URL detection for Android Emulator (10.0.2.2) vs Localhost (iOS/Web/Desktop)
+  static String get baseUrl {
+    if (!kIsWeb && Platform.isAndroid) {
+      return 'http://10.0.2.2:5163/api';
+    }
+    return 'http://localhost:5163/api';
+  }
 
   final http.Client _client = http.Client();
   String? _token;
   String? _customerId;
   String? _customerEmail;
 
+  // Initialize saved session from local storage
+  Future<bool> initSession() async {
+    final session = await AuthService().loadSession();
+    _token = session['token'];
+    _customerId = session['customerId'];
+    _customerEmail = session['email'];
+
+    if (_token != null && _token!.isNotEmpty) {
+      try {
+        final profile = await getCustomerProfile();
+        _customerId = profile.customerId;
+        await AuthService().saveSession(
+          token: _token!,
+          customerId: _customerId!,
+          email: _customerEmail ?? profile.email ?? '',
+        );
+        return true;
+      } catch (e) {
+        // Token expired or invalid
+        await clearAuthData();
+        return false;
+      }
+    }
+    return false;
+  }
+
   // Save session auth data
   void setAuthData(String token, String customerId, String email) {
     _token = token;
     _customerId = customerId;
     _customerEmail = email;
+    AuthService().saveSession(token: token, customerId: customerId, email: email);
   }
 
   void setToken(String token) {
@@ -33,11 +68,13 @@ class ApiService {
   String? get token => _token;
   String? get customerId => _customerId;
   String? get customerEmail => _customerEmail;
+  bool get isAuthenticated => _token != null && _token!.isNotEmpty;
 
-  void clearAuthData() {
+  Future<void> clearAuthData() async {
     _token = null;
     _customerId = null;
     _customerEmail = null;
+    await AuthService().clearSession();
   }
 
   Map<String, String> _getHeaders() {
@@ -72,8 +109,17 @@ class ApiService {
       try {
         final profile = await getCustomerProfile();
         _customerId = profile.customerId;
+        await AuthService().saveSession(
+          token: _token!,
+          customerId: _customerId!,
+          email: email,
+        );
       } catch (e) {
-        // Fallback
+        await AuthService().saveSession(
+          token: _token!,
+          customerId: '',
+          email: email,
+        );
       }
     }
     return data;
