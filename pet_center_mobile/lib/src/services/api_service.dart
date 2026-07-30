@@ -9,6 +9,8 @@ import '../models/product_model.dart';
 import '../models/cart_model.dart';
 import '../models/address_model.dart';
 import '../models/service_model.dart';
+import '../models/product_feedback_model.dart';
+import '../models/order_model.dart';
 
 class ApiService {
   // Singleton pattern
@@ -214,10 +216,18 @@ class ApiService {
   // PRODUCT CATALOG (ProductsController)
   // ============================================================
 
-  // Get all products
-  Future<List<ProductModel>> getProducts() async {
+  // Get products with optional pagination (OData $top & $skip)
+  Future<List<ProductModel>> getProducts({int? top, int? skip}) async {
+    String url = '$baseUrl/Products';
+    if (top != null || skip != null) {
+      final queryParams = <String>[];
+      if (top != null) queryParams.add('\$top=$top');
+      if (skip != null) queryParams.add('\$skip=$skip');
+      url += '?${queryParams.join('&')}';
+    }
+
     final response = await _client.get(
-      Uri.parse('$baseUrl/Products'),
+      Uri.parse(url),
       headers: _getHeaders(),
     );
 
@@ -239,6 +249,20 @@ class ApiService {
     );
     final data = _handleResponse(response);
     return ProductModel.fromJson(data);
+  }
+
+  // Get feedbacks by product id (ProductFeedbacksController)
+  Future<List<ProductFeedbackModel>> getFeedbacksByProductId(String productId) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/ProductFeedbacks/product/$productId'),
+      headers: _getHeaders(),
+    );
+    final data = _handleResponse(response);
+    if (data != null && (data['success'] == true || data['Success'] == true)) {
+      final List list = data['data'] ?? data['Data'] ?? [];
+      return list.map((json) => ProductFeedbackModel.fromJson(json)).toList();
+    }
+    return [];
   }
 
   // ============================================================
@@ -440,6 +464,41 @@ class ApiService {
     return json.decode(response.body);
   }
 
+  // Get customer order history
+  Future<List<OrderModel>> getMyOrders() async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/Orders/my-orders'),
+      headers: _getHeaders(),
+    );
+
+    final data = _handleResponse(response);
+    if (data is List) {
+      return data.map((json) => OrderModel.fromJson(json)).toList();
+    }
+    return [];
+  }
+
+  // Get order details
+  Future<OrderModel> getOrderDetails(String orderId) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/Orders/$orderId'),
+      headers: _getHeaders(),
+    );
+
+    final data = _handleResponse(response);
+    return OrderModel.fromJson(data);
+  }
+
+  // Cancel order
+  Future<bool> cancelOrder(String orderId) async {
+    final response = await _client.patch(
+      Uri.parse('$baseUrl/Orders/$orderId/cancel'),
+      headers: _getHeaders(),
+    );
+
+    return response.statusCode == 200;
+  }
+
   // ============================================================
   // PET SERVICES (ServicesController)
   // ============================================================
@@ -513,6 +572,25 @@ class ApiService {
         'token': token.trim(),
         'newPassword': newPassword,
         'confirmPassword': confirmPassword,
+      }),
+    ));
+    if (response.body.isEmpty) return {'success': false, 'message': 'Empty server response'};
+    return json.decode(response.body);
+  }
+
+  // Change Password (AuthsController)
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmNewPassword,
+  }) async {
+    final response = await _sendRequest(() => _client.post(
+      Uri.parse('$baseUrl/auths/change-password'),
+      headers: _getHeaders(),
+      body: json.encode({
+        'currentPassword': currentPassword.trim(),
+        'newPassword': newPassword.trim(),
+        'confirmNewPassword': confirmNewPassword.trim(),
       }),
     ));
     if (response.body.isEmpty) return {'success': false, 'message': 'Empty server response'};
