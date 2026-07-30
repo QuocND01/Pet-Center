@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform, SocketException;
+import 'dart:io' show Platform, SocketException, File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
@@ -9,6 +9,7 @@ import '../models/product_model.dart';
 import '../models/cart_model.dart';
 import '../models/address_model.dart';
 import '../models/service_model.dart';
+import '../models/pet_model.dart';
 import '../models/product_feedback_model.dart';
 import '../models/order_model.dart';
 
@@ -62,7 +63,8 @@ class ApiService {
     _token = token;
     _customerId = customerId;
     _customerEmail = email;
-    AuthService().saveSession(token: token, customerId: customerId, email: email);
+    AuthService()
+        .saveSession(token: token, customerId: customerId, email: email);
   }
 
   void setToken(String token) {
@@ -103,22 +105,27 @@ class ApiService {
   }
 
   // Helper to execute any HTTP request with a 20-second timeout & connection error handling
-  Future<http.Response> _sendRequest(Future<http.Response> Function() fn) async {
+  Future<http.Response> _sendRequest(
+      Future<http.Response> Function() fn) async {
     try {
       final response = await fn().timeout(
         const Duration(seconds: 20),
-        onTimeout: () => throw Exception('Connection timeout (20s). Please check if backend API server is running.'),
+        onTimeout: () => throw Exception(
+            'Connection timeout (20s). Please check if backend API server is running.'),
       );
       return response;
     } on SocketException catch (_) {
-      throw Exception('Cannot connect to server ($baseUrl). Please verify backend API server is running.');
+      throw Exception(
+          'Cannot connect to server ($baseUrl). Please verify backend API server is running.');
     } on TimeoutException catch (_) {
-      throw Exception('Connection timed out (20s). Backend API server is not responding.');
+      throw Exception(
+          'Connection timed out (20s). Backend API server is not responding.');
     } catch (e) {
       if (e.toString().contains('SocketException') ||
           e.toString().contains('Connection refused') ||
           e.toString().contains('Failed host lookup')) {
-        throw Exception('Cannot connect to backend API server. Please check backend API status.');
+        throw Exception(
+            'Cannot connect to backend API server. Please check backend API status.');
       }
       rethrow;
     }
@@ -129,15 +136,17 @@ class ApiService {
   // ============================================================
 
   // Login
-  Future<Map<String, dynamic>> customerLogin(String email, String password) async {
+  Future<Map<String, dynamic>> customerLogin(
+      String email, String password) async {
     final response = await _sendRequest(() => _client.post(
-      Uri.parse('$baseUrl/auths/customer-login'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email, 'password': password}),
-    ));
+          Uri.parse('$baseUrl/auths/customer-login'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({'email': email, 'password': password}),
+        ));
 
     if (response.body.isEmpty) {
-      throw Exception('Empty server response. Please verify backend API status.');
+      throw Exception(
+          'Empty server response. Please verify backend API status.');
     }
 
     final data = json.decode(response.body);
@@ -359,7 +368,8 @@ class ApiService {
       body: json.encode(customer.toJson()),
     );
     final jsonResult = _handleResponse(response);
-    final isSuccess = jsonResult?['success'] == true || jsonResult?['Success'] == true;
+    final isSuccess =
+        jsonResult?['success'] == true || jsonResult?['Success'] == true;
     return jsonResult != null && isSuccess;
   }
 
@@ -502,7 +512,8 @@ class ApiService {
   // ============================================================
   // PET SERVICES (ServicesController)
   // ============================================================
-  Future<List<ServiceModel>> getServices({String? search, int? serviceType}) async {
+  Future<List<ServiceModel>> getServices(
+      {String? search, int? serviceType}) async {
     final response = await _client.get(
       Uri.parse('$baseUrl/Services'),
       headers: _getHeaders(),
@@ -519,7 +530,9 @@ class ApiService {
 
     if (search != null && search.trim().isNotEmpty) {
       final query = search.trim().toLowerCase();
-      list = list.where((s) => s.serviceName.toLowerCase().contains(query)).toList();
+      list = list
+          .where((s) => s.serviceName.toLowerCase().contains(query))
+          .toList();
     }
 
     if (serviceType != null && serviceType > 0) {
@@ -543,14 +556,15 @@ class ApiService {
   // ============================================================
   Future<Map<String, dynamic>> forgotPassword(String email) async {
     final response = await _sendRequest(() => _client.post(
-      Uri.parse('$baseUrl/Auths/forgot-password'),
-      headers: _getHeaders(),
-      body: json.encode({
-        'Email': email.trim(),
-        'email': email.trim(),
-      }),
-    ));
-    if (response.body.isEmpty) return {'success': false, 'message': 'Empty server response'};
+          Uri.parse('$baseUrl/Auths/forgot-password'),
+          headers: _getHeaders(),
+          body: json.encode({
+            'Email': email.trim(),
+            'email': email.trim(),
+          }),
+        ));
+    if (response.body.isEmpty)
+      return {'success': false, 'message': 'Empty server response'};
     return json.decode(response.body);
   }
 
@@ -561,20 +575,21 @@ class ApiService {
     required String confirmPassword,
   }) async {
     final response = await _sendRequest(() => _client.post(
-      Uri.parse('$baseUrl/Auths/reset-password'),
-      headers: _getHeaders(),
-      body: json.encode({
-        'Email': email.trim(),
-        'Token': token.trim(),
-        'NewPassword': newPassword,
-        'ConfirmPassword': confirmPassword,
-        'email': email.trim(),
-        'token': token.trim(),
-        'newPassword': newPassword,
-        'confirmPassword': confirmPassword,
-      }),
-    ));
-    if (response.body.isEmpty) return {'success': false, 'message': 'Empty server response'};
+          Uri.parse('$baseUrl/Auths/reset-password'),
+          headers: _getHeaders(),
+          body: json.encode({
+            'Email': email.trim(),
+            'Token': token.trim(),
+            'NewPassword': newPassword,
+            'ConfirmPassword': confirmPassword,
+            'email': email.trim(),
+            'token': token.trim(),
+            'newPassword': newPassword,
+            'confirmPassword': confirmPassword,
+          }),
+        ));
+    if (response.body.isEmpty)
+      return {'success': false, 'message': 'Empty server response'};
     return json.decode(response.body);
   }
 
@@ -598,6 +613,119 @@ class ApiService {
   }
 
   // ============================================================
+  // PETS (PetsController)
+  // ============================================================
+  Future<List<PetModel>> getMyPets() async {
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/Pets/my-pets'),
+          headers: _getHeaders(),
+        ));
+
+    final data = _handleResponse(response);
+    if (data is List) {
+      return data.map((json) => PetModel.fromJson(json)).toList();
+    }
+    return [];
+  }
+
+  Future<PetModel> getPetDetails(String petId) async {
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/Pets/$petId'),
+          headers: _getHeaders(),
+        ));
+
+    final data = _handleResponse(response);
+    return PetModel.fromJson(data);
+  }
+
+  Future<bool> addPet({
+    required String petName,
+    required String species,
+    required String breed,
+    required String gender,
+    double? weight,
+    String? note,
+    String? dateOfBirth,
+    File? imageFile,
+  }) async {
+    final uri = Uri.parse('$baseUrl/Pets');
+    final request = http.MultipartRequest('POST', uri);
+
+    if (_token != null) {
+      request.headers['Authorization'] = 'Bearer $_token';
+    }
+
+    request.fields['PetName'] = petName;
+    request.fields['Species'] = species;
+    request.fields['Breed'] = breed;
+    request.fields['Gender'] = gender;
+    if (weight != null) request.fields['Weight'] = weight.toString();
+    if (note != null && note.isNotEmpty) request.fields['Note'] = note;
+    if (dateOfBirth != null && dateOfBirth.isNotEmpty)
+      request.fields['DateOfBirth'] = dateOfBirth;
+
+    if (imageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'ImageFile',
+        imageFile.path,
+      ));
+    }
+
+    final streamedResponse =
+        await request.send().timeout(const Duration(seconds: 30));
+    final response = await http.Response.fromStream(streamedResponse);
+    return response.statusCode == 200;
+  }
+
+  Future<bool> updatePet({
+    required String petId,
+    required String petName,
+    required String species,
+    required String breed,
+    required String gender,
+    double? weight,
+    String? note,
+    String? dateOfBirth,
+    File? imageFile,
+  }) async {
+    final uri = Uri.parse('$baseUrl/Pets/$petId');
+    final request = http.MultipartRequest('PUT', uri);
+
+    if (_token != null) {
+      request.headers['Authorization'] = 'Bearer $_token';
+    }
+
+    request.fields['PetName'] = petName;
+    request.fields['Species'] = species;
+    request.fields['Breed'] = breed;
+    request.fields['Gender'] = gender;
+    if (weight != null) request.fields['Weight'] = weight.toString();
+    if (note != null && note.isNotEmpty) request.fields['Note'] = note;
+    if (dateOfBirth != null && dateOfBirth.isNotEmpty)
+      request.fields['DateOfBirth'] = dateOfBirth;
+
+    if (imageFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'ImageFile',
+        imageFile.path,
+      ));
+    }
+
+    final streamedResponse =
+        await request.send().timeout(const Duration(seconds: 30));
+    final response = await http.Response.fromStream(streamedResponse);
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deletePet(String petId) async {
+    final response = await _sendRequest(() => _client.delete(
+          Uri.parse('$baseUrl/Pets/$petId'),
+          headers: _getHeaders(),
+        ));
+    return response.statusCode == 200;
+  }
+
+  // ============================================================
   // UTILITIES
   // ============================================================
   dynamic _handleResponse(http.Response response) {
@@ -605,7 +733,8 @@ class ApiService {
       if (response.body.isEmpty) return null;
       return json.decode(response.body);
     } else {
-      throw Exception('Request failed: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Request failed: ${response.statusCode} - ${response.body}');
     }
   }
 }

@@ -13,6 +13,7 @@ import 'src/features/auth/views/reset_password_screen.dart';
 import 'src/features/auth/views/change_password_screen.dart';
 import 'src/features/orders/views/order_list_screen.dart';
 import 'src/features/address/views/address_list_screen.dart';
+import 'src/features/pet/views/pet_list_screen.dart';
 
 import 'package:app_links/app_links.dart';
 
@@ -128,6 +129,7 @@ class _MyAppState extends State<MyApp> {
         '/change-password': (context) => const ChangePasswordScreen(),
         '/orders': (context) => const OrderListScreen(),
         '/addresses': (context) => const AddressListScreen(),
+        '/pets': (context) => const PetListScreen(),
       },
     );
   }
