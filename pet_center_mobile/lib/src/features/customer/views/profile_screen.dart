@@ -3,6 +3,7 @@ import '../../../constants/app_colors.dart';
 import '../../../models/customer_model.dart';
 import '../../../services/api_service.dart';
 import '../../address/views/address_list_screen.dart';
+import '../../pet/views/pet_list_screen.dart';
 import 'edit_profile_screen.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
@@ -28,7 +29,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     });
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {Color? valueColor}) {
+  Widget _buildInfoRow(IconData icon, String label, String value,
+      {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
@@ -74,7 +76,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   Widget build(BuildContext context) {
     if (_apiService.token == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Customer Profile'), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+        appBar: AppBar(
+            title: const Text('Customer Profile'),
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -198,34 +203,50 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   runSpacing: 6,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: (customer.isActive ?? true) ? Colors.green.shade700 : Colors.red.shade700,
+                        color: (customer.isActive ?? true)
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         (customer.isActive ?? true) ? 'Active' : 'Inactive',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: (customer.isVerified ?? false) ? Colors.blue.shade700 : Colors.grey.shade700,
+                        color: (customer.isVerified ?? false)
+                            ? Colors.blue.shade700
+                            : Colors.grey.shade700,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            (customer.isVerified ?? false) ? Icons.verified : Icons.hourglass_empty,
+                            (customer.isVerified ?? false)
+                                ? Icons.verified
+                                : Icons.hourglass_empty,
                             color: Colors.white,
                             size: 12,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            (customer.isVerified ?? false) ? 'Verified' : 'Unverified',
-                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            (customer.isVerified ?? false)
+                                ? 'Verified'
+                                : 'Unverified',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -256,17 +277,23 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       ),
                     ),
                     const Divider(height: 24),
-                    _buildInfoRow(Icons.email_outlined, 'Email Address', customer.email ?? 'Not updated'),
-                    _buildInfoRow(Icons.phone_outlined, 'Phone Number', customer.phoneNumber ?? 'Not updated'),
-                    _buildInfoRow(Icons.cake_outlined, 'Date of Birth', customer.birthDay ?? 'Not updated'),
-                    _buildInfoRow(Icons.wc_outlined, 'Gender', customer.gender ?? 'Not updated'),
+                    _buildInfoRow(Icons.email_outlined, 'Email Address',
+                        customer.email ?? 'Not updated'),
+                    _buildInfoRow(Icons.phone_outlined, 'Phone Number',
+                        customer.phoneNumber ?? 'Not updated'),
+                    _buildInfoRow(Icons.cake_outlined, 'Date of Birth',
+                        customer.birthDay ?? 'Not updated'),
+                    _buildInfoRow(Icons.wc_outlined, 'Gender',
+                        customer.gender ?? 'Not updated'),
                   ],
                 ),
               ),
             ),
           ),
+          // Manage Pets Button
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: SizedBox(
               width: double.infinity,
               height: 50,
@@ -278,8 +305,40 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                icon: const Icon(Icons.location_on_outlined, color: AppColors.primary),
-                label: const Text('My Address Book', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.pets_outlined, color: AppColors.primary),
+                label: const Text('My Pets',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PetListScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.location_on_outlined,
+                    color: AppColors.primary),
+                label: const Text('My Address Book',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -292,7 +351,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: SizedBox(
               width: double.infinity,
               height: 50,
@@ -305,12 +365,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   ),
                 ),
                 icon: const Icon(Icons.edit),
-                label: const Text('Edit Profile Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: const Text('Edit Profile Information',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 onPressed: () async {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditCustomerProfileScreen(customer: customer),
+                      builder: (context) =>
+                          EditCustomerProfileScreen(customer: customer),
                     ),
                   );
                   if (result == true) {
@@ -321,7 +384,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: SizedBox(
               width: double.infinity,
               height: 50,
@@ -334,7 +398,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   ),
                 ),
                 icon: const Icon(Icons.logout, color: AppColors.error),
-                label: const Text('Logout Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                label: const Text('Logout Account',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 onPressed: _handleLogout,
               ),
             ),
@@ -354,10 +420,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           children: [
             Icon(Icons.logout, color: AppColors.error),
             SizedBox(width: 8),
-            Text('Logout Confirmation', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text('Logout Confirmation',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
-        content: const Text('Are you sure you want to log out of your account?'),
+        content:
+            const Text('Are you sure you want to log out of your account?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -366,7 +434,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Logout', style: TextStyle(color: Colors.white)),
@@ -414,7 +483,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               SizedBox(width: 8),
               Text(
                 'API connection unavailable. Displaying offline demo profile.',
-                style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold, fontSize: 12),
+                style: TextStyle(
+                    color: Colors.deepOrange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12),
               ),
             ],
           ),

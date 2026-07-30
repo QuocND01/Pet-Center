@@ -11,6 +11,7 @@ import 'src/features/services/views/service_list_screen.dart';
 import 'src/features/auth/views/forgot_password_screen.dart';
 import 'src/features/auth/views/reset_password_screen.dart';
 import 'src/features/address/views/address_list_screen.dart';
+import 'src/features/pet/views/pet_list_screen.dart';
 
 import 'package:app_links/app_links.dart';
 
@@ -124,6 +125,7 @@ class _MyAppState extends State<MyApp> {
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/reset-password': (context) => const ResetPasswordScreen(),
         '/addresses': (context) => const AddressListScreen(),
+        '/pets': (context) => const PetListScreen(),
       },
     );
   }
