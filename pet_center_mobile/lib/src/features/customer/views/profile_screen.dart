@@ -3,6 +3,7 @@ import '../../../constants/app_colors.dart';
 import '../../../models/customer_model.dart';
 import '../../../services/api_service.dart';
 import 'edit_profile_screen.dart';
+import '../../auth/views/change_password_screen.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -289,6 +290,32 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   if (result == true) {
                     _loadProfile();
                   }
+                },
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.lock_outline, color: AppColors.primary),
+                label: const Text('Change Password', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChangePasswordScreen(),
+                    ),
+                  );
                 },
               ),
             ),
