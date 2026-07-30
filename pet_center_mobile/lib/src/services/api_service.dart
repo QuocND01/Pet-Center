@@ -145,7 +145,7 @@ class ApiService {
     if (response.statusCode == 200 && (isSuccess || tokenVal != null)) {
       _token = tokenVal;
       _customerEmail = email;
-      
+
       // Fetch Profile to secure customerId
       try {
         final profile = await getCustomerProfile();
@@ -371,6 +371,36 @@ class ApiService {
         'addressDetails': addressDetails,
         'isDefault': isDefault,
       }),
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> updateAddress({
+    required String addressId,
+    required String province,
+    required String district,
+    required String ward,
+    required String addressDetails,
+    required bool isDefault,
+  }) async {
+    final response = await _client.put(
+      Uri.parse('$baseUrl/Addresses/$addressId'),
+      headers: _getHeaders(),
+      body: json.encode({
+        'province': province,
+        'district': district,
+        'ward': ward,
+        'addressDetails': addressDetails,
+        'isDefault': isDefault,
+      }),
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deleteAddress(String addressId) async {
+    final response = await _client.delete(
+      Uri.parse('$baseUrl/Addresses/$addressId'),
+      headers: _getHeaders(),
     );
     return response.statusCode == 200;
   }

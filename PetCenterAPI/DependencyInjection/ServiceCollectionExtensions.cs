@@ -147,11 +147,7 @@ namespace PetCenterAPI.DependencyInjection
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.WithOrigins(
-                            "https://localhost:7010", // MVC Client
-                            "http://localhost:5005",  // Rasa Chatbot
-                            "http://localhost:5055"   // Rasa Action Server
-                          )
+                    policy.SetIsOriginAllowed(_ => true)
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials(); // Bắt buộc cho kết nối SignalR
@@ -199,14 +195,14 @@ namespace PetCenterAPI.DependencyInjection
             }
 
             // ĐĂNG KÝ CÁC DỊCH VỤ NGOẠI LỆ (Đặc thù hoặc cần vòng đời khác)
-            
+
             // PasswordService đăng ký là Singleton vì không giữ trạng thái động (state)
             services.AddSingleton<PasswordService>();
-            
+
             // CloudinaryService cần đăng ký Scoped và ánh xạ cấu hình Settings
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
-            
+
             // Cấu hình Google Authentication Settings
             services.Configure<GoogleAuthSettings>(configuration.GetSection("Authentication:Google"));
 
