@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/customer_model.dart';
 import '../../../services/api_service.dart';
+import '../../address/views/address_list_screen.dart';
 import 'edit_profile_screen.dart';
 import '../../auth/views/change_password_screen.dart';
 
@@ -270,6 +271,32 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             child: SizedBox(
               width: double.infinity,
               height: 50,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.location_on_outlined, color: AppColors.primary),
+                label: const Text('My Address Book', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddressListScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -400,7 +427,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       isActive: true,
       createdAt: DateTime.now(),
     );
-    
+
     return Column(
       children: [
         Container(

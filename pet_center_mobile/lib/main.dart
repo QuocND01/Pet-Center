@@ -12,6 +12,7 @@ import 'src/features/auth/views/forgot_password_screen.dart';
 import 'src/features/auth/views/reset_password_screen.dart';
 import 'src/features/auth/views/change_password_screen.dart';
 import 'src/features/orders/views/order_list_screen.dart';
+import 'src/features/address/views/address_list_screen.dart';
 
 import 'package:app_links/app_links.dart';
 
@@ -19,7 +20,8 @@ class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
 
@@ -80,7 +82,9 @@ class _MyAppState extends State<MyApp> {
     final path = uri.path.toLowerCase();
     final host = uri.host.toLowerCase();
 
-    if (host == 'reset-password' || path.contains('/resetpassword') || path.contains('/reset-password')) {
+    if (host == 'reset-password' ||
+        path.contains('/resetpassword') ||
+        path.contains('/reset-password')) {
       final email = uri.queryParameters['email'];
       final token = uri.queryParameters['token'];
 
@@ -123,6 +127,7 @@ class _MyAppState extends State<MyApp> {
         '/reset-password': (context) => const ResetPasswordScreen(),
         '/change-password': (context) => const ChangePasswordScreen(),
         '/orders': (context) => const OrderListScreen(),
+        '/addresses': (context) => const AddressListScreen(),
       },
     );
   }
