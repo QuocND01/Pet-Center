@@ -10,6 +10,8 @@ import 'src/features/auth/views/register_screen.dart';
 import 'src/features/services/views/service_list_screen.dart';
 import 'src/features/auth/views/forgot_password_screen.dart';
 import 'src/features/auth/views/reset_password_screen.dart';
+import 'src/features/auth/views/change_password_screen.dart';
+import 'src/features/orders/views/order_list_screen.dart';
 import 'src/features/address/views/address_list_screen.dart';
 import 'src/features/pet/views/pet_list_screen.dart';
 
@@ -124,6 +126,8 @@ class _MyAppState extends State<MyApp> {
         '/services': (context) => const ServiceListScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/reset-password': (context) => const ResetPasswordScreen(),
+        '/change-password': (context) => const ChangePasswordScreen(),
+        '/orders': (context) => const OrderListScreen(),
         '/addresses': (context) => const AddressListScreen(),
         '/pets': (context) => const PetListScreen(),
       },
