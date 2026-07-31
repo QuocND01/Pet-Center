@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +45,7 @@ namespace PetCenterClient.Controllers
         string sortOrder = "asc",
         int page = 1)
         {
-            int pagesize = 24;
+            int pagesize = 25;
                 var result = await _productService.GetAllProductAsync(
                     search,
                     minPrice,
