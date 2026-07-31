@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using PetCenterClient.Common;
@@ -72,6 +73,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: CategoryController/Create
+        [Authorize(Roles = "Admin")]
         public ActionResult CreateAsync()
         {
             return PartialView("~/Views/AdminViews/Category/_Create.cshtml", new CreateCategoryViewModel());
@@ -80,6 +82,7 @@ namespace PetCenterClient.Controllers
 
         // POST: CategoryController/Create
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(CreateCategoryViewModel model)
         {
@@ -109,6 +112,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: CategoryController/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditAsync(Guid id)
         {
             var category = await _categoryService.DetailsCategoryAsync(id);
@@ -139,6 +143,7 @@ namespace PetCenterClient.Controllers
 
         // POST: CategoryController/Edit/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAsync(Guid id, UpdateCategoryViewModel model)
         {
@@ -162,7 +167,7 @@ namespace PetCenterClient.Controllers
         }
 
 
-
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeStatusAsync(
      Guid id,
      Status status)
@@ -182,6 +187,7 @@ namespace PetCenterClient.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ActionName("ChangeStatusConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatusConfirmAsync(

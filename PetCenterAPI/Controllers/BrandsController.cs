@@ -58,7 +58,7 @@ namespace PetCenterAPI.Controllers
             return brand;
         }
 
-        //[Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrandAsync(
             Guid id,
@@ -114,7 +114,7 @@ namespace PetCenterAPI.Controllers
             }
         }
 
-      //  [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> PostBrandAsync([FromForm] CreateBrandDTO createBrand)
         {
@@ -156,7 +156,7 @@ namespace PetCenterAPI.Controllers
             }
         }
 
-        //[Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(
     Guid id,

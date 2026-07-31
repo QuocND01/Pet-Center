@@ -5,16 +5,16 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap');
 
 :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --secondary: #38bdf8;
+    --primary: #16a34a;
+    --primary-dark: #15803d;
+    --secondary: #22c55e;
     --dark: #111827;
     --gray: #6b7280;
     --bg: #f8fafc;
     --white: #ffffff;
     --radius: 22px;
-    --shadow: 0 10px 30px rgba(0,0,0,.08);
-    --shadow-hover: 0 18px 45px rgba(0,0,0,.14);
+    --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    --shadow-hover: 0 18px 45px rgba(0, 0, 0, .14);
     --transition: .3s ease;
     --container: 1280px;
 }
@@ -30,7 +30,7 @@ section {
 }
 
 .container {
-    width: min(var(--container),92%);
+    width: min(var(--container), 92%);
     margin: auto;
 }
 
@@ -69,43 +69,63 @@ section {
         object-position: center;
     }
 
-/* lớp phủ tối nhẹ */
+
+/* Lớp phủ tối nhẹ */
 
 .hero-slider::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient( to right, rgba(0,0,0,.18), rgba(0,0,0,.05), rgba(0,0,0,.08) );
+    background: linear-gradient( to right, rgba(0, 0, 0, .18), rgba(0, 0, 0, .05), rgba(0, 0, 0, .08) );
 }
 
 
 /*==================================================
-            BUTTONS
+            WHY / BENTO SECTION
 ==================================================*/
+
 .why-section {
     padding: 100px 8%;
-    background: #f8fafc;
+    background: var(--bg);
 }
+
+
+/*==================================================
+                SECTION TITLE
+==================================================*/
 
 .section-title {
-    max-width: 700px;
-    margin: auto;
+    width: min(760px, 90%);
+    margin: 0 auto 60px;
     text-align: center;
-    margin-bottom: 60px;
 }
 
-    .section-title h2 {
-        font-size: 42px;
-        color: #0f172a;
+    .section-title span {
+        display: inline-block;
+        color: var(--primary);
+        font-weight: 700;
         margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .section-title h2 {
+        font-size: 44px;
+        line-height: 1.2;
+        margin-bottom: 18px;
+        color: #0f172a;
     }
 
     .section-title p {
-        color: #64748b;
+        color: var(--gray);
+        font-size: 18px;
         line-height: 1.8;
     }
 
-/*====================*/
+
+/*==================================================
+                BENTO GRID
+==================================================*/
 
 .bento-grid {
     display: grid;
@@ -124,7 +144,7 @@ section {
 }
 
 .bento-item {
-    background: white;
+    background: var(--white);
     border: 1px solid #e2e8f0;
     border-radius: 28px;
     padding: 35px;
@@ -144,13 +164,13 @@ section {
         width: 180px;
         height: 180px;
         border-radius: 50%;
-        background: linear-gradient(135deg,#bfdbfe,#dbeafe);
+        background: linear-gradient( 135deg, #bbf7d0, #dcfce7 );
         opacity: .6;
     }
 
     .bento-item:hover {
         transform: translateY(-8px);
-        box-shadow: 0 18px 40px rgba(37,99,235,.12);
+        box-shadow: 0 18px 40px rgba(22, 163, 74, .15);
     }
 
 .bento-top {
@@ -165,7 +185,7 @@ section {
     width: 64px;
     height: 64px;
     border-radius: 18px;
-    background: #eff6ff;
+    background: #f0fdf4;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -174,7 +194,7 @@ section {
 }
 
 .bento-top span {
-    color: #2563eb;
+    color: var(--primary);
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 1px;
@@ -201,64 +221,17 @@ section {
     max-width: none;
 }
 
-/* Responsive */
 
-@media(max-width:900px) {
-
-    .bento-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .hero {
-        min-height: 380px;
-        grid-row: auto;
-    }
-
-    .store {
-        grid-column: auto;
-    }
-}
 /*==================================================
-                SECTION TITLE
+                PET SHOP
 ==================================================*/
 
-.section-title {
-    width: min(760px,90%);
-    margin: 0 auto 60px;
-    text-align: center;
-}
-
-    .section-title span {
-        display: inline-block;
-        color: var(--primary);
-        font-weight: 700;
-        margin-bottom: 15px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .section-title h2 {
-        font-size: 44px;
-        line-height: 1.2;
-        margin-bottom: 18px;
-    }
-
-    .section-title p {
-        color: var(--gray);
-        font-size: 18px;
-        line-height: 1.8;
-    }
-
-/*=============================
-        PET SHOP
-==============================*/
-
 .pet-shop-section {
-    background: #fff;
+    background: var(--white);
 }
 
 .pet-shop-content {
-    width: min(1280px,92%);
+    width: min(1280px, 92%);
     margin: auto;
     display: grid;
     grid-template-columns: 1.1fr .9fr;
@@ -268,8 +241,8 @@ section {
 
 .shop-tag {
     display: inline-block;
-    background: #eef4ff;
-    color: #2563eb;
+    background: #f0fdf4;
+    color: var(--primary);
     padding: 10px 18px;
     border-radius: 999px;
     font-weight: 700;
@@ -283,7 +256,7 @@ section {
 }
 
 .pet-shop-left p {
-    color: #6b7280;
+    color: var(--gray);
     font-size: 18px;
     line-height: 1.9;
     margin-bottom: 35px;
@@ -291,12 +264,12 @@ section {
 
 .shop-features {
     display: grid;
-    grid-template-columns: repeat(2,1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 18px;
 }
 
     .shop-features div {
-        background: #f8fafc;
+        background: var(--bg);
         padding: 18px 20px;
         border-radius: 14px;
         font-weight: 600;
@@ -305,38 +278,28 @@ section {
 .pet-shop-right img {
     width: 100%;
     border-radius: 26px;
-    box-shadow: 0 20px 45px rgba(0,0,0,.12);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, .12);
 }
 
-@media(max-width:992px) {
-
-    .pet-shop-content {
-        grid-template-columns: 1fr;
-    }
-
-    .shop-features {
-        grid-template-columns: 1fr;
-    }
-}
 
 /*==================================================
             WHY CHOOSE US
 ==================================================*/
 
 .why-section {
-    background: #f8fafc;
+    background: var(--bg);
 }
 
 .why-grid {
-    width: min(1280px,92%);
+    width: min(1280px, 92%);
     margin: auto;
     display: grid;
-    grid-template-columns: repeat(4,1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 28px;
 }
 
 .why-card {
-    background: white;
+    background: var(--white);
     border-radius: 24px;
     padding: 35px;
     transition: .35s;
@@ -352,7 +315,7 @@ section {
     width: 75px;
     height: 75px;
     border-radius: 18px;
-    background: #eef4ff;
+    background: #f0fdf4;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -376,7 +339,7 @@ section {
 ==================================================*/
 
 .service-section {
-    background: white;
+    background: var(--white);
 }
 
 .service-grid {
@@ -389,7 +352,7 @@ section {
 }
 
 .service-item {
-    background: white;
+    background: var(--white);
     border-radius: 26px;
     overflow: hidden;
     box-shadow: var(--shadow);
@@ -431,16 +394,18 @@ section {
         .service-info a:hover {
             color: var(--primary-dark);
         }
+
+
 /*==================================================
                 WORKFLOW
 ==================================================*/
 
 .workflow-section {
-    background: #f8fafc;
+    background: var(--bg);
 }
 
 .workflow {
-    width: min(1280px,92%);
+    width: min(1280px, 92%);
     margin: auto;
     display: grid;
     grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
@@ -449,7 +414,7 @@ section {
 }
 
 .workflow-item {
-    background: white;
+    background: var(--white);
     border-radius: 24px;
     padding: 35px;
     text-align: center;
@@ -468,7 +433,7 @@ section {
     margin: auto auto 20px;
     border-radius: 50%;
     background: var(--primary);
-    color: white;
+    color: var(--white);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -492,21 +457,21 @@ section {
 }
 
 
-
 /*==================================================
                     AI BANNER
 ==================================================*/
+
 .ai-banner {
     width: min(1280px, 92%);
     margin: 90px auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    background: linear-gradient( 135deg, #15803d, #166534 );
     border-radius: 32px;
     overflow: hidden;
-    color: #fff;
-    box-shadow: 0 25px 60px rgba(37, 99, 235, .25);
+    color: var(--white);
+    box-shadow: 0 25px 60px rgba(21, 128, 61, .30);
 }
 
 .ai-left {
@@ -518,7 +483,7 @@ section {
     padding: 10px 20px;
     margin-bottom: 25px;
     border-radius: 999px;
-    background: rgba(255,255,255,.18);
+    background: rgba(255, 255, 255, .18);
     font-weight: 700;
 }
 
@@ -544,7 +509,10 @@ section {
         font-size: 17px;
     }
 
-/* ===================== */
+
+/*==================================================
+                AI IMAGE
+==================================================*/
 
 .ai-right {
     position: relative;
@@ -560,7 +528,7 @@ section {
         width: 420px;
         height: 420px;
         border-radius: 50%;
-        background: rgba(255,255,255,.15);
+        background: rgba(255, 255, 255, .15);
         filter: blur(28px);
     }
 
@@ -571,9 +539,9 @@ section {
         max-width: 560px;
         object-fit: contain;
         border-radius: 28px;
-        border: 2px solid rgba(255,255,255,.18);
-        background: rgba(255,255,255,.05);
-        box-shadow: 0 30px 70px rgba(0,0,0,.30), 0 10px 25px rgba(0,0,0,.15);
+        border: 2px solid rgba(255, 255, 255, .18);
+        background: rgba(255, 255, 255, .05);
+        box-shadow: 0 30px 70px rgba(0, 0, 0, .30), 0 10px 25px rgba(0, 0, 0, .15);
         transform: translateX(8px);
         transition: transform .4s ease, box-shadow .4s ease;
         animation: float 4s ease-in-out infinite;
@@ -581,12 +549,12 @@ section {
 
 .ai-banner:hover .ai-right img {
     transform: translateX(8px) translateY(-8px) scale(1.03);
-    box-shadow: 0 40px 90px rgba(0,0,0,.35), 0 15px 30px rgba(0,0,0,.18);
+    box-shadow: 0 40px 90px rgba(0, 0, 0, .35), 0 15px 30px rgba(0, 0, 0, .18);
 }
 
 @keyframes float {
 
-    0%,100% {
+    0%, 100% {
         transform: translateX(8px) translateY(0);
     }
 
@@ -597,23 +565,65 @@ section {
 
 
 /*==================================================
+            AI BANNER BUTTON
+==================================================*/
+
+/* 
+   Nút chính trong AI Banner:
+   Dùng nền trắng để nổi bật trên nền xanh đậm
+*/
+
+.ai-banner .btn-primary {
+    background: var(--white);
+    color: var(--primary-dark);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .18);
+}
+
+    .ai-banner .btn-primary:hover {
+        background: #f0fdf4;
+        color: #166534;
+        transform: translateY(-4px);
+        box-shadow: 0 18px 35px rgba(0, 0, 0, .25);
+    }
+
+
+/* 
+   Nút phụ trong AI Banner
+*/
+
+.ai-banner .btn-secondary {
+    background: rgba(255, 255, 255, .12);
+    color: var(--white);
+    border: 2px solid rgba(255, 255, 255, .65);
+}
+
+    .ai-banner .btn-secondary:hover {
+        background: var(--white);
+        color: var(--primary-dark);
+        border-color: var(--white);
+        transform: translateY(-4px);
+        box-shadow: 0 18px 35px rgba(0, 0, 0, .18);
+    }
+
+
+/*==================================================
                 OUR COMMITMENT
 ==================================================*/
 
 .commitment-section {
-    background: #f8fafc;
+    background: var(--bg);
 }
 
 .commitment-grid {
-    width: min(1280px,92%);
+    width: min(1280px, 92%);
     margin: 60px auto 0;
     display: grid;
-    grid-template-columns: repeat(4,1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 28px;
 }
 
 .commitment-card {
-    background: white;
+    background: var(--white);
     padding: 38px 32px;
     border-radius: 24px;
     text-align: center;
@@ -631,7 +641,7 @@ section {
     height: 82px;
     margin: auto auto 24px;
     border-radius: 50%;
-    background: #eff6ff;
+    background: #f0fdf4;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -640,8 +650,8 @@ section {
 }
 
 .commitment-card:hover .commitment-icon {
-    background: #2563eb;
-    color: white;
+    background: var(--primary);
+    color: var(--white);
     transform: scale(1.08);
 }
 
@@ -651,27 +661,9 @@ section {
 }
 
 .commitment-card p {
-    color: #6b7280;
+    color: var(--gray);
     line-height: 1.8;
 }
-
-
-/* Responsive */
-
-@media(max-width:992px) {
-
-    .commitment-grid {
-        grid-template-columns: repeat(2,1fr);
-    }
-}
-
-@media(max-width:768px) {
-
-    .commitment-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
 
 
 /*==================================================
@@ -683,14 +675,14 @@ section {
 }
 
 .cta-box {
-    width: min(1100px,92%);
+    width: min(1100px, 92%);
     margin: auto;
     padding: 80px;
     text-align: center;
-    background: linear-gradient(135deg,#2563eb,#1d4ed8);
+    background: linear-gradient( 135deg, #15803d, #166534 );
     border-radius: 34px;
-    color: white;
-    box-shadow: 0 25px 60px rgba(37,99,235,.28);
+    color: var(--white);
+    box-shadow: 0 25px 60px rgba(21, 128, 61, .30);
 }
 
     .cta-box h2 {
@@ -699,11 +691,17 @@ section {
     }
 
     .cta-box p {
-        width: min(700px,100%);
+        width: min(700px, 100%);
         margin: auto auto 35px;
         font-size: 20px;
         opacity: .95;
     }
+
+
+/*==================================================
+                HERO BUTTONS
+==================================================*/
+
 .hero-buttons {
     display: flex;
     justify-content: center;
@@ -726,35 +724,41 @@ section {
         transition: all .35s ease;
     }
 
-/* Primary Button */
+
+/*==================================================
+                PRIMARY BUTTON
+==================================================*/
 
 .btn-primary {
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
-    color: #fff;
-    box-shadow: 0 10px 25px rgba(37, 99, 235, .35);
+    background: linear-gradient( 135deg, #16a34a, #22c55e );
+    color: var(--white);
+    box-shadow: 0 10px 25px rgba(22, 163, 74, .35);
 }
 
     .btn-primary:hover {
         transform: translateY(-4px);
-        box-shadow: 0 18px 35px rgba(37, 99, 235, .45);
-        background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        background: linear-gradient( 135deg, #15803d, #16a34a );
+        box-shadow: 0 18px 35px rgba(22, 163, 74, .45);
     }
 
-/* Secondary Button */
+
+/*==================================================
+                SECONDARY BUTTON
+==================================================*/
 
 .btn-secondary {
-    background: rgba(255,255,255,.15);
-    color: #fff;
-    border: 2px solid rgba(255,255,255,.4);
+    background: rgba(255, 255, 255, .15);
+    color: var(--white);
+    border: 2px solid rgba(255, 255, 255, .4);
     backdrop-filter: blur(10px);
 }
 
     .btn-secondary:hover {
-        background: #fff;
-        color: #2563eb;
-        border-color: #fff;
+        background: var(--white);
+        color: var(--primary);
+        border-color: var(--white);
         transform: translateY(-4px);
-        box-shadow: 0 18px 35px rgba(255,255,255,.2);
+        box-shadow: 0 18px 35px rgba(255, 255, 255, .2);
     }
 
 .hero-buttons a:active {
@@ -766,7 +770,7 @@ section {
                 RESPONSIVE
 ==================================================*/
 
-@media(max-width:1100px) {
+@media (max-width: 1100px) {
 
     .hero-content h1 {
         font-size: 42px;
@@ -777,11 +781,11 @@ section {
     .service-grid,
     .product-showcase,
     .testimonial-grid {
-        grid-template-columns: repeat(2,1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .trust-grid {
-        grid-template-columns: repeat(2,1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .ai-banner {
@@ -802,8 +806,52 @@ section {
 }
 
 
+/*==================================================
+                TABLET
+==================================================*/
 
-@media(max-width:768px) {
+@media (max-width: 992px) {
+
+    .pet-shop-content {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-features {
+        grid-template-columns: 1fr;
+    }
+
+    .commitment-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/*==================================================
+                BENTO RESPONSIVE
+==================================================*/
+
+@media (max-width: 900px) {
+
+    .bento-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero {
+        min-height: 380px;
+        grid-row: auto;
+    }
+
+    .store {
+        grid-column: auto;
+    }
+}
+
+
+/*==================================================
+                MOBILE
+==================================================*/
+
+@media (max-width: 768px) {
 
     .hero-slider {
         height: 260px;
@@ -854,5 +902,9 @@ section {
 
     .section-title h2 {
         font-size: 34px;
+    }
+
+    .commitment-grid {
+        grid-template-columns: 1fr;
     }
 }

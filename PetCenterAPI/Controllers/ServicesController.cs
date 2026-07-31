@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using PetCenterAPI.Common;
 using PetCenterAPI.Service.Interface;
@@ -52,7 +53,7 @@ namespace PetCenterAPI.Controllers
 
 
         // PUT: api/Services/5
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutServiceAsync(
             Guid id,
@@ -100,7 +101,7 @@ namespace PetCenterAPI.Controllers
 
         // POST: api/Services
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> PostServiceAsync([FromForm] CreateServiceDTO Service)
         {
@@ -147,7 +148,7 @@ namespace PetCenterAPI.Controllers
         }
 
         // DELETE: api/Services/5
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(
       Guid id,

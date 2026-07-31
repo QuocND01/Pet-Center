@@ -7,8 +7,6 @@
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Products";
-    var role = Context.Session.GetString("Role");
-    bool isAdmin = role == "Admin";
 }
 
 <style>
@@ -322,7 +320,7 @@
             <span class="label">Products</span>
         </div>
 
-        @if (isAdmin)
+   @if (Context.Session.GetString("Role") == "Admin")
         {
             <button type="button"
                     class="btn-add-product"
@@ -555,7 +553,6 @@
 
                             <td>
                                      <div class="action-grid">
-                                @if (isAdmin){
                                 <!-- VIEW -->
                                 <button class="btn-detail"
                                         data-bs-toggle="modal"
@@ -564,7 +561,8 @@
 
                                     <i class="bi bi-eye"></i>
                                 </button>
-
+                                 @if (Context.Session.GetString("Role") == "Admin")
+                                    {
                                 <!-- EDIT -->
                                 <button class="btn-detail"
                                         data-bs-toggle="modal"
