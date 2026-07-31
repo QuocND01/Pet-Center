@@ -1,4 +1,4 @@
-﻿@model List<PetCenterClient.ViewModels.ManageCustomer.CustomerListViewModel>
+@model List<PetCenterClient.ViewModels.ManageCustomer.CustomerListViewModel>
 @{
     ViewData["Title"] = "Manage Customers";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -529,10 +529,6 @@
                                 <i class="bi bi-shield-check"></i> Account Information
                             </div>
                             <div class="detail-grid">
-                                <div class="field-group" style="grid-column:1/-1">
-                                    <label class="field-label">Address</label>
-                                    <div class="field-value">${d.address || '—'}</div>
-                                </div>
                                 <div class="field-group">
                                     <label class="field-label">Email Verified</label>
                                     <div class="field-value">

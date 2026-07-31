@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using PetCenterAPI.DTOs.Requests.ManageCustomer;
+using PetCenterAPI.Hubs;
 using PetCenterAPI.Service.Interface;
 
 namespace PetCenterAPI.Controllers
@@ -10,10 +12,12 @@ namespace PetCenterAPI.Controllers
     public class CustomersManagementController : ControllerBase
     {
         private readonly ICustomerService _customerService;
+        private readonly IHubContext<AppHub> _hubContext;
 
-        public CustomersManagementController(ICustomerService customerService)
+        public CustomersManagementController(ICustomerService customerService, IHubContext<AppHub> hubContext)
         {
             _customerService = customerService;
+            _hubContext = hubContext;
         }
 
         // ============================================================
@@ -56,7 +60,7 @@ namespace PetCenterAPI.Controllers
         // STAFF / ADMIN — CHANGE STATUS CUSTOMER
         // ============================================================
         [HttpPut("{id:guid}/status")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Sale Staff")]
         public async Task<IActionResult> ChangeCustomerStatus(
             Guid id, [FromBody] ChangeCustomerStatusRequestDTO request)
         {
@@ -67,6 +71,21 @@ namespace PetCenterAPI.Controllers
 
             if (!result)
                 return NotFound(new { status = 404, message = "Customer not found" });
+
+            if (!request.IsActive)
+            {
+                var payload = new
+                {
+                    customerId = id.ToString().ToLower(),
+                    message = "Your account has been deactivated by an administrator.",
+                    reason = "Account Status Deactivated",
+                    timestamp = DateTime.UtcNow
+                };
+
+                await _hubContext.Clients.User(id.ToString()).SendAsync("AccountDeactivated", payload);
+                await _hubContext.Clients.Group(id.ToString().ToLower()).SendAsync("AccountDeactivated", payload);
+                await _hubContext.Clients.All.SendAsync("AccountDeactivated", payload);
+            }
 
             return Ok(new
             {

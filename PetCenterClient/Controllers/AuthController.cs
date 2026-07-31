@@ -11,11 +11,16 @@ namespace PetCenterClient.Controllers
     {
         private readonly IAuthApiService _authService;
         private readonly IGoogleAPIClient _googleClientService;
+        private readonly ICustomerApiService _customerService;
 
-        public AuthController(IAuthApiService authService, IGoogleAPIClient googleClientService)
+        public AuthController(
+            IAuthApiService authService,
+            IGoogleAPIClient googleClientService,
+            ICustomerApiService customerService)
         {
             _authService = authService;
             _googleClientService = googleClientService;
+            _customerService = customerService;
         }
 
         // ============================================================
@@ -54,9 +59,9 @@ namespace PetCenterClient.Controllers
                 var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
                 var jwt = handler.ReadJwtToken(result.Token);
 
-                // Lấy CustomerId từ claim "sub" hoặc "nameid"
                 var customerId = jwt.Claims
                     .FirstOrDefault(c =>
+                        c.Type == ClaimTypes.NameIdentifier ||
                         c.Type == "sub" ||
                         c.Type == "nameid" ||
                         c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
@@ -68,8 +73,6 @@ namespace PetCenterClient.Controllers
                 var fullName = jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? "";
                 HttpContext.Session.SetString("FullName", fullName);
 
-                // Customers are not linked to the Roles table; mark them as "Customer"
-                // (used client-side by pages such as Orders).
                 HttpContext.Session.SetString("Role", "Customer");
             }
             catch
@@ -86,11 +89,38 @@ namespace PetCenterClient.Controllers
         }
 
         [HttpGet]
-        public IActionResult CheckAuth()
+        public async Task<IActionResult> CheckAuth()
         {
             var token = HttpContext.Session.GetString("JWT");
             if (string.IsNullOrEmpty(token))
                 return Json(new { isAuthenticated = false });
+
+            try
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(token);
+                if (jwt.ValidTo <= DateTime.UtcNow)
+                {
+                    HttpContext.Session.Clear();
+                    return Json(new { isAuthenticated = false, message = "Token expired" });
+                }
+
+                var role = HttpContext.Session.GetString("Role");
+                if (role == "Customer")
+                {
+                    var profile = await _customerService.GetProfileAsync();
+                    if (profile == null || profile.IsActive == false)
+                    {
+                        HttpContext.Session.Clear();
+                        return Json(new { isAuthenticated = false, isDeactivated = true, message = "Your account has been deactivated by an administrator." });
+                    }
+                }
+            }
+            catch
+            {
+                HttpContext.Session.Clear();
+                return Json(new { isAuthenticated = false });
+            }
 
             return Json(new { isAuthenticated = true, token = token });
         }
@@ -366,11 +396,12 @@ namespace PetCenterClient.Controllers
     jwt.Claims.FirstOrDefault(c => c.Type == "fullName")?.Value ?? "");
 
             var customerId = jwt.Claims
-    .FirstOrDefault(c =>
-        c.Type == "sub" ||
-        c.Type == "nameid" ||
-        c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
-    ?.Value ?? "";
+                .FirstOrDefault(c =>
+                    c.Type == ClaimTypes.NameIdentifier ||
+                    c.Type == "sub" ||
+                    c.Type == "nameid" ||
+                    c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+                ?.Value ?? "";
 
             if (!string.IsNullOrEmpty(customerId))
                 HttpContext.Session.SetString("CustomerId", customerId);

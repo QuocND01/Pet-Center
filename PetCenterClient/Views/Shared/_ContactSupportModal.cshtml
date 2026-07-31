@@ -1,0 +1,103 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<!-- Global Contact Support Modal -->
+<div id="contactSupportModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.75); backdrop-filter:blur(8px); z-index:999999; align-items:center; justify-content:center;">
+    <div style="background:#ffffff; width:92%; max-width:540px; border-radius:24px; padding:32px 28px; box-shadow:0 25px 60px rgba(0,0,0,0.3); border:1px solid #e2e8f0; position:relative; overflow:hidden;">
+        
+        <!-- Top Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid #f1f5f9; padding-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div style="width:48px; height:48px; background:linear-gradient(135deg, #2563eb, #3b82f6); color:#ffffff; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 8px 18px rgba(37,99,235,0.25);">
+                    <i class="bi bi-headset"></i>
+                </div>
+                <div>
+                    <h3 style="font-size:20px; font-weight:800; color:#0f172a; margin:0; line-height:1.2;">Customer Support Center</h3>
+                    <span style="font-size:13px; color:#64748b; font-weight:500;">We are here to assist you with any inquiries</span>
+                </div>
+            </div>
+            <button onclick="closeContactSupportModal()" type="button" style="background:#f1f5f9; border:none; width:36px; height:36px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; color:#64748b; font-size:18px; cursor:pointer; transition:0.2s;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- Support Info Grid -->
+        <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
+
+            <!-- Hotline -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:18px; display:flex; align-items:flex-start; gap:16px;">
+                <div style="width:42px; height:42px; background:#eff6ff; color:#2563eb; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">
+                    <i class="bi bi-telephone-outbound-fill"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:12px; font-weight:700; color:#2563eb; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Hotline Support</div>
+                    <div style="font-size:16px; font-weight:800; color:#1e293b; margin-bottom:8px;">+84 (0) 901 234 567 / 1900 8888</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <a href="tel:+84901234567" style="background:#2563eb; color:#ffffff; font-size:12px; font-weight:700; padding:6px 14px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="bi bi-telephone-fill"></i> Call 0901 234 567
+                        </a>
+                        <a href="tel:19008888" style="background:#1e40af; color:#ffffff; font-size:12px; font-weight:700; padding:6px 14px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="bi bi-phone-fill"></i> Call 1900 8888
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:18px; display:flex; align-items:flex-start; gap:16px;">
+                <div style="width:42px; height:42px; background:#f5f3ff; color:#7c3aed; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">
+                    <i class="bi bi-envelope-check-fill"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:12px; font-weight:700; color:#7c3aed; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Customer Email Service</div>
+                    <div style="font-size:15px; font-weight:800; color:#1e293b; margin-bottom:8px;">support@petcenter.com</div>
+                    <a href="mailto:support@petcenter.com" style="background:#7c3aed; color:#ffffff; font-size:12px; font-weight:700; padding:6px 14px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                        <i class="bi bi-envelope-paper-fill"></i> Send Email
+                    </a>
+                </div>
+            </div>
+
+            <!-- Working Hours -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px; display:flex; align-items:center; gap:16px;">
+                <div style="width:42px; height:42px; background:#ecfdf5; color:#059669; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:12px; font-weight:700; color:#059669; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Working Hours</div>
+                    <div style="font-size:14px; font-weight:700; color:#1e293b;">Monday – Sunday: 8:00 AM – 9:00 PM (UTC+7)</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Important Notice Box -->
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; padding:14px 16px; display:flex; align-items:flex-start; gap:12px; margin-bottom:24px;">
+            <i class="bi bi-info-circle-fill" style="color:#2563eb; font-size:18px; margin-top:2px; flex-shrink:0;"></i>
+            <div style="font-size:13px; color:#1e40af; line-height:1.5;">
+                <strong>Account Suspension Notice:</strong> If your account has been deactivated or blocked, please state your registered email address and phone number when reaching out to our support team for expedited verification.
+            </div>
+        </div>
+
+        <!-- Close Button -->
+        <div style="text-align:right;">
+            <button onclick="closeContactSupportModal()" type="button" class="btn" style="background:#f1f5f9; color:#475569; font-weight:700; border-radius:12px; padding:10px 24px; font-size:14px; border:1px solid #cbd5e1; cursor:pointer;">
+                Close
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function openContactSupportModal() {
+        var modal = document.getElementById('contactSupportModal');
+        if (modal) modal.style.display = 'flex';
+    }
+    function closeContactSupportModal() {
+        var modal = document.getElementById('contactSupportModal');
+        if (modal) modal.style.display = 'none';
+    }
+    document.addEventListener('click', function (e) {
+        var modal = document.getElementById('contactSupportModal');
+        if (modal && e.target === modal) closeContactSupportModal();
+    });
+</script>

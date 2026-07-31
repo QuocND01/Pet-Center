@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.ViewModels.ManageCustomer.CustomerDetailViewModel
+@model PetCenterClient.ViewModels.ManageCustomer.CustomerDetailViewModel
 @{
     ViewData["Title"] = "Customer Detail";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -385,14 +385,8 @@
             </div>
 
             <div class="info-card">
-                <div class="card-section-title"><i class="bi bi-geo-alt"></i> Location & Account</div>
+                <div class="card-section-title"><i class="bi bi-shield-check"></i> Account Information</div>
                 <div class="fields-grid">
-                    <div class="field-item field-full">
-                        <span class="field-label"><i class="bi bi-house"></i> Address</span>
-                        <div class="field-value @(string.IsNullOrEmpty(Model.Address) ? "empty" : "")">
-                            @(string.IsNullOrEmpty(Model.Address) ? "No address provided" : Model.Address)
-                        </div>
-                    </div>
                     <div class="field-item">
                         <span class="field-label"><i class="bi bi-toggle-on"></i> Account Status</span>
                         <div class="field-value">
