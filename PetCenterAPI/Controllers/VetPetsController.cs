@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +9,7 @@ namespace PetCenterAPI.Controllers
 {
     [Route("api/vet/pets")]
     [ApiController]
-    [Authorize(Roles = "Vet,Admin")]
+    [Authorize(Roles = "Vet,Admin,Groomer")]
     public class VetPetsController : ControllerBase
     {
         private readonly IPetService _petService;

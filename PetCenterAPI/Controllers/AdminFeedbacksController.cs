@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterAPI.DTOs.Requests.ManageFeedback;
 using PetCenterAPI.DTOs.Responses.ManageFeedback;

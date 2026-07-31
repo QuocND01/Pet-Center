@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using PetCenterAPI.Service.Interface;
@@ -8,7 +8,7 @@ namespace PetCenterAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Vet,Admin")] // Chỉ định quyền cho Vet/Admin
+    [Authorize(Roles = "Vet,Admin,Groomer")]
     public class DiseasesController : ControllerBase
     {
         private readonly IDiseaseService _diseaseService;

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Controllers
@@ -18,7 +18,7 @@ namespace PetCenterClient.Controllers
         {
             // Kiểm tra quyền hạn phân hệ Admin
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Vet" && role != "Sale Staff")
+            if (role != "Admin" && role != "Vet" && role != "Sale Staff" && role != "Groomer")
             {
                 return RedirectToAction("Login", "Auth");
             }
@@ -34,7 +34,7 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> GetMetricsJson(string startDate, string endDate)
         {
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Vet" && role != "Sale Staff")
+            if (role != "Admin" && role != "Vet" && role != "Sale Staff" && role != "Groomer")
             {
                 return Unauthorized();
             }

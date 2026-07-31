@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
@@ -146,7 +146,7 @@ namespace PetCenterClient.Controllers
             }
             else if (selectedRole == "Staff")
             {
-                var staffRoles = new[] { "Sale Staff", "Inventory Staff", "Vet" };
+                var staffRoles = new[] { "Sale Staff", "Inventory Staff", "Vet", "Groomer" };
                 if (!roles.Any(r => staffRoles.Contains(r)))
                 {
                     ViewBag.Error = "This account does not have Staff privileges.";

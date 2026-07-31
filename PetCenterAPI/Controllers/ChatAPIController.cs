@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Models;
@@ -38,7 +38,7 @@ namespace PetCenterAPI.Controllers
 
         // 2. Lấy danh sách khách hàng (Có kèm tin nhắn cuối và trạng thái chưa đọc)
         [HttpGet("my-customers")]
-        [Authorize(Roles = "Admin,Vet,Sale Staff")]
+        [Authorize(Roles = "Admin,Vet,Sale Staff,Groomer")]
         public async Task<IActionResult> GetMyCustomers()
         {
             var staffId = GetUserId();
@@ -86,7 +86,7 @@ namespace PetCenterAPI.Controllers
 
         // THÊM MỚI: API đánh dấu đã đọc
         [HttpPost("mark-read/{customerId:guid}")]
-        [Authorize(Roles = "Admin,Vet,Sale Staff")]
+        [Authorize(Roles = "Admin,Vet,Sale Staff,Groomer")]
         public async Task<IActionResult> MarkAsRead(Guid customerId)
         {
             var staffId = GetUserId();

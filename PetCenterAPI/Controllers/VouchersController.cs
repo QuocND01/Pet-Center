@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterAPI.DTOs.Requests.ManageVoucher;
 using PetCenterAPI.Service.Interface;

@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Medical Record Management";
     var role = Context.Session.GetString("Role");
-    bool isVetOrAdmin = role == "Vet" || role == "Admin";
+    bool isVetOrAdmin = role == "Vet" || role == "Admin" || role == "Groomer";
 }
 
 <link rel="stylesheet" href="~/css/AdminViews/BaseManageLayout.css" asp-append-version="true" />
