@@ -8,7 +8,7 @@ namespace PetCenterAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin,SaleStaff")]
+    [Authorize(Roles = "Admin,SaleStaff,Sale Staff")]
     public class AdminFeedbacksController : ControllerBase
     {
         private readonly IAdminFeedbackService _adminFeedbackService;

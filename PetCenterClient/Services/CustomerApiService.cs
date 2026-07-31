@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
@@ -38,33 +38,23 @@ namespace PetCenterClient.Services
             try
             {
                 var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");
-                Console.WriteLine($"[DEBUG] Token: {(string.IsNullOrEmpty(token) ? "NULL/EMPTY" : token[..20] + "...")}");
-
                 if (string.IsNullOrEmpty(token))
                     return null;
 
                 var request = CreateAuthorizedRequest(HttpMethod.Get, "api/customer/profile");
                 var response = await _http.SendAsync(request);
 
-                Console.WriteLine($"[DEBUG] Status: {response.StatusCode}");
-
-                var content = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"[DEBUG] Response body: {content}");
-
                 if (!response.IsSuccessStatusCode)
                     return null;
 
                 var result = await System.Text.Json.JsonSerializer.DeserializeAsync<ApiResponse<CustomerProfileViewModel>>(
-                    new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(content)),
+                    await response.Content.ReadAsStreamAsync(),
                     new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                Console.WriteLine($"[DEBUG] Result null: {result == null}, Data null: {result?.Data == null}");
 
                 return result?.Data;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"[DEBUG] Exception: {ex.Message}");
                 return null;
             }
         }

@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.ViewModels.Login.GoogleClientViewModel
+@model PetCenterClient.ViewModels.Login.GoogleClientViewModel
 @{
     Layout = null;
 }
@@ -225,10 +225,16 @@
             </button>
         </div>
 
-        <!-- ── Register link ── -->
+        <!-- ── Register & Support links ── -->
         <div class="text-center mt-3" style="font-size:14px; color:#6c757d;">
             Don't have an account?
             <a href="/Auth/Register" style="color:#2ecc71; font-weight:600;">Register</a>
+        </div>
+        <div class="text-center mt-2" style="font-size:13px; color:#64748b;">
+            Need help or account assistance?
+            <a href="javascript:void(0)" onclick="openContactSupportModal()" style="color:#3b82f6; font-weight:600; text-decoration:none;">
+                <i class="bi bi-headset me-1"></i>Contact Support
+            </a>
         </div>
     </div>
 
@@ -315,5 +321,6 @@
             btn.textContent = 'Logging in...';
         });
     </script>
+    <partial name="_ContactSupportModal" />
 </body>
 </html>

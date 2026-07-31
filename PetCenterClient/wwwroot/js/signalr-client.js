@@ -1,4 +1,4 @@
-﻿// Biến toàn cục để các trang khác có thể xài chung connection này
+// Biến toàn cục để các trang khác có thể xài chung connection này
 var appHubConnection = null;
 
 function startSignalR(token) {
@@ -46,5 +46,22 @@ function startSignalR(token) {
         } catch (e) { console.warn(e); }
     });
 
-    // Sự kiện "ReceiveMessage" sẽ được cài đặt riêng ở trang Chat.html
+    // Account Deactivated Event
+    appHubConnection.on("AccountDeactivated", function (payload) {
+        console.warn("[SignalR] Account deactivated event received from server.");
+        window.dispatchEvent(new CustomEvent('signalr:account-deactivated', { detail: payload }));
+    });
+
+    // Session Expired Event
+    appHubConnection.on("SessionExpired", function (message) {
+        console.warn("[SignalR] Session expired event received from server.");
+        window.dispatchEvent(new CustomEvent('signalr:session-expired', { detail: message }));
+    });
+
+    // Handle Connection Close with Unauthorized (401)
+    appHubConnection.onclose(function (error) {
+        if (error && error.message && error.message.includes("401")) {
+            window.dispatchEvent(new CustomEvent('signalr:session-expired', { detail: 'Unauthorized connection' }));
+        }
+    });
 }

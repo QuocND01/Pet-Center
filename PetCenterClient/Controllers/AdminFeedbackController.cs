@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.ManageFeedback;
 
@@ -18,6 +18,10 @@ namespace PetCenterClient.Controllers
         // ============================================================
         public IActionResult Index()
         {
+            var role = HttpContext.Session.GetString("Role");
+            if (string.IsNullOrEmpty(role) || (role != "Admin" && role != "Sale Staff"))
+                return RedirectToAction("AdminLogin", "Auth");
+
             var staffId = HttpContext.Session.GetString("StaffId");
             ViewBag.StaffId = staffId ?? "";
             return View("~/Views/AdminViews/Feedback/Index.cshtml");

@@ -20,16 +20,18 @@ namespace PetCenterAPI.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            var userId = Guid.Parse(GetUserId());
-            var role = GetUserRole();
-
-            // Đưa Staff vào hàng chờ nhận Chat
-            if (role == "Admin" || role == "Vet" || role == "Sale Staff" || role == "Groomer")
+            var userIdStr = GetUserId();
+            if (Guid.TryParse(userIdStr, out var userId))
             {
-                OnlineStaffLoads.TryAdd(userId, 0);
-                await Clients.Caller.SendAsync("ReceiveSystemMessage", "You are online and ready to receive chats from customers.");
-                // Add staff to Admins group so they receive order notifications
-                await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
+                await Groups.AddToGroupAsync(Context.ConnectionId, userId.ToString().ToLower());
+
+                var role = GetUserRole();
+                if (role == "Admin" || role == "Vet" || role == "Sale Staff" || role == "Groomer")
+                {
+                    OnlineStaffLoads.TryAdd(userId, 0);
+                    await Clients.Caller.SendAsync("ReceiveSystemMessage", "You are online and ready to receive chats from customers.");
+                    await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
+                }
             }
 
             await base.OnConnectedAsync();
@@ -37,16 +39,34 @@ namespace PetCenterAPI.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            var userId = Guid.Parse(GetUserId());
-            var role = GetUserRole();
-
-            if (role == "Admin" || role == "Vet" || role == "Sale Staff" || role == "Groomer")
+            var userIdStr = GetUserId();
+            if (Guid.TryParse(userIdStr, out var userId))
             {
-                OnlineStaffLoads.TryRemove(userId, out _);
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");
+                var role = GetUserRole();
+                if (role == "Admin" || role == "Vet" || role == "Sale Staff" || role == "Groomer")
+                {
+                    OnlineStaffLoads.TryRemove(userId, out _);
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");
+                }
             }
 
             await base.OnDisconnectedAsync(exception);
+        }
+
+        // =========================================================================
+        // REALTIME SESSION MONITORING
+        // =========================================================================
+        public async Task CheckSessionStatus()
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                await Clients.Caller.SendAsync("SessionExpired", "Your session token has expired.");
+            }
+            else
+            {
+                await Clients.Caller.SendAsync("SessionActive");
+            }
         }
 
         // =========================================================================

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +26,7 @@ namespace PetCenterClient.Controllers
             if (string.IsNullOrEmpty(token)) return RedirectToAction("AdminLogin", "Auth");
 
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff") return RedirectToAction("AdminLogin", "Auth");
+            if (role != "Admin" && role != "Sale Staff") return RedirectToAction("AdminLogin", "Auth");
 
             var customers = await _customerService.GetAllCustomersAsync();
             return View("~/Views/AdminViews/ManageCustomer/Index.cshtml", customers);
@@ -41,7 +41,7 @@ namespace PetCenterClient.Controllers
             if (string.IsNullOrEmpty(token)) return RedirectToAction("AdminLogin", "Auth");
 
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff") return RedirectToAction("AdminLogin", "Auth");
+            if (role != "Admin" && role != "Sale Staff") return RedirectToAction("AdminLogin", "Auth");
 
             var customer = await _customerService.GetCustomerByIdAsync(id);
             if (customer == null) return NotFound();
@@ -74,7 +74,7 @@ namespace PetCenterClient.Controllers
                 return Json(new { success = false, message = "Unauthorized" });
 
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Staff")
+            if (role != "Admin" && role != "Sale Staff")
                 return Json(new { success = false, message = "Forbidden" });
 
             try
@@ -137,8 +137,8 @@ namespace PetCenterClient.Controllers
                 return Json(new { success = false, message = "Unauthorized" });
 
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin")
-                return Json(new { success = false, message = "Only Admin can change customer status" });
+            if (role != "Admin" && role != "Sale Staff")
+                return Json(new { success = false, message = "Forbidden" });
 
             try
             {

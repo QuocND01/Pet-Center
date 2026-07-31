@@ -1,4 +1,4 @@
-﻿@model PetCenterClient.ViewModels.Register.RegisterViewModel
+@model PetCenterClient.ViewModels.Register.RegisterViewModel
 @{
     Layout = null;
 }
@@ -111,6 +111,12 @@
         <div class="text-center mt-3">
             Already have an account?
             <a href="/Auth/Login" style="color:#2ecc71;font-weight:600;">Login</a>
+        </div>
+        <div class="text-center mt-2" style="font-size:13px; color:#64748b;">
+            Need help or account assistance?
+            <a href="javascript:void(0)" onclick="openContactSupportModal()" style="color:#3b82f6; font-weight:600; text-decoration:none;">
+                <i class="bi bi-headset me-1"></i>Contact Support
+            </a>
         </div>
     </div>
     <script>
@@ -375,5 +381,6 @@
         }
     });
 </script>
+<partial name="_ContactSupportModal" />
 </body>
 </html>
