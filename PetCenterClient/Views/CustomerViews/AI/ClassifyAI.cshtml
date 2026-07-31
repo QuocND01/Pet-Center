@@ -11,6 +11,7 @@
         VARIABLES
     ==================================================*/
 
+
     :root {
         --primary: #2ecc71;
         --primary-dark: #27ae60;
@@ -52,7 +53,7 @@
         margin-bottom: 45px;
         color: #fff;
         border-radius: 25px;
-        background: linear-gradient(135deg,var(--primary),var(--blue));
+        background: linear-gradient( 135deg, #2ecc71 0%, #16a34a 50%, #166534 100% );
     }
 
         .ai-header h1 {
@@ -271,7 +272,7 @@
 
     .detect-btn {
         margin-top: 30px;
-        background: var(--blue);
+        background: #166534;
         color: #fff;
         font-size: 18px;
     }
@@ -294,7 +295,7 @@
     }
 
     .detect-btn:hover {
-        background: #1d4ed8;
+        background: #14532d;
     }
 
     .cancel-btn:hover {
@@ -448,7 +449,7 @@
     }
 
     .progress-bar {
-        background: linear-gradient(90deg,var(--primary),var(--blue));
+        background: linear-gradient( 90deg, #2ecc71, #16a34a, #166534 );
     }
 
     /*==================================================
@@ -1138,20 +1139,11 @@
                         </p>
 
 
-                        <a asp-action="Create"
+                        <a asp-action="Book"
                            asp-controller="Appointment"
                            class="save-btn">
 
                             📅 Book Appointment
-
-                        </a>
-
-
-                        <a asp-action="Index"
-                           asp-controller="Home"
-                           class="cancel-btn">
-
-                            Back to Home
 
                         </a>
 
@@ -1180,16 +1172,7 @@
 
                         </p>
 
-
-                        <a href="javascript:location.reload();"
-                           class="save-btn">
-
-                            🔄 Upload Another Image
-
-                        </a>
-
-
-                        <a asp-action="Create"
+                        <a asp-action="Book"
                            asp-controller="Appointment"
                            class="cancel-btn">
 

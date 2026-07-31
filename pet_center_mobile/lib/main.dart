@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:pet_center_mobile/src/features/ai/classify_ai_page.dart';
+import 'package:pet_center_mobile/src/features/products/views/product_list_screen.dart';
 import 'src/constants/app_colors.dart';
 import 'src/services/api_service.dart';
 import 'src/features/auth/views/login_screen.dart';
@@ -119,6 +121,8 @@ class _MyAppState extends State<MyApp> {
         '/services': (context) => const ServiceListScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/reset-password': (context) => const ResetPasswordScreen(),
+        '/classify-ai': (context) => const ClassifyAIPage(),
+        '/products': (context) => const ProductPage(),
       },
     );
   }

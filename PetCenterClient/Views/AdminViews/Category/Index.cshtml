@@ -5,8 +5,6 @@
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Manage Categories";
-        var role = Context.Session.GetString("Role");
-    bool isAdmin = role == "Admin";
 }
 
 <style>
@@ -132,7 +130,7 @@
             <span class="label">Categories</span>
         </div>
 
-        @if (isAdmin)
+         @if (Context.Session.GetString("Role") == "Admin")
         {
             <button type="button"
                     class="btn-add-product"
@@ -258,51 +256,55 @@
 
                                     <i class="bi bi-eye"></i>
                                 </button>
-
-                                <!-- EDIT -->
-                                <button class="btn-detail"
+                                 @if (Context.Session.GetString("Role") == "Admin")
+                                    {
+                                        <!-- EDIT -->
+                                        <button class="btn-detail"
                                         data-bs-toggle="modal"
                                         data-bs-target="#categoryModal"
                                         data-url="@Url.Action("Edit", "Category", new { id = c.CategoryId })">
 
-                                    <i class="bi bi-pencil"></i>
-                                </button>
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
 
-                                <!-- DELETE -->
-                              <!-- Active / Inactive -->
-                                <button class="btn-detail @(c.Status == Status.Active ? "text-warning" : "text-success")"
+                                        <!-- DELETE -->
+                                        <!-- Active / Inactive -->
+                                        <button class="btn-detail @(c.Status == Status.Active ? "text-warning" : "text-success")"
                                         data-bs-toggle="modal"
                                         data-bs-target="#categoryModal"
                                         data-url="@Url.Action("ChangeStatus", "Category", new
-                                        {
-                                            id = c.CategoryId,
-                                            status = c.Status == Status.Active ? Status.Inactive : Status.Active
-                                        })">
+                                            {
+                                                id = c.CategoryId,
+                                                status = c.Status == Status.Active ? Status.Inactive : Status.Active
+                                            })
+                                        ">
 
-                                    @if (c.Status == Status.Active)
-                                    {
-                                        <i class="bi bi-toggle-on text-success"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-toggle-off text-warning"></i>
-                                    }
+                                            @if (c.Status == Status.Active)
+                                            {
+                                                <i class="bi bi-toggle-on text-success"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-toggle-off text-warning"></i>
+                                            }
 
-                                </button>
+                                        </button>
 
-                              <!-- Delete -->
-                                <button class="btn-detail text-danger"
+                                        <!-- Delete -->
+                                        <button class="btn-detail text-danger"
                                         data-bs-toggle="modal"
                                         data-bs-target="#categoryModal"
                                         data-url="@Url.Action("ChangeStatus", "Category", new
-                                        {
-                                            id = c.CategoryId,
-                                            status = Status.Deleted
-                                        })">
+                                            {
+                                                id = c.CategoryId,
+                                                status = Status.Deleted
+                                            })
+                                        ">
 
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                   </div>
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
+                                </div>
                             </td>
 
                         </tr>

@@ -1,6 +1,4 @@
 ﻿using PetCenterClient.Common;
-using PetCenterClient.DTOs;
-
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels;
 using PetCenterClient.ViewModels.Common;

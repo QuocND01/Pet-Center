@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -24,7 +25,6 @@ namespace PetCenterClient.Controllers
 
             return View("~/Views/CustomerViews/Home/ProductPage.cshtml", result);
         }
-
         public async Task<IActionResult> IndexAdminAsync(
             string? search, Status? status, int page = 1)
         {
@@ -73,6 +73,7 @@ namespace PetCenterClient.Controllers
 
 
         // GET: BrandController/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult CreateAsync()
         {
             return PartialView("~/Views/AdminViews/Brand/_Create.cshtml");
@@ -80,6 +81,7 @@ namespace PetCenterClient.Controllers
 
         // POST: BrandController/Create
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(CreateBrandViewModel model)
         {
@@ -109,6 +111,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: BrandController/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditAsync(Guid? id)
         {
             if (id == null)
@@ -137,6 +140,7 @@ namespace PetCenterClient.Controllers
 
         // POST: BrandController/Edit/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAsync(Guid brandId, UpdateBrandViewModel model)
         {
@@ -166,6 +170,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeStatusAsync(Guid id, Status status)
         {
             var model = await _brandService.DetailsBrandAsync(id);
@@ -179,6 +184,7 @@ namespace PetCenterClient.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ActionName("ChangeStatusConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatusConfirmedAsync(Guid id, Status status)

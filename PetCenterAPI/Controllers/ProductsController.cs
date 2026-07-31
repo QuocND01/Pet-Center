@@ -67,7 +67,7 @@ namespace PetCenterAPI.Controllers
 
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProductAsync(
             Guid id,
@@ -104,7 +104,7 @@ namespace PetCenterAPI.Controllers
 
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> PostProductAsync([FromForm] CreateProductDTO product)
         {
@@ -151,7 +151,7 @@ namespace PetCenterAPI.Controllers
         }
 
         // DELETE: api/Products/5
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(
       Guid id,

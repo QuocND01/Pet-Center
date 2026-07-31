@@ -65,7 +65,7 @@ namespace PetCenterAPI.Controllers
         }
 
 
-        // [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategoryAsync(
       Guid id,
@@ -122,7 +122,7 @@ namespace PetCenterAPI.Controllers
         }
 
 
-        //[Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> PostCategoryAsync([FromForm] CreateCategoryDTO categoryDTOs)
         {
@@ -172,7 +172,7 @@ namespace PetCenterAPI.Controllers
         }
 
 
-        //[Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatusAsync(
      Guid id,

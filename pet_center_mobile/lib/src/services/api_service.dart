@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform, SocketException;
+import 'dart:io' show Platform, SocketException, File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:pet_center_mobile/src/models/ProductResponse.dart';
+import '../models/ai_result_model.dart';
+import '../models/brand_model.dart';
+import '../models/category_model.dart';
 import 'auth_service.dart';
 import '../models/customer_model.dart';
 import '../models/product_model.dart';
@@ -22,6 +26,14 @@ class ApiService {
       return 'http://10.0.2.2:5163/api';
     }
     return 'http://localhost:5163/api';
+  }
+
+  static String get odataBaseUrl {
+    if (!kIsWeb && Platform.isAndroid) {
+      return 'https://10.0.2.2:7004';
+    }
+
+    return 'https://localhost:7004';
   }
 
   final http.Client _client = http.Client();
@@ -210,27 +222,349 @@ class ApiService {
     return json.decode(response.body);
   }
 
+  Future<List<BrandModel>> getBrands() async {
+    final uri = Uri.parse(
+      '$odataBaseUrl/odata/Brands',
+    ).replace(
+      queryParameters: {
+        r'$count': 'true',
+      },
+    );
+
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Accept': 'application/json',
+        if (_token != null)
+          'Authorization': 'Bearer $_token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load brands: '
+            '${response.statusCode} - ${response.body}',
+      );
+    }
+
+    final Map<String, dynamic> json =
+    jsonDecode(response.body);
+
+    final List<dynamic> values =
+        json['value'] ?? [];
+
+    return values
+        .map(
+          (item) => BrandModel.fromJson(
+        item as Map<String, dynamic>,
+      ),
+    )
+        .toList();
+  }
+
+
+  Future<List<CategoryModel>> getCategories() async {
+    final uri = Uri.parse(
+      '$odataBaseUrl/odata/Categories',
+    ).replace(
+      queryParameters: {
+        r'$count': 'true',
+      },
+    );
+
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Accept': 'application/json',
+        if (_token != null)
+          'Authorization': 'Bearer $_token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load categories: '
+            '${response.statusCode} - ${response.body}',
+      );
+    }
+
+    final Map<String, dynamic> json =
+    jsonDecode(response.body);
+
+    final List<dynamic> values =
+        json['value'] ?? [];
+
+    return values
+        .map(
+          (item) => CategoryModel.fromJson(
+        item as Map<String, dynamic>,
+      ),
+    )
+        .toList();
+  }
+
+
   // ============================================================
   // PRODUCT CATALOG (ProductsController)
   // ============================================================
+  Future<ProductResponse> getProducts({
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? sortBy,
+    String? categoryId,
+    String? brandId,
+    String sortOrder = 'asc',
+    int page = 1,
+  }) async {
+    const int pageSize = 24;
 
-  // Get all products
-  Future<List<ProductModel>> getProducts() async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/Products'),
-      headers: _getHeaders(),
+    if (page < 1) {
+      page = 1;
+    }
+
+    final List<String> filters = [];
+
+    // =========================
+    // SEARCH
+    // =========================
+
+    if (search != null &&
+        search.trim().isNotEmpty) {
+      final escapedSearch =
+      search.trim().replaceAll("'", "''");
+
+      filters.add(
+        "contains(ProductName,'$escapedSearch')",
+      );
+    }
+
+    // =========================
+    // PRICE FILTER
+    // =========================
+
+    if (minPrice != null) {
+      filters.add(
+        'ProductPrice ge $minPrice',
+      );
+    }
+
+    if (maxPrice != null) {
+      filters.add(
+        'ProductPrice le $maxPrice',
+      );
+    }
+
+    // =========================
+    // CATEGORY FILTER
+    // =========================
+
+    if (categoryId != null &&
+        categoryId.isNotEmpty) {
+      filters.add(
+        'CategoryId eq $categoryId',
+      );
+    }
+
+    // =========================
+    // BRAND FILTER
+    // =========================
+
+    if (brandId != null &&
+        brandId.isNotEmpty) {
+      filters.add(
+        'BrandId eq $brandId',
+      );
+    }
+
+    // =========================
+    // DATE FILTER
+    // =========================
+
+    if (fromDate != null) {
+      filters.add(
+        "AddedAt ge ${fromDate.toUtc().toIso8601String()}",
+      );
+    }
+
+    if (toDate != null) {
+      filters.add(
+        "AddedAt le ${toDate.toUtc().toIso8601String()}",
+      );
+    }
+
+    // =========================
+    // QUERY PARAMETERS
+    // =========================
+
+    final Map<String, String> queryParameters = {
+      r'$count': 'true',
+      r'$skip': ((page - 1) * pageSize).toString(),
+      r'$top': pageSize.toString(),
+    };
+
+    if (filters.isNotEmpty) {
+      queryParameters[r'$filter'] =
+          filters.join(' and ');
+    }
+
+    // =========================
+    // SORT
+    // =========================
+
+    if (sortBy != null &&
+        sortBy.isNotEmpty) {
+      String column;
+
+      switch (sortBy.toLowerCase()) {
+        case 'price':
+          column = 'ProductPrice';
+          break;
+
+        case 'name':
+          column = 'ProductName';
+          break;
+
+        case 'date':
+          column = 'AddedAt';
+          break;
+
+        default:
+          column = 'ProductName';
+      }
+
+      final order =
+      sortOrder.toLowerCase() == 'desc'
+          ? 'desc'
+          : 'asc';
+
+      queryParameters[r'$orderby'] =
+      '$column $order';
+    }
+
+    // =========================
+    // BUILD URL
+    // =========================
+
+    final uri = Uri.parse(
+      '$odataBaseUrl/odata/Products',
+    ).replace(
+      queryParameters:
+      queryParameters,
     );
 
-    final data = _handleResponse(response);
-    if (data is List) {
-      return data.map((json) => ProductModel.fromJson(json)).toList();
-    } else if (data is Map && data['value'] != null) {
-      final List odataList = data['value'];
-      return odataList.map((json) => ProductModel.fromJson(json)).toList();
+    // =========================
+    // REQUEST
+    // =========================
+
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Accept': 'application/json',
+
+        if (_token != null)
+          'Authorization':
+          'Bearer $_token',
+      },
+    );
+
+    // =========================
+    // RESPONSE
+    // =========================
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json =
+      jsonDecode(response.body);
+
+      return ProductResponse.fromJson(
+        json,
+      );
     }
-    return [];
+
+    throw Exception(
+      'Failed to load products: '
+          '${response.statusCode} - '
+          '${response.body}',
+    );
   }
 
+  Future<List<ProductModel>>
+  getHotProducts() async {
+    final uri = Uri.parse(
+      '$baseUrl/Products/hot-products',
+    );
+
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Accept': 'application/json',
+
+        if (_token != null)
+          'Authorization':
+          'Bearer $_token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load hot products: '
+            '${response.statusCode} - '
+            '${response.body}',
+      );
+    }
+
+    final List<dynamic> json =
+    jsonDecode(response.body);
+
+    return json
+        .map(
+          (item) =>
+          ProductModel.fromJson(
+            item as Map<String, dynamic>,
+          ),
+    )
+        .toList();
+  }
+
+  Future<List<ProductModel>>
+  getNewProducts() async {
+    final uri = Uri.parse(
+      '$baseUrl/Products/new-products',
+    );
+
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Accept': 'application/json',
+
+        if (_token != null)
+          'Authorization':
+          'Bearer $_token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load new products: '
+            '${response.statusCode} - '
+            '${response.body}',
+      );
+    }
+
+    final List<dynamic> json =
+    jsonDecode(response.body);
+
+    return json
+        .map(
+          (item) =>
+          ProductModel.fromJson(
+            item as Map<String, dynamic>,
+          ),
+    )
+        .toList();
+  }
   // Get product details
   Future<ProductModel> getProductDetails(String productId) async {
     final response = await _client.get(
@@ -487,6 +821,48 @@ class ApiService {
     ));
     if (response.body.isEmpty) return {'success': false, 'message': 'Empty server response'};
     return json.decode(response.body);
+  }
+
+
+  Future<AIResultModel> classifyAI(
+      File image,
+      ) async {
+    final uri = Uri.parse(
+      '$baseUrl/AI/predict',
+    );
+
+    final request =
+    http.MultipartRequest(
+      'POST',
+      uri,
+    );
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        image.path,
+      ),
+    );
+
+    final streamedResponse =
+    await request.send();
+
+    final response =
+    await http.Response.fromStream(
+      streamedResponse,
+    );
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw Exception(
+        'Unable to classify image. '
+            'Status code: ${response.statusCode}',
+      );
+    }
+
+    final Map<String, dynamic> json =
+    jsonDecode(response.body);
+
+    return AIResultModel.fromJson(json);
   }
 
   // ============================================================
