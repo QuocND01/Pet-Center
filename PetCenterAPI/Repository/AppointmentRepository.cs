@@ -12,72 +12,68 @@ namespace PetCenterAPI.Repository
         {
             _context = context;
         }
+
         public async Task<List<Models.Service>> GetServicesAsync(List<Guid> serviceIds)
         {
             return await _context.Services
                 .Where(s => serviceIds.Contains(s.ServiceId))
                 .ToListAsync();
         }
-        public async Task<ScheduleException?> GetStaffExceptionAsync(
-    Guid staffId,
-    DateOnly date)
+
+        public async Task<ScheduleException?> GetStaffExceptionAsync(Guid staffId, DateOnly date)
         {
             return await _context.ScheduleExceptions
-                .FirstOrDefaultAsync(x =>
-                    x.StaffId == staffId &&
-                    x.ExceptionDate == date);
+                .FirstOrDefaultAsync(x => x.StaffId == staffId && x.ExceptionDate == date);
         }
-        public async Task<ScheduleException?> GetGlobalExceptionAsync(
-    DateOnly date)
+
+        public async Task<ScheduleException?> GetGlobalExceptionAsync(DateOnly date)
         {
             return await _context.ScheduleExceptions
-                .FirstOrDefaultAsync(x =>
-                    x.StaffId == null &&
-                    x.ExceptionDate == date);
+                .FirstOrDefaultAsync(x => x.StaffId == null && x.ExceptionDate == date);
         }
-        public async Task<GlobalWorkSchedule?> GetGlobalScheduleAsync(
-    DayOfWeek dayOfWeek)
+
+        public async Task<GlobalWorkSchedule?> GetGlobalScheduleAsync(DayOfWeek dayOfWeek)
         {
-            int day = dayOfWeek == DayOfWeek.Sunday
-                ? 7
-                : (int)dayOfWeek;
+            int day = dayOfWeek == DayOfWeek.Sunday ? 7 : (int)dayOfWeek;
 
             return await _context.GlobalWorkSchedules
                 .FirstOrDefaultAsync(x => x.DayOfWeek == day);
         }
-        public async Task<bool> IsTimeConflictAsync(
-    Guid staffId,
-    DateTime appointmentStart,
-    DateTime appointmentEnd)
+
+        public async Task<bool> IsTimeConflictAsync(Guid staffId, DateTime appointmentStart, DateTime appointmentEnd)
         {
             return await _context.Appointments.AnyAsync(x =>
                 x.StaffId == staffId
                 && appointmentStart < x.AppointmentEnd
                 && appointmentEnd > x.AppointmentStart
                 && x.Status != 0
-                 );
+            );
         }
+
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
             var entry = await _context.Appointments.AddAsync(appointment);
             return entry.Entity;
         }
+
         public async Task<Pet?> GetPetForSnapshotAsync(Guid petId)
         {
-
             return await _context.Pets
                 .FirstOrDefaultAsync(x => x.PetId == petId);
         }
+
         public async Task<Staff?> GetStaffForSnapshotAsync(Guid staffId)
         {
             return await _context.Staffs
                 .Include(s => s.VetProfile)
                 .FirstOrDefaultAsync(x => x.StaffId == staffId);
         }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
         }
+
         public async Task<IEnumerable<Staff>> GetActiveVetsAsync()
         {
             return await _context.Staffs
@@ -85,7 +81,8 @@ namespace PetCenterAPI.Repository
                 .Where(s => s.IsActive && s.VetProfile != null && s.VetProfile.IsActive)
                 .ToListAsync();
         }
-        public async Task<List<Appointment>>GetAppointmentsByCustomerAsync(Guid customerId)
+
+        public async Task<List<Appointment>> GetAppointmentsByCustomerAsync(Guid customerId)
         {
             return await _context.Appointments
                 .Include(x => x.Pet)
@@ -94,7 +91,8 @@ namespace PetCenterAPI.Repository
                 .OrderByDescending(x => x.AppointmentStart)
                 .ToListAsync();
         }
-        public async Task<List<Appointment>>GetAllAppointmentsAsync()
+
+        public async Task<List<Appointment>> GetAllAppointmentsAsync()
         {
             return await _context.Appointments
                 .Include(x => x.Pet)
@@ -102,6 +100,7 @@ namespace PetCenterAPI.Repository
                 .OrderByDescending(x => x.AppointmentStart)
                 .ToListAsync();
         }
+
         public async Task<Appointment?> GetAppointmentDetailAsync(Guid appointmentId)
         {
             return await _context.Appointments
@@ -110,23 +109,23 @@ namespace PetCenterAPI.Repository
                 .Include(x => x.Customer)
                 .Include(x => x.AppointmentSnapshot)
                 .Include(x => x.AppointmentServices)
-                .FirstOrDefaultAsync(x =>
-                    x.AppointmentId == appointmentId);
+                .FirstOrDefaultAsync(x => x.AppointmentId == appointmentId);
         }
+
         public async Task<AppointmentService?> GetAppointmentServiceByIdAsync(Guid appointmentServiceId)
         {
             return await _context.AppointmentServices
-                .FirstOrDefaultAsync(x =>x.AppointmentServiceId == appointmentServiceId);
+                .FirstOrDefaultAsync(x => x.AppointmentServiceId == appointmentServiceId);
         }
+
         public async Task<Appointment?> GetByIdAsync(Guid appointmentId)
         {
-
             return await _context.Appointments
+                .Include(a => a.AppointmentServices)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
         }
-        public async Task<List<Appointment>> GetDoctorAppointmentsByDateAsync(
-        Guid staffId,
-        DateOnly date)
+
+        public async Task<List<Appointment>> GetDoctorAppointmentsByDateAsync(Guid staffId, DateOnly date)
         {
             var startDate = date.ToDateTime(TimeOnly.MinValue);
             var endDate = startDate.AddDays(1);
@@ -136,18 +135,25 @@ namespace PetCenterAPI.Repository
                     a.StaffId == staffId &&
                     a.AppointmentStart >= startDate &&
                     a.AppointmentStart < endDate &&
-                    (
-                        a.Status == 1 ||
-                        a.Status == 2 ||
-                        a.Status == 3
-                    ))
+                    (a.Status == 1 || a.Status == 2 || a.Status == 3))
                 .OrderBy(a => a.AppointmentStart)
                 .ToListAsync();
         }
+
         public async Task UpdateAsync(Appointment appointment)
         {
-            _context.Appointments.Update(appointment);
+            // Do Entity đã được Track trong DbContext từ trước,
+            // ta chỉ cần gọi SaveChangesAsync() để EF Core tự sinh SQL UPDATE.
             await _context.SaveChangesAsync();
+        }
+
+        // HÀM QUAN TRỌNG NHẤT CHO FEATURE UPDATE
+        public async Task<Appointment?> GetByIdForUpdateAsync(Guid appointmentId)
+        {
+            return await _context.Appointments
+                .Include(a => a.AppointmentServices)
+                .Include(a => a.AppointmentSnapshot)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
         }
     }
 }

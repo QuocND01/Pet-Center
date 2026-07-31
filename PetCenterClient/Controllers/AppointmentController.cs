@@ -305,12 +305,12 @@ namespace PetCenterClient.Controllers
                     return Json(new
                     {
                         status = true,
-                        message = "Khởi tạo thanh toán thành công.",
+                        message = "Initialization payment successful.",
                         data = paymentResponse
                     });
                 }
 
-                return Json(new { status = false, message = "Không thể tạo liên kết thanh toán. Vui lòng thử lại." });
+                return Json(new { status = false, message = "Cannot create payment URL.Please try again" });
             }
             catch (Exception ex)
             {
@@ -330,6 +330,113 @@ namespace PetCenterClient.Controllers
             ViewBag.AppointmentId = appointmentId;
 
             return View("~/Views/CustomerViews/Appointment/PaymentReturn.cshtml");
+        }
+        /// <summary>
+        /// GET: /Appointment/Update/{id}
+        /// Lấy chi tiết lịch hẹn (Pending = 1) và Master Data để dựng UI Stepper Cập nhật
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Update(Guid id)
+        {
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Customer")
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            try
+            {
+                // 1. Lấy chi tiết lịch hẹn hiện tại
+                var appointmentDetail = await _appointmentApiService.GetAppointmentDetailAsync(id);
+                if (appointmentDetail == null)
+                {
+                    TempData["Error"] = "Không tìm thấy thông tin lịch hẹn.";
+                    return RedirectToAction("MyAppointments");
+                }
+
+                // 2. Chỉ cho phép chỉnh sửa nếu Status = 1 (Giữ chỗ / Pending)
+                if (appointmentDetail.Status != 1)
+                {
+                    TempData["Error"] = "Chỉ có thể chỉnh sửa lịch hẹn đang ở trạng thái Giữ chỗ (Pending).";
+                    return RedirectToAction("Detail", new { id });
+                }
+
+                // 3. Lấy Master Data (Pets, Staffs, Services)
+                var bookingData = await _appointmentApiService.GetBookingDataAsync();
+
+                // 4. Tìm StaffId theo tên Bác sĩ hiện tại trong Master Data (nếu có)
+                Guid? matchedStaffId = bookingData?.Staffs
+                    .FirstOrDefault(s => string.Equals(s.FullName, appointmentDetail.VetName, StringComparison.OrdinalIgnoreCase))
+                    ?.StaffId;
+
+                // 5. Tìm danh sách ServiceIds đã được đặt dựa vào tên dịch vụ
+                var selectedServiceIds = bookingData?.Services
+                    .Where(s => appointmentDetail.AppointmentServices.Any(aps => aps.ServiceName == s.ServiceName))
+                    .Select(s => s.ServiceId)
+                    .ToList() ?? new List<Guid>();
+
+                // 6. Bind dữ liệu vào BookingPageViewModel
+                var vm = new BookingPageViewModel
+                {
+                    PetId = bookingData?.Pets.FirstOrDefault(p => p.PetName == appointmentDetail.PetName)?.PetId,
+                    StaffId = matchedStaffId,
+                    ServiceIds = selectedServiceIds,
+                    AppointmentStart = appointmentDetail.AppointmentStart,
+                    Note = appointmentDetail.Note,
+
+                    Pets = bookingData?.Pets ?? new List<BookingPetViewModel>(),
+                    Staffs = bookingData?.Staffs ?? new List<BookingStaffViewModel>(),
+                    Services = bookingData?.Services ?? new List<BookingServiceViewModel>()
+                };
+
+                ViewBag.AppointmentId = id;
+                return View("~/Views/CustomerViews/Appointment/Update.cshtml", vm);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Detail", new { id });
+            }
+        }
+
+        /// <summary>
+        /// POST: /Appointment/Update
+        /// Tiếp nhận dữ liệu cập nhật từ UI gửi về API
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> Update([FromBody] UpdateAppointmentViewModel request)
+        {
+            var role = HttpContext.Session.GetString("Role");
+            if (role != "Customer")
+            {
+                return Json(new { status = false, message = "Your session has expired. Please log in again." });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return Json(new { status = false, message = "Invalid input" });
+            }
+
+            try
+            {
+                var result = await _appointmentApiService.UpdateReservedAppointmentAsync(request);
+
+                if (result)
+                {
+                    return Json(new
+                    {
+                        status = true,
+                        message = "Appointment update successful",
+                        redirectUrl = Url.Action("Detail", "Appointment", new { id = request.AppointmentId })
+                    });
+                }
+
+                return Json(new { status = false, message = "Update appointment fail! Please try again" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, message = ex.Message });
+            }
         }
     }
 }

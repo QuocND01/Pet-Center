@@ -23,6 +23,7 @@ namespace PetCenterAPI.Service.Interface
         Task<AppointmentPaymentResponseDTO> CreatePaymentUrlAsync(AppointmentPaymentRequestDTO request);
         Task<PaymentCallbackResponseDTO> ProcessVnPayCallbackAsync(IQueryCollection query);
         Task<PaymentCallbackResponseDTO> ProcessMoMoCallbackAsync(JsonElement body, string rawBody, string signature);
+        Task<AppointmentResponseDTO> UpdateReservedAppointmentAsync(UpdateAppointmentRequestDTO request, Guid customerId);
 
     }
 }

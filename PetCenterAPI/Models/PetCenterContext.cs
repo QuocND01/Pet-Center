@@ -190,7 +190,7 @@ public partial class PetCenterContext : DbContext
                 .HasColumnType("datetime");
             entity.HasOne(d => d.Appointment).WithMany(p => p.AppointmentServices)
                 .HasForeignKey(d => d.AppointmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_AppointmentServices_Appointments");
 
             entity.HasOne(d => d.Service).WithMany(p => p.AppointmentServices)
@@ -231,7 +231,7 @@ public partial class PetCenterContext : DbContext
 
             entity.HasOne(d => d.Appointment).WithOne(p => p.AppointmentSnapshot)
                 .HasForeignKey<AppointmentSnapshot>(d => d.AppointmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_AppointmentSnapshot_Appointments");
         });
 
