@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterAPI.Services.Interfaces;
 
@@ -6,7 +6,7 @@ namespace PetCenterAPI.Controllers
 {
     [Route("api/analytics")]
     [ApiController]
-    [Authorize(Roles = "Admin,Vet,Sale Staff")]
+    [Authorize(Roles = "Admin,Vet,Sale Staff,Groomer")]
     public class AnalyticsController : ControllerBase
     {
         private readonly IAnalyticsService _analyticsService;

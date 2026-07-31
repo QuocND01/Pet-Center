@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels;
@@ -17,7 +17,7 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> Index(string search = "")
         {
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Vet" && role != "Admin") return RedirectToAction("AdminLogin", "Auth");
+            if (role != "Vet" && role != "Admin" && role != "Groomer") return RedirectToAction("AdminLogin", "Auth");
 
             string odataQuery = "";
             if (!string.IsNullOrEmpty(search))

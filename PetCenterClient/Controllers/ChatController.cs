@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -46,7 +46,7 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> StaffChat()
         {
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Vet" && role != "Admin" && role != "Sale Staff")
+            if (role != "Vet" && role != "Admin" && role != "Sale Staff" && role != "Groomer")
                 return RedirectToAction("AdminLogin", "Auth");
 
             // Sử dụng hàm bóc tách ID siêu chuẩn

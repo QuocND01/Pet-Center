@@ -98,6 +98,7 @@ namespace PetCenterAPI.Controllers
                 : roles.Contains("Sale Staff") ? "Sale Staff"
                 : roles.Contains("Inventory Staff") ? "Inventory Staff"
                 : roles.Contains("Vet") ? "Vet"
+                : roles.Contains("Groomer") ? "Groomer"
                 : null;
 
             return Ok(new

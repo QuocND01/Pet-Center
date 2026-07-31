@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels;
 
@@ -17,7 +17,7 @@ namespace PetCenterClient.Controllers
         {
             // Chỉ Vet/Admin được vào
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Vet" && role != "Admin") return RedirectToAction("AdminLogin", "Auth");
+            if (role != "Vet" && role != "Admin" && role != "Groomer") return RedirectToAction("AdminLogin", "Auth");
 
             // Tạo một list chứa các điều kiện lọc
             var filterConditions = new List<string>();

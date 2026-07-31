@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using PetCenterAPI.Models;
 using System.Collections.Concurrent;
@@ -24,7 +24,7 @@ namespace PetCenterAPI.Hubs
             var role = GetUserRole();
 
             // Đưa Staff vào hàng chờ nhận Chat
-            if (role == "Admin" || role == "Vet" || role == "Sale Staff")
+            if (role == "Admin" || role == "Vet" || role == "Sale Staff" || role == "Groomer")
             {
                 OnlineStaffLoads.TryAdd(userId, 0);
                 await Clients.Caller.SendAsync("ReceiveSystemMessage", "You are online and ready to receive chats from customers.");
@@ -40,7 +40,7 @@ namespace PetCenterAPI.Hubs
             var userId = Guid.Parse(GetUserId());
             var role = GetUserRole();
 
-            if (role == "Admin" || role == "Vet" || role == "Sale Staff")
+            if (role == "Admin" || role == "Vet" || role == "Sale Staff" || role == "Groomer")
             {
                 OnlineStaffLoads.TryRemove(userId, out _);
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");

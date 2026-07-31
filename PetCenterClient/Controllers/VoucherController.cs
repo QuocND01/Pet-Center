@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PetCenterClient.DTOs;
 using PetCenterClient.Services.Interface;

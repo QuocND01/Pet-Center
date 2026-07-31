@@ -78,7 +78,7 @@
         <span><i class="bi bi-capsule me-1"></i>Prescription Items</span>
         @{
             var role = Context.Session.GetString("Role");
-            bool isVetOrAdmin = role == "Vet" || role == "Admin";
+            bool isVetOrAdmin = role == "Vet" || role == "Admin" || role == "Groomer";
             // Items can only be changed while the record is still a draft.
             bool canEditPrescriptions = Model.Status == 1;
         }

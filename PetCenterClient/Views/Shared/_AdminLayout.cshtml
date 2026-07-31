@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -490,6 +490,7 @@
                 bool isSaleStaff = currentRole == "Sale Staff";
                 bool isInventory = currentRole == "Inventory Staff";
                 bool isVet = currentRole == "Vet";
+                bool isGroomer = currentRole == "Groomer";
             }
 
             @* ── ADMIN ─────────────────────────────────────── *@
@@ -538,7 +539,7 @@
                 </a>
             }
 
-            @if (isVet || isAdmin)
+            @if (isVet || isAdmin || isGroomer)
             {
                 <div class="sb-section-label">Clinic</div>
 
@@ -556,7 +557,7 @@
                     <i class="bi bi-calendar-check"></i> Appointments
                 </a>
             }
-            @if (isAdmin || isVet || isSaleStaff)
+            @if (isAdmin || isVet || isSaleStaff || isGroomer)
             {
                 <div class="sb-section-label">Support</div>
                 <a asp-controller="Chat" asp-action="StaffChat" class="sb-link text-success fw-bold">
@@ -633,6 +634,11 @@
                                 <i class="bi bi-heart-pulse-fill me-1"></i>Vet
                             </span>
                             break;
+                        case "Groomer":
+                            <span class="topbar-role role-sale">
+                                <i class="bi bi-scissors me-1"></i>Groomer
+                            </span>
+                            break;
                     }
                 </div>
                 <a asp-controller="Auth" asp-action="AdminLogout" class="topbar-logout">
@@ -699,7 +705,7 @@
     </script>
     @await RenderSectionAsync("Scripts", required: false)
     @* ── KHU VỰC CHẠY NGẦM THÔNG BÁO CHAT CHO STAFF ── *@
-    @if (Context.Session.GetString("Role") == "Admin" || Context.Session.GetString("Role") == "Vet" || Context.Session.GetString("Role") == "Sale Staff")
+    @if (Context.Session.GetString("Role") == "Admin" || Context.Session.GetString("Role") == "Vet" || Context.Session.GetString("Role") == "Sale Staff" || Context.Session.GetString("Role") == "Groomer")
     {
         <div id="global-toast-container" style="position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
 
