@@ -290,5 +290,48 @@ namespace PetCenterClient.Services
                 throw;
             }
         }
+        public async Task<bool> UpdateReservedAppointmentAsync(UpdateAppointmentViewModel request)
+        {
+            AddAuthorizationHeader();
+
+            var response = await _http.PutAsJsonAsync("api/Appointment/update-reserved", request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+
+                _logger.LogError("[AppointmentApiService] UpdateReservedAppointment failed with status {Code}: {Error}",
+                    response.StatusCode, errorContent);
+
+                try
+                {
+                    var errorResponse = JsonSerializer.Deserialize<ApiResponseViewModel<object>>(
+                        errorContent,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.Message))
+                    {
+                        throw new Exception(errorResponse.Message);
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Trường hợp không parse được JSON chuẩn
+                }
+
+                throw new Exception($"Đã xảy ra lỗi khi cập nhật lịch hẹn: {response.StatusCode}");
+            }
+
+            // ✅ SỬA TẠI ĐÂY: Dùng ApiResponseViewModel<object> thay vì ApiResponseViewModel<bool>
+            var apiResponse = await response.Content
+                .ReadFromJsonAsync<ApiResponseViewModel<object>>(
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (apiResponse == null)
+                throw new Exception("Cannot read response from server.");
+
+            // Kiểm tra cờ Status (hoặc HTTP Response Success) để trả về bool cho Service
+            return apiResponse.Status;
+        }
     }
 }

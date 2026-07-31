@@ -173,6 +173,14 @@ _loadData();
         sortBy: selectedSortBy,
         sortOrder: selectedSortOrder,
         page: currentPage,
+  // Add product to cart
+  void _addProductToCart(ProductModel product, int quantity) async {
+    if (_apiService.token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please login to add products to your cart.'),
+          backgroundColor: Colors.orange,
+        ),
       );
       if (!mounted) return;
 
@@ -874,6 +882,14 @@ children: [
 // ======================================================
 // SEARCH
 // ======================================================
+  void _showProductDetails(ProductModel product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailScreen(product: product),
+      ),
+    );
+  }
 
 TextField(
 controller:

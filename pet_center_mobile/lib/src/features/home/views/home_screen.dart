@@ -4,22 +4,35 @@ import '../../products/views/product_list_screen.dart';
 import '../../cart/views/cart_screen.dart';
 import '../../customer/views/profile_screen.dart';
 import '../../services/views/service_list_screen.dart';
+import '../../orders/views/order_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialIndex;
+
+  const HomeScreen({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 1; // Default to Shop tab
+  late int _currentIndex;
 
-  final List<Widget> _screens = [
-    const HomeDashboard(),
-    const ProductPage(),
-    const CartScreen(),
-    const CustomerProfileScreen(),
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  final List<Widget> _screens = const [
+    HomeDashboard(),
+    ProductPage(),
+    OrderListScreen(),
+    CartScreen(),
+    CustomerProfileScreen(),
   ];
 
   @override
@@ -29,34 +42,59 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag),
-            label: 'Shop',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.textSecondary,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_bag_outlined),
+              activeIcon: Icon(Icons.shopping_bag),
+              label: 'Shop',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long),
+              label: 'Orders',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart_outlined),
+              activeIcon: Icon(Icons.shopping_cart),
+              label: 'Cart',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outlined),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -70,14 +108,24 @@ class HomeDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Pet Center Home'),
+        title: const Text(
+          'Pet Center',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(initialIndex: 3), // Switch to Cart tab
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -108,13 +156,19 @@ class HomeDashboard extends StatelessWidget {
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Welcome to Pet Center!',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  Row(
+                    children: [
+                      Icon(Icons.pets, color: Colors.white, size: 28),
+                      SizedBox(width: 10),
+                      Text(
+                        'Welcome to Pet Center!',
+                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 10),
                   Text(
-                    'Providing the best high-quality pet care products and services for your beloved pets.',
+                    'Providing high-quality pet care products, grooming, and medical services for your beloved pets.',
                     style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
                   ),
                 ],
@@ -122,9 +176,9 @@ class HomeDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 28),
 
-            // Services Grid
+            // Featured Features Grid
             const Text(
-              'Featured Features',
+              'Featured Services & Features',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -139,9 +193,6 @@ class HomeDashboard extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
-                // ===================================================================
-                // TODO: Team member - Connect Appointment Booking feature route here
-                // ===================================================================
                 _buildMenuCard(
                   icon: Icons.calendar_today_outlined,
                   title: 'Book Appointment',
@@ -156,14 +207,17 @@ class HomeDashboard extends StatelessWidget {
                   },
                 ),
                 _buildMenuCard(
-                  icon: Icons.pets_outlined,
-                  title: 'My Pets',
-                  subtitle: 'Manage pet profiles',
-                  color: Colors.orange.shade100,
-                  iconColor: Colors.orange.shade700,
+                  icon: Icons.shopping_bag_outlined,
+                  title: 'Pet Store',
+                  subtitle: 'Explore products',
+                  color: Colors.amber.shade100,
+                  iconColor: Colors.amber.shade800,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('My Pets feature.')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(initialIndex: 1), // Switch to Shop tab
+                      ),
                     );
                   },
                 ),
@@ -181,14 +235,17 @@ class HomeDashboard extends StatelessWidget {
                   },
                 ),
                 _buildMenuCard(
-                  icon: Icons.history_outlined,
-                  title: 'Booking History',
+                  icon: Icons.receipt_long_outlined,
+                  title: 'My Orders',
                   subtitle: 'Track your orders',
                   color: Colors.purple.shade100,
                   iconColor: Colors.purple.shade700,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Booking History feature.')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(initialIndex: 2), // Switch to Orders tab
+                      ),
                     );
                   },
                 ),
