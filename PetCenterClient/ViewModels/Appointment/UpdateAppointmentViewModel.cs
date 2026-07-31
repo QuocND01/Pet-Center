@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterAPI.DTOs.Requests.Appointment
+namespace PetCenterClient.ViewModels.Appointment
 {
-    public class UpdateAppointmentRequestDTO
+    public class UpdateAppointmentViewModel
     {
         [Required]
         public Guid AppointmentId { get; set; }

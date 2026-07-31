@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.DTOs.Requests.Appointment;
 using PetCenterAPI.DTOs.Responses.Appointment;
@@ -752,6 +753,111 @@ namespace PetCenterAPI.Service
                 AppointmentId = payment.AppointmentId,
                 TransactionRef = payment.TransactionRef!
             };
+        }
+        public async Task<AppointmentResponseDTO> UpdateReservedAppointmentAsync(UpdateAppointmentRequestDTO request, Guid customerId)
+        {
+            // 1. Get Appointment kèm theo AppointmentServices VÀ AppointmentSnapshot (nếu có)
+            var appointment = await _appointmentRepo.GetByIdForUpdateAsync(request.AppointmentId);
+
+            if (appointment == null)
+                throw new KeyNotFoundException("Appointment not found!");
+
+            if (appointment.CustomerId != customerId)
+                throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa lịch hẹn này.");
+
+            if (appointment.Status != 1)
+                throw new InvalidOperationException("Chỉ có thể cập nhật lịch hẹn ở trạng thái Giữ chỗ (Reserved).");
+
+            // 2. Validate & Lấy thông tin Pet và Staff cho Snapshot
+            var pet = await _appointmentRepo.GetPetForSnapshotAsync(appointment.PetId);
+            if (pet == null)
+                throw new KeyNotFoundException("Không tìm thấy thông tin thú cưng.");
+
+            var staff = await _appointmentRepo.GetStaffForSnapshotAsync(request.StaffId);
+            if (staff == null)
+                throw new KeyNotFoundException("Không tìm thấy thông tin bác sĩ/nhân viên.");
+
+            var selectedServices = await _appointmentRepo.GetServicesAsync(request.ServiceIds);
+            if (selectedServices == null || !selectedServices.Any())
+                throw new ArgumentException("Vui lòng chọn ít nhất 1 dịch vụ.");
+
+            // 3. Tính toán lại tổng tiền và thời lượng
+            decimal newTotal = selectedServices.Sum(s => s.Price);
+            int totalDurationMinutes = selectedServices.Sum(s => s.Duration);
+
+            // 4. Cập nhật thông tin Lịch hẹn (Parent)
+            appointment.StaffId = request.StaffId;
+            appointment.AppointmentStart = request.AppointmentStart;
+            appointment.AppointmentEnd = request.AppointmentStart.AddMinutes(totalDurationMinutes);
+            appointment.Total = newTotal;
+            appointment.Note = request.Note;
+            appointment.UpdatedAt = DateTime.UtcNow;
+
+            // 5. Cập nhật danh sách AppointmentServices (Bảng con 1-N)
+            // .Clear() sẽ chuyển các dịch vụ cũ sang trạng thái Deleted trong Change Tracker
+            appointment.AppointmentServices.Clear();
+
+            foreach (var service in selectedServices)
+            {
+                // ❌ KHÔNG gán AppointmentServiceId = Guid.NewGuid() ở đây
+                // EF Core sẽ tự sinh GUID hoặc coi đây là Added entity để chạy INSERT INTO
+                appointment.AppointmentServices.Add(new PetCenterAPI.Models.AppointmentService
+                {
+                    ServiceId = service.ServiceId,
+                    ServiceName = service.ServiceName,
+                    PriceAtBooking = service.Price,
+                    Duration = service.Duration,
+                    ServiceType = service.ServiceType,
+                    Status = 1
+                });
+            }
+
+            // 6. Cập nhật hoặc Khởi tạo AppointmentSnapshot (Bảng con 1-1)
+            if (appointment.AppointmentSnapshot != null)
+            {
+                appointment.AppointmentSnapshot.Species = pet.Species ?? "Unknown";
+                appointment.AppointmentSnapshot.Breed = pet.Breed ?? "Unknown";
+                appointment.AppointmentSnapshot.Gender = pet.Gender ?? "Unknown";
+                appointment.AppointmentSnapshot.Weight = pet.Weight ?? 0;
+                appointment.AppointmentSnapshot.VetName = staff.FullName;
+            }
+            else
+            {
+                appointment.AppointmentSnapshot = new AppointmentSnapshot
+                {
+                    Species = pet.Species ?? "Unknown",
+                    Breed = pet.Breed ?? "Unknown",
+                    Gender = pet.Gender ?? "Unknown",
+                    Weight = pet.Weight ?? 0,
+                    VetName = staff.FullName,
+                    Rating = 0
+                };
+            }
+
+            // 7. Lưu thay đổi qua Repository
+            try
+            {
+                await _appointmentRepo.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
+            {
+                foreach (var entry in ex.Entries)
+                {
+                    Console.WriteLine($"[CONCURRENCY DEBUG] Entity: {entry.Entity.GetType().Name} | State: {entry.State}");
+                    foreach (var prop in entry.Properties)
+                    {
+                        Console.WriteLine($"   - Property: {prop.Metadata.Name} | CurrentValue: {prop.CurrentValue} | OriginalValue: {prop.OriginalValue}");
+                    }
+                }
+                throw;
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                Console.WriteLine($"[DB UPDATE ERROR]: {dbEx.InnerException?.Message ?? dbEx.Message}");
+                throw;
+            }
+
+            return _mapper.Map<AppointmentResponseDTO>(appointment);
         }
     }
 }

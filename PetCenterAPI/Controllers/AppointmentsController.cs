@@ -261,5 +261,28 @@ namespace PetCenterAPI.Controllers
             }
             return BadRequest(new { status = false, message = result.Message, data = result });
         }
+        /// <summary>
+        /// Cập nhật lại thông tin dịch vụ, nhân viên, thời gian cho lịch hẹn đang giữ chỗ (Status = 1)
+        /// Route: PUT api/Appointment/update-reserved
+        /// </summary>
+        [HttpPut("update-reserved")]
+        public async Task<IActionResult> UpdateReservedAppointment([FromBody] UpdateAppointmentRequestDTO request)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claim))
+            {
+                return Unauthorized(new { status = false, message = "CustomerId missing in token" });
+            }
+
+            try
+            {
+                var result = await _appointmentService.UpdateReservedAppointmentAsync(request, Guid.Parse(claim));
+                return Ok(new { status = true, message = "Update reserved appointment successfully.", data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { status = false, message = ex.Message });
+            }
+        }
     }
 }
