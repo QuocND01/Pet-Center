@@ -5,60 +5,60 @@ import 'package:pet_center_mobile/src/models/category_model.dart';
 import 'package:pet_center_mobile/src/models/product_model.dart';
 import 'package:pet_center_mobile/src/services/api_service.dart';
 class ProductPage extends StatefulWidget {
-const ProductPage({super.key});
+  const ProductPage({super.key});
 
-@override
-State<ProductPage> createState() => _ProductPageState();
+  @override
+  State<ProductPage> createState() => _ProductPageState();
 }
 
 class _ProductPageState extends State<ProductPage> {
-final ApiService _apiService = ApiService();
+  final ApiService _apiService = ApiService();
 
-Future<void> _changePage(int page) async {
-  if (page < 1 || page > totalPages || page == currentPage) {
-    return;
+  Future<void> _changePage(int page) async {
+    if (page < 1 || page > totalPages || page == currentPage) {
+      return;
+    }
+
+    setState(() {
+      currentPage = page;
+    });
+
+    await _loadProducts();
   }
-
-  setState(() {
-    currentPage = page;
-  });
-
-  await _loadProducts();
-}
 
 // ============================================================
 // DATA
 // ============================================================
   int totalProducts = 0;
-List<ProductModel> products = [];
-List<ProductModel> hotProducts = [];
-List<ProductModel> newProducts = [];
+  List<ProductModel> products = [];
+  List<ProductModel> hotProducts = [];
+  List<ProductModel> newProducts = [];
 
-List<BrandModel> brands = [];
-List<CategoryModel> categories = [];
+  List<BrandModel> brands = [];
+  List<CategoryModel> categories = [];
 
 // ============================================================
 // STATE
 // ============================================================
 
-bool isLoading = false;
-String? errorMessage;
+  bool isLoading = false;
+  String? errorMessage;
 
 // ============================================================
 // FILTER
 // ============================================================
 
-final TextEditingController _searchController =
-TextEditingController();
+  final TextEditingController _searchController =
+  TextEditingController();
 
-String? selectedCategoryId;
-String? selectedBrandId;
+  String? selectedCategoryId;
+  String? selectedBrandId;
 
-double? minPrice;
-double? maxPrice;
+  double? minPrice;
+  double? maxPrice;
 
-String? selectedSortBy;
-String selectedSortOrder = 'asc';
+  String? selectedSortBy;
+  String selectedSortOrder = 'asc';
 
   int currentPage = 1;
 
@@ -71,11 +71,11 @@ String selectedSortOrder = 'asc';
 // INIT
 // ============================================================
 
-@override
-void initState() {
-super.initState();
-_loadData();
-}
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
 // ============================================================
 // LOAD ALL DATA
@@ -173,14 +173,6 @@ _loadData();
         sortBy: selectedSortBy,
         sortOrder: selectedSortOrder,
         page: currentPage,
-  // Add product to cart
-  void _addProductToCart(ProductModel product, int quantity) async {
-    if (_apiService.token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please login to add products to your cart.'),
-          backgroundColor: Colors.orange,
-        ),
       );
       if (!mounted) return;
 
@@ -215,1196 +207,1188 @@ _loadData();
 // RESET FILTER
 // ============================================================
 
-void _resetFilter() {
-_searchController.clear();
+  void _resetFilter() {
+    _searchController.clear();
 
-setState(() {
-selectedCategoryId = null;
-selectedBrandId = null;
+    setState(() {
+      selectedCategoryId = null;
+      selectedBrandId = null;
 
-minPrice = null;
-maxPrice = null;
+      minPrice = null;
+      maxPrice = null;
 
-selectedSortBy = null;
-selectedSortOrder = 'asc';
+      selectedSortBy = null;
+      selectedSortOrder = 'asc';
 
-currentPage = 1;
-});
+      currentPage = 1;
+    });
 
-_loadProducts();
-}
+    _loadProducts();
+  }
 
 // ============================================================
 // BUILD
 // ============================================================
 
-@override
-Widget build(BuildContext context) {
-return Scaffold(
-backgroundColor:
-const Color(0xFFF7FDF9),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor:
+      const Color(0xFFF7FDF9),
 
 // ========================================================
 // APP BAR
 // ========================================================
 
-appBar: AppBar(
-title: const Text(
-'PetCenter Shop',
-style: TextStyle(
-fontWeight: FontWeight.w800,
-),
-),
+      appBar: AppBar(
+        title: const Text(
+          'PetCenter Shop',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
 
-backgroundColor:
-Colors.white,
+        backgroundColor:
+        Colors.white,
 
-foregroundColor:
-const Color(0xFF0F1F0F),
+        foregroundColor:
+        const Color(0xFF0F1F0F),
 
-elevation: 0,
-),
+        elevation: 0,
+      ),
 
 // ========================================================
 // BODY
 // ========================================================
 
-body: RefreshIndicator(
-onRefresh: _loadData,
+      body: RefreshIndicator(
+        onRefresh: _loadData,
 
-child: CustomScrollView(
-physics:
-const AlwaysScrollableScrollPhysics(),
+        child: CustomScrollView(
+          physics:
+          const AlwaysScrollableScrollPhysics(),
 
-slivers: [
+          slivers: [
 
 // ====================================================
 // HERO BANNER
 // ====================================================
 
-SliverToBoxAdapter(
-child:
-_buildHeroBanner(),
-),
+            SliverToBoxAdapter(
+              child:
+              _buildHeroBanner(),
+            ),
 
 // ====================================================
 // SHOP INTRO
 // ====================================================
 
-SliverToBoxAdapter(
-child:
-_buildShopIntro(),
-),
+            SliverToBoxAdapter(
+              child:
+              _buildShopIntro(),
+            ),
 
 // ====================================================
 // HOT PRODUCTS
 // ====================================================
 
-if (hotProducts.isNotEmpty)
-SliverToBoxAdapter(
-child:
-_buildProductSection(
-title:
-'🔥 Hot Products',
+            if (hotProducts.isNotEmpty)
+              SliverToBoxAdapter(
+                child:
+                _buildProductSection(
+                  title:
+                  '🔥 Hot Products',
 
-products:
-hotProducts,
-),
-),
+                  products:
+                  hotProducts,
+                ),
+              ),
 
 // ====================================================
 // NEW PRODUCTS
 // ====================================================
 
-if (newProducts.isNotEmpty)
-SliverToBoxAdapter(
-child:
-_buildProductSection(
-title:
-'🆕 New Products',
+            if (newProducts.isNotEmpty)
+              SliverToBoxAdapter(
+                child:
+                _buildProductSection(
+                  title:
+                  '🆕 New Products',
 
-products:
-newProducts,
-),
-),
+                  products:
+                  newProducts,
+                ),
+              ),
 
 // ====================================================
 // FILTER
 // ====================================================
 
-SliverToBoxAdapter(
-child:
-_buildFilterCard(),
-),
+            SliverToBoxAdapter(
+              child:
+              _buildFilterCard(),
+            ),
 
 // ====================================================
 // RESULT COUNT
 // ====================================================
 
-SliverToBoxAdapter(
-child:
-Padding(
-padding:
-const EdgeInsets.fromLTRB(
-16,
-20,
-16,
-10,
-),
+            SliverToBoxAdapter(
+              child:
+              Padding(
+                padding:
+                const EdgeInsets.fromLTRB(
+                  16,
+                  20,
+                  16,
+                  10,
+                ),
 
-child:
-  Text(
-  '$totalProducts products found',
-style:
-const TextStyle(
-fontSize: 15,
+                child:
+                Text(
+                  '$totalProducts products found',
+                  style:
+                  const TextStyle(
+                    fontSize: 15,
 
-fontWeight:
-FontWeight.w600,
+                    fontWeight:
+                    FontWeight.w600,
 
-color:
-Color(0xFF6B7280),
-),
-),
-),
-),
+                    color:
+                    Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+            ),
 
 // ====================================================
 // LOADING
 // ====================================================
 
-if (isLoading)
-const SliverFillRemaining(
-child:
-Center(
-child:
-CircularProgressIndicator(
-color:
-Color(0xFF2ECC71),
-),
-),
-)
+            if (isLoading)
+              const SliverFillRemaining(
+                child:
+                Center(
+                  child:
+                  CircularProgressIndicator(
+                    color:
+                    Color(0xFF2ECC71),
+                  ),
+                ),
+              )
 
 // ====================================================
 // ERROR
 // ====================================================
 
-else if (errorMessage != null)
-SliverFillRemaining(
-child:
-_buildError(),
-)
+            else if (errorMessage != null)
+              SliverFillRemaining(
+                child:
+                _buildError(),
+              )
 
 // ====================================================
 // EMPTY
 // ====================================================
 
-else if (products.isEmpty)
-SliverFillRemaining(
-child:
-_buildEmptyState(),
-)
+            else if (products.isEmpty)
+                SliverFillRemaining(
+                  child:
+                  _buildEmptyState(),
+                )
 
 // ====================================================
 // ALL PRODUCTS
 // ====================================================
-    else
-      SliverMainAxisGroup(
-        slivers: [
+              else
+                SliverMainAxisGroup(
+                  slivers: [
 
-          // ====================================================
-          // PRODUCT GRID
-          // ====================================================
+                    // ====================================================
+                    // PRODUCT GRID
+                    // ====================================================
 
-          SliverPadding(
-            padding:
-            const EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              0,
-            ),
+                    SliverPadding(
+                      padding:
+                      const EdgeInsets.fromLTRB(
+                        16,
+                        16,
+                        16,
+                        0,
+                      ),
 
-            sliver:
-            SliverGrid.builder(
-              itemCount:
-              products.length,
+                      sliver:
+                      SliverGrid.builder(
+                        itemCount:
+                        products.length,
 
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount:
-                2,
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount:
+                          2,
 
-                crossAxisSpacing:
-                12,
+                          crossAxisSpacing:
+                          12,
 
-                mainAxisSpacing:
-                12,
+                          mainAxisSpacing:
+                          12,
 
-                childAspectRatio:
-                0.65,
-              ),
+                          childAspectRatio:
+                          0.65,
+                        ),
 
-              itemBuilder:
-                  (context, index) {
-                return _buildProductCard(
-                  products[index],
-                );
-              },
-            ),
-          ),
+                        itemBuilder:
+                            (context, index) {
+                          return _buildProductCard(
+                            products[index],
+                          );
+                        },
+                      ),
+                    ),
 
-          // ====================================================
-          // PAGINATION
-          // ====================================================
+                    // ====================================================
+                    // PAGINATION
+                    // ====================================================
 
-          SliverToBoxAdapter(
-            child:
-            _buildPagination(),
-          ),
-        ],
+                    SliverToBoxAdapter(
+                      child:
+                      _buildPagination(),
+                    ),
+                  ],
+                ),
+          ],
+        ),
       ),
-],
-),
-),
-);
-}
+    );
+  }
 
 // ============================================================
 // HERO BANNER
 // ============================================================
 
-Widget _buildHeroBanner() {
-return Container(
-height: 230,
+  Widget _buildHeroBanner() {
+    return Container(
+      height: 230,
 
-margin:
-const EdgeInsets.all(16),
+      margin:
+      const EdgeInsets.all(16),
 
-clipBehavior:
-Clip.antiAlias,
+      clipBehavior:
+      Clip.antiAlias,
 
-decoration:
-BoxDecoration(
-borderRadius:
-BorderRadius.circular(24),
-),
+      decoration:
+      BoxDecoration(
+        borderRadius:
+        BorderRadius.circular(24),
+      ),
 
-child:
-Stack(
-fit:
-StackFit.expand,
+      child:
+      Stack(
+        fit:
+        StackFit.expand,
 
-children: [
+        children: [
 
 // IMAGE
-Image.network(
-'https://res.cloudinary.com/dbjdxy4p6/image/upload/v1773461154/Water2_lsvuv0.png',
+          Image.network(
+            'https://res.cloudinary.com/dbjdxy4p6/image/upload/v1773461154/Water2_lsvuv0.png',
 
-fit:
-BoxFit.cover,
+            fit:
+            BoxFit.cover,
 
-errorBuilder:
-(_, __, ___) {
-return Container(
-color:
-const Color(0xFFDCFCE7),
-);
-},
-),
+            errorBuilder:
+                (_, __, ___) {
+              return Container(
+                color:
+                const Color(0xFFDCFCE7),
+              );
+            },
+          ),
 
 // OVERLAY
-Container(
-padding:
-const EdgeInsets.all(24),
+          Container(
+            padding:
+            const EdgeInsets.all(24),
 
-decoration:
-const BoxDecoration(
-gradient:
-LinearGradient(
-colors: [
-Colors.black54,
-Colors.transparent,
-],
+            decoration:
+            const BoxDecoration(
+              gradient:
+              LinearGradient(
+                colors: [
+                  Colors.black54,
+                  Colors.transparent,
+                ],
 
-begin:
-Alignment.centerLeft,
+                begin:
+                Alignment.centerLeft,
 
-end:
-Alignment.centerRight,
-),
-),
+                end:
+                Alignment.centerRight,
+              ),
+            ),
 
-child:
-Column(
-mainAxisAlignment:
-MainAxisAlignment.center,
+            child:
+            Column(
+              mainAxisAlignment:
+              MainAxisAlignment.center,
 
-crossAxisAlignment:
-CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
 
-children: [
+              children: [
 
-const Text(
-'Pet Center Shop',
+                const Text(
+                  'Pet Center Shop',
 
-style:
-TextStyle(
-color:
-Colors.white,
+                  style:
+                  TextStyle(
+                    color:
+                    Colors.white,
 
-fontSize:
-28,
+                    fontSize:
+                    28,
 
-fontWeight:
-FontWeight.w900,
-),
-),
+                    fontWeight:
+                    FontWeight.w900,
+                  ),
+                ),
 
-const SizedBox(
-height: 8,
-),
+                const SizedBox(
+                  height: 8,
+                ),
 
-const Text(
-'Best products for your lovely pets',
+                const Text(
+                  'Best products for your lovely pets',
 
-style:
-TextStyle(
-color:
-Colors.white70,
+                  style:
+                  TextStyle(
+                    color:
+                    Colors.white70,
 
-fontSize:
-14,
-),
-),
+                    fontSize:
+                    14,
+                  ),
+                ),
 
-const SizedBox(
-height: 16,
-),
+                const SizedBox(
+                  height: 16,
+                ),
 
-ElevatedButton(
-onPressed:
-_loadProducts,
+                ElevatedButton(
+                  onPressed:
+                  _loadProducts,
 
-style:
-ElevatedButton.styleFrom(
-backgroundColor:
-const Color(
-0xFF2ECC71),
+                  style:
+                  ElevatedButton.styleFrom(
+                    backgroundColor:
+                    const Color(
+                        0xFF2ECC71),
 
-foregroundColor:
-Colors.white,
+                    foregroundColor:
+                    Colors.white,
 
-shape:
-RoundedRectangleBorder(
-borderRadius:
-BorderRadius.circular(
-30),
-),
-),
+                    shape:
+                    RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          30),
+                    ),
+                  ),
 
-child:
-const Text(
-'Shop Now →',
-),
-),
-],
-),
-),
-],
-),
-);
-}
+                  child:
+                  const Text(
+                    'Shop Now →',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
 // ============================================================
 // SHOP INTRO
 // ============================================================
 
-Widget _buildShopIntro() {
-return Container(
-padding:
-const EdgeInsets.fromLTRB(
-20,
-20,
-20,
-30,
-),
+  Widget _buildShopIntro() {
+    return Container(
+      padding:
+      const EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        30,
+      ),
 
-child:
-Column(
-children: [
+      child:
+      Column(
+        children: [
 
-Container(
-padding:
-const EdgeInsets.symmetric(
-horizontal:
-16,
+          Container(
+            padding:
+            const EdgeInsets.symmetric(
+              horizontal:
+              16,
 
-vertical:
-8,
-),
+              vertical:
+              8,
+            ),
 
-decoration:
-BoxDecoration(
-color:
-const Color(
-0xFFECFDF5),
+            decoration:
+            BoxDecoration(
+              color:
+              const Color(
+                  0xFFECFDF5),
 
-borderRadius:
-BorderRadius.circular(
-30),
-),
+              borderRadius:
+              BorderRadius.circular(
+                  30),
+            ),
 
-child:
-const Text(
-'PetCenter Shop',
+            child:
+            const Text(
+              'PetCenter Shop',
 
-style:
-TextStyle(
-color:
-Color(0xFF2ECC71),
+              style:
+              TextStyle(
+                color:
+                Color(0xFF2ECC71),
 
-fontWeight:
-FontWeight.w700,
-),
-),
-),
+                fontWeight:
+                FontWeight.w700,
+              ),
+            ),
+          ),
 
-const SizedBox(
-height: 16,
-),
+          const SizedBox(
+            height: 16,
+          ),
 
-const Text(
-'Everything Your Pet Needs,\nAll in One Place',
+          const Text(
+            'Everything Your Pet Needs,\nAll in One Place',
 
-textAlign:
-TextAlign.center,
+            textAlign:
+            TextAlign.center,
 
-style:
-TextStyle(
-fontSize:
-28,
+            style:
+            TextStyle(
+              fontSize:
+              28,
 
-fontWeight:
-FontWeight.w900,
+              fontWeight:
+              FontWeight.w900,
 
-color:
-Color(0xFF222222),
-),
-),
+              color:
+              Color(0xFF222222),
+            ),
+          ),
 
-const SizedBox(
-height: 16,
-),
+          const SizedBox(
+            height: 16,
+          ),
 
-const Text(
-'Browse our carefully selected collection of premium pet food, toys, healthcare essentials, grooming supplies and accessories.',
+          const Text(
+            'Browse our carefully selected collection of premium pet food, toys, healthcare essentials, grooming supplies and accessories.',
 
-textAlign:
-TextAlign.center,
+            textAlign:
+            TextAlign.center,
 
-style:
-TextStyle(
-color:
-Color(0xFF6B7280),
+            style:
+            TextStyle(
+              color:
+              Color(0xFF6B7280),
 
-fontSize:
-14,
+              fontSize:
+              14,
 
-height:
-1.6,
-),
-),
+              height:
+              1.6,
+            ),
+          ),
 
-const SizedBox(
-height: 20,
-),
+          const SizedBox(
+            height: 20,
+          ),
 
-Wrap(
-spacing:
-8,
+          Wrap(
+            spacing:
+            8,
 
-runSpacing:
-8,
+            runSpacing:
+            8,
 
-alignment:
-WrapAlignment.center,
+            alignment:
+            WrapAlignment.center,
 
-children:
-const [
+            children:
+            const [
 
-_FeatureChip(
-text:
-'✓ Premium Quality',
-),
+              _FeatureChip(
+                text:
+                '✓ Premium Quality',
+              ),
 
-_FeatureChip(
-text:
-'✓ Trusted Brands',
-),
+              _FeatureChip(
+                text:
+                '✓ Trusted Brands',
+              ),
 
-_FeatureChip(
-text:
-'✓ Fast Delivery',
-),
+              _FeatureChip(
+                text:
+                '✓ Fast Delivery',
+              ),
 
-_FeatureChip(
-text:
-'✓ Affordable Prices',
-),
-],
-),
-],
-),
-);
-}
+              _FeatureChip(
+                text:
+                '✓ Affordable Prices',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
 // ============================================================
 // HOT / NEW PRODUCT SECTION
 // ============================================================
 
-Widget _buildProductSection({
-required String title,
-required List<ProductModel> products,
-}) {
-return Column(
-crossAxisAlignment:
-CrossAxisAlignment.start,
+  Widget _buildProductSection({
+    required String title,
+    required List<ProductModel> products,
+  }) {
+    return Column(
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
 
-children: [
+      children: [
 
-Padding(
-padding:
-const EdgeInsets.fromLTRB(
-16,
-20,
-16,
-12,
-),
+        Padding(
+          padding:
+          const EdgeInsets.fromLTRB(
+            16,
+            20,
+            16,
+            12,
+          ),
 
-child:
-Text(
-title,
+          child:
+          Text(
+            title,
 
-style:
-const TextStyle(
-fontSize:
-22,
+            style:
+            const TextStyle(
+              fontSize:
+              22,
 
-fontWeight:
-FontWeight.w900,
+              fontWeight:
+              FontWeight.w900,
 
-color:
-Color(0xFF222222),
-),
-),
-),
+              color:
+              Color(0xFF222222),
+            ),
+          ),
+        ),
 
-SizedBox(
-height:
-300,
+        SizedBox(
+          height:
+          300,
 
-child:
-ListView.builder(
-scrollDirection:
-Axis.horizontal,
+          child:
+          ListView.builder(
+            scrollDirection:
+            Axis.horizontal,
 
-padding:
-const EdgeInsets.symmetric(
-horizontal:
-16,
-),
+            padding:
+            const EdgeInsets.symmetric(
+              horizontal:
+              16,
+            ),
 
-itemCount:
-products.length,
+            itemCount:
+            products.length,
 
-itemBuilder:
-(context, index) {
+            itemBuilder:
+                (context, index) {
 
-return SizedBox(
-width:
-180,
+              return SizedBox(
+                width:
+                180,
 
-child:
-Padding(
-padding:
-const EdgeInsets.only(
-right:
-12,
-),
+                child:
+                Padding(
+                  padding:
+                  const EdgeInsets.only(
+                    right:
+                    12,
+                  ),
 
-child:
-_buildProductCard(
-products[index],
-),
-),
-);
-},
-),
-),
-],
-);
-}
+                  child:
+                  _buildProductCard(
+                    products[index],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 
 // ============================================================
 // FILTER CARD
 // ============================================================
 
-Widget _buildFilterCard() {
-return Container(
-margin:
-const EdgeInsets.all(16),
+  Widget _buildFilterCard() {
+    return Container(
+      margin:
+      const EdgeInsets.all(16),
 
-padding:
-const EdgeInsets.all(16),
+      padding:
+      const EdgeInsets.all(16),
 
-decoration:
-BoxDecoration(
-color:
-Colors.white,
+      decoration:
+      BoxDecoration(
+        color:
+        Colors.white,
 
-borderRadius:
-BorderRadius.circular(
-20),
+        borderRadius:
+        BorderRadius.circular(
+            20),
 
-border:
-Border.all(
-color:
-const Color(
-0xFFE5E7EB),
-),
-),
+        border:
+        Border.all(
+          color:
+          const Color(
+              0xFFE5E7EB),
+        ),
+      ),
 
-child:
-Column(
-children: [
+      child:
+      Column(
+        children: [
 
 // ======================================================
 // SEARCH
 // ======================================================
-  void _showProductDetails(ProductModel product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailScreen(product: product),
-      ),
-    );
-  }
 
-TextField(
-controller:
-_searchController,
+          TextField(
+            controller:
+            _searchController,
 
-decoration:
-InputDecoration(
-hintText:
-'Search products...',
+            decoration:
+            InputDecoration(
+              hintText:
+              'Search products...',
 
-prefixIcon:
-const Icon(
-Icons.search,
-),
+              prefixIcon:
+              const Icon(
+                Icons.search,
+              ),
 
-filled:
-true,
+              filled:
+              true,
 
-fillColor:
-const Color(
-0xFFF7FDF9),
+              fillColor:
+              const Color(
+                  0xFFF7FDF9),
 
-border:
-OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(
-30),
+              border:
+              OutlineInputBorder(
+                borderRadius:
+                BorderRadius.circular(
+                    30),
 
-borderSide:
-BorderSide.none,
-),
-),
+                borderSide:
+                BorderSide.none,
+              ),
+            ),
 
-onSubmitted:
-(_) => _applyFilter(),
-),
+            onSubmitted:
+                (_) => _applyFilter(),
+          ),
 
-const SizedBox(
-height: 12,
-),
+          const SizedBox(
+            height: 12,
+          ),
 
 // ======================================================
 // CATEGORY + BRAND
 // ======================================================
 
-Row(
-children: [
+          Row(
+            children: [
 
 // CATEGORY
-Expanded(
-child:
-DropdownButtonFormField<
-String?>(
-value:
-selectedCategoryId,
+              Expanded(
+                child:
+                DropdownButtonFormField<
+                    String?>(
+                  value:
+                  selectedCategoryId,
 
-isExpanded:
-true,
+                  isExpanded:
+                  true,
 
-decoration:
-InputDecoration(
-labelText:
-'Category',
+                  decoration:
+                  InputDecoration(
+                    labelText:
+                    'Category',
 
-border:
-OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(
-15),
-),
-),
+                    border:
+                    OutlineInputBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          15),
+                    ),
+                  ),
 
-items: [
+                  items: [
 
-const DropdownMenuItem<
-String?>(
-value:
-null,
+                    const DropdownMenuItem<
+                        String?>(
+                      value:
+                      null,
 
-child:
-Text(
-'All Categories',
-),
-),
+                      child:
+                      Text(
+                        'All Categories',
+                      ),
+                    ),
 
-...categories.map(
-(
-category,
-) {
-return DropdownMenuItem<
-String?>(
-value:
-category.categoryId,
+                    ...categories.map(
+                          (
+                          category,
+                          ) {
+                        return DropdownMenuItem<
+                            String?>(
+                          value:
+                          category.categoryId,
 
-child:
-Text(
-category.categoryName,
+                          child:
+                          Text(
+                            category.categoryName,
 
-overflow:
-TextOverflow.ellipsis,
-),
-);
-},
-),
-],
+                            overflow:
+                            TextOverflow.ellipsis,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
 
-onChanged:
-(value) {
-setState(() {
-selectedCategoryId =
-value;
-});
-},
-),
-),
+                  onChanged:
+                      (value) {
+                    setState(() {
+                      selectedCategoryId =
+                          value;
+                    });
+                  },
+                ),
+              ),
 
-const SizedBox(
-width:
-10,
-),
+              const SizedBox(
+                width:
+                10,
+              ),
 
 // BRAND
-Expanded(
-child:
-DropdownButtonFormField<
-String?>(
-value:
-selectedBrandId,
+              Expanded(
+                child:
+                DropdownButtonFormField<
+                    String?>(
+                  value:
+                  selectedBrandId,
 
-isExpanded:
-true,
+                  isExpanded:
+                  true,
 
-decoration:
-InputDecoration(
-labelText:
-'Brand',
+                  decoration:
+                  InputDecoration(
+                    labelText:
+                    'Brand',
 
-border:
-OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(
-15),
-),
-),
+                    border:
+                    OutlineInputBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          15),
+                    ),
+                  ),
 
-items: [
+                  items: [
 
-const DropdownMenuItem<
-String?>(
-value:
-null,
+                    const DropdownMenuItem<
+                        String?>(
+                      value:
+                      null,
 
-child:
-Text(
-'All Brands',
-),
-),
+                      child:
+                      Text(
+                        'All Brands',
+                      ),
+                    ),
 
-...brands.map(
-(
-brand,
-) {
-return DropdownMenuItem<
-String?>(
-value:
-brand.brandId,
+                    ...brands.map(
+                          (
+                          brand,
+                          ) {
+                        return DropdownMenuItem<
+                            String?>(
+                          value:
+                          brand.brandId,
 
-child:
-Text(
-brand.brandName,
+                          child:
+                          Text(
+                            brand.brandName,
 
-overflow:
-TextOverflow.ellipsis,
-),
-);
-},
-),
-],
+                            overflow:
+                            TextOverflow.ellipsis,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
 
-onChanged:
-(value) {
-setState(() {
-selectedBrandId =
-value;
-});
-},
-),
-),
-],
-),
+                  onChanged:
+                      (value) {
+                    setState(() {
+                      selectedBrandId =
+                          value;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
 
-const SizedBox(
-height:
-12,
-),
+          const SizedBox(
+            height:
+            12,
+          ),
 
 // ======================================================
 // SORT
 // ======================================================
 
-Row(
-children: [
+          Row(
+            children: [
 
-Expanded(
-child:
-DropdownButtonFormField<
-String?>(
-value:
-selectedSortBy,
+              Expanded(
+                child:
+                DropdownButtonFormField<
+                    String?>(
+                  value:
+                  selectedSortBy,
 
-decoration:
-InputDecoration(
-labelText:
-'Sort',
+                  decoration:
+                  InputDecoration(
+                    labelText:
+                    'Sort',
 
-border:
-OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(
-15),
-),
-),
+                    border:
+                    OutlineInputBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          15),
+                    ),
+                  ),
 
-items: const [
+                  items: const [
 
-DropdownMenuItem<
-String?>(
-value:
-null,
+                    DropdownMenuItem<
+                        String?>(
+                      value:
+                      null,
 
-child:
-Text(
-'Default',
-),
-),
+                      child:
+                      Text(
+                        'Default',
+                      ),
+                    ),
 
-DropdownMenuItem<
-String?>(
-value:
-'price',
+                    DropdownMenuItem<
+                        String?>(
+                      value:
+                      'price',
 
-child:
-Text(
-'Price',
-),
-),
+                      child:
+                      Text(
+                        'Price',
+                      ),
+                    ),
 
-DropdownMenuItem<
-String?>(
-value:
-'name',
+                    DropdownMenuItem<
+                        String?>(
+                      value:
+                      'name',
 
-child:
-Text(
-'Name',
-),
-),
+                      child:
+                      Text(
+                        'Name',
+                      ),
+                    ),
 
-DropdownMenuItem<
-String?>(
-value:
-'date',
+                    DropdownMenuItem<
+                        String?>(
+                      value:
+                      'date',
 
-child:
-Text(
-'Newest',
-),
-),
-],
+                      child:
+                      Text(
+                        'Newest',
+                      ),
+                    ),
+                  ],
 
-onChanged:
-(value) {
-setState(() {
-selectedSortBy =
-value;
-});
-},
-),
-),
+                  onChanged:
+                      (value) {
+                    setState(() {
+                      selectedSortBy =
+                          value;
+                    });
+                  },
+                ),
+              ),
 
-const SizedBox(
-width:
-10,
-),
+              const SizedBox(
+                width:
+                10,
+              ),
 
-Expanded(
-child:
-DropdownButtonFormField<
-String>(
-value:
-selectedSortOrder,
+              Expanded(
+                child:
+                DropdownButtonFormField<
+                    String>(
+                  value:
+                  selectedSortOrder,
 
-decoration:
-InputDecoration(
-labelText:
-'Order',
+                  decoration:
+                  InputDecoration(
+                    labelText:
+                    'Order',
 
-border:
-OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(
-15),
-),
-),
+                    border:
+                    OutlineInputBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          15),
+                    ),
+                  ),
 
-items: const [
+                  items: const [
 
-DropdownMenuItem(
-value:
-'asc',
+                    DropdownMenuItem(
+                      value:
+                      'asc',
 
-child:
-Text(
-'Ascending',
-),
-),
+                      child:
+                      Text(
+                        'Ascending',
+                      ),
+                    ),
 
-DropdownMenuItem(
-value:
-'desc',
+                    DropdownMenuItem(
+                      value:
+                      'desc',
 
-child:
-Text(
-'Descending',
-),
-),
-],
+                      child:
+                      Text(
+                        'Descending',
+                      ),
+                    ),
+                  ],
 
-onChanged:
-(value) {
+                  onChanged:
+                      (value) {
 
-if (value ==
-null) {
-return;
-}
+                    if (value ==
+                        null) {
+                      return;
+                    }
 
-setState(() {
-selectedSortOrder =
-value;
-});
-},
-),
-),
-],
-),
+                    setState(() {
+                      selectedSortOrder =
+                          value;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
 
-const SizedBox(
-height:
-12,
-),
+          const SizedBox(
+            height:
+            12,
+          ),
 
 // ======================================================
 // PRICE
 // ======================================================
 
-Row(
-children: [
+          Row(
+            children: [
 
-Expanded(
-child:
-TextField(
-keyboardType:
-TextInputType.number,
+              Expanded(
+                child:
+                TextField(
+                  keyboardType:
+                  TextInputType.number,
 
-decoration:
-InputDecoration(
-hintText:
-'Min Price',
+                  decoration:
+                  InputDecoration(
+                    hintText:
+                    'Min Price',
 
-border:
-OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(
-15),
-),
-),
+                    border:
+                    OutlineInputBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          15),
+                    ),
+                  ),
 
-onChanged:
-(value) {
-minPrice =
-double.tryParse(
-value);
-},
-),
-),
+                  onChanged:
+                      (value) {
+                    minPrice =
+                        double.tryParse(
+                            value);
+                  },
+                ),
+              ),
 
-const SizedBox(
-width:
-10,
-),
+              const SizedBox(
+                width:
+                10,
+              ),
 
-Expanded(
-child:
-TextField(
-keyboardType:
-TextInputType.number,
+              Expanded(
+                child:
+                TextField(
+                  keyboardType:
+                  TextInputType.number,
 
-decoration:
-InputDecoration(
-hintText:
-'Max Price',
+                  decoration:
+                  InputDecoration(
+                    hintText:
+                    'Max Price',
 
-border:
-OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(
-15),
-),
-),
+                    border:
+                    OutlineInputBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          15),
+                    ),
+                  ),
 
-onChanged:
-(value) {
-maxPrice =
-double.tryParse(
-value);
-},
-),
-),
-],
-),
+                  onChanged:
+                      (value) {
+                    maxPrice =
+                        double.tryParse(
+                            value);
+                  },
+                ),
+              ),
+            ],
+          ),
 
-const SizedBox(
-height:
-16,
-),
+          const SizedBox(
+            height:
+            16,
+          ),
 
 // ======================================================
 // BUTTONS
 // ======================================================
 
-Row(
-children: [
+          Row(
+            children: [
 
-Expanded(
-child:
-ElevatedButton.icon(
-onPressed:
-_applyFilter,
+              Expanded(
+                child:
+                ElevatedButton.icon(
+                  onPressed:
+                  _applyFilter,
 
-icon:
-const Icon(
-Icons.filter_alt,
-),
+                  icon:
+                  const Icon(
+                    Icons.filter_alt,
+                  ),
 
-label:
-const Text(
-'Filter',
-),
+                  label:
+                  const Text(
+                    'Filter',
+                  ),
 
-style:
-ElevatedButton.styleFrom(
-backgroundColor:
-const Color(
-0xFF2ECC71),
+                  style:
+                  ElevatedButton.styleFrom(
+                    backgroundColor:
+                    const Color(
+                        0xFF2ECC71),
 
-foregroundColor:
-Colors.white,
+                    foregroundColor:
+                    Colors.white,
 
-padding:
-const EdgeInsets
-    .symmetric(
-vertical:
-14,
-),
+                    padding:
+                    const EdgeInsets
+                        .symmetric(
+                      vertical:
+                      14,
+                    ),
 
-shape:
-RoundedRectangleBorder(
-borderRadius:
-BorderRadius.circular(
-30),
-),
-),
-),
-),
+                    shape:
+                    RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          30),
+                    ),
+                  ),
+                ),
+              ),
 
-const SizedBox(
-width:
-10,
-),
+              const SizedBox(
+                width:
+                10,
+              ),
 
-Expanded(
-child:
-OutlinedButton(
-onPressed:
-_resetFilter,
+              Expanded(
+                child:
+                OutlinedButton(
+                  onPressed:
+                  _resetFilter,
 
-style:
-OutlinedButton.styleFrom(
-padding:
-const EdgeInsets
-    .symmetric(
-vertical:
-14,
-),
+                  style:
+                  OutlinedButton.styleFrom(
+                    padding:
+                    const EdgeInsets
+                        .symmetric(
+                      vertical:
+                      14,
+                    ),
 
-shape:
-RoundedRectangleBorder(
-borderRadius:
-BorderRadius.circular(
-30),
-),
-),
+                    shape:
+                    RoundedRectangleBorder(
+                      borderRadius:
+                      BorderRadius.circular(
+                          30),
+                    ),
+                  ),
 
-child:
-const Text(
-'Clear Filters',
-),
-),
-),
-],
-),
-],
-),
-);
-}
+                  child:
+                  const Text(
+                    'Clear Filters',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 // ============================================================
 // PAGINATION
 // ============================================================
@@ -1532,443 +1516,443 @@ const Text(
 // PRODUCT CARD
 // ============================================================
 
-Widget _buildProductCard(
-ProductModel product,
-) {
-final bool inStock =
-product.stockQuantity > 0;
+  Widget _buildProductCard(
+      ProductModel product,
+      ) {
+    final bool inStock =
+        product.stockQuantity > 0;
 
-final String? image =
-product.images.isNotEmpty
-? product.images.first
-    : null;
+    final String? image =
+    product.images.isNotEmpty
+        ? product.images.first
+        : null;
 
-return GestureDetector(
-onTap: () {
+    return GestureDetector(
+      onTap: () {
 // TODO:
 // Navigate to Product Detail
-},
+      },
 
-child:
-Container(
-clipBehavior:
-Clip.antiAlias,
+      child:
+      Container(
+        clipBehavior:
+        Clip.antiAlias,
 
-decoration:
-BoxDecoration(
-color:
-Colors.white,
+        decoration:
+        BoxDecoration(
+          color:
+          Colors.white,
 
-borderRadius:
-BorderRadius.circular(
-18),
+          borderRadius:
+          BorderRadius.circular(
+              18),
 
-border:
-Border.all(
-color:
-const Color(
-0xFFE5E7EB),
-),
-),
+          border:
+          Border.all(
+            color:
+            const Color(
+                0xFFE5E7EB),
+          ),
+        ),
 
-child:
-Column(
-crossAxisAlignment:
-CrossAxisAlignment.start,
+        child:
+        Column(
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
 
-children: [
+          children: [
 
 // ==================================================
 // IMAGE
 // ==================================================
 
-Expanded(
-child:
-Stack(
-children: [
+            Expanded(
+              child:
+              Stack(
+                children: [
 
-Positioned.fill(
-child:
-image != null
-? Image.network(
-image,
+                  Positioned.fill(
+                    child:
+                    image != null
+                        ? Image.network(
+                      image,
 
-fit:
-BoxFit.cover,
+                      fit:
+                      BoxFit.cover,
 
-errorBuilder:
-(_, __, ___) {
-return _noImage();
-},
-)
-    : _noImage(),
-),
+                      errorBuilder:
+                          (_, __, ___) {
+                        return _noImage();
+                      },
+                    )
+                        : _noImage(),
+                  ),
 
 // STOCK BADGE
-Positioned(
-top:
-10,
+                  Positioned(
+                    top:
+                    10,
 
-right:
-10,
+                    right:
+                    10,
 
-child:
-Container(
-padding:
-const EdgeInsets
-    .symmetric(
-horizontal:
-8,
+                    child:
+                    Container(
+                      padding:
+                      const EdgeInsets
+                          .symmetric(
+                        horizontal:
+                        8,
 
-vertical:
-4,
-),
+                        vertical:
+                        4,
+                      ),
 
-decoration:
-BoxDecoration(
-color:
-inStock
-? const Color(
-0xFFDCFCE7)
-    : const Color(
-0xFFFEE2E2),
+                      decoration:
+                      BoxDecoration(
+                        color:
+                        inStock
+                            ? const Color(
+                            0xFFDCFCE7)
+                            : const Color(
+                            0xFFFEE2E2),
 
-borderRadius:
-BorderRadius.circular(
-20),
-),
+                        borderRadius:
+                        BorderRadius.circular(
+                            20),
+                      ),
 
-child:
-Text(
-inStock
-? 'In stock'
-    : 'Out of stock',
+                      child:
+                      Text(
+                        inStock
+                            ? 'In stock'
+                            : 'Out of stock',
 
-style:
-TextStyle(
-fontSize:
-9,
+                        style:
+                        TextStyle(
+                          fontSize:
+                          9,
 
-fontWeight:
-FontWeight.w800,
+                          fontWeight:
+                          FontWeight.w800,
 
-color:
-inStock
-? const Color(
-0xFF166534)
-    : const Color(
-0xFF991B1B),
-),
-),
-),
-),
-],
-),
-),
+                          color:
+                          inStock
+                              ? const Color(
+                              0xFF166534)
+                              : const Color(
+                              0xFF991B1B),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
 // ==================================================
 // PRODUCT INFO
 // ==================================================
 
-Padding(
-padding:
-const EdgeInsets.all(
-12),
+            Padding(
+              padding:
+              const EdgeInsets.all(
+                  12),
 
-child:
-Column(
-crossAxisAlignment:
-CrossAxisAlignment.start,
+              child:
+              Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
 
-children: [
+                children: [
 
 // CATEGORY
-if (product.categoryName !=
-null)
-Text(
-product.categoryName!,
+                  if (product.categoryName !=
+                      null)
+                    Text(
+                      product.categoryName!,
 
-maxLines:
-1,
+                      maxLines:
+                      1,
 
-overflow:
-TextOverflow.ellipsis,
+                      overflow:
+                      TextOverflow.ellipsis,
 
-style:
-const TextStyle(
-fontSize:
-10,
+                      style:
+                      const TextStyle(
+                        fontSize:
+                        10,
 
-fontWeight:
-FontWeight.w800,
+                        fontWeight:
+                        FontWeight.w800,
 
-color:
-Color(
-0xFF166534),
-),
-),
+                        color:
+                        Color(
+                            0xFF166534),
+                      ),
+                    ),
 
-const SizedBox(
-height:
-4,
-),
+                  const SizedBox(
+                    height:
+                    4,
+                  ),
 
 // BRAND
-if (product.brandName !=
-null)
-Text(
-product.brandName!,
+                  if (product.brandName !=
+                      null)
+                    Text(
+                      product.brandName!,
 
-maxLines:
-1,
+                      maxLines:
+                      1,
 
-overflow:
-TextOverflow.ellipsis,
+                      overflow:
+                      TextOverflow.ellipsis,
 
-style:
-const TextStyle(
-fontSize:
-10,
+                      style:
+                      const TextStyle(
+                        fontSize:
+                        10,
 
-fontWeight:
-FontWeight.w700,
+                        fontWeight:
+                        FontWeight.w700,
 
-color:
-Color(
-0xFF1D4ED8),
-),
-),
+                        color:
+                        Color(
+                            0xFF1D4ED8),
+                      ),
+                    ),
 
-const SizedBox(
-height:
-6,
-),
+                  const SizedBox(
+                    height:
+                    6,
+                  ),
 
 // NAME
-Text(
-product.productName,
+                  Text(
+                    product.productName,
 
-maxLines:
-2,
+                    maxLines:
+                    2,
 
-overflow:
-TextOverflow.ellipsis,
+                    overflow:
+                    TextOverflow.ellipsis,
 
-style:
-const TextStyle(
-fontSize:
-14,
+                    style:
+                    const TextStyle(
+                      fontSize:
+                      14,
 
-fontWeight:
-FontWeight.w800,
-),
-),
+                      fontWeight:
+                      FontWeight.w800,
+                    ),
+                  ),
 
-const SizedBox(
-height:
-8,
-),
+                  const SizedBox(
+                    height:
+                    8,
+                  ),
 
 // PRICE
-Text(
-'${product.productPrice.toStringAsFixed(0)}₫',
+                  Text(
+                    '${product.productPrice.toStringAsFixed(0)}₫',
 
-style:
-const TextStyle(
-fontSize:
-17,
+                    style:
+                    const TextStyle(
+                      fontSize:
+                      17,
 
-fontWeight:
-FontWeight.w900,
+                      fontWeight:
+                      FontWeight.w900,
 
-color:
-Color(
-0xFF27AE60),
-),
-),
-],
-),
-),
-],
-),
-),
-);
-}
+                      color:
+                      Color(
+                          0xFF27AE60),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
 // ============================================================
 // NO IMAGE
 // ============================================================
 
-Widget _noImage() {
-return Container(
-color:
-const Color(
-0xFFF0FDF4),
+  Widget _noImage() {
+    return Container(
+      color:
+      const Color(
+          0xFFF0FDF4),
 
-child:
-const Center(
-child:
-Text(
-'🐾',
+      child:
+      const Center(
+        child:
+        Text(
+          '🐾',
 
-style:
-TextStyle(
-fontSize:
-45,
-),
-),
-),
-);
-}
+          style:
+          TextStyle(
+            fontSize:
+            45,
+          ),
+        ),
+      ),
+    );
+  }
 
 // ============================================================
 // EMPTY STATE
 // ============================================================
 
-Widget _buildEmptyState() {
-return Center(
-child:
-Column(
-mainAxisAlignment:
-MainAxisAlignment.center,
+  Widget _buildEmptyState() {
+    return Center(
+      child:
+      Column(
+        mainAxisAlignment:
+        MainAxisAlignment.center,
 
-children: [
+        children: [
 
-const Text(
-'🔍',
+          const Text(
+            '🔍',
 
-style:
-TextStyle(
-fontSize:
-60,
-),
-),
+            style:
+            TextStyle(
+              fontSize:
+              60,
+            ),
+          ),
 
-const SizedBox(
-height:
-16,
-),
+          const SizedBox(
+            height:
+            16,
+          ),
 
-const Text(
-'No products found',
+          const Text(
+            'No products found',
 
-style:
-TextStyle(
-fontSize:
-20,
+            style:
+            TextStyle(
+              fontSize:
+              20,
 
-fontWeight:
-FontWeight.w800,
-),
-),
+              fontWeight:
+              FontWeight.w800,
+            ),
+          ),
 
-const SizedBox(
-height:
-8,
-),
+          const SizedBox(
+            height:
+            8,
+          ),
 
-const Text(
-'Try changing filters or search keywords',
+          const Text(
+            'Try changing filters or search keywords',
 
-style:
-TextStyle(
-color:
-Color(
-0xFF6B7280),
-),
-),
+            style:
+            TextStyle(
+              color:
+              Color(
+                  0xFF6B7280),
+            ),
+          ),
 
-const SizedBox(
-height:
-16,
-),
+          const SizedBox(
+            height:
+            16,
+          ),
 
-OutlinedButton(
-onPressed:
-_resetFilter,
+          OutlinedButton(
+            onPressed:
+            _resetFilter,
 
-child:
-const Text(
-'Clear Filters',
-),
-),
-],
-),
-);
-}
+            child:
+            const Text(
+              'Clear Filters',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
 // ============================================================
 // ERROR
 // ============================================================
 
-Widget _buildError() {
-return Center(
-child:
-Padding(
-padding:
-const EdgeInsets.all(
-24),
+  Widget _buildError() {
+    return Center(
+      child:
+      Padding(
+        padding:
+        const EdgeInsets.all(
+            24),
 
-child:
-Column(
-mainAxisAlignment:
-MainAxisAlignment.center,
+        child:
+        Column(
+          mainAxisAlignment:
+          MainAxisAlignment.center,
 
-children: [
+          children: [
 
-const Icon(
-Icons.error_outline,
+            const Icon(
+              Icons.error_outline,
 
-size:
-60,
+              size:
+              60,
 
-color:
-Colors.red,
-),
+              color:
+              Colors.red,
+            ),
 
-const SizedBox(
-height:
-16,
-),
+            const SizedBox(
+              height:
+              16,
+            ),
 
-Text(
-errorMessage ??
-'Something went wrong',
+            Text(
+              errorMessage ??
+                  'Something went wrong',
 
-textAlign:
-TextAlign.center,
-),
+              textAlign:
+              TextAlign.center,
+            ),
 
-const SizedBox(
-height:
-16,
-),
+            const SizedBox(
+              height:
+              16,
+            ),
 
-ElevatedButton(
-onPressed:
-_loadData,
+            ElevatedButton(
+              onPressed:
+              _loadData,
 
-child:
-const Text(
-'Try Again',
-),
-),
-],
-),
-),
-);
-}
+              child:
+              const Text(
+                'Try Again',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
 // ============================================================
 // DISPOSE
 // ============================================================
 
-@override
-void dispose() {
-_searchController.dispose();
+  @override
+  void dispose() {
+    _searchController.dispose();
 
-super.dispose();
-}
+    super.dispose();
+  }
 }
 
 // ================================================================
@@ -1976,62 +1960,62 @@ super.dispose();
 // ================================================================
 
 class _FeatureChip
-extends StatelessWidget {
-final String text;
+    extends StatelessWidget {
+  final String text;
 
-const _FeatureChip({
-required this.text,
-});
+  const _FeatureChip({
+    required this.text,
+  });
 
-@override
-Widget build(
-BuildContext context,
-) {
-return Container(
-padding:
-const EdgeInsets.symmetric(
-horizontal:
-14,
+  @override
+  Widget build(
+      BuildContext context,
+      ) {
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(
+        horizontal:
+        14,
 
-vertical:
-8,
-),
+        vertical:
+        8,
+      ),
 
-decoration:
-BoxDecoration(
-color:
-const Color(
-0xFFF8FAFC),
+      decoration:
+      BoxDecoration(
+        color:
+        const Color(
+            0xFFF8FAFC),
 
-borderRadius:
-BorderRadius.circular(
-30),
+        borderRadius:
+        BorderRadius.circular(
+            30),
 
-border:
-Border.all(
-color:
-const Color(
-0xFFE5E7EB),
-),
-),
+        border:
+        Border.all(
+          color:
+          const Color(
+              0xFFE5E7EB),
+        ),
+      ),
 
-child:
-Text(
-text,
+      child:
+      Text(
+        text,
 
-style:
-const TextStyle(
-fontSize:
-12,
+        style:
+        const TextStyle(
+          fontSize:
+          12,
 
-fontWeight:
-FontWeight.w600,
+          fontWeight:
+          FontWeight.w600,
 
-color:
-Color(
-0xFF374151),
-),
-),
-);
-}
+          color:
+          Color(
+              0xFF374151),
+        ),
+      ),
+    );
+  }
 }
