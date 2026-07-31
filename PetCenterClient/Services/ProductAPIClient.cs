@@ -1,4 +1,4 @@
-﻿using PetCenterClient.Common;
+using PetCenterClient.Common;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels;
 using PetCenterClient.ViewModels.Common;
@@ -34,7 +34,7 @@ namespace PetCenterClient.Services
      int page = 1)
         {
 
-            int pageSize = 24;
+            int pageSize = 25;
 
             if (page < 1)
                 page = 1;
