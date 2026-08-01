@@ -23,6 +23,16 @@ rules:
     - intent: bot_challenge
     - action: utter_bot_challenge
 
+- rule: Hỏi khả năng của Bot
+  steps:
+    - intent: ask_bot_capabilities
+    - action: utter_ask_bot_capabilities
+
+- rule: Hỏi gặp tư vấn viên
+  steps:
+    - intent: ask_human
+    - action: utter_ask_human
+
 - rule: Ngoài phạm vi
   steps:
     - intent: out_of_scope
@@ -119,6 +129,21 @@ rules:
   steps:
     - intent: xem_voucher
     - action: action_xem_voucher
+
+- rule: Hỏi thời gian giao hàng
+  steps:
+    - intent: hoi_thoi_gian_giao_hang
+    - action: utter_hoi_thoi_gian_giao_hang
+
+- rule: Hỏi phí vận chuyển
+  steps:
+    - intent: hoi_phi_van_chuyen
+    - action: utter_hoi_phi_van_chuyen
+
+- rule: Hỏi chính sách đổi trả
+  steps:
+    - intent: hoi_chinh_sach_doi_tra
+    - action: utter_hoi_chinh_sach_doi_tra
 
 # — Dịch vụ —
 - rule: Xem dịch vụ

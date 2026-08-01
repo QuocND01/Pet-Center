@@ -1,9 +1,7 @@
 version: "3.1"
 
 # ════════════════════════════════════════════════════════════════════════════
-#  NHÓM ĐƠN HÀNG + VOUCHER — SKELETON (có ví dụ mẫu để train được).
-#  👤 TRAINING: mở rộng mỗi intent lên ~15-20 câu cho chính xác.
-#  Lưu ý: order_id thường là mã GUID khó gõ — cân nhắc cách user nhập mã đơn.
+#  NHÓM ĐƠN HÀNG + VOUCHER + FAQ ĐƠN HÀNG (ĐÃ MỞ RỘNG MẪU CÂU TRAINING)
 # ════════════════════════════════════════════════════════════════════════════
 
 nlu:
@@ -18,7 +16,22 @@ nlu:
     - kiểm tra đơn hàng của tôi
     - đơn hàng gần đây
     - tôi đặt gì rồi
-    # 👤 TRAINING: thêm ví dụ ở đây...
+    - cho xem lịch sử mua hàng
+    - kiểm tra danh sách đơn hàng
+    - các đơn hàng tôi đã mua
+    - danh sách đơn của tôi
+    - xem các đơn hàng đang xử lý
+    - kiểm tra đơn hàng mới đặt
+    - tôi có đơn hàng nào đang giao không
+    - cho tui xem đơn hàng
+    - coi đơn hàng của tui
+    - lịch sử đặt hàng
+    - cho mình xem các đơn đã đặt
+    - check đơn hàng giúp mình
+    - xem danh sách đơn hàng gần đây
+    - tôi muốn kiểm tra các đơn hàng của mình
+    - đơn hàng của tôi đang ở trạng thái nào rồi
+    - danh sách các đơn hàng đã mua
 
 - intent: xem_chi_tiet_don
   examples: |
@@ -28,7 +41,22 @@ nlu:
     - tình trạng đơn hàng
     - đơn của tôi giao chưa
     - đơn hàng giao tới đâu rồi
-    # 👤 TRAINING: thêm ví dụ ở đây...
+    - xem chi tiết đơn hàng [f47ac10b](order_id)
+    - tra cứu mã đơn [99887766](order_id)
+    - đơn hàng [8a7b6c5d](order_id) của tôi sao rồi
+    - cho mình xem thông tin đơn [abc12345](order_id)
+    - mã đơn [df83210a](order_id) khi nào giao tới
+    - kiểm tra tiến độ đơn [12345678](order_id)
+    - đơn hàng [66554433](order_id) đã được xác nhận chưa
+    - coi chi tiết đơn hàng [a1b2c3d4](order_id)
+    - đơn này giao đến đâu rồi bạn
+    - kiểm tra trạng thái đơn [77889900](order_id)
+    - đơn của tôi bao giờ tới nơi
+    - tra cứu đơn hàng [ef123456](order_id)
+    - đơn hàng đang vận chuyển tới đâu rồi
+    - xem thông tin chi tiết đơn này
+    - chi tiết đơn hàng vừa đặt
+    - thông tin đơn hàng của tôi
 
 - intent: huy_don_hang
   examples: |
@@ -38,7 +66,21 @@ nlu:
     - cancel đơn hàng
     - không muốn mua nữa hủy đơn
     - hủy giúp tôi đơn này
-    # 👤 TRAINING: thêm ví dụ ở đây...
+    - tôi muốn hủy đơn [f47ac10b](order_id)
+    - cho mình hủy đơn hàng [88776655](order_id)
+    - lỡ đặt nhầm cho mình hủy đơn với
+    - hủy đơn [df83210a](order_id) giúp tôi
+    - tôi đổi ý không mua nữa hủy đơn nhé
+    - hủy đơn vừa đặt giúp tui
+    - cancel giúp em đơn [abc12345](order_id)
+    - shop hủy giúp tôi đơn này với
+    - tôi muốn đăng ký hủy đơn hàng [99887766](order_id)
+    - lỡ tay bấm đặt nhầm cho tôi hủy
+    - cho tôi cancel đơn hàng này
+    - muốn hủy đơn hàng thì làm sao
+    - làm thế nào để hủy đơn vừa đặt
+    - shop ơi hủy đơn giúp mình nhé
+    - hủy đơn gần nhất
 
 - intent: xem_voucher
   examples: |
@@ -50,4 +92,46 @@ nlu:
     - voucher của tôi
     - khuyến mãi hiện tại
     - có ưu đãi gì không
-    # 👤 TRAINING: thêm ví dụ ở đây...
+    - cho xin mã giảm giá với
+    - kiểm tra voucher của tôi
+    - shop có mã freeship không
+    - xem các mã giảm giá áp dụng được
+    - tôi có mã discount nào không
+    - tìm mã giảm giá mua hàng
+    - voucher giảm giá hiện có
+    - có mã ưu đãi nào cho đơn hàng không
+    - xem danh sách voucher khả dụng
+    - lấy mã giảm giá ở đâu
+    - mã khuyến mãi hot hôm nay
+    - cho tui xem mấy mã giảm giá
+
+- intent: hoi_thoi_gian_giao_hang
+  examples: |
+    - giao hàng mất bao lâu
+    - bao giờ nhận được hàng
+    - thời gian giao hàng là mấy ngày
+    - ship nội thành mất bao lâu
+    - đặt hàng thì khi nào tới
+    - giao hàng có nhanh không
+    - bao lâu mới nhận được đơn
+    - thời gian ship hàng khoảng bao nhiêu lâu
+
+- intent: hoi_phi_van_chuyen
+  examples: |
+    - phí ship bao nhiêu
+    - phí giao hàng tính thế nào
+    - đơn bao nhiêu thì được freeship
+    - có miễn phí vận chuyển không
+    - tiền ship là bao nhiêu
+    - phí vận chuyển đơn hàng là mấy
+    - ship tới nhà hết bao nhiêu tiền
+
+- intent: hoi_chinh_sach_doi_tra
+  examples: |
+    - chính sách đổi trả thế nào
+    - đổi trả hàng trong bao lâu
+    - giao sai hàng có được đổi không
+    - sản phẩm bị lỗi đổi thế nào
+    - điều kiện hoàn tiền đơn hàng
+    - hàng bị hỏng có được đổi lại không
+    - shop có hỗ trợ đổi trả hàng không

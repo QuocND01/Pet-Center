@@ -1,8 +1,7 @@
 version: "3.1"
 
 # ════════════════════════════════════════════════════════════════════════════
-#  NHÓM CƠ BẢN — chào hỏi, xác nhận, điều hướng.
-#  👤 TRAINING: có thể thêm ví dụ, nhưng nhóm này thường đã đủ dùng.
+#  NHÓM CƠ BẢN & GIAO TIẾP / OUT OF SCOPE (ĐÃ TỐI ƯU PHÂN TÁCH RANH GIỚI)
 # ════════════════════════════════════════════════════════════════════════════
 
 nlu:
@@ -20,6 +19,13 @@ nlu:
     - cho hỏi
     - alo
     - cho mình hỏi
+    - hi shop
+    - hello bot
+    - chào admin
+    - alo shop ơi
+    - shop có đó không
+    - cho mình hỏi chút
+    - dạ chào shop
 
 - intent: goodbye
   examples: |
@@ -32,6 +38,12 @@ nlu:
     - hẹn gặp lại
     - ok cảm ơn
     - được rồi cảm ơn
+    - bye shop
+    - cảm ơn shop nhiều
+    - mình mệt rồi tạm biệt
+    - thế thôi nhé
+    - vậy thôi cảm ơn
+    - ok tks shop
 
 - intent: affirm
   examples: |
@@ -45,6 +57,11 @@ nlu:
     - chuẩn
     - phải
     - yes
+    - chính xác
+    - okie
+    - chắc chắn rồi
+    - duyệt
+    - đồng ý nha
 
 - intent: deny
   examples: |
@@ -56,6 +73,10 @@ nlu:
     - no
     - hủy
     - không thích
+    - thôi không mua nữa
+    - không đồng ý
+    - thôi bỏ đi
+    - không nha
 
 - intent: bot_challenge
   examples: |
@@ -66,18 +87,97 @@ nlu:
     - bạn là người hay máy
     - chatbot à
     - bạn là bot không
+    - bạn đến từ đâu
+    - quê bạn ở đâu
+    - bạn từ đâu đến
+    - ai tạo ra bạn
+    - tên bạn là gì
+    - bạn tên là gì vậy
+    - bạn mấy tuổi rồi
+    - bạn có thật không
+    - bạn sống ở đâu
+    - bot này của ai
+    - bạn là trợ lý ảo đúng không
+    - mày là ai
+    - ai lập trình ra bạn
+    - bạn có gia đình không
+    - bạn là nam hay nữ
+    - bạn được sinh ra khi nào
+
+- intent: ask_bot_capabilities
+  examples: |
+    - bạn có biết giao hàng không
+    - bạn có tự đi giao hàng được không
+    - bạn biết làm những gì
+    - chức năng của bạn là gì
+    - bạn giúp được gì cho tôi
+    - bạn có biết bán hàng không
+    - bot làm được gì
+    - bạn có thể làm gì
+    - bạn hỗ trợ những gì
+    - bạn có biết tư vấn không
+    - bot có biết đặt lịch không
+    - bạn có biết tìm đồ chó mèo không
+    - năng lực của bạn là gì
+    - bạn làm việc như thế nào
+    - bạn có biết tư vấn sản phẩm không
+    - bot này dùng để làm gì
+    - bạn có biết kiểm tra đơn hàng không
+    - bot biết làm gì vậy
+
+- intent: ask_human
+  examples: |
+    - cho tôi gặp nhân viên
+    - gặp tư vấn viên
+    - cho nói chuyện với người thật
+    - chuyển sang nhân viên cskh
+    - không muốn nói với bot nữa
+    - gặp chủ shop
+    - tổng đài viên đâu
+    - kết nối với nhân viên hỗ trợ
+    - gọi người thật ra nói chuyện
+    - cho mình số tổng đài
+    - tôi muốn gặp chăm sóc khách hàng
+    - cho gặp người thật
+    - kết nối tổng đài viên
 
 - intent: out_of_scope
   examples: |
+    - bạn là chat bot vậy thì bạn có đơn hàng nào không
+    - bot có đơn hàng nào không
+    - bạn có mua hàng bao giờ chưa
+    - bạn có nuôi chó mèo không
+    - bot có cần mua thức ăn chó không
     - hôm nay thời tiết thế nào
     - kể chuyện cười đi
-    - bạn mấy tuổi
+    - bạn ăn cơm chưa
+    - bạn có người yêu chưa
     - tôi buồn quá
     - giá vàng hôm nay
     - 1 cộng 1 bằng mấy
-    - bạn ăn cơm chưa
+    - hát một bài đi
+    - bạn thích ăn gì
+    - ai là tổng thống Mỹ
+    - thời tiết hôm nay sao
+    - kể cho tôi nghe một câu chuyện
+    - bạn có biết yêu không
+    - chứng khoán hôm nay thế nào
+    - tâm sự với mình đi
+    - hôm nay bao nhiêu âm lịch
+    - xổ số hôm nay về bao nhiêu
+    - bán cho tôi cái điện thoại iPhone
+    - ở đây có bán xe máy không
+    - tư vấn mua nhà đất
+    - vay tiền ngân hàng thế nào
+    - đặt vé máy bay đi Hà Nội
+    - sửa tủ lạnh ở đâu
+    - bạn biết đá bóng không
+    - như c*t
+    - chán quá đi
+    - bot vớ vẩn
+    - xem bóng đá ở đâu
 
-# — Điều hướng: payload từ nút bấm, không cần nhiều ví dụ —
+# — Điều hướng: payload từ nút bấm —
 - intent: goto_service_page
   examples: |
     - mở trang dịch vụ

@@ -12,6 +12,8 @@ intents:
   - affirm
   - deny
   - bot_challenge
+  - ask_bot_capabilities
+  - ask_human
   - out_of_scope
   # — Sản phẩm + giỏ hàng —
   - tim_san_pham
@@ -35,6 +37,9 @@ intents:
   - xem_chi_tiet_don
   - huy_don_hang
   - xem_voucher
+  - hoi_thoi_gian_giao_hang
+  - hoi_phi_van_chuyen
+  - hoi_chinh_sach_doi_tra
   # — Dịch vụ —
   - xem_dich_vu
   - dat_lich_dich_vu
@@ -154,7 +159,13 @@ responses:
     - text: "Tạm biệt! Hẹn gặp lại bạn tại PetCenter 🐾"
 
   utter_bot_challenge:
-    - text: "Tôi là chatbot AI của PetCenter, được tạo để hỗ trợ bạn mua sắm thú cưng dễ dàng hơn! 🤖"
+    - text: "Tôi là PetCenter Bot 🐾 - trợ lý AI thông minh của PetCenter, được lập trình để hỗ trợ bạn mua sắm sản phẩm và dịch vụ thú cưng 24/7!"
+
+  utter_ask_bot_capabilities:
+    - text: "Tôi có thể hỗ trợ bạn:\n• Tìm kiếm sản phẩm, xem hàng mới/bán chạy\n• Kiểm tra giỏ hàng, đơn hàng, voucher\n• Đặt lịch dịch vụ & xem hồ sơ thú cưng\n\nLưu ý: Tôi là trợ lý AI tư vấn và xử lý thông tin, việc vận chuyển và giao hàng sẽ do shipper của PetCenter thực hiện bạn nhé! 🚚"
+
+  utter_ask_human:
+    - text: "Bạn có thể liên hệ trực tiếp với bộ phận chăm sóc khách hàng của PetCenter qua:\n📞 Hotline: +84 123 456 789\n✉ Email: support@petcenter.com\nĐội ngũ tư vấn viên sẽ hỗ trợ bạn ngay!"
 
   utter_khong_hieu:
     - text: "Xin lỗi, tôi chưa hiểu ý bạn. Bạn thử hỏi: 'tìm thức ăn cho chó', 'đơn hàng của tôi', 'có voucher nào', 'dịch vụ spa'..."
@@ -166,7 +177,16 @@ responses:
     - text: "Để xem giỏ hàng, bạn click vào icon 🛒 ở góc trên bên phải hoặc vào menu Profile > Cart nhé!"
 
   utter_out_of_scope:
-    - text: "Xin lỗi, câu này ngoài khả năng của tôi. Bạn có thể liên hệ shop qua:\n📞 +84 123 456 789\n✉ support@petcenter.com"
+    - text: "Tôi là trợ lý AI chuyên về sản phẩm và dịch vụ cho thú cưng tại PetCenter 🐾. Câu hỏi này nằm ngoài phạm vi hỗ trợ của tôi rồi! Bạn thử hỏi tôi về thức ăn chó mèo, đơn hàng hoặc dịch vụ xem sao nhé."
+
+  utter_hoi_thoi_gian_giao_hang:
+    - text: "🚚 Thời gian giao hàng dự kiến:\n• Nội thành: 1 - 2 ngày làm việc.\n• Ngoại thành / Tỉnh khác: 3 - 5 ngày làm việc.\nBạn có thể kiểm tra trạng thái đơn hàng bất kỳ lúc nào nhé!"
+
+  utter_hoi_phi_van_chuyen:
+    - text: "📦 Phí vận chuyển tại PetCenter:\n• Đồng giá 20.000₫ cho đơn hàng nội thành.\n• Miễn phí giao hàng (FREESHIP) cho đơn hàng từ 500.000₫ trở lên!"
+
+  utter_hoi_chinh_sach_doi_tra:
+    - text: "🔄 Chính sách đổi trả sản phẩm:\n• Hỗ trợ đổi trả trong vòng 7 ngày nếu sản phẩm lỗi do nhà sản xuất hoặc giao sai mẫu.\n• Sản phẩm đổi trả cần giữ nguyên tem mác và chưa qua sử dụng.\nLiên hệ Hotline +84 123 456 789 để được hỗ trợ nhanh nhất!"
 
 actions:
   # Sản phẩm + giỏ hàng
