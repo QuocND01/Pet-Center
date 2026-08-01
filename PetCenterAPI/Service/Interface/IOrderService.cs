@@ -8,6 +8,9 @@ namespace PetCenterAPI.Service.Interface
     {
         Task<List<ReadOrderListDTO>> GetOrderListAdminAsync(ODataQueryOptions<ReadOrderListDTO> queryOptions);
 
+        // Tìm kiếm theo một chuỗi con của OrderId (partial match)
+        Task<List<ReadOrderListDTO>> SearchOrdersByPartialIdAsync(string term);
+
         Task<ReadOrderDetailDTO?> GetOrderDetailsAsync(Guid orderId);
 
         Task<bool> CancelOrderAsync(Guid orderId);

@@ -21,6 +21,21 @@ namespace PetCenterAPI.Controllers
             _checkoutService = checkoutService;
         }
 
+        // GET: api/Orders/search-by-id?term=...
+        [HttpGet("search-by-id")]
+        public async Task<IActionResult> SearchByOrderId([FromQuery] string term)
+        {
+            try
+            {
+                var result = await _orderService.SearchOrdersByPartialIdAsync(term);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
         // 👇 ĐỔI TÊN HÀM VÀ ROUTE Ở ĐÂY
         // [Authorize(Roles = "Admin, Sale")] // Bỏ comment khi ráp bảo mật
         [HttpGet] // <-- Bỏ chữ "admin" đi để OData tự động nhận diện
