@@ -160,6 +160,19 @@ namespace PetCenterAPI.Service
 
             #endregion
 
+            #region Check Pet Time Conflict
+
+            bool petConflict =
+                await _appointmentRepo.IsPetTimeConflictAsync(
+                    request.PetId,
+                    request.AppointmentStart,
+                    appointmentEnd);
+
+            if (petConflict)
+                throw new Exception("Pet already has another appointment at this time.");
+
+            #endregion
+
             #region Create Appointment
 
             var appointment = _mapper.Map<Appointment>(request);
@@ -169,12 +182,14 @@ namespace PetCenterAPI.Service
             appointment.AppointmentEnd = appointmentEnd;
 
             appointment.Total = totalPrice;
+            appointment.ReservedUntil = DateTime.Today.AddDays(1).AddTicks(-1);
 
             appointment.Status = 1;
 
             appointment.CreatedAt = DateTime.Now;
 
             #endregion
+
             foreach (var service in services)
             {
                 appointment.AppointmentServices.Add(new Models.AppointmentService
@@ -205,26 +220,26 @@ namespace PetCenterAPI.Service
                 throw new Exception("Doctor not found.");
             appointment.AppointmentSnapshot =
             new AppointmentSnapshot
-    {
-        AppointmentSnapshotId = Guid.NewGuid(),
+                {
+                    AppointmentSnapshotId = Guid.NewGuid(),
 
-        AppointmentId = appointment.AppointmentId,
+                    AppointmentId = appointment.AppointmentId,
 
-        Species = pet.Species ?? "Unknown",
+                    Species = pet.Species ?? "Unknown",
 
-        Breed = pet.Breed ?? "Unknown",
+                    Breed = pet.Breed ?? "Unknown",
 
-        Gender = pet.Gender ?? "Unknown",
+                    Gender = pet.Gender ?? "Unknown",
 
-        Weight = pet.Weight ?? 0,
+                    Weight = pet.Weight ?? 0,
 
-        VetName = staff.FullName,
+                    VetName = staff.FullName,
 
         
 
-        Rating = 0
+                    Rating = 0
 
-    };
+                };
             await _appointmentRepo.CreateAppointmentAsync(appointment);
 
             await _appointmentRepo.SaveChangesAsync();
@@ -406,28 +421,42 @@ namespace PetCenterAPI.Service
 
             await _appointmentRepo.SaveChangesAsync();
         }
-                    
-        public async Task<List<AvailableSlotResponseDTO>>
-    GetAvailableSlotsAsync(
-        GetAvailableSlotsRequestDTO request)
+
+        public async Task<List<AvailableSlotResponseDTO>> GetAvailableSlotsAsync(
+    GetAvailableSlotsRequestDTO request)
         {
-            var services =
-                await _serviceRepo.GetServicesByIdsAsync(
-                    request.ServiceIds);
+            #region Validate Booking Window (Tomorrow -> Next 21 Days)
 
-            var duration =
-                services.Sum(x => x.Duration);
+            // Lấy ngày mai (00:00:00)
+            DateTime minAllowedDate = DateTime.Today.AddDays(1);
 
-            var appointments =
-                await _appointmentRepo
-                    .GetDoctorAppointmentsByDateAsync(
-                        request.StaffId,
-                        request.Date);
+            // Hạn chót là 21 ngày tính từ ngày mai
+            DateTime maxAllowedDate = minAllowedDate.AddDays(21);
 
-            var workTime =
-                await GetWorkTimeAsync(
+            // Chuyển request.Date sang DateTime để so sánh phần Date
+            DateTime requestedDate = request.Date.ToDateTime(TimeOnly.MinValue);
+
+            if (requestedDate < minAllowedDate || requestedDate > maxAllowedDate)
+            {
+                throw new Exception(
+                    $"Booking is only available from tomorrow ({minAllowedDate:dd/MM/yyyy}) " +
+                    $"up to 3 weeks ahead ({maxAllowedDate:dd/MM/yyyy}).");
+            }
+
+            #endregion
+
+            var services = await _serviceRepo.GetServicesByIdsAsync(request.ServiceIds);
+
+            var duration = services.Sum(x => x.Duration);
+
+            var appointments = await _appointmentRepo
+                .GetDoctorAppointmentsByDateAsync(
                     request.StaffId,
                     request.Date);
+
+            var workTime = await GetWorkTimeAsync(
+                request.StaffId,
+                request.Date);
 
             return GenerateAvailableSlots(
                 workTime.Start,
@@ -529,6 +558,20 @@ namespace PetCenterAPI.Service
             return result
                 .OrderBy(x => x.StartTime)
                 .ToList();
+        }
+        private bool IsValidBookingDate(DateTime targetDate)
+        {
+            // Lấy mốc bắt đầu của ngày hôm nay (00:00:00)
+            DateTime today = DateTime.Today;
+
+            // Ngày tiếp theo (bắt đầu từ 00:00:00 ngày mai)
+            DateTime minDate = today.AddDays(1);
+
+            // Hạn chót là 3 tuần tính từ ngày mai (21 ngày)
+            DateTime maxDate = minDate.AddDays(21);
+
+            // Chỉ nhận các ngày từ minDate tới maxDate (Bỏ ngày hiện tại)
+            return targetDate.Date >= minDate && targetDate.Date <= maxDate;
         }
         private async Task<(DateTime Start, DateTime End)> GetWorkTimeAsync(
     Guid staffId,

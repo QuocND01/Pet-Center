@@ -21,6 +21,7 @@ namespace PetCenterAPI.Repository.Interface
         Task<List<Appointment>> GetAllAppointmentsAsync();
 
         Task<List<Appointment>> GetDoctorAppointmentsByDateAsync(Guid staffId, DateOnly date);
+        Task<bool> IsPetTimeConflictAsync(Guid petId, DateTime start, DateTime end);
 
         // ==================== SNAPSHOT & AUXILIARY DATA ====================
         Task<Pet?> GetPetForSnapshotAsync(Guid petId);

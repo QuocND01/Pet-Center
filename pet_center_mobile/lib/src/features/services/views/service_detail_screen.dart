@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_center_mobile/src/features/appointment/booking_screen.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/service_model.dart';
 import '../../../services/api_service.dart';
@@ -374,12 +375,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               elevation: 2,
             ),
             onPressed: () {
-              // TODO: Team member - Replace with actual Appointment Booking navigation for this service
-              // Example: Navigator.pushNamed(context, '/book-appointment', arguments: _service?.serviceId);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Appointment Booking for "${_service?.serviceName}": Click to schedule.'),
-                  backgroundColor: Colors.green,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BookingScreen(),
                 ),
               );
             },

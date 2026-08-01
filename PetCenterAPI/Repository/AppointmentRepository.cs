@@ -155,5 +155,16 @@ namespace PetCenterAPI.Repository
                 .Include(a => a.AppointmentSnapshot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
         }
+        public async Task<bool> IsPetTimeConflictAsync(Guid petId, DateTime start, DateTime end)
+        {
+            // Giả sử Status: 1 = Pending/Confirmed, các status đã Cancelled/Completed thì không tính trùng
+            // Bạn có thể điều chỉnh danh sách Status tùy theo Logic của dự án (ví dụ: status != 3 với 3 là Cancelled)
+            return await _context.Appointments
+                .AnyAsync(a => a.PetId == petId
+                            && a.Status != 0
+                            && a.Status != 5
+                            && a.AppointmentStart < end
+                            && a.AppointmentEnd > start);
+        }
     }
 }
