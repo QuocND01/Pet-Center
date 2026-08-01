@@ -20,6 +20,7 @@ import '../models/order_feedback_input.dart';
 import '../models/booking_page_model.dart';
 import '../models/available_slot_model.dart';
 import '../models/book_appointment_request.dart';
+import '../models/medical_record_model.dart';
 
 class ApiService {
   // Singleton pattern
@@ -171,6 +172,53 @@ class ApiService {
 
     if (response.statusCode == 200 && (isSuccess || tokenVal != null)) {
       _token = tokenVal;
+      _customerEmail = email;
+
+      // Fetch Profile to secure customerId
+      try {
+        final profile = await getCustomerProfile();
+        _customerId = profile.customerId;
+        await AuthService().saveSession(
+          token: _token!,
+          customerId: _customerId!,
+          email: email,
+        );
+      } catch (e) {
+        await AuthService().saveSession(
+          token: _token!,
+          customerId: '',
+          email: email,
+        );
+      }
+    }
+    return data;
+  }
+
+  // Google Callback Login
+  Future<Map<String, dynamic>> googleCallback({
+    required String code,
+    required String redirectUri,
+  }) async {
+    final response = await _sendRequest(() => _client.post(
+          Uri.parse('$baseUrl/auths/google-callback'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'code': code,
+            'redirectUri': redirectUri,
+          }),
+        ));
+
+    if (response.body.isEmpty) {
+      throw Exception('Empty server response. Please verify backend API status.');
+    }
+
+    final data = json.decode(response.body);
+    final isSuccess = data['success'] == true || data['Success'] == true;
+    final tokenVal = data['token'] ?? data['Token'];
+
+    if (response.statusCode == 200 && (isSuccess || tokenVal != null)) {
+      _token = tokenVal;
+      final email = data['email'] ?? data['Email'] ?? '';
       _customerEmail = email;
 
       // Fetch Profile to secure customerId
@@ -1290,4 +1338,44 @@ class ApiService {
   }
 
   // ===Appoitnment Booking (BookingController)==================
+
+  // ============================================================
+  // MEDICAL RECORDS & PRESCRIPTIONS (MedicalRecordsController)
+  // ============================================================
+
+  // Get customer medical records list
+  Future<List<MedicalRecordModel>> getMyMedicalRecords({String? search}) async {
+    final profile = await getCustomerProfile();
+    final customerId = profile.customerId;
+    if (customerId.isEmpty) {
+      return [];
+    }
+
+    String url = '$baseUrl/MedicalRecords/customer/$customerId';
+    if (search != null && search.trim().isNotEmpty) {
+      url += '?search=${Uri.encodeComponent(search.trim())}';
+    }
+
+    final response = await _client.get(
+      Uri.parse(url),
+      headers: _getHeaders(),
+    );
+
+    final data = _handleResponse(response);
+    if (data is List) {
+      return data.map((json) => MedicalRecordModel.fromJson(json)).toList();
+    }
+    return [];
+  }
+
+  // Get medical record details including prescription items
+  Future<MedicalRecordModel> getMedicalRecordDetails(String recordId) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/MedicalRecords/$recordId'),
+      headers: _getHeaders(),
+    );
+
+    final data = _handleResponse(response);
+    return MedicalRecordModel.fromJson(data);
+  }
 }

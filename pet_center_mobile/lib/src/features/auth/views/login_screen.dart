@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../services/api_service.dart';
@@ -28,10 +29,99 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _isObscure = true;
   bool _rememberMe = false;
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: '205673219686-i049i9ug1nrhik4oh6521fo06t1tllef.apps.googleusercontent.com',
+    scopes: ['email', 'profile'],
+  );
+
   final RegExp _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isGoogleLoading = true;
+    });
+
+    try {
+      // Disconnect/signOut first to ensure account picker dialog pops up
+      await _googleSignIn.signOut();
+
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() {
+          _isGoogleLoading = false;
+        });
+        return;
+      }
+
+      final authCode = googleUser.serverAuthCode;
+
+      Map<String, dynamic> result;
+      try {
+        result = await _apiService.googleCallback(
+          code: authCode ?? '',
+          redirectUri: '',
+        );
+      } catch (e) {
+        if (e.toString().contains('redirect_uri_mismatch')) {
+          result = await _apiService.googleCallback(
+            code: authCode ?? '',
+            redirectUri: 'https://localhost:7010/Auth/GoogleCallback',
+          );
+        } else {
+          rethrow;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _isGoogleLoading = false;
+      });
+
+      final isSuccess = result['success'] == true || result['Success'] == true;
+      final tokenVal = result['token'] ?? result['Token'];
+      final message = result['message'] ?? result['Message'] ?? 'Google login successful!';
+
+      if (isSuccess || (tokenVal != null && tokenVal.toString().isNotEmpty)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isGoogleLoading = false;
+      });
+      final String rawMsg = error.toString().replaceAll('Exception: ', '');
+      String userFriendlyMessage = rawMsg;
+      if (rawMsg.contains('ApiException: 10') || rawMsg.contains('sign_in_failed')) {
+        userFriendlyMessage = 'Google Sign-In configuration error: Android debug SHA-1 key must be added to Google Cloud Console OAuth Clients.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(userFriendlyMessage),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -381,6 +471,65 @@ class _LoginScreenState extends State<LoginScreen> {
                             isLoading: _isLoading,
                             onPressed: _handleLogin,
                           ),
+                          const SizedBox(height: 18),
+
+                          const SizedBox(height: 20),
+
+                          // OR Divider (matching website "or continue with")
+                          Row(
+                            children: [
+                              Expanded(child: Divider(color: Colors.grey.shade300)),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'or continue with',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              Expanded(child: Divider(color: Colors.grey.shade300)),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Google Sign In Button (matching website button styling)
+                          SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFDADCE0), width: 1),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                backgroundColor: Colors.white,
+                                elevation: 0,
+                              ),
+                              onPressed: _isGoogleLoading ? null : _handleGoogleLogin,
+                              child: _isGoogleLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        GoogleLogoWidget(size: 20),
+                                        SizedBox(width: 12),
+                                        Text(
+                                          'Continue with Google',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF3C4043),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -424,5 +573,81 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+}
+
+class GoogleLogoWidget extends StatelessWidget {
+  final double size;
+
+  const GoogleLogoWidget({super.key, this.size = 20});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _GoogleLogoPainter(),
+    );
+  }
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Red path (#EA4335)
+    paint.color = const Color(0xFFEA4335);
+    final pRed = Path()
+      ..moveTo(w * 0.5, h * 0.198)
+      ..cubicTo(w * 0.574, h * 0.198, w * 0.64, h * 0.223, w * 0.692, h * 0.273)
+      ..lineTo(w * 0.835, h * 0.13)
+      ..cubicTo(w * 0.748, h * 0.05, w * 0.635, 0, w * 0.5, 0)
+      ..cubicTo(w * 0.305, 0, w * 0.136, h * 0.112, w * 0.053, h * 0.275)
+      ..lineTo(w * 0.219, h * 0.404)
+      ..cubicTo(w * 0.259, h * 0.286, w * 0.37, h * 0.198, w * 0.5, h * 0.198);
+    canvas.drawPath(pRed, paint);
+
+    // Blue path (#4285F4)
+    paint.color = const Color(0xFF4285F4);
+    final pBlue = Path()
+      ..moveTo(w * 0.979, h * 0.511)
+      ..cubicTo(w * 0.979, h * 0.479, w * 0.976, h * 0.447, w * 0.971, h * 0.417)
+      ..lineTo(w * 0.5, h * 0.417)
+      ..lineTo(w * 0.5, h * 0.605)
+      ..lineTo(w * 0.769, h * 0.605)
+      ..cubicTo(w * 0.757, h * 0.667, w * 0.722, h * 0.719, w * 0.67, h * 0.754)
+      ..lineTo(w * 0.831, h * 0.879)
+      ..cubicTo(w * 0.925, h * 0.792, w * 0.979, h * 0.663, w * 0.979, h * 0.511);
+    canvas.drawPath(pBlue, paint);
+
+    // Yellow path (#FBBC05)
+    paint.color = const Color(0xFFFBBC05);
+    final pYellow = Path()
+      ..moveTo(w * 0.219, h * 0.596)
+      ..cubicTo(w * 0.209, h * 0.565, w * 0.204, h * 0.533, w * 0.204, h * 0.5)
+      ..cubicTo(w * 0.204, h * 0.467, w * 0.209, h * 0.435, w * 0.219, h * 0.404)
+      ..lineTo(w * 0.053, h * 0.275)
+      ..cubicTo(w * 0.019, h * 0.343, 0, h * 0.419, 0, h * 0.5)
+      ..cubicTo(0, h * 0.581, w * 0.019, h * 0.657, w * 0.053, h * 0.725)
+      ..lineTo(w * 0.219, h * 0.596);
+    canvas.drawPath(pYellow, paint);
+
+    // Green path (#34A853)
+    paint.color = const Color(0xFF34A853);
+    final pGreen = Path()
+      ..moveTo(w * 0.5, h * 1.0)
+      ..cubicTo(w * 0.635, h * 1.0, w * 0.749, h * 0.956, w * 0.831, h * 0.879)
+      ..lineTo(w * 0.67, h * 0.754)
+      ..cubicTo(w * 0.625, h * 0.785, w * 0.567, h * 0.802, w * 0.5, h * 0.802)
+      ..cubicTo(w * 0.37, h * 0.802, w * 0.259, h * 0.714, w * 0.219, h * 0.596)
+      ..lineTo(w * 0.053, h * 0.725)
+      ..cubicTo(w * 0.136, h * 0.888, w * 0.305, h * 1.0, w * 0.5, h * 1.0);
+    canvas.drawPath(pGreen, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
