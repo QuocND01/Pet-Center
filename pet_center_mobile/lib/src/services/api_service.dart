@@ -16,6 +16,7 @@ import '../models/service_model.dart';
 import '../models/pet_model.dart';
 import '../models/product_feedback_model.dart';
 import '../models/order_model.dart';
+import '../models/order_feedback_input.dart';
 
 class ApiService {
   // Singleton pattern
@@ -598,6 +599,122 @@ class ApiService {
       return list.map((json) => ProductFeedbackModel.fromJson(json)).toList();
     }
     return [];
+  }
+
+  // Check if order has feedback
+  Future<bool> checkHasFeedback(String orderId) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/ProductFeedbacks/check/$orderId'),
+      headers: _getHeaders(),
+    );
+    final data = _handleResponse(response);
+    if (data != null && (data['success'] == true || data['Success'] == true)) {
+      return data['hasFeedback'] == true || data['HasFeedback'] == true;
+    }
+    return false;
+  }
+
+  // Get feedbacks by order id
+  Future<List<ProductFeedbackModel>> getFeedbacksByOrderId(String orderId) async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/ProductFeedbacks/order/$orderId'),
+      headers: _getHeaders(),
+    );
+    final data = _handleResponse(response);
+    if (data != null && (data['success'] == true || data['Success'] == true)) {
+      final List list = data['data'] ?? data['Data'] ?? [];
+      return list.map((json) => ProductFeedbackModel.fromJson(json)).toList();
+    }
+    return [];
+  }
+
+  // Submit bulk feedback for an order
+  Future<Map<String, dynamic>> createBulkFeedback(List<ProductFeedbackInput> items) async {
+    final uri = Uri.parse('$baseUrl/ProductFeedbacks/bulk');
+    final request = http.MultipartRequest('POST', uri);
+
+    final headers = _getHeaders();
+    headers.forEach((key, value) {
+      if (key != 'Content-Type') {
+        request.headers[key] = value;
+      }
+    });
+
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      request.fields['Feedbacks[$i].ProductId'] = item.productId;
+      request.fields['Feedbacks[$i].OrderId'] = item.orderId;
+      request.fields['Feedbacks[$i].Rating'] = item.rating.toString();
+      request.fields['Feedbacks[$i].Comment'] = item.comment;
+
+      for (var imgFile in item.imageFiles) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'Feedbacks[$i].MediaFiles',
+          imgFile.path,
+        ));
+      }
+
+      if (item.videoFile != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'Feedbacks[$i].MediaFiles',
+          item.videoFile!.path,
+        ));
+      }
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    if (response.body.isNotEmpty) {
+      return json.decode(response.body);
+    }
+    return {'success': response.statusCode >= 200 && response.statusCode < 300};
+  }
+
+  // Update single feedback for a product
+  Future<Map<String, dynamic>> updateFeedback({
+    required String feedbackId,
+    required int rating,
+    String? comment,
+    List<File>? newMediaFiles,
+    List<String>? removedPublicIds,
+  }) async {
+    final uri = Uri.parse('$baseUrl/ProductFeedbacks/update');
+    final request = http.MultipartRequest('POST', uri);
+
+    final headers = _getHeaders();
+    headers.forEach((key, value) {
+      if (key != 'Content-Type') {
+        request.headers[key] = value;
+      }
+    });
+
+    request.fields['FeedbackId'] = feedbackId;
+    request.fields['Rating'] = rating.toString();
+    if (comment != null) {
+      request.fields['Comment'] = comment;
+    }
+
+    if (removedPublicIds != null) {
+      for (int i = 0; i < removedPublicIds.length; i++) {
+        request.fields['RemovedPublicIds[$i]'] = removedPublicIds[i];
+      }
+    }
+
+    if (newMediaFiles != null) {
+      for (var file in newMediaFiles) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'NewMediaFiles',
+          file.path,
+        ));
+      }
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    if (response.body.isNotEmpty) {
+      return json.decode(response.body);
+    }
+    return {'success': response.statusCode >= 200 && response.statusCode < 300};
   }
 
   // ============================================================

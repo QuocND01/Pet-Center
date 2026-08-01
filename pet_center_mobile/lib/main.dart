@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:pet_center_mobile/src/features/ai/classify_ai_page.dart';
-import 'package:pet_center_mobile/src/features/products/views/product_list_screen.dart';
+import 'src/features/ai/classify_ai_page.dart';
+import 'src/features/products/views/product_list_screen.dart';
 import 'src/constants/app_colors.dart';
 import 'src/services/api_service.dart';
 import 'src/features/auth/views/login_screen.dart';

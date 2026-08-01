@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/order_model.dart';
 import '../../../services/api_service.dart';
+import '../widgets/view_order_feedback_sheet.dart';
+import '../widgets/write_order_feedback_sheet.dart';
 
 class OrderListScreen extends StatefulWidget {
   const OrderListScreen({super.key});
@@ -25,7 +27,11 @@ class _OrderListScreenState extends State<OrderListScreen> {
   void _loadOrders() {
     setState(() {
       _ordersFuture = _apiService.getMyOrders().then((list) {
-        _allOrders = list;
+        if (mounted) {
+          setState(() {
+            _allOrders = list;
+          });
+        }
         return list;
       });
     });
@@ -360,6 +366,8 @@ class _OrderListScreenState extends State<OrderListScreen> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        _buildFeedbackSection(order),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -370,6 +378,73 @@ class _OrderListScreenState extends State<OrderListScreen> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildFeedbackSection(OrderModel order) {
+    if (order.status != 4) return const SizedBox.shrink();
+
+    return FutureBuilder<bool>(
+      future: _apiService.checkHasFeedback(order.orderId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+            ),
+          );
+        }
+
+        final hasFeedback = snapshot.data ?? false;
+
+        return SizedBox(
+          width: double.infinity,
+          child: hasFeedback
+              ? OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context); // Close detail modal
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => ViewOrderFeedbackSheet(order: order),
+                    );
+                  },
+                  icon: const Icon(Icons.star_outline_rounded, size: 20),
+                  label: const Text('View Reviews', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                )
+              : ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 2,
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(context); // Close detail modal
+                    final refresh = await showModalBottomSheet<bool>(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => WriteOrderFeedbackSheet(order: order),
+                    );
+                    if (refresh == true) {
+                      _loadOrders();
+                    }
+                  },
+                  icon: const Icon(Icons.rate_review_rounded, size: 20),
+                  label: const Text('Write a Review', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+        );
+      },
     );
   }
 

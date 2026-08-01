@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pet_center_mobile/src/models/ai_result_model.dart';
+import '../../models/ai_result_model.dart';
 import '../../services/api_service.dart';
 
 class ClassifyAIPage extends StatefulWidget {
@@ -393,10 +393,7 @@ class _ClassifyAIPageState
 
                   decoration:
                   BoxDecoration(
-                    color: Colors.red
-                        .withOpacity(
-                      0.08,
-                    ),
+                    color: Colors.red.withAlpha(20),
 
                     borderRadius:
                     BorderRadius.circular(
