@@ -1,6 +1,6 @@
 ﻿namespace PetCenterClient.Services.Interface
 {
-    using PetCenterClient.DTOs;
+    using PetCenterClient.ViewModels;
 
     public interface IAddressServiceClient
     {

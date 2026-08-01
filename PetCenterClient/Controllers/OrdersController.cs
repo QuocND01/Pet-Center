@@ -49,7 +49,10 @@ namespace PetCenterClient.Controllers
         public async Task<IActionResult> IndexAdminPartial(string? search, int? status, string? paymentMethod, string? sortBy, string sortOrder = "desc", int page = 1)
         {
             var role = HttpContext.Session.GetString("Role");
-            if (role != "Admin" && role != "Sale")
+            // Role stored in session uses the string "Sale Staff" (see _AdminLayout),
+            // ensure the partial endpoint allows the same role so sales staff can
+            // receive AJAX partial refreshes without needing a full page reload.
+            if (role != "Admin" && role != "Sale Staff")
             {
                 return Forbid();
             }
