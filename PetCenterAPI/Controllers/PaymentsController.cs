@@ -92,7 +92,7 @@ namespace PetCenterAPI.Controllers
                     cbResult.IsSuccess);
 
                 // 3. Phân nhánh Redirect dựa vào Payment Entity
-                if (payment != null && payment.AppointmentId != Guid.Empty)
+                if (payment != null && payment.AppointmentId.HasValue && payment.AppointmentId.Value != Guid.Empty)
                 {
                     // Direct sang Client Action: /Appointment/PaymentReturn
                     var appointmentRedirectUrl = $"https://localhost:7010/Appointment/PaymentReturn" +

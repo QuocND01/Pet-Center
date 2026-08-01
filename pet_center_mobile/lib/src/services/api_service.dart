@@ -17,6 +17,9 @@ import '../models/pet_model.dart';
 import '../models/product_feedback_model.dart';
 import '../models/order_model.dart';
 import '../models/order_feedback_input.dart';
+import '../models/booking_page_model.dart';
+import '../models/available_slot_model.dart';
+import '../models/book_appointment_request.dart';
 
 class ApiService {
   // Singleton pattern
@@ -1222,4 +1225,69 @@ class ApiService {
           'Request failed: ${response.statusCode} - ${response.body}');
     }
   }
+  
+  // Appoitnment Booking (BookingController)
+  // 1. Lấy dữ liệu khởi tạo cho màn hình đặt lịch
+  Future<BookingPageModel> getBookingData() async {
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/Appointment/get-booking-data'),
+          headers: _getHeaders(),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (body['status'] == true || body['success'] == true || body['data'] != null) {
+        return BookingPageModel.fromJson(body['data']);
+      }
+      throw Exception(body['message'] ?? 'Cannot load booking data.');
+    } else {
+      throw Exception(body['message'] ?? 'Failed to load booking data (${response.statusCode})');
+    }
+  }
+
+  // 2. Lấy danh sách time slots khả dụng
+  Future<List<AvailableSlotModel>> getAvailableSlots({
+    required String staffId,
+    required String dateStr, // Định dạng 'YYYY-MM-DD'
+    required List<String> serviceIds,
+  }) async {
+    final response = await _sendRequest(() => _client.post(
+          Uri.parse('$baseUrl/Appointment/available-slots'),
+          headers: _getHeaders(),
+          body: jsonEncode({
+            'staffId': staffId,
+            'date': dateStr,
+            'serviceIds': serviceIds,
+          }),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final List<dynamic> data = body['data'] ?? [];
+      return data.map((x) => AvailableSlotModel.fromJson(x)).toList();
+    } else {
+      throw Exception(body['message'] ?? 'Could not fetch available slots.');
+    }
+  }
+
+  // 3. Thực hiện đặt lịch hẹn
+  Future<dynamic> bookAppointment(BookAppointmentRequest request) async {
+    final response = await _sendRequest(() => _client.post(
+          Uri.parse('$baseUrl/Appointment/book'),
+          headers: _getHeaders(),
+          body: jsonEncode(request.toJson()),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return body['data'];
+    } else {
+      throw Exception(body['message'] ?? 'Booking appointment failed (${response.statusCode}).');
+    }
+  }
+
+  // ===Appoitnment Booking (BookingController)==================
 }
