@@ -11,7 +11,7 @@ namespace PetCenterAPI.Service.Interface
         Task<ReadOrderDetailDTO?> GetOrderDetailsAsync(Guid orderId);
 
         Task<bool> CancelOrderAsync(Guid orderId);
-        Task<int> AdvanceOrderStatusAsync(Guid orderId);
+        Task<int> AdvanceOrderStatusAsync(Guid orderId, Guid? staffId = null);
         Task<List<OrderRequestDTO.ReadOrderListDTO>> GetCustomerOrderHistoryAsync(Guid customerId);
 
     }

@@ -43,7 +43,7 @@
                     <option value="">-- Other / Custom Disease --</option>
                     @if (ViewBag.Diseases != null)
                     {
-                        foreach (var d in (IEnumerable<ReadDiseaseViewModel>)ViewBag.Diseases)
+                        foreach (var d in (IEnumerable<PetCenterClient.ViewModels.MedicalRecord.MedicalRecordViewModel.ReadDiseaseViewModel>)ViewBag.Diseases)
                         {
                             <option value="@d.DiseaseId" data-species="@d.Species" data-rec="@d.Recommendation">@d.Name</option>
                         }

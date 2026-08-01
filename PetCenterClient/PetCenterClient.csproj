@@ -7,14 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ViewModels\Adress\**" />
     <Compile Remove="Views\Product\**" />
+    <Content Remove="ViewModels\Adress\**" />
     <Content Remove="Views\Product\**" />
+    <EmbeddedResource Remove="ViewModels\Adress\**" />
     <EmbeddedResource Remove="Views\Product\**" />
+    <None Remove="ViewModels\Adress\**" />
     <None Remove="Views\Product\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ViewModels\Adress\" />
   </ItemGroup>
 
   <ItemGroup>

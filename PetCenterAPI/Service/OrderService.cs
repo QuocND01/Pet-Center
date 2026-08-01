@@ -197,7 +197,7 @@ namespace PetCenterAPI.Service
         /// <summary>
         /// Tăng tiến trình trạng thái đơn hàng và trừ kho hàng chờ khi bắt đầu giao
         /// </summary>
-        public async Task<int> AdvanceOrderStatusAsync(Guid orderId)
+        public async Task<int> AdvanceOrderStatusAsync(Guid orderId, Guid? staffId = null)
         {
             _logger.LogInformation($"[AdvanceOrder] Bắt đầu cập nhật tiến trình cho đơn hàng ID: {orderId}");
 
@@ -225,6 +225,23 @@ namespace PetCenterAPI.Service
             {
                 _logger.LogInformation($"[AdvanceOrder] Đơn hàng {orderId} đã chuyển sang Hoàn thành (4). Cập nhật DeliveredDate.");
                 order.DeliveredDate = DateTime.UtcNow;
+                // Khi hoàn thành đơn, đánh dấu thanh toán đã hoàn tất và lưu staff xử lý (nếu có)
+                try
+                {
+                    // Nếu payment status chưa là Paid (2), cập nhật
+                    if (order.PaymentStatus != 2)
+                    {
+                        order.PaymentStatus = 2; // Paid
+                    }
+                    if (staffId.HasValue)
+                    {
+                        order.StaffId = staffId.Value;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "[AdvanceOrder] Không thể cập nhật PaymentStatus/StaffId khi chuyển sang Hoàn thành.");
+                }
             }
 
             // Chỉ xử lý kho khi chuyển sang Shipping (từ 2 sang 3)

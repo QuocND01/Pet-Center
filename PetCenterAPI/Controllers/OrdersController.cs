@@ -84,7 +84,13 @@ namespace PetCenterAPI.Controllers
         {
             try
             {
-                var newStatus = await _orderService.AdvanceOrderStatusAsync(id);
+                // Try to get staff id from claims (if authenticated as staff)
+                Guid? staffId = null;
+                var staffIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (Guid.TryParse(staffIdStr, out var sid))
+                    staffId = sid;
+
+                var newStatus = await _orderService.AdvanceOrderStatusAsync(id, staffId);
                 return Ok(new { success = true, status = newStatus, message = "Order status updated successfully." });
             }
             catch (InvalidOperationException ex)

@@ -1,5 +1,20 @@
-﻿namespace PetCenterClient.DTOs
+using System;
+using System.Collections.Generic;
+
+namespace PetCenterClient.ViewModels
 {
+    public class ReadOrderListViewModel
+    {
+        public Guid OrderId { get; set; }
+        public string CustomerName { get; set; } = null!;
+        public string PhoneNumber { get; set; } = null!;
+        public DateTime OrderDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public int Status { get; set; }
+        public string PaymentMethod { get; set; } = null!;
+        public int PaymentStatus { get; set; }
+    }
+
     public class ReadOrderDetailViewModel
     {
         public Guid OrderId { get; set; }

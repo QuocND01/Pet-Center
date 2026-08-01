@@ -1,4 +1,4 @@
-﻿using PetCenterClient.DTOs;
+﻿using PetCenterClient.ViewModels;
 using PetCenterClient.Services.Interface;
 using System.Net.Http.Json;
 

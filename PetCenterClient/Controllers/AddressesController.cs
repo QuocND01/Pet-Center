@@ -2,7 +2,7 @@
 
 using PetCenterClient.Services.Interface;
 using Microsoft.Extensions.Logging;
-using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels;
 
 namespace PetCenterClient.Controllers
 {

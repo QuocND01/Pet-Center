@@ -1,5 +1,5 @@
 ﻿using System.Net.Http.Headers;
-using PetCenterClient.DTOs;
+using PetCenterClient.ViewModels;
 using PetCenterClient.Services.Interface;
 
 namespace PetCenterClient.Services
