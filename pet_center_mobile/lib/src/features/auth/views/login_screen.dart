@@ -34,7 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    serverClientId: '205673219686-i049i9ug1nrhik4oh6521fo06t1tllef.apps.googleusercontent.com',
+    serverClientId:
+        '205673219686-i049i9ug1nrhik4oh6521fo06t1tllef.apps.googleusercontent.com',
     scopes: ['email', 'profile'],
   );
 
@@ -83,7 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final isSuccess = result['success'] == true || result['Success'] == true;
       final tokenVal = result['token'] ?? result['Token'];
-      final message = result['message'] ?? result['Message'] ?? 'Google login successful!';
+      final message =
+          result['message'] ?? result['Message'] ?? 'Google login successful!';
 
       if (isSuccess || (tokenVal != null && tokenVal.toString().isNotEmpty)) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -109,8 +111,10 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       final String rawMsg = error.toString().replaceAll('Exception: ', '');
       String userFriendlyMessage = rawMsg;
-      if (rawMsg.contains('ApiException: 10') || rawMsg.contains('sign_in_failed')) {
-        userFriendlyMessage = 'Google Sign-In configuration error: Android debug SHA-1 key must be added to Google Cloud Console OAuth Clients.';
+      if (rawMsg.contains('ApiException: 10') ||
+          rawMsg.contains('sign_in_failed')) {
+        userFriendlyMessage =
+            'Google Sign-In configuration error: Android debug SHA-1 key must be added to Google Cloud Console OAuth Clients.';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -170,11 +174,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final isSuccess = result['success'] == true || result['Success'] == true;
       final tokenVal = result['token'] ?? result['Token'];
       final errorType = result['errorType'] ?? result['ErrorType'];
-      final message = result['message'] ?? result['Message'] ?? 'Login failed. Please check your credentials.';
+      final message = result['message'] ??
+          result['Message'] ??
+          'Login failed. Please check your credentials.';
 
       if (isSuccess || (tokenVal != null && tokenVal.toString().isNotEmpty)) {
         // Save remember me status
-        await _authService.saveRememberMeCredentials(email, password, _rememberMe);
+        await _authService.saveRememberMeCredentials(
+            email, password, _rememberMe);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -220,7 +227,8 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Icon(Icons.mark_email_unread_outlined, color: AppColors.primary),
             SizedBox(width: 8),
-            Text('Account Not Verified', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Account Not Verified',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ],
         ),
         content: Text(message),
@@ -232,7 +240,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () {
               Navigator.pop(ctx);
@@ -246,7 +255,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               );
             },
-            child: const Text('Verify OTP Now', style: TextStyle(color: Colors.white)),
+            child: const Text('Verify OTP Now',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -271,7 +281,8 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -340,17 +351,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: InputDecoration(
                               labelText: 'Email Address',
                               hintText: 'example@email.com',
-                              prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
+                              prefixIcon: const Icon(Icons.email_outlined,
+                                  color: AppColors.primary),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.inputBorder),
+                                borderSide: const BorderSide(
+                                    color: AppColors.inputBorder),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primary, width: 2),
                               ),
                               filled: true,
                               fillColor: Colors.white,
@@ -375,10 +389,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             onFieldSubmitted: (_) => _handleLogin(),
                             decoration: InputDecoration(
                               labelText: 'Password',
-                              prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
+                              prefixIcon: const Icon(Icons.lock_outline,
+                                  color: AppColors.primary),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _isObscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                  _isObscure
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
                                   color: AppColors.textSecondary,
                                 ),
                                 onPressed: () {
@@ -392,11 +409,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.inputBorder),
+                                borderSide: const BorderSide(
+                                    color: AppColors.inputBorder),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primary, width: 2),
                               ),
                               filled: true,
                               fillColor: Colors.white,
@@ -450,7 +469,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: const Text(
                                   'Forgot Password?',
@@ -478,7 +498,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           // OR Divider (matching website "or continue with")
                           Row(
                             children: [
-                              Expanded(child: Divider(color: Colors.grey.shade300)),
+                              Expanded(
+                                  child: Divider(color: Colors.grey.shade300)),
                               const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 12),
                                 child: Text(
@@ -489,7 +510,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              Expanded(child: Divider(color: Colors.grey.shade300)),
+                              Expanded(
+                                  child: Divider(color: Colors.grey.shade300)),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -499,22 +521,27 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 48,
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFFDADCE0), width: 1),
+                                side: const BorderSide(
+                                    color: Color(0xFFDADCE0), width: 1),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 backgroundColor: Colors.white,
                                 elevation: 0,
                               ),
-                              onPressed: _isGoogleLoading ? null : _handleGoogleLogin,
+                              onPressed:
+                                  _isGoogleLoading ? null : _handleGoogleLogin,
                               child: _isGoogleLoading
                                   ? const SizedBox(
                                       height: 20,
                                       width: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.primary),
                                     )
                                   : const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         GoogleLogoWidget(size: 20),
                                         SizedBox(width: 12),
@@ -613,13 +640,15 @@ class _GoogleLogoPainter extends CustomPainter {
     paint.color = const Color(0xFF4285F4);
     final pBlue = Path()
       ..moveTo(w * 0.979, h * 0.511)
-      ..cubicTo(w * 0.979, h * 0.479, w * 0.976, h * 0.447, w * 0.971, h * 0.417)
+      ..cubicTo(
+          w * 0.979, h * 0.479, w * 0.976, h * 0.447, w * 0.971, h * 0.417)
       ..lineTo(w * 0.5, h * 0.417)
       ..lineTo(w * 0.5, h * 0.605)
       ..lineTo(w * 0.769, h * 0.605)
       ..cubicTo(w * 0.757, h * 0.667, w * 0.722, h * 0.719, w * 0.67, h * 0.754)
       ..lineTo(w * 0.831, h * 0.879)
-      ..cubicTo(w * 0.925, h * 0.792, w * 0.979, h * 0.663, w * 0.979, h * 0.511);
+      ..cubicTo(
+          w * 0.925, h * 0.792, w * 0.979, h * 0.663, w * 0.979, h * 0.511);
     canvas.drawPath(pBlue, paint);
 
     // Yellow path (#FBBC05)
@@ -627,7 +656,8 @@ class _GoogleLogoPainter extends CustomPainter {
     final pYellow = Path()
       ..moveTo(w * 0.219, h * 0.596)
       ..cubicTo(w * 0.209, h * 0.565, w * 0.204, h * 0.533, w * 0.204, h * 0.5)
-      ..cubicTo(w * 0.204, h * 0.467, w * 0.209, h * 0.435, w * 0.219, h * 0.404)
+      ..cubicTo(
+          w * 0.204, h * 0.467, w * 0.209, h * 0.435, w * 0.219, h * 0.404)
       ..lineTo(w * 0.053, h * 0.275)
       ..cubicTo(w * 0.019, h * 0.343, 0, h * 0.419, 0, h * 0.5)
       ..cubicTo(0, h * 0.581, w * 0.019, h * 0.657, w * 0.053, h * 0.725)
@@ -650,4 +680,3 @@ class _GoogleLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
