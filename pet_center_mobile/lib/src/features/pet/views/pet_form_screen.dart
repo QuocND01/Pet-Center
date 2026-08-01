@@ -274,7 +274,7 @@ class _PetFormScreenState extends State<PetFormScreen> {
                       height: 110,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primary.withOpacity(0.12),
+                        color: AppColors.primary.withAlpha(30),
                         border: Border.all(color: AppColors.primary, width: 2),
                       ),
                       child: ClipOval(
@@ -350,7 +350,7 @@ class _PetFormScreenState extends State<PetFormScreen> {
 
                       // Species Dropdown (Chỉ còn Dog & Cat)
                       DropdownButtonFormField<String>(
-                        value: _speciesController.text,
+                        initialValue: _speciesController.text,
                         decoration: InputDecoration(
                           labelText: 'Species *',
                           prefixIcon: const Icon(Icons.category_outlined,
@@ -394,7 +394,7 @@ class _PetFormScreenState extends State<PetFormScreen> {
 
                       // Gender Dropdown
                       DropdownButtonFormField<String>(
-                        value: _gender,
+                        initialValue: _gender,
                         decoration: InputDecoration(
                           labelText: 'Gender *',
                           prefixIcon: const Icon(Icons.transgender_outlined,
