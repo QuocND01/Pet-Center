@@ -134,6 +134,42 @@ namespace PetCenterAPI.Service
             return dtoList;
         }
 
+        /// <summary>
+        /// Tìm các đơn hàng có OrderId chứa một chuỗi con (dùng cho tìm kiếm partial trên UI)
+        /// NOTE: Hiện thực đơn giản bằng cách load xuống và lọc tại bộ nhớ để tránh vấn đề translate GUID -> string trong EF.
+        /// </summary>
+        public async Task<List<ReadOrderListDTO>> SearchOrdersByPartialIdAsync(string term)
+        {
+            _logger.LogInformation($"SearchOrdersByPartialIdAsync term='{term}'");
+            if (string.IsNullOrWhiteSpace(term)) return new List<ReadOrderListDTO>();
+
+            term = term.Trim();
+
+            // Lấy toàn bộ orders (cẩn trọng: có thể nặng nếu lượng đơn rất lớn) và lọc phía client
+            var allOrders = await _orderRepository.GetAllOrders()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetails)
+                .ToListAsync();
+
+            var matches = allOrders
+                .Where(o => o.OrderId.ToString().IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                .Select(o => new ReadOrderListDTO
+                {
+                    OrderId = o.OrderId,
+                    CustomerName = o.Customer?.FullName ?? "Unknown",
+                    PhoneNumber = o.Customer?.PhoneNumber ?? "N/A",
+                    OrderDate = o.OrderDate ?? DateTime.UtcNow,
+                    TotalAmount = o.TotalAmount,
+                    Status = o.Status,
+                    PaymentMethod = o.PaymentMethod,
+                    PaymentStatus = o.PaymentStatus,
+                    AddressSnapshot = o.AddressSnapshot
+                })
+                .ToList();
+
+            return matches;
+        }
+
         #endregion
 
         #region Order Status & Inventory Management
