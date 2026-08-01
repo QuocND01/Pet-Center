@@ -56,6 +56,13 @@
     .pc-head-info { flex: 1; }
     .pc-head-title { font-weight: 700; font-size: 14px; }
     .pc-head-sub { font-size: 11px; opacity: .85; }
+    .pc-clear {
+      background: none; border: none; color: #fff;
+      font-size: 16px; cursor: pointer; opacity: .85; padding: 0 4px;
+      line-height: 1; transition: opacity .2s, transform .2s;
+    }
+    .pc-clear:hover { opacity: 1; transform: scale(1.18); }
+
     .pc-close {
       background: none; border: none; color: #fff;
       font-size: 20px; cursor: pointer; opacity: .8; padding: 0 2px;
@@ -157,7 +164,8 @@
           <div class="pc-head-title">PetCenter Bot</div>
           <div class="pc-head-sub">Hỗ trợ mua sắm 24/7</div>
         </div>
-        <button class="pc-close" id="pc-close">✕</button>
+        <button class="pc-clear" id="pc-clear" title="Clear chat history">🗑️</button>
+        <button class="pc-close" id="pc-close" title="Đóng">✕</button>
       </div>
       <div class="pc-msgs" id="pc-msgs"></div>
       <div class="pc-foot">
@@ -168,12 +176,13 @@
   `;
   document.body.appendChild(wrap);
 
-  var btn    = document.getElementById('pc-btn');
-  var panel  = document.getElementById('pc-panel');
-  var close  = document.getElementById('pc-close');
-  var msgs   = document.getElementById('pc-msgs');
-  var input  = document.getElementById('pc-input');
-  var sendEl = document.getElementById('pc-send');
+  var btn     = document.getElementById('pc-btn');
+  var panel   = document.getElementById('pc-panel');
+  var close   = document.getElementById('pc-close');
+  var clearEl = document.getElementById('pc-clear');
+  var msgs    = document.getElementById('pc-msgs');
+  var input   = document.getElementById('pc-input');
+  var sendEl  = document.getElementById('pc-send');
 
   // ── Lưu/khôi phục lịch sử qua sessionStorage (giữ chat khi chuyển trang) ──
   var HKEY = 'pc_chat_history';   // mảng tin nhắn đã hiển thị
@@ -450,6 +459,37 @@
     }
   }
 
+  // ── Xóa lịch sử trò chuyện (Reset SessionStorage + Reset Rasa Tracker) ─────
+  async function clearChatHistory() {
+    if (!confirm('Are you sure you want to clear the entire chat history?')) return;
+
+    var oldSender = getSenderId();
+
+    // 1. Xóa bộ nhớ tạm browser
+    sessionStorage.removeItem(HKEY);
+    sessionStorage.removeItem('pc_chat_greeted');
+    sessionStorage.removeItem('pc_chat_sid');
+
+    // 2. Xóa giao diện chat cũ
+    msgs.innerHTML = '';
+
+    // 3. Gửi lệnh /restart cho Rasa reset slots & tracker
+    try {
+      await fetch(RASA_URL + '/webhooks/rest/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: oldSender, message: '/restart', metadata: getMetadata() })
+      });
+    } catch (e) {
+      console.log('Reset rasa failed', e);
+    }
+
+    // 4. Thông báo và chào lại từ đầu
+    addMsg('🧹 Chat history cleared successfully!', 'pc-system');
+    setGreeted();
+    await initGreeting();
+  }
+
   // ── Events ────────────────────────────────────────────────────────────────
   btn.addEventListener('click', async function () {
     panel.classList.toggle('open');
@@ -466,6 +506,8 @@
     panel.classList.remove('open');
     setOpen(false);
   });
+
+  clearEl.addEventListener('click', clearChatHistory);
 
   sendEl.addEventListener('click', function () { sendMsg(input.value); });
 
