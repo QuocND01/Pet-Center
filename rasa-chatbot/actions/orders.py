@@ -1,5 +1,5 @@
 """
-orders.py — Nhóm ĐƠN HÀNG + VOUCHER + THUỘC TÍNH CHI TIẾT ĐƠN HÀNG (ĐÃ TỐI ƯU SỬA FIELD DTO BACKEND C# & CHỐNG LỖI).
+orders.py — Nhóm ĐƠN HÀNG + VOUCHER + THUỘC TÍNH CHI TIẾT ĐƠN HÀNG (ĐÃ NÂNG CẤP KHỚP TIỀN TỐ MÃ ĐƠN & FIX LỖI IN DẤU ##).
 
 Intents phục vụ:
   - xem_don_hang_cua_toi             -> action_xem_don_hang  (Pattern A, cần JWT)
@@ -26,6 +26,14 @@ from .common import (
 )
 
 
+def _clean_order_id(raw_id: Any) -> Optional[str]:
+    """Làm sạch chuỗi order_id (loại bỏ dấu #, khoảng trắng)."""
+    if not raw_id:
+        return None
+    s = str(raw_id).strip().lstrip('#').strip()
+    return s if s else None
+
+
 def _resolve_target_order(
     dispatcher: CollectingDispatcher, 
     tracker: Tracker, 
@@ -33,24 +41,60 @@ def _resolve_target_order(
     field_label: str
 ) -> Tuple[Optional[str], Optional[dict], List[Dict[Text, Any]]]:
     """
-    Hàm dùng chung tự động giải quyết order_id thông minh:
-    1. Ưu tiên dùng slot `order_id` sẵn có trong bộ nhớ (nếu user vừa xem/chọn đơn).
-    2. Nếu chưa có `order_id`:
-       - Kiểm tra danh sách đơn của user:
-         * 0 đơn: Thông báo chưa có đơn.
-         * 1 đơn: Tự động dùng đơn duy nhất đó.
-         * >1 đơn: Hiện nút bấm hỏi người dùng chọn đơn muốn xem `field_label`.
+    Hàm dùng chung tự động giải quyết order_id thông minh & Khớp tiền tố (Prefix Matcher):
+    1. Ưu tiên dùng entity order_id mới nhất từ câu gõ, nếu không có thì dùng slot order_id.
+    2. Thử gọi trực tiếp API GET /api/orders/{id}.
+    3. Nếu không tìm thấy (do người dùng gõ mã ngắn 6-8 ký tự như 4581016):
+       - Tự động lấy danh sách đơn của user từ /api/orders/my-orders.
+       - Tìm đơn có OrderId bắt đầu bằng chuỗi người dùng gõ.
+       - Tự quy đổi về mã GUID đầy đủ!
     """
-    order_id = tracker.get_slot("order_id")
+    raw_slot_id = tracker.get_slot("order_id")
+    raw_entity_id = None
+
+    # Tìm entity order_id trong tin nhắn vừa gõ
+    for e in tracker.latest_message.get("entities", []):
+        if e.get("entity") == "order_id" and e.get("value"):
+            raw_entity_id = e.get("value")
+            break
+
+    target_id = _clean_order_id(raw_entity_id or raw_slot_id)
     events = []
 
-    # 1. Nếu đã có sẵn order_id trong slot -> Gọi API lấy chi tiết đơn
-    if order_id:
-        ok, data = api_get(f"/api/orders/{order_id}", tracker)
+    if target_id:
+        # 1. Thử gọi trực tiếp với ID
+        ok, data = api_get(f"/api/orders/{target_id}", tracker)
         if ok and data:
-            return str(order_id), data, events
+            full_id = str(get_field(data, "orderId", "OrderId", default=target_id)).strip().lstrip('#')
+            events.append(SlotSet("order_id", full_id))
+            return full_id, data, events
 
-    # 2. Nếu chưa có order_id -> Kiểm tra người dùng đã đăng nhập chưa
+        # 2. Nếu gõ mã ngắn (như 4581016) -> Khớp Prefix trong danh sách đơn của User
+        if is_logged_in(tracker):
+            ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+            my_orders = extract_list(my_data) if ok_my else []
+            clean_search = target_id.lower().replace("-", "")
+
+            matched_order = None
+            for o in my_orders:
+                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#').lower().replace("-", "")
+                if oid.startswith(clean_search):
+                    matched_order = o
+                    break
+
+            if matched_order:
+                full_id = str(get_field(matched_order, "orderId", "OrderId", default="")).strip().lstrip('#')
+                events.append(SlotSet("order_id", full_id))
+                ok_det, det_data = api_get(f"/api/orders/{full_id}", tracker)
+                if ok_det and det_data:
+                    return full_id, det_data, events
+                return full_id, matched_order, events
+
+        # 3. Nếu hoàn toàn không khớp đơn nào -> Báo lịch sự
+        dispatcher.utter_message(text=f"Không tìm thấy đơn hàng nào khớp với mã '#{target_id}'. Bạn kiểm tra lại mã nhé!")
+        return None, None, [SlotSet("order_id", None)]
+
+    # 3. Nếu chưa có order_id nào được truyền vào
     if not is_logged_in(tracker):
         dispatcher.utter_message(text=f"🔒 Bạn cần đăng nhập để xem {field_label} của đơn hàng nhé!")
         return None, None, events
@@ -62,19 +106,17 @@ def _resolve_target_order(
         dispatcher.utter_message(text="Bạn chưa có đơn hàng nào để tra cứu.")
         return None, None, events
     elif len(my_orders) == 1:
-        # Tự động lấy đơn duy nhất
-        order_id = str(get_field(my_orders[0], "orderId", "OrderId", default=""))
-        events.append(SlotSet("order_id", order_id))
-        ok, data = api_get(f"/api/orders/{order_id}", tracker)
+        full_id = str(get_field(my_orders[0], "orderId", "OrderId", default="")).strip().lstrip('#')
+        events.append(SlotSet("order_id", full_id))
+        ok, data = api_get(f"/api/orders/{full_id}", tracker)
         if ok and data:
-            return order_id, data, events
-        return order_id, my_orders[0], events
+            return full_id, data, events
+        return full_id, my_orders[0], events
     else:
-        # Nhiều đơn -> Hỏi lại để người dùng bấm chọn đúng đơn muốn xem
         lines = [f"Bạn muốn xem **{field_label}** của đơn hàng nào dưới đây?"]
         buttons = []
         for o in my_orders[:5]:
-            oid = str(get_field(o, "orderId", "OrderId", default=""))
+            oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
             total = get_field(o, "totalAmount", "TotalAmount", default=0)
             short_id = oid[:8] if oid else "đơn hàng"
             buttons.append({
@@ -110,7 +152,7 @@ class ActionXemDonHang(Action):
         latest_order_id = None
 
         for i, o in enumerate(orders[:5], 1):
-            oid = str(get_field(o, "orderId", "OrderId", default=""))
+            oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
             total = get_field(o, "totalAmount", "TotalAmount", default=0)
             status_code = get_field(o, "status", "Status", default=0)
             status_text = order_status_label(status_code)
@@ -141,6 +183,99 @@ class ActionXemDonHang(Action):
         return [SlotSet("order_id", latest_order_id)]
 
 
+class ActionXemDonHangVuaDat(Action):
+    """Mở ngay chi tiết đơn hàng VỪA MỚI ĐẶT NGUYÊN BẢN (đơn hàng mới nhất trong DB)."""
+    def name(self) -> Text:
+        return "action_xem_don_hang_vua_dat"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        if not is_logged_in(tracker):
+            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem đơn hàng vừa mới đặt nhé!")
+            return []
+
+        ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+        orders = extract_list(my_data) if ok_my else []
+
+        if not orders:
+            dispatcher.utter_message(text="Bạn chưa có đơn hàng nào vừa đặt. Cùng khám phá sản phẩm mới nhé! 🛍️")
+            return [SlotSet("order_id", None)]
+
+        latest_order = orders[0]
+        latest_id = str(get_field(latest_order, "orderId", "OrderId", default="")).strip().lstrip('#')
+
+        if not latest_id:
+            dispatcher.utter_message(text="Không lấy được mã đơn hàng vừa đặt. Bạn thử lại nhé!")
+            return []
+
+        ok_det, data = api_get(f"/api/orders/{latest_id}", tracker)
+        if not ok_det or not data:
+            data = latest_order
+
+        status_code = get_field(data, "status", "Status", default=0)
+        status = order_status_label(status_code)
+        pay = payment_status_label(get_field(data, "paymentStatus", "PaymentStatus", default=0))
+        total = get_field(data, "totalAmount", "TotalAmount", default=0)
+        items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
+        created_date = get_field(data, "orderDate", "OrderDate", "createdDate", "CreatedDate", default="Vừa xong")
+
+        pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD (Thanh toán khi nhận hàng)")
+        address = get_field(data, "addressSnapshot", "AddressSnapshot", "shippingAddress", "ShippingAddress", default="Chưa cập nhật")
+        phone = get_field(data, "phoneNumber", "PhoneNumber", "receiverPhone", "ReceiverPhone", "phone", "Phone", default="Chưa cập nhật")
+        name = get_field(data, "customerName", "CustomerName", "receiverName", "ReceiverName", "fullName", "FullName", default="Khách hàng")
+        email = get_field(data, "email", "Email", default="")
+        short_id = latest_id[:8]
+
+        date_display = str(created_date).replace("T", " ")[:19] if "T" in str(created_date) else str(created_date)
+
+        lines = [
+            f"🆕 **ĐƠN HÀNG BẠN VỪA ĐẶT MỚI NHẤT (#{short_id})…**",
+            f"• Thời gian đặt: **{date_display}**",
+            f"• Trạng thái: **{status}**",
+            f"• Trạng thái thanh toán: **{pay}**",
+            f"• Phương thức thanh toán: **{pay_method}**",
+            f"• Tổng tiền: **{format_price(total)}**",
+        ]
+
+        lines.append("\n📍 THÔNG TIN GIAO HÀNG:")
+        lines.append(f"  • Người nhận: {name}")
+        lines.append(f"  • Số điện thoại: {phone}" + (f" (Email: {email})" if email else ""))
+        lines.append(f"  • Địa chỉ nhận: {address}")
+
+        buttons = []
+
+        if items:
+            lines.append("\n📦 SẢN PHẨM VỪA ĐẶT:")
+            for it in items[:5]:
+                pid = str(get_field(it, "productId", "ProductId", default=""))
+                nm = get_field(it, "productName", "ProductName", default="Sản phẩm")
+                qty = get_field(it, "quantity", "Quantity", default=1)
+                price = get_field(it, "unitPrice", "UnitPrice", "price", "Price", default=0)
+                lines.append(f"  • {nm} x{qty} ({format_price(price)})")
+
+                if pid:
+                    buttons.append({
+                        "title": f"🔍 SP: {nm[:25]}",
+                        "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
+                    })
+
+        if int(status_code) in (1, 2):
+            buttons.append({
+                "title": f"❌ Hủy đơn hàng vừa đặt",
+                "payload": f'/huy_don_hang{{"order_id": "{latest_id}"}}'
+            })
+        buttons.append({
+            "title": "🚚 Khi nào giao tới?",
+            "payload": f'/hoi_ngay_giao_don{{"order_id": "{latest_id}"}}'
+        })
+        buttons.append({
+            "title": "🔗 Xem tất cả đơn trên Web",
+            "payload": "/goto_orders_page"
+        })
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return [SlotSet("order_id", latest_id)]
+
+
 class ActionChiTietDon(Action):
     """Xem chi tiết 1 đơn hàng."""
     def name(self) -> Text:
@@ -157,17 +292,19 @@ class ActionChiTietDon(Action):
         total = get_field(data, "totalAmount", "TotalAmount", default=0)
         items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
         
-        # ⚠️ ĐỌC ĐÚNG CÁC TRƯỜNG DTO BẢNG ĐƠN HÀNG TỪ C# API (AddressSnapshot, CustomerName, PhoneNumber)
+        pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD (Thanh toán khi nhận hàng)")
         address = get_field(data, "addressSnapshot", "AddressSnapshot", "shippingAddress", "ShippingAddress", default="Chưa cập nhật")
         phone = get_field(data, "phoneNumber", "PhoneNumber", "receiverPhone", "ReceiverPhone", "phone", "Phone", default="Chưa cập nhật")
         name = get_field(data, "customerName", "CustomerName", "receiverName", "ReceiverName", "fullName", "FullName", default="Khách hàng")
         email = get_field(data, "email", "Email", default="")
+        short_id = str(order_id).strip().lstrip('#')[:8]
 
         lines = [
-            f"📋 CHI TIẾT ĐƠN HÀNG #{str(order_id)[:8]}…",
-            f" Trạng thái: {status}",
-            f" Thanh toán: {pay}",
-            f" Tổng tiền: {format_price(total)}",
+            f"📋 **CHI TIẾT ĐƠN HÀNG #{short_id}…**",
+            f"• Trạng thái: **{status}**",
+            f"• Trạng thái thanh toán: **{pay}**",
+            f"• Phương thức thanh toán: **{pay_method}**",
+            f"• Tổng tiền: **{format_price(total)}**",
         ]
 
         lines.append("\n📍 THÔNG TIN NGƯỜI ĐẶT & GIAO HÀNG:")
@@ -186,7 +323,6 @@ class ActionChiTietDon(Action):
                 price = get_field(it, "unitPrice", "UnitPrice", "price", "Price", default=0)
                 lines.append(f"  • {nm} x{qty} ({format_price(price)})")
                 
-                # Gắn nút xem chi tiết trực tiếp từng sản phẩm trong đơn
                 if pid:
                     buttons.append({
                         "title": f"🔍 SP: {nm[:25]}",
@@ -220,7 +356,7 @@ class ActionHoiNgayDatDon(Action):
         created_date = get_field(data, "orderDate", "OrderDate", "createdDate", "CreatedDate", "createdAt", "CreatedAt", default="Chưa rõ")
         status_code = get_field(data, "status", "Status", default=0)
         status_text = order_status_label(status_code)
-        short_id = str(order_id)[:8]
+        short_id = str(order_id).strip().lstrip('#')[:8]
 
         date_display = str(created_date).replace("T", " ")[:19] if "T" in str(created_date) else str(created_date)
 
@@ -252,7 +388,7 @@ class ActionHoiNgayGiaoDon(Action):
         delivered_date = get_field(data, "deliveredDate", "DeliveredDate", default=None)
         status_code = get_field(data, "status", "Status", default=0)
         status_text = order_status_label(status_code)
-        short_id = str(order_id)[:8]
+        short_id = str(order_id).strip().lstrip('#')[:8]
 
         lines = [f"🚚 **THÔNG TIN GIAO HÀNG ĐƠN #{short_id}…**"]
 
@@ -290,7 +426,7 @@ class ActionHoiGiaTongTienDon(Action):
 
         total = get_field(data, "totalAmount", "TotalAmount", default=0)
         items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
-        short_id = str(order_id)[:8]
+        short_id = str(order_id).strip().lstrip('#')[:8]
 
         lines = [
             f"💰 **THÔNG TIN GIÁ TIỀN ĐƠN HÀNG #{short_id}…**",
@@ -333,7 +469,7 @@ class ActionHoiSoLuongSanPhamDon(Action):
         items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
         total_items_count = len(items)
         total_quantity = sum(int(get_field(it, "quantity", "Quantity", default=1)) for it in items)
-        short_id = str(order_id)[:8]
+        short_id = str(order_id).strip().lstrip('#')[:8]
 
         lines = [
             f"📦 **SỐ LƯỢNG SẢN PHẨM ĐƠN HÀNG #{short_id}…**",
@@ -376,7 +512,7 @@ class ActionHoiThanhToanPhuongThucDon(Action):
         pay_status = payment_status_label(get_field(data, "paymentStatus", "PaymentStatus", default=0))
         pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD (Thanh toán khi nhận hàng)")
         total = get_field(data, "totalAmount", "TotalAmount", default=0)
-        short_id = str(order_id)[:8]
+        short_id = str(order_id).strip().lstrip('#')[:8]
 
         lines = [
             f"💳 **THANH TOÁN ĐƠN HÀNG #{short_id}…**",
@@ -403,12 +539,11 @@ class ActionHoiThongTinNguoiNhanDiaChi(Action):
         if not order_id or not data:
             return events
 
-        # ⚠️ ĐỌC ĐÚNG CÁC TRƯỜNG DTO TỪ C# API: AddressSnapshot, CustomerName, PhoneNumber, Email
         address = get_field(data, "addressSnapshot", "AddressSnapshot", "shippingAddress", "ShippingAddress", default="Chưa cập nhật")
         phone = get_field(data, "phoneNumber", "PhoneNumber", "receiverPhone", "ReceiverPhone", "phone", "Phone", default="Chưa cập nhật")
         name = get_field(data, "customerName", "CustomerName", "receiverName", "ReceiverName", "fullName", "FullName", default="Khách hàng")
         email = get_field(data, "email", "Email", default="")
-        short_id = str(order_id)[:8]
+        short_id = str(order_id).strip().lstrip('#')[:8]
 
         lines = [
             f"📍 **THÔNG TIN NGƯỜI ĐẶT & GIAO HÀNG ĐƠN #{short_id}…**",
@@ -452,12 +587,12 @@ class ActionHuyDonHang(Action):
                 )
                 return []
             elif len(cancellable_orders) == 1:
-                order_id = str(get_field(cancellable_orders[0], "orderId", "OrderId", default=""))
+                order_id = str(get_field(cancellable_orders[0], "orderId", "OrderId", default="")).strip().lstrip('#')
             else:
                 lines = ["Bạn muốn hủy đơn hàng nào dưới đây?"]
                 buttons = []
                 for o in cancellable_orders[:5]:
-                    oid = str(get_field(o, "orderId", "OrderId", default=""))
+                    oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
                     total = get_field(o, "totalAmount", "TotalAmount", default=0)
                     short_id = oid[:8] if oid else "đơn hàng"
                     buttons.append({
@@ -471,7 +606,7 @@ class ActionHuyDonHang(Action):
             dispatcher.utter_message(text="Không xác định được đơn hàng cần hủy. Bạn thử lại nhé!")
             return []
 
-        dispatcher.utter_message(json_message={"type": "cancel_order", "orderId": order_id})
+        dispatcher.utter_message(json_message={"type": "cancel_order", "orderId": str(order_id).strip().lstrip('#')})
         return [SlotSet("order_id", None)]
 
 

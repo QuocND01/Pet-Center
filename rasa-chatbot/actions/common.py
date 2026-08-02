@@ -13,6 +13,8 @@ import re
 import logging
 import requests
 import urllib3
+from rasa_sdk import Action, Tracker
+from rasa_sdk.executor import CollectingDispatcher
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -170,3 +172,54 @@ def payment_status_label(n) -> str:
         return PAYMENT_STATUS.get(int(n), f"TT {n}")
     except Exception:
         return str(n)
+
+
+class ActionDefaultFallback(Action):
+    """Xử lý Fallback Động với Nút bấm Gợi ý 1-chạm thông minh."""
+    def name(self) -> str:
+        return "action_default_fallback"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict) -> list:
+        user_text = (tracker.latest_message.get("text") or "").strip().lower()
+
+        # 1. Bắt ngữ cảnh Sản phẩm / Mua sắm
+        if any(w in user_text for w in ["sản phẩm", "mua", "bán", "giá", "thức ăn", "đồ chơi", "cát", "xem đồ"]):
+            buttons = [
+                {"title": "🛍️ Sản phẩm HOT", "payload": "/xem_san_pham_hot"},
+                {"title": "🐶 Đồ cho Chó", "payload": '/tim_san_pham{"tu_khoa": "chó"}'},
+                {"title": "🐱 Đồ cho Mèo", "payload": '/tim_san_pham{"tu_khoa": "mèo"}'},
+                {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"}
+            ]
+            dispatcher.utter_message(
+                text="Có phải bạn đang muốn tìm kiếm sản phẩm cho thú cưng? Bạn có thể bấm chọn nhanh một trong các gợi ý dưới đây nhé: 🐾",
+                buttons=buttons
+            )
+            return []
+
+        # 2. Bắt ngữ cảnh Đơn hàng / Giao hàng
+        if any(w in user_text for w in ["đơn", "giao", "ship", "hàng", "tiền", "thanh toán", "nhận"]):
+            buttons = [
+                {"title": "🆕 Đơn hàng vừa đặt", "payload": "/xem_don_hang_vua_dat"},
+                {"title": "📦 Tất cả đơn hàng", "payload": "/xem_don_hang_cua_toi"},
+                {"title": "🚚 Thời gian giao hàng", "payload": "/hoi_thoi_gian_giao_hang"},
+                {"title": "💳 Phương thức thanh toán", "payload": "/hoi_thanh_toan_phuong_thuc_don"}
+            ]
+            dispatcher.utter_message(
+                text="Có phải bạn đang muốn tra cứu thông tin đơn hàng hoặc giao hàng? Bạn bấm chọn nhanh dưới đây nhé: 🐾",
+                buttons=buttons
+            )
+            return []
+
+        # 3. Fallback tổng quát với Nút Bấm 1-Chạm 5 chủ đề chính
+        buttons = [
+            {"title": "🛍️ Tìm sản phẩm", "payload": "/xem_san_pham_hot"},
+            {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"},
+            {"title": "🎟️ Mã giảm giá", "payload": "/xem_voucher"},
+            {"title": "🩺 Dịch vụ & Đặt lịch", "payload": "/xem_dich_vu"},
+            {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"}
+        ]
+        dispatcher.utter_message(
+            text="Tôi chưa hiểu rõ ý bạn lắm. Bạn có thể bấm chọn nhanh một trong các chủ đề dưới đây để tôi hỗ trợ ngay nhé: 🐾",
+            buttons=buttons
+        )
+        return []

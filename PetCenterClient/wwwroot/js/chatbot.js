@@ -194,10 +194,17 @@
   }
   function recordHistory(entry) {
     if (restoring) return;
-    var h = loadHistory();
-    h.push(entry);
-    if (h.length > 100) h = h.slice(-100);   // giới hạn 100 tin gần nhất
-    sessionStorage.setItem(HKEY, JSON.stringify(h));
+    try {
+      var h = loadHistory();
+      h.push(entry);
+      if (h.length > 50) h = h.slice(-50);   // giữ 50 tin gần nhất để không bị đầy sessionStorage
+      sessionStorage.setItem(HKEY, JSON.stringify(h));
+    } catch (e) {
+      console.warn('sessionStorage quota exceeded, auto slicing history...', e);
+      try {
+        sessionStorage.setItem(HKEY, JSON.stringify([entry]));
+      } catch (err) {}
+    }
   }
   function isGreeted() { return sessionStorage.getItem('pc_chat_greeted') === '1'; }
   function setGreeted() { sessionStorage.setItem('pc_chat_greeted', '1'); }
@@ -414,12 +421,17 @@
     setLoading(true);
     var typing = showTyping();
 
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 10000);
+
     try {
       var resp = await fetch(RASA_URL + '/webhooks/rest/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sender: getSenderId(), message: text, metadata: getMetadata() })
+        body: JSON.stringify({ sender: getSenderId(), message: text, metadata: getMetadata() }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       typing.remove();
       var data = await resp.json();
       if (!data || data.length === 0) {
@@ -428,8 +440,13 @@
         await handleResponses(data);
       }
     } catch (e) {
+      clearTimeout(timeoutId);
       typing.remove();
-      addMsg('⚠️ Không thể kết nối đến chatbot. RASA chưa chạy hoặc đang khởi động!', 'pc-err');
+      if (e.name === 'AbortError') {
+        addMsg('⚠️ Phản hồi quá chậm hoặc gián đoạn kết nối. Bạn thử gửi lại nhé!', 'pc-err');
+      } else {
+        addMsg('⚠️ Không thể kết nối đến chatbot. RASA chưa chạy hoặc đang khởi động!', 'pc-err');
+      }
     } finally {
       setLoading(false);
       input.focus();
@@ -459,6 +476,15 @@
     }
   }
 
+  function addTempMsg(text, cls) {
+    var d = document.createElement('div');
+    d.className = 'pc-msg ' + cls;
+    d.textContent = text;
+    msgs.appendChild(d);
+    scrollBottom();
+    return d;
+  }
+
   // ── Xóa lịch sử trò chuyện (Reset SessionStorage + Reset Rasa Tracker) ─────
   async function clearChatHistory() {
     if (!confirm('Are you sure you want to clear the entire chat history?')) return;
@@ -484,8 +510,8 @@
       console.log('Reset rasa failed', e);
     }
 
-    // 4. Thông báo và chào lại từ đầu
-    addMsg('🧹 Chat history cleared successfully!', 'pc-system');
+    // 4. Thông báo tạm thời (không lưu vào sessionStorage) và chào lại từ đầu
+    addTempMsg('🧹 Chat history cleared successfully!', 'pc-system');
     setGreeted();
     await initGreeting();
   }
