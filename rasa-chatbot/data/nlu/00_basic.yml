@@ -155,6 +155,17 @@ nlu:
     - tôi buồn quá
     - giá vàng hôm nay
     - 1 cộng 1 bằng mấy
+    - 1+1
+    - 1-1
+    - 1*1
+    - 1/1
+    - 1 + 1
+    - 1 - 1
+    - 1 * 1
+    - 2 + 2
+    - 10 + 5
+    - 1+1 bằng mấy
+    - tính 1+1
     - hát một bài đi
     - bạn thích ăn gì
     - ai là tổng thống Mỹ
@@ -181,6 +192,9 @@ nlu:
     - chán quá đi
     - bot vớ vẩn
     - xem bóng đá ở đâu
+    - Đại Học FPT
+    - sinh viên năm mấy
+    - bạn có biết lập trình không
 
 # — Điều hướng: payload từ nút bấm —
 - intent: goto_service_page

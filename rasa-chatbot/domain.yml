@@ -40,6 +40,7 @@ intents:
   - hoi_thoi_gian_giao_hang
   - hoi_phi_van_chuyen
   - hoi_chinh_sach_doi_tra
+  - xem_don_hang_vua_dat
   - hoi_ngay_dat_don
   - hoi_ngay_giao_don
   - hoi_gia_tong_tien_don
@@ -176,14 +177,14 @@ responses:
   utter_khong_hieu:
     - text: "Xin lỗi, tôi chưa hiểu ý bạn. Bạn thử hỏi: 'tìm thức ăn cho chó', 'đơn hàng của tôi', 'có voucher nào', 'dịch vụ spa'..."
 
+  utter_out_of_scope:
+    - text: "Xin lỗi, tôi là trợ lý mua sắm của PetCenter nên chưa hỗ trợ tính toán hoặc các câu hỏi ngoài phạm vi này. Bạn có thể hỏi tôi về sản phẩm chó mèo, đơn hàng hoặc dịch vụ nhé! 🐾"
+
   utter_yeu_cau_tu_khoa:
     - text: "Bạn muốn tìm sản phẩm gì? Ví dụ: thức ăn chó, đồ chơi mèo, vòng cổ..."
 
   utter_xem_gio_hang:
     - text: "Để xem giỏ hàng, bạn click vào icon 🛒 ở góc trên bên phải hoặc vào menu Profile > Cart nhé!"
-
-  utter_out_of_scope:
-    - text: "Tôi là trợ lý AI chuyên về sản phẩm và dịch vụ cho thú cưng tại PetCenter 🐾. Câu hỏi này nằm ngoài phạm vi hỗ trợ của tôi rồi! Bạn thử hỏi tôi về thức ăn chó mèo, đơn hàng hoặc dịch vụ xem sao nhé."
 
   utter_hoi_thoi_gian_giao_hang:
     - text: "🚚 Thời gian giao hàng dự kiến:\n• Nội thành: 1 - 2 ngày làm việc.\n• Ngoại thành / Tỉnh khác: 3 - 5 ngày làm việc.\nBạn có thể kiểm tra trạng thái đơn hàng bất kỳ lúc nào nhé!"
@@ -213,6 +214,7 @@ actions:
   - action_xem_chi_tiet_san_pham
   # Đơn hàng + voucher
   - action_xem_don_hang
+  - action_xem_don_hang_vua_dat
   - action_chi_tiet_don
   - action_huy_don_hang
   - action_xem_voucher
@@ -233,6 +235,8 @@ actions:
   # Đánh giá
   - action_xem_danh_gia
   - action_gui_danh_gia
+  # Fallback động
+  - action_default_fallback
 
 session_config:
   session_expiration_time: 60

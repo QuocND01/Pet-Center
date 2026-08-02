@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Common;
@@ -761,14 +761,10 @@ public partial class PetCenterContext : DbContext
             entity.Property(e => e.OrderDetailsId)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("OrderDetailsID");
-            entity.Property(e => e.ImportStockDetailsId).HasColumnName("ImportStockDetailsID");
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
 
-            entity.HasOne(d => d.ImportStockDetails).WithMany(p => p.OrderDetails)
-                .HasForeignKey(d => d.ImportStockDetailsId)
-                .HasConstraintName("FK_OrderDetails_ImportStockDetails");
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)

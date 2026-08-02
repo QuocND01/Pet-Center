@@ -13,42 +13,10 @@ Cấu trúc chia theo nhóm chức năng customer (do SETUP dựng):
 Khi thêm nhóm mới: tạo file actions/<ten>.py rồi import ở dưới.
 """
 
-from .products import (
-    ActionTimSanPham,
-    ActionXemSanPhamMoi,
-    ActionXemSanPhamHot,
-    ActionThemVaoGioHang,
-    ActionTimSanPhamTheoDanhMuc,
-    ActionTimSanPhamTheoThuongHieu,
-    ActionTimSanPhamTheoGia,
-    ActionXemDanhMuc,
-    ActionXemThuongHieu,
-    ActionXemChiTietSanPham,
-)
-from .cart import (
-    ActionXemGioHang,
-    ActionChonDongGioHang,
-    ActionCapNhatSoLuongGioHang,
-    ActionXoaSanPhamGioHang,
-    ActionXoaToanBoGioHang,
-)
-from .orders import (
-    ActionXemDonHang,
-    ActionChiTietDon,
-    ActionHuyDonHang,
-    ActionXemVoucher,
-)
-from .services import (
-    ActionXemDichVu,
-    ActionDatLich,
-)
-from .account import (
-    ActionXemHoSo,
-    ActionXemDiaChi,
-    ActionThemDiaChi,
-    ActionXemHoSoYTe,
-)
-from .feedback import (
-    ActionXemDanhGia,
-    ActionGuiDanhGia,
-)
+from .common import ActionDefaultFallback
+from .products import *
+from .cart import *
+from .orders import *
+from .services import *
+from .account import *
+from .feedback import *

@@ -6,6 +6,10 @@ version: "3.1"
 
 nlu:
 
+- regex: order_id
+  examples: |
+    - #?[a-f0-9]{6,36}
+
 - intent: xem_don_hang_cua_toi
   examples: |
     - đơn hàng của tôi
@@ -32,6 +36,38 @@ nlu:
     - tôi muốn kiểm tra các đơn hàng của mình
     - đơn hàng của tôi đang ở trạng thái nào rồi
     - danh sách các đơn hàng đã mua
+    - đơn hàng hiện tại
+    - các đơn hiện tại
+    - xem đơn hàng hiện tại
+    - đơn hàng hiện có
+    - xem toàn bộ đơn hàng
+    - tôi muốn xem toàn bộ đơn hàng của tôi
+    - xem tất cả đơn hàng
+    - tất cả đơn hàng của tôi
+    - cho xem toàn bộ đơn hàng
+    - danh sách toàn bộ đơn hàng
+    - tôi muốn xem tất cả đơn hàng
+    - cho tôi xem tất cả đơn hàng
+
+- intent: xem_don_hang_vua_dat
+  examples: |
+    - đơn hàng tôi vừa mới mua
+    - tôi vừa mới mua hàng
+    - cho tôi xem đơn hàng tôi vừa mua
+    - cho tôi xem đơn vừa đặt
+    - tôi mới đặt đơn xong
+    - xem chi tiết đơn hàng vừa tạo
+    - đơn hàng mới mua của tôi
+    - tôi vừa đặt hàng xong cho xem đơn
+    - đơn mới mua
+    - đơn vừa mua
+    - tôi vừa mới mua hàng xong
+    - cho xem đơn vừa mới đặt
+    - xem đơn tôi vừa mới thanh toán
+    - cho tôi xem đơn hàng mới tạo
+    - xem đơn hàng vừa mới đặt xong
+    - đơn hàng tôi mới đặt xong
+    - xem đơn vừa mua
 
 - intent: xem_chi_tiet_don
   examples: |
@@ -57,6 +93,16 @@ nlu:
     - xem thông tin chi tiết đơn này
     - chi tiết đơn hàng vừa đặt
     - thông tin đơn hàng của tôi
+    - tui muốn xem chi tiết
+    - chi tiết của này [4581016](order_id)
+    - chi tiết [4581016](order_id)
+    - chi tiết [45810162](order_id)
+    - đơn hàng [4581016](order_id) của tôi
+    - cho tôi xem [4581016](order_id)
+    - đơn hàng [4581016](order_id)
+    - xem chi tiết [4581016](order_id)
+    - chi tiết đơn hàng [4581016](order_id)
+    - đơn này [45810162](order_id)
 
 - intent: hoi_ngay_dat_don
   examples: |
@@ -87,6 +133,12 @@ nlu:
     - ngày hoàn thành đơn hàng là khi nào
     - khi nào nhận được đơn hàng
     - ngày shipper giao đơn
+    - à oke, vậy thì nó được giao khi nào
+    - vậy thì nó được giao khi nào
+    - vậy khi nào giao
+    - nó được giao khi nào
+    - ngày giao hàng của đơn [4581016](order_id) là ngày nào
+    - ngày giao hàng của đơn [45810162](order_id) là ngày nào
 
 - intent: hoi_gia_tong_tien_don
   examples: |
@@ -103,6 +155,9 @@ nlu:
     - xem tổng tiền đơn hàng này
     - giá đơn hàng là bao nhiêu
     - đơn này thanh toán hết bao nhiêu tiền
+    - đơn này [45810162](order_id) có giá bao nhiêu
+    - đơn [4581016](order_id) giá bao nhiêu
+    - đơn hàng [4581016](order_id) có giá bao nhiêu
 
 - intent: hoi_so_luong_san_pham_don
   examples: |

@@ -16,8 +16,11 @@ import 'src/features/auth/views/change_password_screen.dart';
 import 'src/features/orders/views/order_list_screen.dart';
 import 'src/features/address/views/address_list_screen.dart';
 import 'src/features/pet/views/pet_list_screen.dart';
+import 'src/features/cart/views/cart_screen.dart';
 
 import 'package:app_links/app_links.dart';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -30,7 +33,9 @@ class MyHttpOverrides extends HttpOverrides {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  HttpOverrides.global = MyHttpOverrides();
+  if (!kIsWeb) {
+    HttpOverrides.global = MyHttpOverrides();
+  }
   runApp(const MyApp());
 }
 
@@ -134,6 +139,7 @@ class _MyAppState extends State<MyApp> {
         '/orders': (context) => const OrderListScreen(),
         '/addresses': (context) => const AddressListScreen(),
         '/pets': (context) => const PetListScreen(),
+        '/cart': (context) => const CartScreen(),
       },
     );
   }

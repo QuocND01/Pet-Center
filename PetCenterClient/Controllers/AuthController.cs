@@ -11,16 +11,13 @@ namespace PetCenterClient.Controllers
     {
         private readonly IAuthApiService _authService;
         private readonly IGoogleAPIClient _googleClientService;
-        private readonly ICustomerApiService _customerService;
 
         public AuthController(
             IAuthApiService authService,
-            IGoogleAPIClient googleClientService,
-            ICustomerApiService customerService)
+            IGoogleAPIClient googleClientService)
         {
             _authService = authService;
             _googleClientService = googleClientService;
-            _customerService = customerService;
         }
 
         // ============================================================
@@ -88,10 +85,16 @@ namespace PetCenterClient.Controllers
             return RedirectToAction("Index", "Products");
         }
 
+        // ============================================================
+        // SESSION HEALTH CHECK — Chỉ kiểm tra JWT local, KHÔNG gọi API/DB
+        // Việc block account realtime đã được SignalR "AccountDeactivated" event đảm nhận
+        // ============================================================
         [HttpGet]
-        public async Task<IActionResult> CheckAuth()
+        public IActionResult CheckAuth()
         {
             var token = HttpContext.Session.GetString("JWT");
+
+            // Chưa đăng nhập
             if (string.IsNullOrEmpty(token))
                 return Json(new { isAuthenticated = false });
 
@@ -99,30 +102,22 @@ namespace PetCenterClient.Controllers
             {
                 var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
                 var jwt = handler.ReadJwtToken(token);
+
+                // JWT đã hết hạn → xóa session, báo logout
                 if (jwt.ValidTo <= DateTime.UtcNow)
                 {
                     HttpContext.Session.Clear();
                     return Json(new { isAuthenticated = false, message = "Token expired" });
                 }
 
-                var role = HttpContext.Session.GetString("Role");
-                if (role == "Customer")
-                {
-                    var profile = await _customerService.GetProfileAsync();
-                    if (profile == null || profile.IsActive == false)
-                    {
-                        HttpContext.Session.Clear();
-                        return Json(new { isAuthenticated = false, isDeactivated = true, message = "Your account has been deactivated by an administrator." });
-                    }
-                }
+                // JWT còn hiệu lực → trả về OK ngay, không query DB
+                return Json(new { isAuthenticated = true });
             }
             catch
             {
-                HttpContext.Session.Clear();
+                // Lỗi parse JWT bất thường → coi như hết session
                 return Json(new { isAuthenticated = false });
             }
-
-            return Json(new { isAuthenticated = true, token = token });
         }
 
         // ============================================================
@@ -197,6 +192,11 @@ namespace PetCenterClient.Controllers
             if (!string.IsNullOrEmpty(staffId))
                 HttpContext.Session.SetString("StaffId", staffId);
 
+            if (primaryRole == "Vet" || primaryRole == "Groomer")
+            {
+                return RedirectToAction("Index", "VetPets");
+            }
+
             return RedirectToAction("Indexadmin", "Products");
         }
 
@@ -212,7 +212,13 @@ namespace PetCenterClient.Controllers
             var token = HttpContext.Session.GetString("JWT");
             var role = HttpContext.Session.GetString("Role");
 
-            if (string.IsNullOrEmpty(token) || (role != "Admin" && role != "Staff"))
+            var validRoles = new HashSet<string>
+            {
+                "Admin", "Staff",
+                "Sale Staff", "Inventory Staff", "Vet", "Groomer"
+            };
+
+            if (string.IsNullOrEmpty(token) || !validRoles.Contains(role ?? ""))
                 return Json(new { isAuthenticated = false });
 
             return Json(new { isAuthenticated = true, role });

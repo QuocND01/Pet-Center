@@ -19,7 +19,7 @@ namespace PetCenterAPI.Controllers
             _petService = petService;
         }
 
-        [HttpGet]
+        //[HttpGet]
         //public async Task<IActionResult> GetAllPets([FromQuery] ODataQueryOptions<PetCenterAPI.DTOs.Requests.VetPetRequestDTO.ReadVetPetListDTO> queryOptions)
         //{
         //    // Support OData $filter/$orderby/$skip/$top from client (the client builds OData query string)

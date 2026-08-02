@@ -52,6 +52,22 @@ namespace PetCenterAPI.Service
             if (request.AppointmentStart <= DateTime.Now)
                 throw new Exception("Appointment time must be in the future.");
 
+            // 🟢 KIỂM TRA GIỚI HẠN TỐI ĐA 3 LỊCH HẸN TRONG TƯƠNG LAI
+            int activeCount = await _appointmentRepo.GetActiveAppointmentsCountByCustomerAsync(request.CustomerId);
+            if (activeCount >= 3)
+            {
+                throw new Exception("You can only have a maximum of 3 active upcoming appointments at a time.");
+            }
+
+            #endregion
+            #region Validate
+
+            if (request.ServiceIds == null || !request.ServiceIds.Any())
+                throw new Exception("Please select at least one service.");
+
+            if (request.AppointmentStart <= DateTime.Now)
+                throw new Exception("Appointment time must be in the future.");
+
             #endregion
 
             #region Get Services

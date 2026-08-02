@@ -21,6 +21,7 @@ import '../models/booking_page_model.dart';
 import '../models/available_slot_model.dart';
 import '../models/book_appointment_request.dart';
 import '../models/medical_record_model.dart';
+import '../models/voucher_model.dart';
 
 class ApiService {
   // Singleton pattern
@@ -936,10 +937,28 @@ class ApiService {
   // ============================================================
   // ORDERS & CHECKOUT (OrdersController)
   // ============================================================
-  Future<Map<String, dynamic>> placeCodOrder({
+
+  // Get available vouchers for checkout
+  Future<List<VoucherModel>> getAvailableVouchers(double orderAmount) async {
+    if (_customerId == null) return [];
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/Orders/Checkout/vouchers/$_customerId?orderAmount=$orderAmount'),
+        headers: _getHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        return data.map((json) => VoucherModel.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<Map<String, dynamic>> placeCheckoutOrder({
     required String addressId,
     required List<CartDetailModel> items,
     String? voucherId,
+    String paymentMethod = 'COD',
   }) async {
     if (_customerId == null) {
       throw Exception('Unauthenticated user session.');
@@ -954,18 +973,42 @@ class ApiService {
       };
     }).toList();
 
+    String endpoint = '$baseUrl/Orders/Checkout';
+    final Map<String, dynamic> payload = {
+      'customerId': _customerId,
+      'addressId': addressId,
+      'voucherId': voucherId,
+      'items': itemsJson,
+    };
+
+    if (paymentMethod == 'VNPAY') {
+      endpoint = '$baseUrl/Payments/vnpay/create';
+      payload['paymentMethod'] = 'VNPAY';
+    } else if (paymentMethod == 'MOMO') {
+      endpoint = '$baseUrl/Payments/momo/create';
+      payload['paymentMethod'] = 'MOMO';
+    }
+
     final response = await _client.post(
-      Uri.parse('$baseUrl/Orders/Checkout'),
+      Uri.parse(endpoint),
       headers: _getHeaders(),
-      body: json.encode({
-        'customerId': _customerId,
-        'addressId': addressId,
-        'voucherId': voucherId,
-        'items': itemsJson,
-      }),
+      body: json.encode(payload),
     );
 
     return json.decode(response.body);
+  }
+
+  Future<Map<String, dynamic>> placeCodOrder({
+    required String addressId,
+    required List<CartDetailModel> items,
+    String? voucherId,
+  }) async {
+    return placeCheckoutOrder(
+      addressId: addressId,
+      items: items,
+      voucherId: voucherId,
+      paymentMethod: 'COD',
+    );
   }
 
   // Get customer order history

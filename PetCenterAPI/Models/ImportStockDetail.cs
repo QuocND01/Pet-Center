@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace PetCenterAPI.Models;
@@ -30,8 +30,6 @@ public partial class ImportStockDetail
     public virtual ImportStock Import { get; set; } = null!;
 
     public virtual ImportProductSnapshot? ImportProductSnapshot { get; set; }
-
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
     public virtual Product Product { get; set; } = null!;
 

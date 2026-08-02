@@ -41,7 +41,7 @@ rules:
 - rule: Fallback khi không hiểu
   steps:
     - intent: nlu_fallback
-    - action: utter_khong_hieu
+    - action: action_default_fallback
 
 # — Sản phẩm —
 - rule: Xem sản phẩm mới
@@ -119,6 +119,11 @@ rules:
   steps:
     - intent: xem_chi_tiet_don
     - action: action_chi_tiet_don
+
+- rule: Xem đơn hàng vừa mới đặt
+  steps:
+    - intent: xem_don_hang_vua_dat
+    - action: action_xem_don_hang_vua_dat
 
 - rule: Hủy đơn hàng
   steps:
