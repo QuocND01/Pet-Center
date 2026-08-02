@@ -22,6 +22,7 @@ import '../models/available_slot_model.dart';
 import '../models/book_appointment_request.dart';
 import '../models/medical_record_model.dart';
 import '../models/voucher_model.dart';
+import '../models/appointment_model.dart';
 
 class ApiService {
   // Singleton pattern
@@ -39,10 +40,10 @@ class ApiService {
 
   static String get odataBaseUrl {
     if (!kIsWeb && Platform.isAndroid) {
-      return 'https://10.0.2.2:7004';
+      return 'http://10.0.2.2:5163';
     }
 
-    return 'https://localhost:7004';
+    return 'http://localhost:5163';
   }
 
   final http.Client _client = http.Client();
@@ -1378,6 +1379,99 @@ class ApiService {
     } else {
       throw Exception(body['message'] ?? 'Booking appointment failed (${response.statusCode}).');
     }
+  }
+
+  // 4. Lấy danh sách lịch hẹn của tôi
+  Future<List<AppointmentListModel>> getMyAppointments() async {
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/Appointment/my'),
+          headers: _getHeaders(),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final List<dynamic> data = body['data'] ?? [];
+      return data.map((x) => AppointmentListModel.fromJson(x)).toList();
+    } else {
+      throw Exception(body['message'] ?? 'Could not fetch appointments.');
+    }
+  }
+
+  // 5. Lấy chi tiết lịch hẹn
+  Future<AppointmentDetailModel> getAppointmentDetail(String appointmentId) async {
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/Appointment/$appointmentId'),
+          headers: _getHeaders(),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return AppointmentDetailModel.fromJson(body['data']);
+    } else {
+      throw Exception(body['message'] ?? 'Could not fetch appointment detail.');
+    }
+  }
+
+  // 6. Hủy lịch hẹn
+  Future<bool> cancelAppointment(String appointmentId) async {
+    final response = await _sendRequest(() => _client.put(
+          Uri.parse('$baseUrl/Appointment/$appointmentId/cancel'),
+          headers: _getHeaders(),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+    return body['status'] == true || body['success'] == true;
+  }
+
+  // 7. Đánh giá dịch vụ lịch hẹn
+  Future<bool> submitAppointmentReview(SubmitAppointmentReviewRequest request) async {
+    final response = await _sendRequest(() => _client.put(
+          Uri.parse('$baseUrl/Appointment/review'),
+          headers: _getHeaders(),
+          body: jsonEncode(request.toJson()),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+    return body['status'] == true || body['success'] == true;
+  }
+
+  // 8. Tạo link thanh toán online cho Lịch hẹn (VNPAY / MOMO)
+  Future<String?> createAppointmentPaymentUrl({
+    required String appointmentId,
+    required String paymentMethod,
+  }) async {
+    final response = await _sendRequest(() => _client.post(
+          Uri.parse('$baseUrl/Appointment/payment/create'),
+          headers: _getHeaders(),
+          body: jsonEncode({
+            'appointmentId': appointmentId,
+            'paymentMethod': paymentMethod,
+            'clientIpAddress': '127.0.0.1',
+          }),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+    if (body['status'] == true || body['success'] == true) {
+      final data = body['data'];
+      if (data != null) {
+        return data['paymentUrl'] ?? data['PaymentUrl'];
+      }
+    }
+    return null;
+  }
+
+  // 9. Cập nhật lịch hẹn giữ chỗ (Pending)
+  Future<bool> updateReservedAppointment(UpdateAppointmentRequest request) async {
+    final response = await _sendRequest(() => _client.put(
+          Uri.parse('$baseUrl/Appointment/update-reserved'),
+          headers: _getHeaders(),
+          body: jsonEncode(request.toJson()),
+        ));
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+    return body['status'] == true || body['success'] == true;
   }
 
   // ===Appoitnment Booking (BookingController)==================
