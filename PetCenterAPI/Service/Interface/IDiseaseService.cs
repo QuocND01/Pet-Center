@@ -1,4 +1,4 @@
-﻿using static PetCenterAPI.DTOs.Requests.DiseaseDTO;
+﻿using static PetCenterAPI.DTOs.Requests.Disease.DiseaseDTO;
 
 namespace PetCenterAPI.Service.Interface
 {

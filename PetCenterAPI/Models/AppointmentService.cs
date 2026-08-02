@@ -17,6 +17,7 @@ public partial class AppointmentService
 
     public int Duration { get; set; }
     public DateTime? CompleteAt { get; set; }
+
     public int? Status { get; set; }
     public int ServiceType { get; set; }
 

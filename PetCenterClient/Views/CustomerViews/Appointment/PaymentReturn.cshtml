@@ -3,7 +3,7 @@
     bool isSuccess = ViewBag.Success ?? false;
     string message = ViewBag.Message ?? "";
     Guid? appointmentId = ViewBag.AppointmentId;
-    string myAppointmentsUrl = "https://localhost:7010/Appointment/MyAppointments";
+    string myAppointmentsUrl = Url.Action("MyAppointments", "Appointment") ?? "/Appointment/MyAppointments";
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -50,17 +50,24 @@
                         <p class="text-muted small mb-4">@message</p>
 
                         <div class="p-3 rounded-3 bg-light-danger-box border-danger-dash mb-4 text-start small">
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="text-secondary fw-semibold"><i class="fas fa-exclamation-triangle text-danger me-1"></i> Status:</span>
                                 <span class="badge bg-danger text-white px-3 py-1 rounded-pill">Payment Unsuccessful</span>
                             </div>
+                            @if (appointmentId.HasValue)
+                            {
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-secondary fw-semibold"><i class="fas fa-hashtag text-danger me-1"></i> Appointment ID:</span>
+                                    <strong class="text-dark">@appointmentId.Value.ToString().ToUpper().Substring(0, 8)</strong>
+                                </div>
+                            }
                         </div>
                     }
 
                     <!-- AUTO REDIRECT TIMER -->
                     <div class="alert alert-light border rounded-3 p-2 mb-4 text-muted xsmall-text">
                         <i class="fas fa-spinner fa-spin text-success me-2"></i>
-                        Redirecting to <strong>My Appointments</strong> in <span id="countdown" class="fw-bold text-success fs-6">3</span> seconds...
+                        Redirecting to <strong>My Appointments</strong> in <span id="countdown" class="fw-bold text-success fs-6">5</span> seconds...
                     </div>
 
                     <!-- ACTION BUTTONS -->

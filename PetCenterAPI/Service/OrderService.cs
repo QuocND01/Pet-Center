@@ -78,7 +78,7 @@ namespace PetCenterAPI.Service
             var dto = new ReadOrderDetailDTO
             {
                 OrderId = order.OrderId,
-                OrderDate = order.OrderDate ?? DateTime.UtcNow,
+                OrderDate = order.OrderDate ?? DateTime.Now,
                 DeliveredDate = order.DeliveredDate,
                 TotalAmount = order.TotalAmount,
                 DiscountAmount = order.DiscountAmount,
@@ -123,7 +123,7 @@ namespace PetCenterAPI.Service
                 OrderId = o.OrderId,
                 CustomerName = o.Customer?.FullName ?? "Unknown",
                 PhoneNumber = o.Customer?.PhoneNumber ?? "N/A",
-                OrderDate = o.OrderDate ?? DateTime.UtcNow,
+                OrderDate = o.OrderDate ?? DateTime.Now,
                 TotalAmount = o.TotalAmount,
                 Status = o.Status,
                 PaymentMethod = o.PaymentMethod,
@@ -158,7 +158,7 @@ namespace PetCenterAPI.Service
                     OrderId = o.OrderId,
                     CustomerName = o.Customer?.FullName ?? "Unknown",
                     PhoneNumber = o.Customer?.PhoneNumber ?? "N/A",
-                    OrderDate = o.OrderDate ?? DateTime.UtcNow,
+                    OrderDate = o.OrderDate ?? DateTime.Now,
                     TotalAmount = o.TotalAmount,
                     Status = o.Status,
                     PaymentMethod = o.PaymentMethod,
@@ -196,7 +196,7 @@ namespace PetCenterAPI.Service
 
             // Cập nhật trạng thái đơn hàng
             order.Status = 0; // 0 = Cancelled
-            order.UpdateAt = DateTime.UtcNow;
+            order.UpdateAt = DateTime.Now;
 
             // Xử lý logic hoàn kho
             _logger.LogInformation($"Tiến hành hoàn trả số lượng cho {order.OrderDetails.Count} loại sản phẩm trong đơn hàng {orderId}");
@@ -207,7 +207,7 @@ namespace PetCenterAPI.Service
                 {
                     inventory.QuantityReserved -= detail.Quantity;
                     inventory.QuantityAvailable += detail.Quantity;
-                    inventory.LastUpdated = DateTime.UtcNow;
+                    inventory.LastUpdated = DateTime.Now;
                     _logger.LogInformation($"Đã hoàn {detail.Quantity} sản phẩm (Product ID: {detail.ProductId}) về kho Available.");
                 }
                 else
@@ -254,13 +254,13 @@ namespace PetCenterAPI.Service
 
             int oldStatus = order.Status;
             order.Status += 1;
-            order.UpdateAt = DateTime.UtcNow;
+            order.UpdateAt = DateTime.Now;
 
             // Ghi nhận thời gian giao hàng thành công NẾU trạng thái mới là Hoàn thành (4)
             if (order.Status == 4)
             {
                 _logger.LogInformation($"[AdvanceOrder] Đơn hàng {orderId} đã chuyển sang Hoàn thành (4). Cập nhật DeliveredDate.");
-                order.DeliveredDate = DateTime.UtcNow;
+                order.DeliveredDate = DateTime.Now;
                 // Khi hoàn thành đơn, đánh dấu thanh toán đã hoàn tất và lưu staff xử lý (nếu có)
                 try
                 {
@@ -359,7 +359,7 @@ namespace PetCenterAPI.Service
                             QuantityBefore = qtyBefore,  // Ví dụ: 20
                             QuantityAfter = qtyAfter,    // Ví dụ: 15 (Thỏa mãn: 15 = 20 + (-5))
 
-                            CreatedAt = DateTime.UtcNow,
+                            CreatedAt = DateTime.Now,
                             CreatedBy = testId,
                             ReferenceId = order.OrderId,
                             ReferenceType = ReferenceType.Order,     // Khớp CHECK constraint ('Order')
@@ -369,7 +369,7 @@ namespace PetCenterAPI.Service
                     }
 
                     // 4. Cập nhật thời gian update cuối cùng của Inventory tổng
-                    inventory.LastUpdated = DateTime.UtcNow;
+                    inventory.LastUpdated = DateTime.Now;
 
                     _logger.LogInformation($"Đã giải phóng và trừ lô thành công cho sản phẩm {detail.ProductId}");
                     await _invenTransactionRepository.SaveChange();

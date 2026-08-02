@@ -25,7 +25,6 @@ public partial class ImportStockDetail
 
     public DateOnly? ManufacturingDate { get; set; }
     public DateOnly? ExpiryDate { get; set; }
-    public bool IsPreferredForPickup { get; set; } = true;
     public DateTime CreatedAt { get; set; }
     public virtual ImportStock Import { get; set; } = null!;
 

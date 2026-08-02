@@ -15,7 +15,7 @@ using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
 using Xunit;
-using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Pet.PetRequestDTO;
 
 namespace PetCenterTestProject.PetTest
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PetCenterAPI.Services.Interfaces;
+using PetCenterAPI.Service.Interface;
 
 namespace PetCenterAPI.Controllers
 {

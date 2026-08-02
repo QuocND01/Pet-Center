@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PetCenterAPI.DTOs.Requests.Dashboard;
 using PetCenterAPI.Models;
-using PetCenterAPI.Repositories.Interfaces;
+using PetCenterAPI.Repository.Interface;
 
-namespace PetCenterAPI.Repositories
+namespace PetCenterAPI.Repository
 {
     public class AnalyticsRepository : IAnalyticsRepository
     {

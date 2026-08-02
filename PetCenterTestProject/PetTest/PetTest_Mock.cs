@@ -14,7 +14,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
-using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Pet.PetRequestDTO;
 
 namespace PetCenterTestProject.PetTest
 {

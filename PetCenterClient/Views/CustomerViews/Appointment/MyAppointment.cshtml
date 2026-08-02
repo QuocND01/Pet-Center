@@ -10,19 +10,55 @@
 
 <div class="appointment-container py-5" data-bs-theme="light">
     <div class="container">
+        <!-- PAGE HEADER --><div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
 
-        <!-- PAGE HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-            <div>
-                <h3 class="fw-bold text-dark m-0"><i class="fas fa-calendar-alt text-success me-2"></i>My Appointments</h3>
-                <p class="text-muted small m-0 mt-1">Manage and track your pet's healthcare schedules and activities.</p>
-            </div>
-            <a asp-controller="Appointment"
-               asp-action="Book"
-               class="btn btn-modern-success shadow-sm">
-                <i class="fas fa-plus me-2"></i>Book New Appointment
-            </a>
+        <div>
+
+            <h3 class="fw-bold text-dark m-0"><i class="fas fa-calendar-alt text-success me-2"></i>My Appointments</h3>
+
+            <p class="text-muted small m-0 mt-1">Manage and track your pet's healthcare schedules and activities.</p>
+
         </div>
+
+        <a asp-controller="Appointment"
+           asp-action="Book"
+           class="btn btn-modern-success shadow-sm">
+
+            <i class="fas fa-plus me-2"></i>Book New Appointment
+
+        </a>
+    </div>
+
+
+        <!-- BANNER NHẮC NHỞ THANH TOÁN (TIẾNG ANH) -->
+        @{
+            var pendingPayments = sortedAppointments.Where(a => a.Status == 1).ToList();
+        }
+
+        @if (pendingPayments.Any())
+        {
+            <div class="alert alert-warning border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between position-relative overflow-hidden" style="background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%); border-left: 5px solid #ffc107 !important;">
+                <div class="d-flex align-items-center me-3">
+                    <div class="rounded-circle bg-warning text-white p-3 me-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fas fa-exclamation-triangle fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">
+                            You have <span class="badge bg-danger rounded-pill">@pendingPayments.Count</span> pending payment(s)!
+                        </h6>
+                        <p class="text-secondary small mb-0">
+                            Please complete your payment to confirm your booking before it expires.
+                        </p>
+                    </div>
+                </div>
+                @if (pendingPayments.Count == 1)
+                {
+                    <a href="@Url.Action("Detail", "Appointment", new { id = pendingPayments.First().AppointmentId })" class="btn btn-warning text-dark fw-bold px-3 py-2 rounded-3 text-nowrap shadow-sm">
+                        <i class="fas fa-credit-card me-1"></i> Pay Now
+                    </a>
+                }
+            </div>
+        }
 
         <!-- TEMP_DATA ALERT NOTIFICATIONS -->
         @if (TempData["Success"] != null)
@@ -81,28 +117,37 @@
         {
             <!-- Khu vực chứa các cụm ngày được sinh ra tự động từ JS -->
             <div id="groupedAppointmentsContainer">
-                
+
                 <!-- Vòng lặp chứa dữ liệu gốc ẩn (Raw Data Pool) để JS bóc tách và phân cụm -->
                 <div id="rawAppointmentsPool" style="display: none !important;">
                     @foreach (var apt in sortedAppointments)
                     {
                         <!-- Lưu trữ thông tin ngày (yyyy-MM-dd) và ngày hiển thị (dd/MM/yyyy) làm metadata -->
-                        <div class="raw-appointment-item" 
-                             data-date-iso="@apt.AppointmentStart.ToString("yyyy-MM-dd")" 
+                        <div class="raw-appointment-item"
+                             data-date-iso="@apt.AppointmentStart.ToString("yyyy-MM-dd")"
                              data-date-display="@apt.AppointmentStart.ToString("dd/MM/yyyy")">
-                             
+
                             <div class="col-md-6 col-lg-4">
                                 <div class="appointment-card bg-white rounded-4 p-4 shadow-sm border position-relative d-flex flex-column h-100">
 
                                     <div class="position-absolute top-0 end-0 mt-3 me-3">
                                         @switch (apt.Status)
                                         {
-                                            case 1: <span class="badge badge-custom bg-warning-subtle text-warning"><i class="far fa-clock me-1"></i>Pending</span> break;
-                                            case 2: <span class="badge badge-custom bg-info-subtle text-info"><i class="fas fa-calendar-check me-1"></i>Confirmed</span> break;
-                                            case 3: <span class="badge badge-custom bg-primary-subtle text-primary"><i class="fas fa-spinner fa-spin me-1"></i>In Progress</span> break;
-                                            case 4: <span class="badge badge-custom bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Completed</span> break;
-                                            case 0: <span class="badge badge-custom bg-danger-subtle text-danger"><i class="fas fa-times-circle me-1"></i>Cancelled</span> break;
-                                            default: <span class="badge badge-custom bg-secondary-subtle text-secondary">Status (@apt.Status)</span> break;
+                                            case 1:
+                                                <span class="badge badge-custom bg-warning-subtle text-warning"><i class="far fa-clock me-1"></i>Reserved</span>
+                                                break;
+                                            case 2:
+                                                <span class="badge badge-custom bg-info-subtle text-info"><i class="fas fa-calendar-check me-1"></i>Confirmed</span>
+                                                break;
+                                            case 3:
+                                                <span class="badge badge-custom bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                                                break;
+                                            case 0:
+                                                <span class="badge badge-custom bg-danger-subtle text-danger"><i class="fas fa-times-circle me-1"></i>Cancelled</span>
+                                                break;
+                                            default:
+                                                <span class="badge badge-custom bg-secondary-subtle text-secondary">Status (@apt.Status)</span>
+                                                break;
                                         }
                                     </div>
 
@@ -179,12 +224,12 @@
         transition: all 0.3s ease;
     }
 
-    .btn-modern-success:hover {
-        background-color: var(--primary-green-hover);
-        color: var(--white);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
-    }
+        .btn-modern-success:hover {
+            background-color: var(--primary-green-hover);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
 
     /* ĐỊNH DẠNG KHỐI TIÊU ĐỀ GOM CỤM NGÀY ĐẸP */
     .date-group-section {
@@ -197,28 +242,28 @@
         margin-top: 1.5rem;
         margin-bottom: 1.25rem;
     }
-    
-    .date-group-header::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 4px;
-        bottom: 4px;
-        width: 4px;
-        background-color: var(--primary-green);
-        border-radius: 2px;
-    }
+
+        .date-group-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            bottom: 4px;
+            width: 4px;
+            background-color: var(--primary-green);
+            border-radius: 2px;
+        }
 
     .appointment-card {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         border-color: var(--border-color) !important;
     }
 
-    .appointment-card:hover {
-        transform: translateY(-4px);
-        border-color: var(--primary-green) !important;
-        box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.12) !important;
-    }
+        .appointment-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-green) !important;
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.12) !important;
+        }
 
     .badge-custom {
         padding: 6px 12px;
@@ -227,11 +272,25 @@
         font-size: 11px;
     }
 
-    .bg-warning-subtle { background-color: #fffbeb; }
-    .bg-info-subtle { background-color: #f0f9ff; }
-    .bg-primary-subtle { background-color: #eff6ff; }
-    .bg-success-subtle { background-color: #f0fdf4; }
-    .bg-danger-subtle { background-color: #fef2f2; }
+    .bg-warning-subtle {
+        background-color: #fffbeb;
+    }
+
+    .bg-info-subtle {
+        background-color: #f0f9ff;
+    }
+
+    .bg-primary-subtle {
+        background-color: #eff6ff;
+    }
+
+    .bg-success-subtle {
+        background-color: #f0fdf4;
+    }
+
+    .bg-danger-subtle {
+        background-color: #fef2f2;
+    }
 
     /* FILTERS PILLS STYLE */
     .btn-filter-pill {
@@ -242,11 +301,12 @@
         font-size: 13px;
         transition: all 0.2s ease;
     }
-    .btn-filter-pill:hover, .btn-filter-pill.active {
-        background-color: var(--light-green-bg);
-        border-color: var(--primary-green);
-        color: var(--primary-green);
-    }
+
+        .btn-filter-pill:hover, .btn-filter-pill.active {
+            background-color: var(--light-green-bg);
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+        }
 
     .btn-outline-modern {
         border: 2px solid var(--border-color);
@@ -255,27 +315,35 @@
         transition: all 0.2s ease;
     }
 
-    .btn-outline-modern:hover {
-        border-color: var(--primary-green);
-        background-color: var(--light-green-bg);
-        color: var(--primary-green);
+        .btn-outline-modern:hover {
+            border-color: var(--primary-green);
+            background-color: var(--light-green-bg);
+            color: var(--primary-green);
+        }
+
+    .fw-black {
+        font-weight: 900;
     }
 
-    .fw-black { font-weight: 900; }
-    .text-dark-theme { color: var(--dark-theme); }
-    .xsmall-text { font-size: 11px; }
+    .text-dark-theme {
+        color: var(--dark-theme);
+    }
+
+    .xsmall-text {
+        font-size: 11px;
+    }
 </style>
 
 <!-- CLIENT-SIDE DOM MANIPULATION FILTER SCRIPT -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const searchDateInput = document.getElementById("searchDateInput");
         const btnFilterToday = document.getElementById("btnFilterToday");
         const btnFilterAll = document.getElementById("btnFilterAll");
         const btnResetSearch = document.getElementById("btnResetSearch");
         const groupedContainer = document.getElementById("groupedAppointmentsContainer");
         const noResultsScreen = document.getElementById("noResultsScreen");
-        
+
         // Trích xuất danh sách DOM gốc từ Pool ẩn
         const rawItems = Array.from(document.querySelectorAll(".raw-appointment-item"));
 
@@ -354,19 +422,19 @@
         }
 
         // --- LẮNG NGHE SỰ KIỆN TƯƠNG TÁC ---
-        searchDateInput.addEventListener("change", function () {
+        searchDateInput.addEventListener("change", function() {
             filterAndGroupAppointments('today');
         });
 
-        btnFilterToday.addEventListener("click", function () {
+        btnFilterToday.addEventListener("click", function() {
             filterAndGroupAppointments('today');
         });
 
-        btnFilterAll.addEventListener("click", function () {
+        btnFilterAll.addEventListener("click", function() {
             filterAndGroupAppointments('all');
         });
 
-        btnResetSearch.addEventListener("click", function () {
+        btnResetSearch.addEventListener("click", function() {
             filterAndGroupAppointments('all');
         });
 

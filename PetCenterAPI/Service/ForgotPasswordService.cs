@@ -52,14 +52,14 @@ namespace PetCenterAPI.Service
                     OtpId = Guid.NewGuid(),
                     CustomerId = customer.CustomerId,
                     PasswordResetToken = tokenHash,
-                    PasswordResetExpire = DateTime.UtcNow.AddMinutes(15)
+                    PasswordResetExpire = DateTime.Now.AddMinutes(15)
                 };
                 await _customerRepository.AddOtpAsync(otp);
             }
             else
             {
                 otp.PasswordResetToken = tokenHash;
-                otp.PasswordResetExpire = DateTime.UtcNow.AddMinutes(15);
+                otp.PasswordResetExpire = DateTime.Now.AddMinutes(15);
                 await _customerRepository.UpdateOtpAsync(otp);
             }
 
@@ -90,7 +90,7 @@ namespace PetCenterAPI.Service
             if (otp == null || string.IsNullOrEmpty(otp.PasswordResetToken) || otp.PasswordResetExpire == null)
                 return (false, "Invalid or expired reset link.");
 
-            if (otp.PasswordResetExpire < DateTime.UtcNow)
+            if (otp.PasswordResetExpire < DateTime.Now)
                 return (false, "This reset link has expired. Please request a new one.");
 
             if (!_passwordService.Verify(token, otp.PasswordResetToken))
@@ -112,7 +112,7 @@ namespace PetCenterAPI.Service
             if (customer == null) return (false, "Invalid or expired reset link.");
 
             customer.PasswordHash = _passwordService.Hash(newPassword);
-            customer.UpdatedAt = DateTime.UtcNow;
+            customer.UpdatedAt = DateTime.Now;
             await _customerRepository.UpdateAsync(customer);
 
             var otp = await _customerRepository.GetOtpByCustomerIdAsync(customer.CustomerId);

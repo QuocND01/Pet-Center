@@ -1,6 +1,6 @@
-﻿using PetCenterAPI.Models;
+﻿using PetCenterAPI.DTOs.Requests.Dashboard;
 
-namespace PetCenterAPI.Services.Interfaces
+namespace PetCenterAPI.Service.Interface
 {
     public interface IAnalyticsService
     {

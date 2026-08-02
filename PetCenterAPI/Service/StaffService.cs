@@ -114,7 +114,7 @@ namespace PetCenterAPI.Service
             if (CalculateAge(request.BirthDate) < MinimumStaffAge)
                 return (false, $"Staff must be at least {MinimumStaffAge} years old.", null);
 
-            if (request.HireDate.Date > DateTime.UtcNow.Date)
+            if (request.HireDate.Date > DateTime.Now.Date)
                 return (false, "Hire date cannot be in the future.", null);
 
             bool isVet = IsVeterinarian(role);
@@ -152,7 +152,7 @@ namespace PetCenterAPI.Service
                 Avatar = avatarUrl,
                 PublicId = publicId,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             staff.Roles.Add(role);
@@ -200,7 +200,7 @@ namespace PetCenterAPI.Service
             if (CalculateAge(request.BirthDate) < MinimumStaffAge)
                 return (false, $"Staff must be at least {MinimumStaffAge} years old.");
 
-            if (request.HireDate.Date > DateTime.UtcNow.Date)
+            if (request.HireDate.Date > DateTime.Now.Date)
                 return (false, "Hire date cannot be in the future.");
 
             staff.FullName = NormalizeFullName(request.FullName);
@@ -209,7 +209,7 @@ namespace PetCenterAPI.Service
             staff.Gender = request.Gender;
             staff.BirthDate = request.BirthDate;
             staff.HireDate = request.HireDate;
-            staff.UpdatedAt = DateTime.UtcNow;
+            staff.UpdatedAt = DateTime.Now;
 
             if (request.Avatar is { Length: > 0 })
             {
@@ -274,7 +274,7 @@ namespace PetCenterAPI.Service
                 return (false, "Staff is already inactive.");
 
             staff.IsActive = false;
-            staff.UpdatedAt = DateTime.UtcNow;
+            staff.UpdatedAt = DateTime.Now;
 
             await _staffRepository.SaveChangesAsync();
             return (true, "Staff deactivated successfully.");
@@ -309,7 +309,7 @@ namespace PetCenterAPI.Service
 
         private static int CalculateAge(DateTime birthDate)
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
             var age = today.Year - birthDate.Year;
             if (birthDate.Date > today.AddYears(-age)) age--;
             return age;

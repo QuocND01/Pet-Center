@@ -8,10 +8,8 @@ public partial class Inventory
     public Guid InventoryId { get; set; }
     public Guid ProductId { get; set; }
     public string SKU { get; set; } = null!;
-
     public int QuantityAvailable { get; set; }
     public int QuantityReserved { get; set; }
-    public int QuantityDamaged { get; set; }   // new
     public DateTime LastUpdated { get; set; }
     public Guid? UpdatedBy { get; set; }        // new
 

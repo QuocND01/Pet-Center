@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PetCenterAPI.DTOs.Requests
+namespace PetCenterAPI.DTOs.Requests.Disease
 {
     public class DiseaseDTO
     {

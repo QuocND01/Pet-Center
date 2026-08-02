@@ -128,7 +128,7 @@
                         <td>@item.SKU</td>
                         <td><span class="stock-badge available">@item.QuantityAvailable</span></td>
                         <td><span class="stock-badge reserved">@item.QuantityReserved</span></td>
-                        <td><span class="stock-badge damaged">@item.QuantityDamaged</span></td>
+                        
                         <td>@item.LastUpdated.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>
                             <a asp-action="Details" asp-route-id="@item.InventoryId" class="btn-view">

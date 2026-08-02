@@ -29,6 +29,7 @@ namespace PetCenterTestProject.InventoryTest
             _service = new InventoryService(
                 _repositoryMock.Object,
                 _mapperMock.Object
+                
             );
         }
 

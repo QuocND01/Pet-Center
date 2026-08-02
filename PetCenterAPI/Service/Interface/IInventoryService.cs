@@ -9,5 +9,9 @@ namespace PetCenterAPI.Service.Interface
             InventoryQueryRequestDTO request);
 
         Task<InventoryDetailResponseDTO?> GetByIdAsync(Guid inventoryId);
+        Task<IEnumerable<InventoryReportDto>> GetInventorySummaryAsync();
+        Task<IEnumerable<BatchExpiryReportDto>> GetBatchExpiryReportAsync();
+        Task ProcessExpiredBatchesAsync(CancellationToken cancellationToken = default);
+        Task<byte[]> GenerateInventoryExcelReportAsync();
     }
 }

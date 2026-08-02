@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
-using PetCenterAPI.DTOs.Requests.Pet;
 
-namespace PetCenterAPI.DTOs.Requests.CustomerProfile
+namespace PetCenterAPI.DTOs.Requests.Pet
 {
     public class PetRequestDTO
     {

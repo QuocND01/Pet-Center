@@ -1,7 +1,7 @@
 ﻿using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
-using static PetCenterAPI.DTOs.Requests.DiseaseDTO;
+using static PetCenterAPI.DTOs.Requests.Disease.DiseaseDTO;
 
 namespace PetCenterAPI.Service
 {
@@ -61,7 +61,7 @@ namespace PetCenterAPI.Service
                 Species = dto.Species,
                 IsActive = true,
                 IsSystem = false, // User thêm vào mặc định không phải hệ thống
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             await _diseaseRepo.AddDiseaseAsync(disease);
@@ -81,7 +81,7 @@ namespace PetCenterAPI.Service
             disease.Description = dto.Description;
             disease.Recommendation = dto.Recommendation;
             disease.Species = dto.Species;
-            disease.UpdatedAt = DateTime.UtcNow;
+            disease.UpdatedAt = DateTime.Now;
 
             await _diseaseRepo.UpdateDiseaseAsync(disease);
             await _diseaseRepo.SaveAsync();
@@ -97,7 +97,7 @@ namespace PetCenterAPI.Service
             if (disease.IsSystem) throw new Exception("Cannot delete system default diseases.");
 
             disease.IsActive = false; // Xóa mềm
-            disease.UpdatedAt = DateTime.UtcNow;
+            disease.UpdatedAt = DateTime.Now;
 
             await _diseaseRepo.UpdateDiseaseAsync(disease);
             await _diseaseRepo.SaveAsync();

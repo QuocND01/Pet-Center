@@ -5,9 +5,9 @@ using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
 using static PetCenterAPI.DTOs.Requests.Product.ProductRequestDTO;
 using static PetCenterAPI.DTOs.Requests.Service.ServiceRequestDTO;
 using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
-using static PetCenterAPI.DTOs.Requests.DiseaseDTO;
-using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
-using static PetCenterAPI.DTOs.Requests.VetPetRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Disease.DiseaseDTO;
+using static PetCenterAPI.DTOs.Requests.Pet.PetRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Pet.VetPetRequestDTO;
 
 namespace PetCenterAPI.Odata
 {

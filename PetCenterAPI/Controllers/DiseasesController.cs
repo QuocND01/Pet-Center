@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using PetCenterAPI.Service.Interface;
-using static PetCenterAPI.DTOs.Requests.DiseaseDTO;
+using static PetCenterAPI.DTOs.Requests.Disease.DiseaseDTO;
 
 namespace PetCenterAPI.Controllers
 {

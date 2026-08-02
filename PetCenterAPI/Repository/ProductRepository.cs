@@ -52,7 +52,7 @@ namespace PetCenterAPI.Repository
                 ProductId = product.ProductId,
                 SKU = SkuGenerator.Generate(product),
                 QuantityAvailable = 0,
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = DateTime.Now
             };
 
             product.Inventory = inventory;

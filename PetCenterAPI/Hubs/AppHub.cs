@@ -126,7 +126,7 @@ namespace PetCenterAPI.Hubs
                     SenderId = customerId,
                     ReceiverId = assignedStaffId,
                     Content = content,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
                     IsRead = false
                 };
                 _db.ChatMessages.Add(chatMsg);
@@ -151,7 +151,7 @@ namespace PetCenterAPI.Hubs
                 SenderId = staffId,
                 ReceiverId = customerId,
                 Content = content,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 IsRead = false
             };
             _db.ChatMessages.Add(chatMsg);

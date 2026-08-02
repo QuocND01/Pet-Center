@@ -24,6 +24,7 @@ namespace PetCenterAPI.Service.Interface
         Task<PaymentCallbackResponseDTO> ProcessVnPayCallbackAsync(IQueryCollection query);
         Task<PaymentCallbackResponseDTO> ProcessMoMoCallbackAsync(JsonElement body, string rawBody, string signature);
         Task<AppointmentResponseDTO> UpdateReservedAppointmentAsync(UpdateAppointmentRequestDTO request, Guid customerId);
+        Task ProcessExpiredAppointmentsAsync(CancellationToken cancellationToken = default);
 
     }
 }

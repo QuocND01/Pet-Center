@@ -115,7 +115,7 @@ namespace PetCenterAPI.Service
                 Diagnosis = dto.Diagnosis,
                 Treatment = dto.Treatment,
                 Note = dto.Note,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
                 Status = (int)MedicalRecordStatus.Drafted
             };
 
