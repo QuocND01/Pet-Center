@@ -42,6 +42,7 @@ namespace PetCenterAPI.Repository.Interface
         Task<GlobalWorkSchedule?> GetGlobalScheduleAsync(DayOfWeek dayOfWeek);
 
         Task<bool> IsTimeConflictAsync(Guid staffId, DateTime appointmentStart, DateTime appointmentEnd);
+        Task<int> GetActiveAppointmentsCountByCustomerAsync(Guid customerId);
 
         // ==================== COMMAND / PERSISTENCE ====================
         Task<Appointment> CreateAppointmentAsync(Appointment appointment);

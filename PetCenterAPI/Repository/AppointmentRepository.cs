@@ -49,7 +49,18 @@ namespace PetCenterAPI.Repository
                 && x.Status != 0
             );
         }
-
+        public async Task<int> GetActiveAppointmentsCountByCustomerAsync(Guid customerId)
+        {
+            // Các trạng thái được tính là lịch hẹn đang hoạt động/chờ xử lý:
+            // Status 1: Reserved / Pending
+            // Status 2: Confirmed / Paid
+            // Status 3: In Progress
+            // (Bỏ qua Status 0: Cancelled, 4: Completed, 5: Expired)
+            return await _context.Appointments
+                .CountAsync(a => a.CustomerId == customerId
+                              && (a.Status == 1 || a.Status == 2 || a.Status == 3)
+                              && a.AppointmentStart > DateTime.Now);
+        }
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
             var entry = await _context.Appointments.AddAsync(appointment);
