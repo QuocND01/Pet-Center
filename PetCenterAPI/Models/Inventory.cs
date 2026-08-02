@@ -11,7 +11,6 @@ public partial class Inventory
 
     public int QuantityAvailable { get; set; }
     public int QuantityReserved { get; set; }
-    public int QuantityDamaged { get; set; }   // new
     public DateTime LastUpdated { get; set; }
     public Guid? UpdatedBy { get; set; }        // new
 

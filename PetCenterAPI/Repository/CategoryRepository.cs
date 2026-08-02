@@ -32,15 +32,17 @@ namespace PetCenterAPI.Repository
         }
 
         public async Task ChangeCategoryStatusAsync(
-      Guid id,
-      Status status)
+       Guid id,
+       Status status)
         {
-            await _db.Categories
-                .Where(c => c.CategoryId == id)
-                .ExecuteUpdateAsync(s =>
-                    s.SetProperty(c => c.Status, status));
+            var category = await _db.Categories
+                .FirstOrDefaultAsync(c => c.CategoryId == id);
 
-            // inactive/deleted => disable attributes
+            if (category == null)
+                return;
+
+            category.Status = status;
+
             if (status == Status.Deleted)
             {
                 await _db.CategoryAttributes
@@ -48,6 +50,8 @@ namespace PetCenterAPI.Repository
                     .ExecuteUpdateAsync(s =>
                         s.SetProperty(a => a.IsActive, false));
             }
+
+            await _db.SaveChangesAsync();
         }
 
         public IQueryable<Category> GetAllCategory()

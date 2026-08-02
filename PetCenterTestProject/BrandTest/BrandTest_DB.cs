@@ -19,7 +19,7 @@ using static PetCenterAPI.DTOs.Responses.Brand.BrandResposeDTO;
 
 namespace PetCenterTestProject.BrandTest
 {
-    public class BrandTest_DB
+    public class BrandTest_DB : IAsyncLifetime
     {
         //=========================================================
         // Mock external service only
@@ -1646,6 +1646,20 @@ namespace PetCenterTestProject.BrandTest
 
             // Assert
             Assert.Equal("Service Temporarily Unavailable", ex.Message);
+        }
+
+
+
+        public Task InitializeAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task DisposeAsync()
+        {
+            await using var context = CreateContext();
+
+            await ClearDatabaseAsync(context);
         }
     }
 }

@@ -142,7 +142,6 @@ namespace PetCenterAPI.Service
 
                         QuantityAvailable = 0,
                         QuantityReserved = 0,
-                        QuantityDamaged = 0,
 
                         LastUpdated = DateTime.UtcNow,
                         UpdatedBy = staffId
