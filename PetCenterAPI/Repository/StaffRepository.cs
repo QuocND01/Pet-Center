@@ -10,7 +10,7 @@ namespace PetCenterAPI.Repository
 
         /// <summary>Role names that can be assigned to a staff member (Admin excluded).</summary>
         private static readonly string[] AssignableRoleNames =
-            { "Sales", "Inventories", "Veterinarian", "Groomer" };
+            { "Sale Staff", "Inventory Staff", "Vet", "vet", "Veterinarian", "Groomer", "Sales", "Inventories" };
 
         public StaffRepository(PetCenterContext context)
         {
@@ -72,10 +72,14 @@ namespace PetCenterAPI.Repository
         // ============================================================
         public async Task<List<Role>> GetAssignableRolesAsync()
         {
-            return await _context.Roles
-                .Where(r => r.IsActive && AssignableRoleNames.Contains(r.RoleName))
-                .OrderBy(r => r.RoleName)
+            var roles = await _context.Roles
+                .Where(r => r.IsActive)
                 .ToListAsync();
+
+            return roles
+                .Where(r => AssignableRoleNames.Any(name => name.Equals(r.RoleName.Trim(), StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(r => r.RoleName)
+                .ToList();
         }
 
         public async Task<Role?> GetRoleByIdAsync(Guid roleId)

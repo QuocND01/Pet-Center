@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using PetCenterAPI.DTOs.Requests.ManageStaff;
+using PetCenterAPI.Hubs;
 using PetCenterAPI.Service.Interface;
 
 namespace PetCenterAPI.Controllers
@@ -11,10 +13,12 @@ namespace PetCenterAPI.Controllers
     public class StaffsController : ControllerBase
     {
         private readonly IStaffService _staffService;
+        private readonly IHubContext<AppHub> _hubContext;
 
-        public StaffsController(IStaffService staffService)
+        public StaffsController(IStaffService staffService, IHubContext<AppHub> hubContext)
         {
             _staffService = staffService;
+            _hubContext = hubContext;
         }
 
         // ============================================================
@@ -100,6 +104,18 @@ namespace PetCenterAPI.Controllers
                     ? NotFound(new { success = false, message })
                     : BadRequest(new { success = false, message });
             }
+
+            var payload = new
+            {
+                staffId = id.ToString().ToLower(),
+                userId = id.ToString().ToLower(),
+                message = "Your staff account has been deactivated by an administrator.",
+                reason = "Account Status Deactivated",
+                timestamp = DateTime.UtcNow
+            };
+
+            await _hubContext.Clients.User(id.ToString()).SendAsync("AccountDeactivated", payload);
+            await _hubContext.Clients.Group(id.ToString().ToLower()).SendAsync("AccountDeactivated", payload);
 
             return Ok(new { success = true, message });
         }

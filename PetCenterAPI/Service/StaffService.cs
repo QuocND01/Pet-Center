@@ -298,6 +298,7 @@ namespace PetCenterAPI.Service
         }
 
         private static bool IsVeterinarian(Role role) =>
+            string.Equals(role.RoleName, "Vet", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(role.RoleName, VeterinarianRoleName, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>Prefer an assignable (non-Admin) role; fall back to the first one.</summary>
