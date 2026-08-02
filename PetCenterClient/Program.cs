@@ -1,16 +1,20 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using PetCenterClient.DependencyInjection;
 using PetCenterClient.ViewModels.Login;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
-                 optional: true,
-                 reloadOnChange: true);
-
+    .AddJsonFile(
+        $"appsettings.{builder.Environment.EnvironmentName}.json",
+        optional: true,
+        reloadOnChange: true);
 
 var apiUrl = builder.Configuration["Api:url"];
+
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddApplicationHttpClients(apiUrl);
 
 builder.Services.Configure<GoogleClientViewModel>(
@@ -23,14 +27,25 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Lax; // quan trọng cho Google OAuth popup
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
+
+builder.Services.AddAuthentication(
+    CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+    });
+
 builder.Services.AddAuthorization();
+
 builder.Services.AddControllersWithViews(options =>
 {
-    //options.Filters.Add<ApiExceptionFilter>();
+    // options.Filters.Add<ApiExceptionFilter>();
 });
-builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -40,10 +55,19 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-if (!app.Environment.IsEnvironment("Docker")) { app.UseHttpsRedirection(); }
+if (!app.Environment.IsEnvironment("Docker"))
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseSession();
+
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(

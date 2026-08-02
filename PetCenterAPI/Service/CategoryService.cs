@@ -58,10 +58,12 @@ namespace PetCenterAPI.Service
 
                 // Kiểm tra trùng
                 var duplicate = createCategory.Attributes
-                    .GroupBy(x => x.AttributeName.ToLowerInvariant())
-                    .Where(g => g.Count() > 1)
-                    .Select(g => g.Key)
-                    .ToList();
+                .GroupBy(
+                     x => x.AttributeName,
+                    StringComparer.OrdinalIgnoreCase)
+                     .Where(g => g.Count() > 1)
+                     .Select(g => g.First().AttributeName)
+                     .ToList();
 
                 if (duplicate.Any())
                 {
@@ -169,13 +171,27 @@ namespace PetCenterAPI.Service
 
         public async Task<ReadCategoryDTO?> GetCategoryByIdAsync(Guid id)
         {
+            try
+            {
+                var category = await _categoryRepository.GetCategoryByIdAsync(id);
 
-            var category = await _categoryRepository.GetCategoryByIdAsync(id);
+                if (category == null)
+                {
+                    throw new KeyNotFoundException("Category not found");
+                }
 
-            if (category == null)
-                throw new KeyNotFoundException("Category not found");
-
-            return _mapper.Map<ReadCategoryDTO>(category);
+                return _mapper.Map<ReadCategoryDTO>(category);
+            }
+            catch (KeyNotFoundException)
+            {
+                // Giữ nguyên lỗi Category not found
+                throw;
+            }
+            catch (Exception)
+            {
+                // Chuyển lỗi từ Repository/Database thành lỗi Service
+                throw new Exception("Service Temporarily Unavailable");
+            }
         }
 
         public async Task UpdateCategoryAsync(Guid id, UpdateCategoryDTO category)
@@ -269,4 +285,4 @@ namespace PetCenterAPI.Service
             await _categoryRepository.UpdateCategoryAsync(existingCategory);
         }
     }
-    }
+}

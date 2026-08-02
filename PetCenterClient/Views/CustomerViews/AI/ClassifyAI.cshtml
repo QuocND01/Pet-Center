@@ -888,9 +888,12 @@
                     <div>
 
                         <div class="result-image">
-
-                            <img id="resultImage" style="display:none;" />
-
+                            @if (!string.IsNullOrEmpty(Model?.UploadedImageUrl))
+                            {
+                                <img id="resultImage"
+                                     src="@Model.UploadedImageUrl"
+                                     style="display:block;" />
+                            }
                         </div>
 
                     </div>
@@ -1266,17 +1269,6 @@
         fileInfo.style.display = "block";
         fileName.innerText = file.name;
         fileSize.innerText = (file.size / 1024 / 1024).toFixed(2) + " MB";
-
-        // Save image temporarily
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-
-            sessionStorage.setItem("predictImage", e.target.result);
-
-        };
-
-        reader.readAsDataURL(file);
     }
 
 
@@ -1293,27 +1285,6 @@
         document.getElementById("loadingBox").style.display = "block";
 
     });
-
-
-    /* ============================================================
-       DISPLAY UPLOADED IMAGE AFTER PAGE RELOADS
-       (After AI prediction)
-    ============================================================ */
-
-    const savedImage = sessionStorage.getItem("predictImage");
-
-    if (savedImage) {
-
-        const resultImage = document.getElementById("resultImage");
-
-        if (resultImage) {
-
-            resultImage.src = savedImage;
-            resultImage.style.display = "block";
-
-        }
-    }
-
 
     /* ============================================================
        OPEN CREATE MEDICAL RECORD MODAL

@@ -26,38 +26,34 @@ namespace PetCenterAPI.Repository
         }
 
         public async Task ChangeServiceStatusAsync(
-     Guid id,
-     Status status,
-     bool hardDeleteImages = false)
+       Guid id,
+       Status status,
+       bool hardDeleteImages = false)
         {
-            var Service = await _db.Services
-                .Include(p => p.ServiceImages)
-                .FirstOrDefaultAsync(x => x.ServiceId == id);
+            var service = await _db.Services
+                .Include(s => s.ServiceImages)
+                .FirstOrDefaultAsync(s => s.ServiceId == id);
 
-            if (Service == null)
+            if (service == null)
                 throw new Exception("Service not found");
 
-            await _db.Services
-                .Where(p => p.ServiceId == id)
-                .ExecuteUpdateAsync(s =>
-                    s.SetProperty(p => p.Status, status));
+            service.Status = status;
 
             if (status == Status.Deleted)
             {
-                var imageIds = Service.ServiceImages
+                var imageIds = service.ServiceImages
                     .Select(i => i.ImageId)
                     .ToList();
 
-                if (!imageIds.Any())
-                    return;
-
-                if (hardDeleteImages)
+                if (hardDeleteImages && imageIds.Any())
                 {
                     await _db.ServiceImages
                         .Where(i => imageIds.Contains(i.ImageId))
                         .ExecuteDeleteAsync();
                 }
             }
+
+            await _db.SaveChangesAsync();
         }
 
         public IQueryable<Models.Service> GetAllService()

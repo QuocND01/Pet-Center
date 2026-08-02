@@ -30,6 +30,26 @@ namespace PetCenterClient.Controllers
                 return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml");
             }
 
+            // Tạo thư mục uploads/temp nếu chưa có
+            var uploadFolder = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "uploads",
+                "temp");
+
+            Directory.CreateDirectory(uploadFolder);
+
+            // Tạo tên file duy nhất
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+            var filePath = Path.Combine(uploadFolder, fileName);
+
+            // Lưu file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(stream);
+            }
+
+            // Gọi AI
             var result = await _aIClassifyService.ClassifyAsync(image);
 
             if (result == null)
@@ -37,6 +57,9 @@ namespace PetCenterClient.Controllers
                 ModelState.AddModelError("", "Unable to classify image.");
                 return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml");
             }
+
+            // Trả đường dẫn ảnh về View
+            result.UploadedImageUrl = $"/uploads/temp/{fileName}";
 
             return View("~/Views/CustomerViews/AI/ClassifyAI.cshtml", result);
         }
