@@ -79,7 +79,7 @@ namespace PetCenterAPI.Controllers
                     customerId = id.ToString().ToLower(),
                     message = "Your account has been deactivated by an administrator.",
                     reason = "Account Status Deactivated",
-                    timestamp = DateTime.UtcNow
+                    timestamp = DateTime.Now
                 };
 
                 // Gửi đến đúng user bị block (theo UserId claim trong JWT)

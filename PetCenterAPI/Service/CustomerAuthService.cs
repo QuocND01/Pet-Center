@@ -93,8 +93,8 @@ namespace PetCenterAPI.Service
                 Gender = request.Gender ?? "",
                 IsVerified = false,
                 IsActive = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
             await _customerRepository.AddAsync(customer);
 
@@ -104,8 +104,8 @@ namespace PetCenterAPI.Service
                 OtpId = Guid.NewGuid(),
                 CustomerId = customer.CustomerId,
                 VerificationCode = code,
-                VerificationExpire = DateTime.UtcNow.AddMinutes(5),
-                LastOtpSentAt = DateTime.UtcNow,
+                VerificationExpire = DateTime.Now.AddMinutes(5),
+                LastOtpSentAt = DateTime.Now,
                 OtpAttemptCount = 0
             };
             await _customerRepository.AddOtpAsync(otp);
@@ -134,7 +134,7 @@ namespace PetCenterAPI.Service
             if (otp.OtpAttemptCount >= 5)
                 return (false, "Too many incorrect attempts. Please register again.");
 
-            if (otp.VerificationExpire < DateTime.UtcNow)
+            if (otp.VerificationExpire < DateTime.Now)
                 return (false, "Verification code expired. Please resend OTP.");
 
             if (otp.VerificationCode != request.Code)
@@ -146,7 +146,7 @@ namespace PetCenterAPI.Service
 
             customer.IsVerified = true;
             customer.IsActive = true;
-            customer.UpdatedAt = DateTime.UtcNow;
+            customer.UpdatedAt = DateTime.Now;
             await _customerRepository.UpdateAsync(customer);
 
             await _customerRepository.DeleteOtpAsync(otp);
@@ -169,9 +169,9 @@ namespace PetCenterAPI.Service
             var otp = await _customerRepository.GetOtpByCustomerIdAsync(customer.CustomerId);
 
             if (otp?.LastOtpSentAt.HasValue == true &&
-                (DateTime.UtcNow - otp.LastOtpSentAt.Value).TotalSeconds < 30)
+                (DateTime.Now - otp.LastOtpSentAt.Value).TotalSeconds < 30)
             {
-                var wait = 30 - (int)(DateTime.UtcNow - otp.LastOtpSentAt.Value).TotalSeconds;
+                var wait = 30 - (int)(DateTime.Now - otp.LastOtpSentAt.Value).TotalSeconds;
                 return (false, $"Please wait {wait} seconds before resending.");
             }
 
@@ -184,8 +184,8 @@ namespace PetCenterAPI.Service
                     OtpId = Guid.NewGuid(),
                     CustomerId = customer.CustomerId,
                     VerificationCode = newCode,
-                    VerificationExpire = DateTime.UtcNow.AddMinutes(5),
-                    LastOtpSentAt = DateTime.UtcNow,
+                    VerificationExpire = DateTime.Now.AddMinutes(5),
+                    LastOtpSentAt = DateTime.Now,
                     OtpAttemptCount = 0
                 };
                 await _customerRepository.AddOtpAsync(otp);
@@ -193,8 +193,8 @@ namespace PetCenterAPI.Service
             else
             {
                 otp.VerificationCode = newCode;
-                otp.VerificationExpire = DateTime.UtcNow.AddMinutes(5);
-                otp.LastOtpSentAt = DateTime.UtcNow;
+                otp.VerificationExpire = DateTime.Now.AddMinutes(5);
+                otp.LastOtpSentAt = DateTime.Now;
                 otp.OtpAttemptCount = 0;
                 await _customerRepository.UpdateOtpAsync(otp);
             }
@@ -218,7 +218,7 @@ namespace PetCenterAPI.Service
                 return (false, "Current password is incorrect.");
 
             customer.PasswordHash = _passwordService.Hash(request.NewPassword);
-            customer.UpdatedAt = DateTime.UtcNow;
+            customer.UpdatedAt = DateTime.Now;
             await _customerRepository.UpdateAsync(customer);
 
             return (true, "Password changed successfully.");

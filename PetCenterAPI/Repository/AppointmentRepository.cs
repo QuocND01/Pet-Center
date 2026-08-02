@@ -177,5 +177,25 @@ namespace PetCenterAPI.Repository
                             && a.AppointmentStart < end
                             && a.AppointmentEnd > start);
         }
+        public async Task<int> UpdateExpiredAppointmentsAsync(CancellationToken cancellationToken = default)
+        {
+            var nowUtc = DateTime.Now;
+
+            var expiredAppointments = await _context.Appointments
+                .Where(a => a.Status == 1 // 1: Reserved
+                         && a.ReservedUntil.HasValue
+                         && a.ReservedUntil.Value <= nowUtc)
+                .ToListAsync(cancellationToken);
+
+            if (!expiredAppointments.Any()) return 0;
+
+            foreach (var app in expiredAppointments)
+            {
+                app.Status = 5; // 5: Expired
+                app.UpdatedAt = nowUtc;
+            }
+
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

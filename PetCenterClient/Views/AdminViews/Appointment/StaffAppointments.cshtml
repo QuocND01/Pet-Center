@@ -4,6 +4,7 @@
     ViewData["Title"] = "Staff Console - Appointments";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 <style>
@@ -20,6 +21,7 @@
         display: inline-block;
     }
 
+    /* Standardized 4-State Badges (0-3) */
     .badge-status-0 {
         background-color: #ffe5e5;
         color: #cc0000;
@@ -36,11 +38,6 @@
     }
 
     .badge-status-3 {
-        background-color: #e2e3e5;
-        color: #383d41;
-    }
-
-    .badge-status-4 {
         background-color: #d4edda;
         color: #155724;
     }
@@ -113,11 +110,10 @@
                                     {
                                         string statusText = app.Status switch
                                         {
-                                            0 => "Cancelled",
-                                            1 => "Pending",
-                                            2 => "Confirmed",
-                                            3 => "In Progress",
-                                            4 => "Completed",
+                                            0 => "Cancelled / Expired",
+                                            1 => "Reserved / Pending Payment",
+                                            2 => "Confirmed / Paid",
+                                            3 => "Completed",
                                             _ => "Unknown"
                                         };
 
@@ -126,10 +122,10 @@
                                             <td class="text-secondary"><i class="fas fa-user-md text-success me-1"></i>Dr. @(app.VetName ?? "Unassigned")</td>
                                             <td>
                                                 <div class="fw-bold text-dark">@app.AppointmentStart.ToString("dd/MM/yyyy")</div>
-                                                <div class="text-muted small">@app.AppointmentStart.ToString("hh:mm tt")</div>
+                                                <div class="text-muted small">@app.AppointmentStart.ToString("HH:mm")</div>
                                             </td>
                                             <td>
-                                                <span class="status-badge badge-status-@app.Status">@app.Status: @statusText</span>
+                                                <span class="status-badge badge-status-@app.Status">State @app.Status: @statusText</span>
                                             </td>
                                             <td class="text-end">
                                                 <a asp-action="StaffAppointmentDetail" asp-route-id="@app.AppointmentId" class="btn btn-emerald-outline btn-sm py-1 px-3 rounded-2">
@@ -163,19 +159,16 @@
                             <i class="fas fa-list me-2 text-secondary"></i> All Tracks
                         </button>
                         <button class="btn btn-light text-start fw-bold text-warning p-3 rounded-3" data-target-status="1">
-                            <i class="far fa-clock me-2"></i> 1: Pending
+                            <i class="far fa-clock me-2"></i> 1: Reserved / Pending
                         </button>
                         <button class="btn btn-light text-start fw-bold text-primary p-3 rounded-3" data-target-status="2">
-                            <i class="fas fa-check me-2"></i> 2: Confirmed
+                            <i class="fas fa-check-circle me-2"></i> 2: Confirmed / Paid
                         </button>
-                        <button class="btn btn-light text-start fw-bold text-secondary p-3 rounded-3" data-target-status="3">
-                            <i class="fas fa-spinner fa-spin me-2"></i> 3: In Progress
-                        </button>
-                        <button class="btn btn-light text-start fw-bold text-success p-3 rounded-3" data-target-status="4">
-                            <i class="fas fa-check-double me-2"></i> 4: Completed
+                        <button class="btn btn-light text-start fw-bold text-success p-3 rounded-3" data-target-status="3">
+                            <i class="fas fa-check-double me-2"></i> 3: Completed
                         </button>
                         <button class="btn btn-light text-start fw-bold text-danger p-3 rounded-3" data-target-status="0">
-                            <i class="fas fa-times-circle me-2"></i> 0: Cancelled
+                            <i class="fas fa-times-circle me-2"></i> 0: Cancelled / Expired
                         </button>
                     </div>
                 </div>

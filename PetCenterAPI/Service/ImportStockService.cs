@@ -51,7 +51,7 @@ namespace PetCenterAPI.Service
 
             importStock.ImportId = Guid.NewGuid();
 
-            importStock.ImportDate = DateTime.UtcNow;
+            importStock.ImportDate = DateTime.Now;
 
             importStock.Status = ImportStatus.Pending;
 
@@ -129,7 +129,7 @@ namespace PetCenterAPI.Service
                 detail.StockLeft = detail.Quantity;
                 detail.QuantitySold = 0;
                 detail.BatchStatus = BatchStatus.Active;
-                detail.CreatedAt = DateTime.UtcNow;
+                detail.CreatedAt = DateTime.Now;
 
                 // Tìm inventory theo Product
                 if (!inventories.TryGetValue(detail.ProductId, out var inventory))
@@ -143,7 +143,7 @@ namespace PetCenterAPI.Service
                         QuantityAvailable = 0,
                         QuantityReserved = 0,
 
-                        LastUpdated = DateTime.UtcNow,
+                        LastUpdated = DateTime.Now,
                         UpdatedBy = staffId
                     };
 
@@ -155,7 +155,7 @@ namespace PetCenterAPI.Service
 
                 // Tăng tồn kho tổng
                 inventory.QuantityAvailable += detail.Quantity;
-                inventory.LastUpdated = DateTime.UtcNow;
+                inventory.LastUpdated = DateTime.Now;
                 inventory.UpdatedBy = staffId;
 
                 // Audit transaction theo từng batch
@@ -172,7 +172,7 @@ namespace PetCenterAPI.Service
 
                         TransactionType = TransactionType.StockIn,
 
-                        CreatedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.Now,
                         CreatedBy = staffId,
 
                         ReferenceId = importStock.ImportId,
@@ -186,7 +186,7 @@ namespace PetCenterAPI.Service
             }
 
             importStock.Status = ImportStock.ImportStatus.Confirmed;
-            importStock.UpdatedAt = DateTime.UtcNow;
+            importStock.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();

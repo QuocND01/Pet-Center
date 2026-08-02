@@ -22,7 +22,7 @@ namespace PetCenterAPI.DTOs.Responses.Inventory
 
         public int QuantityReserved { get; set; }
 
-        public int QuantityDamaged { get; set; }
+        
 
         public DateTime LastUpdated { get; set; }
 

@@ -49,7 +49,7 @@
             var cloudinaryService = scope.ServiceProvider
                 .GetRequiredService<ICloudinaryService>();
 
-            var threshold = DateTime.UtcNow.AddDays(-3);
+            var threshold = DateTime.Now.AddDays(-3);
 
             // 1️⃣ lấy ảnh inactive quá 3 ngày
             var images = await db.ProductImages

@@ -27,7 +27,7 @@ namespace PetCenterAPI.DTOs.Requests.CustomerProfile
 
         public static ValidationResult ValidateBirthday(DateOnly birthDay, ValidationContext context)
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(DateTime.Now);
 
             if (birthDay > today)
                 return new ValidationResult("Date of birth cannot be in the future");

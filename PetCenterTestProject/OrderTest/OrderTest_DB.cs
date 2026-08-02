@@ -457,8 +457,8 @@ namespace PetCenterTestProject.OrderTest
                 Quantity = 5,
                 StockLeft = 5,
                 BatchStatus = BatchStatus.Active,
-                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10)),
-                IsPreferredForPickup = true
+                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10))
+     
             });
             await _context.SaveChangesAsync();
 

@@ -50,7 +50,7 @@ namespace PetCenterAPI.Service
             }
 
             _mapper.Map(request, customer);
-            customer.UpdatedAt = DateTime.UtcNow;
+            customer.UpdatedAt = DateTime.Now;
             await _customerRepository.UpdateAsync(customer);
 
             return (true, "Profile updated successfully");
@@ -77,7 +77,7 @@ namespace PetCenterAPI.Service
             if (customer == null) return false;
 
             customer.IsActive = isActive;
-            customer.UpdatedAt = DateTime.UtcNow;
+            customer.UpdatedAt = DateTime.Now;
 
             return await _customerRepository.UpdateAsync(customer);
         }

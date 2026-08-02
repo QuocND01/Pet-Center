@@ -35,7 +35,7 @@ namespace PetCenterAPI.Repository
         public async Task<Voucher> CreateAsync(Voucher voucher)
         {
             voucher.VoucherId = Guid.NewGuid();
-            voucher.CreateAt = DateTime.UtcNow;
+            voucher.CreateAt = DateTime.Now;
             voucher.IsActive = true;
             voucher.Code = voucher.Code.ToUpper().Trim();
 

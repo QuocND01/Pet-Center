@@ -1,8 +1,10 @@
 using FluentValidation.AspNetCore;
+using PetCenterAPI.BackgroundServices;
+using PetCenterAPI.DependencyInjection;
 using PetCenterAPI.Hubs;
 using PetCenterAPI.Profiles;
 using PetCenterAPI.Service;
-using PetCenterAPI.DependencyInjection;
+using PetCenterAPI.Service.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +28,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDatabaseAndOData(builder.Configuration);
 builder.Services.AddCorsConfiguration();
 builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddHostedService<ExpiryCheckBackgroundService>();
 
 builder.Services.AddAutoMapper(cfg =>
 {

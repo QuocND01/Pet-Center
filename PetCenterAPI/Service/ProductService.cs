@@ -69,7 +69,7 @@ namespace PetCenterAPI.Service
                 var product = _mapper.Map<Product>(createProduct);
 
                 product.ProductId = Guid.NewGuid();
-                product.AddedAt = DateTime.UtcNow;
+                product.AddedAt = DateTime.Now;
                 product.ProductImages ??= new List<ProductImage>();
                 var uploadedImages = new List<ImageUploadResult>();
                 if (createProduct.ImageFiles != null &&
@@ -174,7 +174,7 @@ namespace PetCenterAPI.Service
                             foreach (var image in product.ProductImages)
                             {
                                 image.IsActive = false;
-                                image.InactiveAt = DateTime.UtcNow;
+                                image.InactiveAt = DateTime.Now;
                             }
                             await _productRepository.SaveAsync();
                         }
@@ -272,7 +272,7 @@ namespace PetCenterAPI.Service
 
             _mapper.Map(updateproduct, product);
 
-            product.UpdateAt = DateTime.UtcNow;
+            product.UpdateAt = DateTime.Now;
 
             product.ProductImages ??= new List<ProductImage>();
             product.ProductAttributes ??= new List<ProductAttribute>();
@@ -303,7 +303,7 @@ namespace PetCenterAPI.Service
                     if (!stillExists)
                     {
                         img.IsActive = false;
-                        img.InactiveAt = DateTime.UtcNow;
+                        img.InactiveAt = DateTime.Now;
                     }
                 }
 

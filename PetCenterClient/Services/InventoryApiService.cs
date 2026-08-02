@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.WebUtilities;
+using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels.Inventory;
 using System.Configuration;
 
 namespace PetCenterClient.Services
 {
-    public class InventoryApiService
+    public class InventoryApiService : IInventoryApiService
     {
         private readonly HttpClient _http;
         

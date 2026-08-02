@@ -2,13 +2,14 @@
 @{
     ViewData["Title"] = "Operation Track Detail";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // Standardized 4-State Mapping
     string statusText = Model.Status switch
     {
-        0 => "Cancelled",
-        1 => "Pending",
-        2 => "Confirmed",
-        3 => "In Progress",
-        4 => "Completed",
+        0 => "Cancelled / Expired",
+        1 => "Reserved / Pending Payment",
+        2 => "Confirmed / Paid",
+        3 => "Completed",
         _ => "Unknown"
     };
 }
@@ -33,11 +34,11 @@
         transition: all 0.2s;
     }
 
-    .service-card-item.completed-state {
-        border-left-color: #6c757d;
-        opacity: 0.8;
-        background: #fdfdfd;
-    }
+        .service-card-item.completed-state {
+            border-left-color: #6c757d;
+            opacity: 0.85;
+            background: #fdfdfd;
+        }
 
     .btn-emerald {
         background-color: #198754;
@@ -46,16 +47,16 @@
         font-weight: bold;
     }
 
-    .btn-emerald:hover {
-        background-color: #146c43;
-        color: white;
-    }
+        .btn-emerald:hover {
+            background-color: #146c43;
+            color: white;
+        }
 
-    .btn-emerald:disabled {
-        background-color: #a3cfbb;
-        color: white;
-        cursor: not-allowed;
-    }
+        .btn-emerald:disabled {
+            background-color: #a3cfbb;
+            color: white;
+            cursor: not-allowed;
+        }
 
     .status-indicator-box {
         padding: 0.5rem 1rem;
@@ -64,12 +65,26 @@
         text-align: center;
     }
 
-    /* FIX LỖI THIẾU MÀU CHO TRẠNG THÁI PIPELINE */
-    .badge-status-0 { bg-color: #f8d7da; color: #842029; background-color: #f8d7da; }
-    .badge-status-1 { bg-color: #fff3cd; color: #664d03; background-color: #fff3cd; }
-    .badge-status-2 { bg-color: #cff4fc; color: #055160; background-color: #cff4fc; }
-    .badge-status-3 { bg-color: #e0cffc; color: #350a4f; background-color: #e0cffc; }
-    .badge-status-4 { bg-color: #d1e7dd; color: #0f5132; background-color: #d1e7dd; }
+    /* CSS Mapping cho 4 trạng thái (0, 1, 2, 3) */
+    .badge-status-0 {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    .badge-status-1 {
+        background-color: #fff3cd;
+        color: #664d03;
+    }
+
+    .badge-status-2 {
+        background-color: #cff4fc;
+        color: #055160;
+    }
+
+    .badge-status-3 {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
 </style>
 
 <div class="operation-wrapper py-5">
@@ -104,7 +119,7 @@
 
                 <!-- BANNER THÔNG TIN CHUNG -->
                 <div class="status-banner p-4 rounded-4 shadow-sm mb-4">
-                    <span class="text-muted text-uppercase small fw-bold tracking-wider">Active Track Tracking</span>
+                    <span class="text-muted text-uppercase small fw-bold tracking-wider">Active Operation Track</span>
                     <h2 class="fw-bold text-dark my-1">Patient: @Model.PetName</h2>
                     <p class="text-secondary small m-0"><i class="far fa-user me-1"></i><strong>Customer Account:</strong> @Model.CustomerName</p>
                     @if (!string.IsNullOrEmpty(Model.Note))
@@ -121,55 +136,54 @@
 
                     <div class="d-flex flex-column gap-3">
                         @if (Model.AppointmentServices != null && Model.AppointmentServices.Any())
-{
-    foreach (var srv in Model.AppointmentServices)
-    {
-        // Bọc tính toán logic vào khối @{ } để tránh lỗi compile giao diện
-        
-            bool isSrvDone = (srv.Status == 2); 
-        
+                        {
+                            foreach (var srv in Model.AppointmentServices)
+                            {
+                                // Logic: Dịch vụ con hoàn thành khi Status == 2 (hoặc Status == 1 tùy theo DB)
+                                bool isSrvDone = srv.CompleteAt.HasValue;
 
-        <div class="p-3 rounded-3 border service-card-item @(isSrvDone ? "completed-state" : "") shadow-sm d-flex justify-content-between align-items-center">
-            <div>
-                <h6 class="fw-bold text-dark mb-1">@srv.ServiceName</h6>
-                <span class="text-muted small">@srv.Price.ToString("N0") đ • <i class="far fa-clock me-1"></i>@srv.Duration min</span>
-            </div>
-            <div>
-                @if (isSrvDone)
-                {
-                    <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
-                        <i class="fas fa-check-circle me-1"></i>
-                        Completed at: @(srv.CompleteAt.HasValue ? srv.CompleteAt.Value.ToString("HH:mm dd/MM/yyyy") : "N/A")
-                    </span>
-                }
-                else
-                {
-                    if (Model.Status == 4)
-                    {
-                        <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
-                            <i class="fas fa-check-circle me-1"></i>Completed
-                        </span>
-                    }
-                    else if (Model.Status == 3) 
-                    {
-                        <form asp-action="CompleteAppointmentService" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
-                            <input type="hidden" name="appointmentServiceId" value="@srv.AppointmentServiceId" />
-                            <button type="submit" class="btn btn-emerald btn-sm rounded-2 px-3">
-                                <i class="fas fa-check me-1"></i> Mark Done
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <span class="text-muted small italic"><i class="fas fa-lock me-1"></i> Awaiting Step 3</span>
-                    }
-                }
-            </div>
-        </div>
-    }
-}
+                                <div class="p-3 rounded-3 border service-card-item @(isSrvDone ? "completed-state" : "") shadow-sm d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1">@srv.ServiceName</h6>
+                                        <span class="text-muted small">@srv.Price.ToString("N0") đ • <i class="far fa-clock me-1"></i>@srv.Duration min</span>
+                                    </div>
+                                    <div>
+                                        @if (isSrvDone)
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                Done at: @srv.CompleteAt.Value.ToString("HH:mm dd/MM/yyyy")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @if (Model.Status == 3)
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
+                                                    <i class="fas fa-check-circle me-1"></i>Completed
+                                                </span>
+                                            }
+                                            else if (Model.Status == 2)
+                                            {
+                                                <!-- Đã Confirmed: Cho phép Staff bấm Mark Done từng dịch vụ -->
+                                                <form asp-action="CompleteAppointmentService" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
+                                                    <input type="hidden" name="appointmentServiceId" value="@srv.AppointmentServiceId" />
+                                                    <button type="submit" class="btn btn-emerald btn-sm rounded-2 px-3">
+                                                        <i class="fas fa-check me-1"></i> Mark Done
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small italic"><i class="fas fa-lock me-1"></i> Awaiting Payment (State 2)</span>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
                     </div>
                 </div>
 
@@ -177,7 +191,7 @@
 
             <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN TRẠNG THÁI (PIPELINE PROCESSOR) -->
             <div class="col-lg-4">
-                <div class="bg-white rounded-4 shadow-sm p-4 border-0 text-center sticky-sidebar">
+                <div class="bg-white rounded-4 shadow-sm p-4 border-0 text-center sticky-top" style="top: 24px;">
                     <h5 class="fw-bold text-dark pb-2 mb-3 border-bottom text-start"><i class="fas fa-shield-alt text-success me-2"></i>Workflow Action</h5>
 
                     <!-- BOX HIỂN THỊ TRẠNG THÁI HIỆN TẠI -->
@@ -191,11 +205,11 @@
                     <!-- THỜI GIAN LÀM VIỆC -->
                     <div class="text-start p-3 bg-light rounded-3 mb-4 small">
                         <div class="mb-2"><strong><i class="far fa-calendar-alt text-success me-2"></i>Date:</strong> @Model.AppointmentStart.ToString("dd MMMM, yyyy")</div>
-                        <div><strong><i class="far fa-clock text-success me-2"></i>Time Window:</strong> @Model.AppointmentStart.ToString("hh:mm tt")</div>
+                        <div><strong><i class="far fa-clock text-success me-2"></i>Time Window:</strong> @Model.AppointmentStart.ToString("HH:mm") - @Model.AppointmentEnd.ToString("HH:mm")</div>
                     </div>
 
-                    <!-- FORM SUBMIT TIẾN TRÌNH TIẾP THEO -->
-                    @if (Model.Status > 0 && Model.Status < 4)
+                    <!-- FORM SUBMIT TIẾN TRÌNH TIẾP THEO (CHỈ MỞ Ở STATE 1 VÀ 2) -->
+                    @if (Model.Status == 1 || Model.Status == 2)
                     {
                         <form asp-action="ForwardAppointment" method="post" id="forwardWorkflowForm">
                             @Html.AntiForgeryToken()

@@ -1,5 +1,5 @@
-﻿using PetCenterAPI.DTOs.Requests;
-using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
+﻿using PetCenterAPI.DTOs.Requests.Pet;
+using static PetCenterAPI.DTOs.Requests.Pet.PetRequestDTO;
 
 namespace PetCenterAPI.Service.Interface
 {

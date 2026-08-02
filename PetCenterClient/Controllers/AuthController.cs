@@ -104,7 +104,7 @@ namespace PetCenterClient.Controllers
                 var jwt = handler.ReadJwtToken(token);
 
                 // JWT đã hết hạn → xóa session, báo logout
-                if (jwt.ValidTo <= DateTime.UtcNow)
+                if (jwt.ValidTo <= DateTime.Now)
                 {
                     HttpContext.Session.Clear();
                     return Json(new { isAuthenticated = false, message = "Token expired" });

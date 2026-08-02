@@ -56,10 +56,8 @@ namespace PetCenterAPI.Profiles
         opt => opt.MapFrom(_ => 0))
     .ForMember(dest => dest.BatchStatus,
         opt => opt.MapFrom(_ => BatchStatus.Active))
-    .ForMember(dest => dest.IsPreferredForPickup,
-        opt => opt.MapFrom(_ => true))
     .ForMember(dest => dest.CreatedAt,
-        opt => opt.MapFrom(_ => DateTime.UtcNow));
+        opt => opt.MapFrom(_ => DateTime.Now));
 
             CreateMap<ProductSnapshotRequestDTO, ImportProductSnapshot>()
                 .ForMember(dest => dest.ProductSnapshotId,

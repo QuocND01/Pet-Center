@@ -1,8 +1,8 @@
-﻿using PetCenterAPI.DTOs.Requests;
+﻿using PetCenterAPI.DTOs.Requests.Pet;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
-using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Pet.PetRequestDTO;
 
 namespace PetCenterAPI.Service
 {

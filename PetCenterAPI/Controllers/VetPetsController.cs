@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Service.Interface;
-using static PetCenterAPI.DTOs.Requests.CustomerProfile.PetRequestDTO;
+using static PetCenterAPI.DTOs.Requests.Pet.PetRequestDTO;
 
 namespace PetCenterAPI.Controllers
 {

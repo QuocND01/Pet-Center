@@ -20,6 +20,7 @@ namespace PetCenterAPI.Service
         private readonly IVnPayService _vnPayService;
         private readonly IMoMoService _moMoService;
         private readonly IPaymentRepository _paymentRepo;
+        private readonly ILogger<AppointmentService> _logger;
 
 
         public AppointmentService(
@@ -27,10 +28,13 @@ namespace PetCenterAPI.Service
             IPetRepository petRepo,
             IServiceRepository serviceRepo,
             IMapper mapper,
+            ILogger<AppointmentService> logger,
             IScheduleRepository scheduleRepository,
             IMoMoService? moMoService = null,
             IVnPayService? vnPayService = null,
-            IPaymentRepository? paymentRepository = null)
+            IPaymentRepository? paymentRepository = null
+            
+            )
         {   
             _appointmentRepo = repository;
             _petRepo = petRepo;
@@ -40,6 +44,7 @@ namespace PetCenterAPI.Service
             _moMoService = moMoService!;
             _vnPayService = vnPayService!;
             _paymentRepo = paymentRepository!;
+            _logger = logger;
         } 
         public async Task<AppointmentResponseDTO> BookAppointmentAsync(
             BookAppointmentRequestDTO request)
@@ -315,13 +320,9 @@ namespace PetCenterAPI.Service
                 AppointmentResponseDTO>
                 (appointment);
         }
-        public async Task CancelAppointmentAsync(
-    Guid appointmentId,
-    Guid customerId)
+        public async Task CancelAppointmentAsync(Guid appointmentId, Guid customerId)
         {
-            var appointment =
-                await _appointmentRepo
-                    .GetByIdAsync(appointmentId);
+            var appointment = await _appointmentRepo.GetByIdAsync(appointmentId);
 
             if (appointment == null)
             {
@@ -330,38 +331,30 @@ namespace PetCenterAPI.Service
 
             if (appointment.CustomerId != customerId)
             {
-                throw new Exception(
-                    "You are not allowed to cancel this appointment.");
+                throw new Exception("You are not allowed to cancel this appointment.");
             }
 
-            if (appointment.Status == 0)
+            // Chỉ hủy được khi chưa hoàn thành (Status 1 hoặc 2)
+            if (appointment.Status != 1 && appointment.Status != 2)
             {
-                throw new Exception(
-                    "Appointment already cancelled.");
+                var message = appointment.Status switch
+                {
+                    0 => "Appointment is already cancelled.",
+                    3 => "Appointment has already been completed.",
+                    _ => "Cannot cancel appointment with current status."
+                };
+
+                throw new Exception(message);
             }
 
-            if (appointment.Status == 3)
-            {
-                throw new Exception(
-                    "Appointment is in progress.");
-            }
-
-            if (appointment.Status == 4)
-            {
-                throw new Exception(
-                    "Appointment already completed.");
-            }
-
-            appointment.Status = 0;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.Status = 0; // Cancelled
+            appointment.UpdatedAt = DateTime.Now;
 
             await _appointmentRepo.SaveChangesAsync();
         }
         public async Task ForwardAppointmentStatusAsync(Guid appointmentId, Guid staffId)
         {
-            var appointment =
-                await _appointmentRepo
-                    .GetByIdAsync(appointmentId);
+            var appointment = await _appointmentRepo.GetByIdAsync(appointmentId);
 
             if (appointment == null)
                 throw new Exception("Appointment not found.");
@@ -369,22 +362,33 @@ namespace PetCenterAPI.Service
             if (appointment.StaffId != staffId)
                 throw new Exception("You are not assigned to this appointment.");
 
-            if (appointment.Status is < 1 or > 3)
-                throw new Exception("Appointment status cannot be updated.");
+            // Chỉ cho phép tiến khi Status là 1 hoặc 2 (để nhảy lên 2 hoặc 3)
+            if (!appointment.Status.HasValue || appointment.Status < 1 || appointment.Status >= 3)
+            {
+                var reason = appointment.Status switch
+                {
+                    0 => "Cannot forward a cancelled appointment.",
+                    3 => "Appointment is already completed.",
+                    _ => "Invalid appointment status."
+                };
+                throw new Exception(reason);
+            }
 
-            appointment.Status++;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            // Tăng status: 1 -> 2 (Xác nhận) hoặc 2 -> 3 (Hoàn thành)
+            appointment.Status += 1;
+            appointment.UpdatedAt = DateTime.Now;
 
             await _appointmentRepo.SaveChangesAsync();
         }
-        public async Task SubmitReviewAsync(
-    Guid customerId,
-    SubmitReviewRequestDTO request)
+        public async Task SubmitReviewAsync(Guid customerId, SubmitReviewRequestDTO request)
         {
-            var appointment =
-                await _appointmentRepo
-                    .GetAppointmentDetailAsync(
-                        request.AppointmentId);
+            // 1. Validate Rating
+            if (request.Rating < 1 || request.Rating > 5)
+            {
+                throw new Exception("Rating must be between 1 and 5.");
+            }
+
+            var appointment = await _appointmentRepo.GetAppointmentDetailAsync(request.AppointmentId);
 
             if (appointment == null)
             {
@@ -393,33 +397,24 @@ namespace PetCenterAPI.Service
 
             if (appointment.CustomerId != customerId)
             {
-                throw new Exception(
-                    "You are not allowed to review this appointment.");
+                throw new Exception("You are not allowed to review this appointment.");
             }
 
-            if (appointment.Status != 4)
+            // 2. Kiểm tra đúng Status = 3 (Completed) theo quy trình mới
+            if (appointment.Status != 3)
             {
-                throw new Exception(
-                    "Only completed appointments can be reviewed.");
+                throw new Exception("Only completed appointments can be reviewed.");
             }
 
             if (appointment.AppointmentSnapshot == null)
             {
-                throw new Exception(
-                    "Appointment snapshot not found.");
+                throw new Exception("Appointment snapshot not found.");
             }
 
-            if (request.Rating < 1 || request.Rating > 5)
-            {
-                throw new Exception(
-                    "Rating must be between 1 and 5.");
-            }
-
-            appointment.AppointmentSnapshot.Rating =
-                request.Rating;
-
-            appointment.AppointmentSnapshot.Feedback =
-                request.Feedback;
+            // 3. Upsert: Ghi mới hoặc ghi đè (Cập nhật) Rating & Feedback
+            appointment.AppointmentSnapshot.Rating = request.Rating;
+            appointment.AppointmentSnapshot.Feedback = request.Feedback;
+            appointment.UpdatedAt = DateTime.Now; // Cập nhật log thời gian nếu cần
 
             await _appointmentRepo.SaveChangesAsync();
         }
@@ -433,7 +428,7 @@ namespace PetCenterAPI.Service
             }
 
             appointmentService.Status = 2;
-            appointmentService.CompleteAt = DateTime.UtcNow;
+            appointmentService.CompleteAt = DateTime.Now;
 
             await _appointmentRepo.SaveChangesAsync();
         }
@@ -575,20 +570,20 @@ namespace PetCenterAPI.Service
                 .OrderBy(x => x.StartTime)
                 .ToList();
         }
-        private bool IsValidBookingDate(DateTime targetDate)
-        {
-            // Lấy mốc bắt đầu của ngày hôm nay (00:00:00)
-            DateTime today = DateTime.Today;
+        //private bool IsValidBookingDate(DateTime targetDate)
+        //{
+        //    // Lấy mốc bắt đầu của ngày hôm nay (00:00:00)
+        //    DateTime today = DateTime.Today;
 
-            // Ngày tiếp theo (bắt đầu từ 00:00:00 ngày mai)
-            DateTime minDate = today.AddDays(1);
+        //    // Ngày tiếp theo (bắt đầu từ 00:00:00 ngày mai)
+        //    DateTime minDate = today.AddDays(1);
 
-            // Hạn chót là 3 tuần tính từ ngày mai (21 ngày)
-            DateTime maxDate = minDate.AddDays(21);
+        //    // Hạn chót là 3 tuần tính từ ngày mai (21 ngày)
+        //    DateTime maxDate = minDate.AddDays(21);
 
-            // Chỉ nhận các ngày từ minDate tới maxDate (Bỏ ngày hiện tại)
-            return targetDate.Date >= minDate && targetDate.Date <= maxDate;
-        }
+        //    // Chỉ nhận các ngày từ minDate tới maxDate (Bỏ ngày hiện tại)
+        //    return targetDate.Date >= minDate && targetDate.Date <= maxDate;
+        //}
         private async Task<(DateTime Start, DateTime End)> GetWorkTimeAsync(
     Guid staffId,
     DateOnly date)
@@ -636,14 +631,14 @@ namespace PetCenterAPI.Service
             if (appointment.Status != 1)
                 throw new InvalidOperationException("Appointment is not in a valid state for payment.");
 
-            if (appointment.ReservedUntil.HasValue && appointment.ReservedUntil.Value < DateTime.UtcNow)
+            if (appointment.ReservedUntil.HasValue && appointment.ReservedUntil.Value < DateTime.Now)
             {
-                appointment.Status = 5; // Expired
+                appointment.Status = 0; // Expired
                 await _appointmentRepo.UpdateAsync(appointment);
                 throw new InvalidOperationException("Time to hold the appointment has expired.");
             }
 
-            string transactionRef = $"{appointment.AppointmentId.ToString()[..8]}_{DateTime.UtcNow.Ticks}";
+            string transactionRef = $"{appointment.AppointmentId.ToString()[..8]}_{DateTime.Now.Ticks}";
             decimal remainingAmount = appointment.Total - appointment.PaidAmount;
             string paymentUrl = string.Empty;
 
@@ -655,7 +650,7 @@ namespace PetCenterAPI.Service
                 Amount = remainingAmount,
                 Status = 0, // 0: Pending, 1: Success, 2: Failed
                 TransactionRef = transactionRef,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             string orderInfo = $"Thanh toan lich hen #{appointment.AppointmentId}";
@@ -723,7 +718,7 @@ namespace PetCenterAPI.Service
             {
                 payment.Status = 1; // Success
                 payment.PaidAmount = payment.Amount;
-                payment.PaidAt = DateTime.UtcNow;
+                payment.PaidAt = DateTime.Now;
                 payment.ResponseCode = result.ResponseCode;
                 await _paymentRepo.UpdateAsync(payment);
 
@@ -733,7 +728,7 @@ namespace PetCenterAPI.Service
                 {
                     appointment.Status = 2; // Confirmed
                     appointment.PaidAmount += payment.Amount;
-                    appointment.UpdatedAt = DateTime.UtcNow;
+                    appointment.UpdatedAt = DateTime.Now;
                     await _appointmentRepo.UpdateAsync(appointment);
                 }
 
@@ -779,7 +774,7 @@ namespace PetCenterAPI.Service
             {
                 payment.Status = 1;
                 payment.PaidAmount = payment.Amount;
-                payment.PaidAt = DateTime.UtcNow;
+                payment.PaidAt = DateTime.Now;
                 payment.ResponseCode = result.ResponseCode.ToString();
                 await _paymentRepo.UpdateAsync(payment);
 
@@ -788,7 +783,7 @@ namespace PetCenterAPI.Service
                 {
                     appointment.Status = 2; // Confirmed
                     appointment.PaidAmount += payment.Amount;
-                    appointment.UpdatedAt = DateTime.UtcNow;
+                    appointment.UpdatedAt = DateTime.Now;
                     await _appointmentRepo.UpdateAsync(appointment);
                 }
 
@@ -850,7 +845,7 @@ namespace PetCenterAPI.Service
             appointment.AppointmentEnd = request.AppointmentStart.AddMinutes(totalDurationMinutes);
             appointment.Total = newTotal;
             appointment.Note = request.Note;
-            appointment.UpdatedAt = DateTime.UtcNow;
+            appointment.UpdatedAt = DateTime.Now;
 
             // 5. Cập nhật danh sách AppointmentServices (Bảng con 1-N)
             // .Clear() sẽ chuyển các dịch vụ cũ sang trạng thái Deleted trong Change Tracker
@@ -917,6 +912,17 @@ namespace PetCenterAPI.Service
             }
 
             return _mapper.Map<AppointmentResponseDTO>(appointment);
+        }
+        public async Task ProcessExpiredAppointmentsAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("--> [Appointment Check] Đang kiểm tra thời hạn giữ chỗ lịch hẹn...");
+
+            int count = await _appointmentRepo.UpdateExpiredAppointmentsAsync(cancellationToken);
+
+            if (count > 0)
+                _logger.LogInformation($"--> [Appointment Check] Đã cập nhật {count} lịch hẹn sang trạng thái Expired.");
+            else
+                _logger.LogInformation("--> [Appointment Check] Không có lịch hẹn nào hết hạn giữ chỗ.");
         }
     }
 }

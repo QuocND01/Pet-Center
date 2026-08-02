@@ -28,7 +28,7 @@ namespace PetCenterAPI.Helpers
                 }
             }
 
-            //string dateCode = DateTime.UtcNow.ToString("yyMMdd");
+            //string dateCode = DateTime.Now.ToString("yyMMdd");
 
             string randomCode = Guid.NewGuid()
                 .ToString("N")

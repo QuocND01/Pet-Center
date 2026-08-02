@@ -1,4 +1,4 @@
-﻿namespace PetCenterAPI.DTOs.Requests
+﻿namespace PetCenterAPI.DTOs.Requests.Pet
 {
     public class VetPetRequestDTO
     {

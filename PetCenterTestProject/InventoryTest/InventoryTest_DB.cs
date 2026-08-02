@@ -277,6 +277,8 @@ namespace PetCenterTestProject.InventoryTest
                 existingInventory.QuantityReserved,
                 result.QuantityReserved);
 
+
+
             // Kiểm tra các chuỗi không được phép null theo định nghĩa DTO (null!)
             Assert.NotNull(result.ProductName);
 

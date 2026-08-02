@@ -85,8 +85,8 @@ namespace PetCenterAPI.Service
                 PasswordHash = _passwordService.Hash(tempPassword),
                 IsActive = true,
                 IsVerified = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
                 Gender = "",
                 PhoneNumber = "",
                 BirthDay = null

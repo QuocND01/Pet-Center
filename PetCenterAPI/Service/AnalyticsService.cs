@@ -1,8 +1,8 @@
-﻿using PetCenterAPI.Models;
-using PetCenterAPI.Repositories.Interfaces;
-using PetCenterAPI.Services.Interfaces;
+﻿using PetCenterAPI.DTOs.Requests.Dashboard;
+using PetCenterAPI.Repository.Interface;
+using PetCenterAPI.Service.Interface;
 
-namespace PetCenterAPI.Services
+namespace PetCenterAPI.Service
 {
     public class AnalyticsService : IAnalyticsService
     {
@@ -16,7 +16,7 @@ namespace PetCenterAPI.Services
         public async Task<DashboardMetricsDTO> GetDashboardDataAsync(DateTime? startDate, DateTime? endDate)
         {
             // Nếu không truyền ngày, mặc định lấy từ đầu tháng đến hiện tại
-            var to = endDate ?? DateTime.UtcNow;
+            var to = endDate ?? DateTime.Now;
             var from = startDate ?? new DateTime(to.Year, to.Month, 1);
 
             // Ép giờ để lấy trọn vẹn ngày cuối cùng

@@ -50,5 +50,7 @@ namespace PetCenterAPI.Repository.Interface
         Task UpdateAsync(Appointment appointment);
 
         Task SaveChangesAsync();
+        //Backgournd check
+        Task<int> UpdateExpiredAppointmentsAsync(CancellationToken cancellationToken = default);
     }
 }

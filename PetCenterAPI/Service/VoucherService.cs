@@ -56,7 +56,7 @@ namespace PetCenterAPI.Service
                         null);
             }
 
-            if (request.ExpiredDate.HasValue && request.ExpiredDate.Value <= DateTime.UtcNow)
+            if (request.ExpiredDate.HasValue && request.ExpiredDate.Value <= DateTime.Now)
                 return (false, "Expiry date must be in the future.", null);
 
             var entity = new Voucher
@@ -71,7 +71,7 @@ namespace PetCenterAPI.Service
                     ? DateTime.SpecifyKind(request.ExpiredDate.Value, DateTimeKind.Utc)
                     : null,
                 IsActive = true,
-                CreateAt = DateTime.UtcNow
+                CreateAt = DateTime.Now
             };
 
             var created = await _voucherRepository.CreateAsync(entity);
@@ -100,7 +100,7 @@ namespace PetCenterAPI.Service
             if (voucher == null)
                 return (false, "Voucher not found.");
 
-            if (isActive && voucher.ExpiredDate.HasValue && voucher.ExpiredDate.Value <= DateTime.UtcNow)
+            if (isActive && voucher.ExpiredDate.HasValue && voucher.ExpiredDate.Value <= DateTime.Now)
                 return (false, "Cannot activate an expired voucher. Please update the expiry date first.");
 
             if (isActive && voucher.UseageLimit.HasValue)

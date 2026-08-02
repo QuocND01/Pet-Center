@@ -9,7 +9,7 @@ using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using Xunit;
-using static PetCenterAPI.DTOs.Requests.DiseaseDTO;
+using static PetCenterAPI.DTOs.Requests.Disease.DiseaseDTO;
 
 // Dưới đây là các using giả định, bạn hãy bỏ comment và sửa lại cho khớp với cấu trúc thư mục của Project
 // using PetCenterAPI.Models;
