@@ -107,7 +107,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Create
-        [Authorize(Roles = "Admin")]
+ 
         public async Task<IActionResult> CreateAsync()
         {
             return PartialView("~/Views/AdminViews/Service/_Create.cshtml");
@@ -117,7 +117,7 @@ namespace PetCenterClient.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+ 
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(CreateServiceViewModel model)
         {
@@ -147,7 +147,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Edit/5
-        [Authorize(Roles = "Admin")]
+ 
         public async Task<IActionResult> EditAsync(Guid? id)
         {
             if (id == null)
@@ -179,7 +179,7 @@ namespace PetCenterClient.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+ 
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAsync(Guid ServiceId, UpdateServiceViewModel model)
         {
@@ -209,7 +209,7 @@ namespace PetCenterClient.Controllers
         }
 
         // GET: ReadProdutDTOs/Delete/5
-        [Authorize(Roles = "Admin")]
+ 
         public async Task<IActionResult> ChangeStatusAsync(
       Guid? id,
       Status status)
@@ -234,7 +234,7 @@ namespace PetCenterClient.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+ 
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatusConfirmedAsync(
             Guid id,

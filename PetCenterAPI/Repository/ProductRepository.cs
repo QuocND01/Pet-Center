@@ -62,9 +62,9 @@ namespace PetCenterAPI.Repository
         }
 
         public async Task ChangeProductStatusAsync(
-     Guid id,
-     Status status,
-     bool hardDeleteImages = false)
+       Guid id,
+       Status status,
+       bool hardDeleteImages = false)
         {
             var product = await _db.Products
                 .Include(p => p.ProductImages)
@@ -73,10 +73,7 @@ namespace PetCenterAPI.Repository
             if (product == null)
                 throw new Exception("Product not found");
 
-            await _db.Products
-                .Where(p => p.ProductId == id)
-                .ExecuteUpdateAsync(s =>
-                    s.SetProperty(p => p.Status, status));
+            product.Status = status;
 
             if (status == Status.Deleted)
             {
@@ -84,16 +81,15 @@ namespace PetCenterAPI.Repository
                     .Select(i => i.ImageId)
                     .ToList();
 
-                if (!imageIds.Any())
-                    return;
-
-                if (hardDeleteImages)
+                if (hardDeleteImages && imageIds.Any())
                 {
                     await _db.ProductImages
                         .Where(i => imageIds.Contains(i.ImageId))
                         .ExecuteDeleteAsync();
                 }
             }
+
+            await _db.SaveChangesAsync();
         }
 
         // Repository

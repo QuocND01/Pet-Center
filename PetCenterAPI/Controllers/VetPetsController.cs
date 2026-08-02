@@ -19,43 +19,46 @@ namespace PetCenterAPI.Controllers
             _petService = petService;
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetAllPets([FromQuery] ODataQueryOptions<PetCenterAPI.DTOs.Requests.VetPetRequestDTO.ReadVetPetListDTO> queryOptions)
-        //{
-        //    // Support OData $filter/$orderby/$skip/$top from client (the client builds OData query string)
-        //    try
-        //    {
-        //        var baseQuery = _petService.GetAllPetsForVetQuery();
+        // SỬA LỖI 1: Tận dụng [EnableQuery] của OData thay vì tự handle ODataQueryOptions.
+        // PageSize = 50 đảm bảo dù client không truyền $top, server cũng chỉ trả tối đa 50 record, không bao giờ tràn RAM.
+        [HttpGet]
+        [EnableQuery(PageSize = 50, MaxTop = 100)]
+        public IActionResult GetAllPets()
+        {
+            try
+            {
+                // Chỉ gọi Query, KHÔNG DÙNG .ToListAsync() ở đây.
+                // OData Middleware sẽ tự động hứng IQueryable này, chèn thêm các câu lệnh SQL tương ứng
+                // với $filter, $orderby, $skip, $top... rồi mới thực thi dưới Database.
+                var baseQuery = _petService.GetAllPetsForVetQuery();
 
-        //        if (queryOptions != null && (queryOptions.Filter != null || queryOptions.OrderBy != null || queryOptions.Skip != null || queryOptions.Top != null))
-        //        {
-        //            var filtered = (IQueryable<PetCenterAPI.DTOs.Requests.VetPetRequestDTO.ReadVetPetListDTO>)queryOptions.ApplyTo(baseQuery);
-        //            var list = await filtered.ToListAsync();
-        //            return Ok(list);
-        //        }
-
-        //        var listAll = await baseQuery.ToListAsync();
-        //        return Ok(listAll);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { success = false, message = ex.Message });
-        //    }
-        //}
+                return Ok(baseQuery);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
 
         [HttpGet("debug")]
         public async Task<IActionResult> Debug()
         {
-            // Diagnostic endpoint: returns count and a small sample of pet records
-            var list = await _petService.GetAllPetsForVetQuery().ToListAsync();
-            var sample = list.Take(10);
-            return Ok(new { count = list.Count, sample });
+            // SỬA LỖI 2: Đẩy .Take(10) lên trước .ToListAsync()
+            // Đếm tổng số lượng record (nếu cần)
+            var totalCount = await _petService.GetAllPetsForVetQuery().CountAsync();
+
+            // Lấy 10 phần tử dưới DB đưa lên RAM
+            var sample = await _petService.GetAllPetsForVetQuery()
+                .Take(10)
+                .ToListAsync();
+
+            return Ok(new { count = totalCount, sample });
         }
 
         [HttpGet("raw-debug")]
         public async Task<IActionResult> RawDebug()
         {
-            // Return raw Pet rows from DB for inspection (PetId, PetName, Breed, Species, CustomerId, IsActive)
+            // SỬA LỖI 3: Giới hạn số lượng (Take 50) trước khi ToListAsync()
             var raw = await _petService.GetAllPetsForVetQuery()
                 .Select(p => new {
                     p.PetId,
@@ -66,7 +69,10 @@ namespace PetCenterAPI.Controllers
                     p.PetAvatar,
                     p.OwnerName,
                     p.OwnerPhone
-                }).ToListAsync();
+                })
+                .Take(50) // Chặn đứng việc load toàn bộ DB
+                .ToListAsync();
+
             return Ok(new { count = raw.Count, raw });
         }
 

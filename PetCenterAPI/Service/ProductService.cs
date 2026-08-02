@@ -72,7 +72,8 @@ namespace PetCenterAPI.Service
                 product.AddedAt = DateTime.Now;
                 product.ProductImages ??= new List<ProductImage>();
                 var uploadedImages = new List<ImageUploadResult>();
-                if (createProduct.ImageFiles.Count > 10)
+                if (createProduct.ImageFiles != null &&
+      createProduct.ImageFiles.Count > 10)
                 {
                     throw new BadHttpRequestException("Maximum 10 images are allowed.");
                 }

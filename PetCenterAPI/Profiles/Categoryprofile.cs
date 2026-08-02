@@ -16,23 +16,33 @@ namespace PetCenterAPI.Profiles
                     opt => opt.MapFrom(src => src.CategoryAttributes));
 
             CreateMap<Category, ReadCategoryDTOForCustomer>()
-              .ForMember(dest => dest.Attributes,
-                  opt => opt.MapFrom(src => src.CategoryAttributes));
+                .ForMember(dest => dest.Attributes,
+                    opt => opt.MapFrom(src => src.CategoryAttributes));
 
 
-            // Create DTO -> Entity
+            // DTO -> Entity
             CreateMap<CreateCategoryDTO, Category>()
                 .ForMember(dest => dest.CategoryAttributes,
-                    opt => opt.MapFrom(src => src.Attributes));
+                    opt => opt.MapFrom(src => src.Attributes))
+                .ForMember(dest => dest.PublicId,
+                    opt => opt.Ignore())
+                .ForMember(dest => dest.Products,
+                    opt => opt.Ignore());
 
-            // Update DTO -> Entity
+
             CreateMap<UpdateCategoryDTO, Category>()
-         .ForMember(dest => dest.CategoryAttributes,
-             opt => opt.Ignore()) // update xử lý riêng
-         .ForMember(dest => dest.CategoryLogo,
-             opt => opt.Ignore())
-         .ForMember(dest => dest.PublicId,
-             opt => opt.Ignore());
+                .ForMember(dest => dest.CategoryAttributes,
+                    opt => opt.Ignore())
+                .ForMember(dest => dest.CategoryLogo,
+                    opt => opt.Ignore())
+                .ForMember(dest => dest.PublicId,
+                    opt => opt.Ignore())
+                .ForMember(dest => dest.CategoryId,
+                    opt => opt.Ignore())
+                .ForMember(dest => dest.Status,
+                    opt => opt.Ignore())
+                .ForMember(dest => dest.Products,
+                    opt => opt.Ignore());
         }
     }
 }

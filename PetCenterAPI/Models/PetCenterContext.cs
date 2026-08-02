@@ -534,7 +534,10 @@ public partial class PetCenterContext : DbContext
                 .IsRequired(false);
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.QuantityReserved).HasDefaultValue(0);
-
+                .IsRequired()
+                .HasDefaultValue(0);
+                .IsRequired()
+                .HasDefaultValue(0);
             entity.Property(e => e.SKU).HasMaxLength(100).IsUnicode(false);
             entity.HasOne(d => d.Product).WithOne(p => p.Inventory)
                 .HasForeignKey<Inventory>(d => d.ProductId)

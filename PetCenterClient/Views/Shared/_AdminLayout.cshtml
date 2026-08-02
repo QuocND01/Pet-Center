@@ -502,7 +502,7 @@
                 </a>
             }
 
-            @* ── CATALOG & INVENTORY ───────────────────────── *@
+            @* ── CATALOG ───────────────────────────────────── *@
             @if (isAdmin || isSaleStaff || isInventory)
             {
                 <div class="sb-section-label">Catalog</div>
@@ -515,7 +515,11 @@
                 <a asp-controller="Brand" asp-action="IndexAdmin" class="sb-link">
                     <i class="bi bi-bookmark-star"></i> Brands
                 </a>
+            }
 
+            @* ── INVENTORY ─────────────────────────────────── *@
+            @if (isAdmin || isInventory)
+            {
                 <div class="sb-section-label">Inventory</div>
                 <a asp-controller="ImportStock" asp-action="Index" class="sb-link">
                     <i class="bi bi-arrow-down-circle"></i> Import Stocks
@@ -757,24 +761,55 @@
                     }
                 } catch (e) { }
 
-                // 2. Realtime Session Poll every 10 seconds
-                var checkInterval = setInterval(function () {
-                    fetch('/Auth/CheckAdminAuth', { method: 'GET', headers: { 'Cache-Control': 'no-cache' } })
-                        .then(function (r) { return r.json(); })
-                        .then(function (res) {
-                            if (!res || !res.isAuthenticated) {
-                                clearInterval(checkInterval);
-                                doAutoLogout('Your staff login session has expired due to inactivity. Redirecting to login page...');
-                            }
-                        })
-                        .catch(function (err) { });
-                }, 10000);
+                // ─────────────────────────────────────────────────────────────────
+                // 2. SignalR — PRIMARY: lắng nghe AccountDeactivated & SessionExpired event push từ server
+                // ─────────────────────────────────────────────────────────────────
+                window.addEventListener('signalr:account-deactivated', function (e) {
+                    if (adminFallbackInterval) clearInterval(adminFallbackInterval);
+                    var detail = e.detail || {};
+                    doAutoLogout(detail.message || 'Your account has been deactivated by an administrator.');
+                });
 
-                // 3. Listen for SignalR SessionExpired event
                 window.addEventListener('signalr:session-expired', function (e) {
-                    clearInterval(checkInterval);
+                    if (adminFallbackInterval) clearInterval(adminFallbackInterval);
                     doAutoLogout(e.detail || 'Your session has expired.');
                 });
+
+                // ─────────────────────────────────────────────────────────────────
+                // 3. HTTP Poll — FALLBACK: mỗi 5 phút, CheckAdminAuth chỉ đọc Session (không query DB)
+                //    Mục đích: phát hiện session hết khi tab treo hoặc SignalR bị disconnect
+                // ─────────────────────────────────────────────────────────────────
+                var adminFallbackInterval = null;
+
+                function startAdminFallbackPoll() {
+                    if (adminFallbackInterval) return;
+                    adminFallbackInterval = setInterval(function () {
+                        fetch('/Auth/CheckAdminAuth', { method: 'GET' })
+                            .then(function (r) { return r.ok ? r.json() : null; })
+                            .then(function (res) {
+                                if (res && res.isAuthenticated === false) {
+                                    clearInterval(adminFallbackInterval);
+                                    doAutoLogout('Your staff login session has expired. Redirecting to login page...');
+                                }
+                            })
+                            .catch(function () { });
+                    }, 300000); // 5 phút — safety net
+                }
+
+                // Bắt đầu fallback poll ngay
+                startAdminFallbackPoll();
+
+                // Theo dõi SignalR: connected → tắt fallback, disconnected → bật lại
+                setInterval(function () {
+                    if (typeof appHubConnection !== 'undefined' && appHubConnection !== null) {
+                        var state = appHubConnection.state;
+                        if (state === 'Connected') {
+                            if (adminFallbackInterval) { clearInterval(adminFallbackInterval); adminFallbackInterval = null; }
+                        } else if (state === 'Disconnected' || state === 'Reconnecting') {
+                            startAdminFallbackPoll();
+                        }
+                    }
+                }, 15000);
             })();
         </script>
     }

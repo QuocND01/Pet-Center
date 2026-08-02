@@ -21,6 +21,7 @@ namespace PetCenterClient.ViewModels.AI
         public bool HasDiseaseInfo { get; set; }
 
         public string? Message { get; set; }
+        public string? UploadedImageUrl { get; set; }
     }
 
     public class AIDiseaseInfo
