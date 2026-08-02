@@ -519,7 +519,8 @@
             var select = document.querySelector('.js-role-select[data-target="' + target + '"]');
             if (!select) return;
             var opt = select.options[select.selectedIndex];
-            var isVet = opt && opt.getAttribute('data-rolename') === 'Veterinarian';
+            var roleName = opt ? (opt.getAttribute('data-rolename') || '').toLowerCase().trim() : '';
+            var isVet = roleName === 'vet' || roleName === 'veterinarian';
 
             var section = document.getElementById(target === 'create' ? 'createVetSection' : 'editVetSection');
             if (section) section.style.display = isVet ? 'block' : 'none';

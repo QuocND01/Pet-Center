@@ -762,8 +762,14 @@
                 } catch (e) { }
 
                 // ─────────────────────────────────────────────────────────────────
-                // 2. SignalR — PRIMARY: lắng nghe SessionExpired event push từ server
+                // 2. SignalR — PRIMARY: lắng nghe AccountDeactivated & SessionExpired event push từ server
                 // ─────────────────────────────────────────────────────────────────
+                window.addEventListener('signalr:account-deactivated', function (e) {
+                    if (adminFallbackInterval) clearInterval(adminFallbackInterval);
+                    var detail = e.detail || {};
+                    doAutoLogout(detail.message || 'Your account has been deactivated by an administrator.');
+                });
+
                 window.addEventListener('signalr:session-expired', function (e) {
                     if (adminFallbackInterval) clearInterval(adminFallbackInterval);
                     doAutoLogout(e.detail || 'Your session has expired.');
