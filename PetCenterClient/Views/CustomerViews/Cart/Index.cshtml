@@ -1,4 +1,4 @@
-﻿@using PetCenterClient.DTOs
+@using PetCenterClient.DTOs
 @model CartResponseDTO
 @{
     ViewData["Title"] = "My Cart";
@@ -473,9 +473,12 @@
             <div class="cart-summary-section">
                 <div class="summary-info">
                     <div class="selected-count-label">
-                        Selected: <span class="selected-count-val" id="selectedCountDisplay">0</span> item(s)
+                        Selected: <span class="selected-count-val" id="selectedCountDisplay">0</span> / 10 item(s)
                     </div>
-                    <div class="total-label">Selected Total</div>
+                    <div id="limitWarningMsg" style="display:none; color:#ef4444; font-size:12px; font-weight:600; margin-top:4px; line-height:1.3;">
+                        ⚠️ Exceeds limit of 10 items per order. Please reduce quantity to checkout.
+                    </div>
+                    <div class="total-label" style="margin-top:8px;">Selected Total</div>
                     <div class="total-amount" id="selectedTotal">0 ₫</div>
                 </div>
                 <button class="btn-checkout" id="checkoutBtn" type="button"
@@ -495,10 +498,9 @@
     var FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' fill='%23f0f0f0' rx='10'/%3E%3Ctext x='36' y='44' font-size='28' text-anchor='middle'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E";
 
     function imgFallback(img) {
-        // Nếu đã set fallback rồi thì không làm gì nữa — tránh loop
         if (img.dataset.errored) return;
         img.dataset.errored = '1';
-        img.onerror = null;          // bỏ listener hoàn toàn
+        img.onerror = null;
         img.src = FALLBACK_IMG;
     }
 
@@ -518,8 +520,12 @@
     }
 
     // ─────────────────────────────────────────────────────────────
-    // SELECT ALL
+    // SELECT ALL & CALCULATE SELECTED PRODUCT COUNT
     // ─────────────────────────────────────────────────────────────
+    function getSelectedCount() {
+        return document.querySelectorAll('.row-check:checked').length;
+    }
+
     var selectAllCb = document.getElementById('selectAll');
     if (selectAllCb) {
         selectAllCb.addEventListener('change', function() {
@@ -528,6 +534,7 @@
                 updateRowStyle(cb);
             });
             recalcTotal();
+            syncSelectAll();
         });
     }
 
@@ -564,13 +571,24 @@
             var qty   = parseInt(document.getElementById('qty-' + cb.dataset.detailId)?.value) || 1;
             total += price * qty;
         });
-        var checked = document.querySelectorAll('.row-check:checked').length;
+        var checkedCount = getSelectedCount();
+
         document.getElementById('selectedTotal').textContent = Math.round(total).toLocaleString('vi-VN') + ' ₫';
-        document.getElementById('selectedCountDisplay').textContent = checked;
-        var label = document.getElementById('selectedCountLabel');
-        if (label) label.textContent = '(' + checked + ' selected)';
+        document.getElementById('selectedCountDisplay').textContent = checkedCount;
+
+        var warningEl = document.getElementById('limitWarningMsg');
         var btn = document.getElementById('checkoutBtn');
-        if (btn) btn.disabled = checked === 0;
+
+        if (checkedCount > 10) {
+            if (warningEl) {
+                warningEl.style.display = 'block';
+                warningEl.textContent = '⚠️ Exceeds limit of 10 items per order (' + checkedCount + '/10). Please select fewer items to checkout.';
+            }
+            if (btn) btn.disabled = true;
+        } else {
+            if (warningEl) warningEl.style.display = 'none';
+            if (btn) btn.disabled = (checkedCount === 0);
+        }
     }
 
     function updateRowSub(detailId) {
@@ -592,6 +610,7 @@
         var newVal = (parseInt(input.value) || 1) + delta;
         if (newVal < 1)       newVal = 1;
         if (newVal > maxQty)  { showToast('Exceeds stock (' + maxQty + ').', 'error'); return; }
+
         input.value = newVal;
         updateRowSub(detailId);
         recalcTotal();
@@ -604,7 +623,8 @@
         var val      = parseInt(input.value) || 1;
         if (val < 1)      val = 1;
         if (val > maxQty) { showToast('Exceeds stock (' + maxQty + ').', 'error'); val = maxQty; }
-        if (parseInt(input.value) !== val) input.value = val;
+
+        input.value = val;
         updateRowSub(detailId);
         recalcTotal();
         saveDebounced(detailId, val);
@@ -632,6 +652,12 @@
     function goToCheckout() {
         var checked = document.querySelectorAll('.row-check:checked');
         if (!checked.length) { showToast('Select at least one item.', 'error'); return; }
+
+        if (checked.length > 10) {
+            showToast('Each order can contain a maximum of 10 items.', 'error');
+            return;
+        }
+
         var parts = [];
         checked.forEach(function(cb) {
             var detailId  = cb.dataset.detailId;

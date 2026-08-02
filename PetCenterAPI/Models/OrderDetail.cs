@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace PetCenterAPI.Models;
@@ -15,9 +15,6 @@ public partial class OrderDetail
 
     public decimal UnitPrice { get; set; }
 
-    public Guid? ImportStockDetailsId { get; set; }
-
-    public virtual ImportStockDetail? ImportStockDetails { get; set; }
 
     public virtual Order Order { get; set; } = null!;
 
