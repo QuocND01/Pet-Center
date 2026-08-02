@@ -192,9 +192,17 @@ namespace PetCenterClient.Controllers
             if (!string.IsNullOrEmpty(staffId))
                 HttpContext.Session.SetString("StaffId", staffId);
 
-            if (primaryRole == "Vet" || primaryRole == "Groomer")
+            if (primaryRole == "Admin")
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+            if (primaryRole == "Vet")
             {
                 return RedirectToAction("Index", "VetPets");
+            }
+            if (primaryRole == "Groomer")
+            {
+                return RedirectToAction("StaffAppointments", "Appointment");
             }
 
             return RedirectToAction("Indexadmin", "Products");
