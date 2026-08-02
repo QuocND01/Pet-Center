@@ -56,6 +56,15 @@ namespace PetCenterClient.Controllers
             return PartialView("~/Views/AdminViews/Diseases/_DiseaseDetailsPartial.cshtml", disease);
         }
 
+        // Return disease JSON (server-side proxy) so browser JS does not need to call protected API directly
+        [HttpGet]
+        public async Task<IActionResult> GetJson(Guid id)
+        {
+            var disease = await _apiClient.GetDiseaseDetailsAsync(id);
+            if (disease == null) return NotFound();
+            return Json(disease);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] MutateDiseaseViewModel dto)
         {

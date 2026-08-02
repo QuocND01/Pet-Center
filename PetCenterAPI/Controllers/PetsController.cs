@@ -24,11 +24,13 @@ namespace PetCenterAPI.Controllers
         private Guid GetCustomerId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         [HttpGet("my-pets")]
-        public async Task<IActionResult> GetMyPets()
+        [EnableQuery(PageSize = 50, MaxTop = 100)]
+        public IActionResult GetMyPets()
         {
-            // Materialize query to a list to return a plain JSON array (avoid OData wrapper issues)
-            var list = await _petService.GetMyPetsQuery(GetCustomerId()).ToListAsync();
-            return Ok(list);
+            // Return IQueryable so OData middleware (if client supplies $filter/$orderby)
+            // can apply filters/paging on server side. Keep page size limit to avoid large loads.
+            var query = _petService.GetMyPetsQuery(GetCustomerId());
+            return Ok(query);
         }
 
         [HttpGet("{id:guid}")]
