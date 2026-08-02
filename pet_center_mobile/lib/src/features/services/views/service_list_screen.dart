@@ -229,14 +229,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
           // ===================================================================
           InkWell(
             onTap: () {
-              // TODO: Team member - Replace with actual Appointment Booking navigation
-              // Example: Navigator.pushNamed(context, '/book-appointment');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Appointment Booking: Click to schedule a appointment.'),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
+              Navigator.pushNamed(context, '/book-appointment');
             },
             borderRadius: BorderRadius.circular(16),
             child: Container(

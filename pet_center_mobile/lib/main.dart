@@ -17,6 +17,8 @@ import 'src/features/orders/views/order_list_screen.dart';
 import 'src/features/address/views/address_list_screen.dart';
 import 'src/features/pet/views/pet_list_screen.dart';
 import 'src/features/cart/views/cart_screen.dart';
+import 'src/features/appointment/views/booking_screen.dart';
+import 'src/features/appointment/views/appointment_list_screen.dart';
 
 import 'package:app_links/app_links.dart';
 
@@ -63,6 +65,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initDeepLinks() async {
+    if (kIsWeb) return;
+
     try {
       final appLinks = AppLinks();
 
@@ -140,6 +144,8 @@ class _MyAppState extends State<MyApp> {
         '/addresses': (context) => const AddressListScreen(),
         '/pets': (context) => const PetListScreen(),
         '/cart': (context) => const CartScreen(),
+        '/book-appointment': (context) => const BookingScreen(),
+        '/my-appointments': (context) => const AppointmentListScreen(),
       },
     );
   }

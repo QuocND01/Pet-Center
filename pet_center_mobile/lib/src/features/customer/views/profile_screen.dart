@@ -5,6 +5,7 @@ import '../../../services/api_service.dart';
 import '../../address/views/address_list_screen.dart';
 import '../../pet/views/pet_list_screen.dart';
 import '../../medical_records/views/medical_record_list_screen.dart';
+import '../../appointment/views/appointment_list_screen.dart';
 import 'edit_profile_screen.dart';
 import '../../auth/views/change_password_screen.dart';
 
@@ -292,6 +293,19 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const PetListScreen()),
+                    );
+                  },
+                ),
+                _buildMenuTile(
+                  icon: Icons.calendar_month_rounded,
+                  iconColor: Colors.blue,
+                  iconBgColor: Colors.blue.shade50,
+                  title: 'My Appointments',
+                  subtitle: 'View, edit, cancel or rate booked appointments',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AppointmentListScreen()),
                     );
                   },
                 ),

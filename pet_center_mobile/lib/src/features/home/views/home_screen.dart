@@ -5,6 +5,8 @@ import '../../cart/views/cart_screen.dart';
 import '../../customer/views/profile_screen.dart';
 import '../../services/views/service_list_screen.dart';
 import '../../orders/views/order_list_screen.dart';
+import '../../appointment/views/booking_screen.dart';
+import '../../appointment/views/appointment_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -202,7 +204,7 @@ class HomeDashboard extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ServiceListScreen()),
+                      MaterialPageRoute(builder: (context) => const BookingScreen()),
                     );
                   },
                 ),
