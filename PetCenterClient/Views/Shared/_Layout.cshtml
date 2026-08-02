@@ -649,6 +649,9 @@
 
                 if (!jwtToken) return;
 
+                // ─────────────────────────────────────────────────────────────────
+                // Hàm logout chung — chỉ chạy 1 lần dù được gọi từ nhiều nguồn
+                // ─────────────────────────────────────────────────────────────────
                 function doAutoLogout(msg) {
                     if (window.__autoLogoutStarted) return;
                     window.__autoLogoutStarted = true;
@@ -666,7 +669,9 @@
                     }, 3000);
                 }
 
-                // 1. Check JWT expiration timestamp
+                // ─────────────────────────────────────────────────────────────────
+                // 1. Tự động logout đúng lúc JWT hết hạn (frontend timer — 0 network cost)
+                // ─────────────────────────────────────────────────────────────────
                 try {
                     var base64Url = jwtToken.split('.')[1];
                     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -680,6 +685,7 @@
                             doAutoLogout('Your login session has expired. Redirecting to login page...');
                             return;
                         } else {
+                            // Đặt timer đúng thời điểm JWT hết hạn — không cần poll liên tục
                             setTimeout(function () {
                                 doAutoLogout('Your login session has expired. Redirecting to login page...');
                             }, timeUntilExp);
@@ -687,41 +693,68 @@
                     }
                 } catch (e) { }
 
-                // 2. Realtime Session Poll every 10 seconds (detects idle session timeout or account deactivation)
-                var checkInterval = setInterval(function () {
-                    fetch('/Auth/CheckAuth', { method: 'GET', headers: { 'Cache-Control': 'no-cache' } })
-                        .then(function (r) { return r.json(); })
-                        .then(function (res) {
-                            if (!res || !res.isAuthenticated) {
-                                clearInterval(checkInterval);
-                                if (res && res.isDeactivated) {
-                                    showDeactivatedModal(res.message || 'Your account has been deactivated by an administrator.');
-                                } else {
-                                    doAutoLogout('Your login session has expired due to inactivity. Redirecting to login page...');
-                                }
-                            }
-                        })
-                        .catch(function (err) { });
-                }, 10000);
+                // ─────────────────────────────────────────────────────────────────
+                // 2. SignalR — PRIMARY: lắng nghe event push từ server (0 overhead khi idle)
+                // ─────────────────────────────────────────────────────────────────
 
-                // 3. Listen for SignalR SessionExpired event
-                window.addEventListener('signalr:session-expired', function (e) {
-                    clearInterval(checkInterval);
-                    doAutoLogout(e.detail || 'Your session has expired.');
-                });
-
-                // 4. Listen for SignalR AccountDeactivated event
+                // 2a. AccountDeactivated: admin block tài khoản → server push đến đúng user
                 window.addEventListener('signalr:account-deactivated', function (e) {
                     var detail = e.detail || {};
                     var targetId = (detail.customerId || '').toString().toLowerCase();
                     var myCustomerId = (window.__CUSTOMER_ID || '').toString().toLowerCase();
 
-                    if (!targetId || !myCustomerId || targetId === myCustomerId) {
-                        clearInterval(checkInterval);
+                    // Double-check ID phòng trường hợp backend gửi nhầm (defense-in-depth)
+                    if (targetId && myCustomerId && targetId === myCustomerId) {
+                        if (fallbackInterval) clearInterval(fallbackInterval);
                         showDeactivatedModal(detail.message || 'Your account has been deactivated by an administrator.');
                     }
                 });
 
+                // 2b. SessionExpired: server chủ động thông báo session hết
+                window.addEventListener('signalr:session-expired', function (e) {
+                    if (fallbackInterval) clearInterval(fallbackInterval);
+                    doAutoLogout(e.detail || 'Your session has expired.');
+                });
+
+                // ─────────────────────────────────────────────────────────────────
+                // 3. HTTP Poll — FALLBACK: chạy mỗi 5 phút, chỉ check JWT local (không query DB)
+                //    Mục đích: phát hiện session hết khi tab bị treo hoặc SignalR bị disconnect
+                // ─────────────────────────────────────────────────────────────────
+                var fallbackInterval = null;
+
+                function startFallbackPoll() {
+                    if (fallbackInterval) return; // Không chạy 2 lần
+                    fallbackInterval = setInterval(function () {
+                        fetch('/Auth/CheckAuth', { method: 'GET' })
+                            .then(function (r) { return r.ok ? r.json() : null; })
+                            .then(function (res) {
+                                if (res && res.isAuthenticated === false) {
+                                    clearInterval(fallbackInterval);
+                                    doAutoLogout('Your login session has expired. Redirecting to login page...');
+                                }
+                            })
+                            .catch(function () { }); // Bỏ qua lỗi mạng tạm thời
+                    }, 300000); // 5 phút — chỉ là safety net
+                }
+
+                // Bắt đầu poll fallback ngay lập tức
+                startFallbackPoll();
+
+                // Theo dõi trạng thái SignalR: connected → tắt fallback, disconnected → bật lại fallback
+                setInterval(function () {
+                    if (typeof appHubConnection !== 'undefined' && appHubConnection !== null) {
+                        var state = appHubConnection.state;
+                        if (state === 'Connected') {
+                            if (fallbackInterval) { clearInterval(fallbackInterval); fallbackInterval = null; }
+                        } else if (state === 'Disconnected' || state === 'Reconnecting') {
+                            startFallbackPoll();
+                        }
+                    }
+                }, 15000); // Kiểm tra trạng thái SignalR mỗi 15 giây (chỉ đọc property, không network)
+
+                // ─────────────────────────────────────────────────────────────────
+                // 4. Popup tài khoản bị khóa (giữ nguyên UI/UX như cũ)
+                // ─────────────────────────────────────────────────────────────────
                 function showDeactivatedModal(msg) {
                     if (window.__autoLogoutStarted) return;
                     window.__autoLogoutStarted = true;

@@ -82,9 +82,11 @@ namespace PetCenterAPI.Controllers
                     timestamp = DateTime.UtcNow
                 };
 
+                // Gửi đến đúng user bị block (theo UserId claim trong JWT)
                 await _hubContext.Clients.User(id.ToString()).SendAsync("AccountDeactivated", payload);
+                // Gửi theo Group (backup — đảm bảo bắt được kể cả khi UserIdentifier mapping lệch)
                 await _hubContext.Clients.Group(id.ToString().ToLower()).SendAsync("AccountDeactivated", payload);
-                await _hubContext.Clients.All.SendAsync("AccountDeactivated", payload);
+                // KHÔNG dùng Clients.All — tránh broadcast thừa tới toàn bộ user đang online
             }
 
             return Ok(new
