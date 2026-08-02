@@ -31,6 +31,7 @@ class CartDetailModel {
   final String cartId;
   final String productId;
   int quantity;
+  bool isSelected;
   ProductModel? product; // Tải động từ chi tiết sản phẩm trên API
 
   CartDetailModel({
@@ -38,6 +39,7 @@ class CartDetailModel {
     required this.cartId,
     required this.productId,
     required this.quantity,
+    this.isSelected = true,
     this.product,
   });
 

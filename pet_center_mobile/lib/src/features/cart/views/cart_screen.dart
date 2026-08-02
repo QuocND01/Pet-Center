@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/cart_model.dart';
-import '../../../models/address_model.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/custom_button.dart';
+import '../../checkout/views/checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -36,10 +36,28 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
+  List<CartDetailModel> get _selectedItems {
+    if (_currentCart == null) return [];
+    return _currentCart!.cartDetails.where((item) => item.isSelected).toList();
+  }
+
+  bool get _isAllSelected {
+    if (_currentCart == null || _currentCart!.cartDetails.isEmpty) return false;
+    return _currentCart!.cartDetails.every((item) => item.isSelected);
+  }
+
+  void _toggleSelectAll(bool? value) {
+    if (_currentCart == null) return;
+    setState(() {
+      for (var detail in _currentCart!.cartDetails) {
+        detail.isSelected = value ?? false;
+      }
+    });
+  }
+
   double _calculateTotal() {
-    if (_currentCart == null) return 0.0;
     double total = 0.0;
-    for (var detail in _currentCart!.cartDetails) {
+    for (var detail in _selectedItems) {
       if (detail.product != null) {
         total += detail.product!.productPrice * detail.quantity;
       }
@@ -97,217 +115,73 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  void _clearAllCart() {
+    if (_currentCart == null || _currentCart!.cartDetails.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear Cart'),
+        content: const Text('Are you sure you want to remove all items from your cart?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              setState(() {
+                _isUpdating = true;
+              });
+              try {
+                final ok = await _apiService.clearCart(_apiService.customerId!);
+                if (ok) {
+                  _loadCart();
+                } else {
+                  _showError('Failed to clear cart.');
+                }
+              } catch (e) {
+                _showError('Error clearing cart: $e');
+              } finally {
+                setState(() {
+                  _isUpdating = false;
+                });
+              }
+            },
+            child: const Text('Clear All', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppColors.error),
     );
   }
 
-  // CHECKOUT FLOW
-  void _startCheckout() async {
-    if (_currentCart == null || _currentCart!.cartDetails.isEmpty) return;
+  void _startCheckout() {
+    final selected = _selectedItems;
 
-    setState(() {
-      _isUpdating = true;
-    });
-
-    try {
-      final List<AddressModel> addresses = await _apiService.getMyAddresses();
-      
-      if (!mounted) return;
-      setState(() {
-        _isUpdating = false;
-      });
-
-      if (addresses.isEmpty) {
-        _showAddAddressDialog();
-      } else {
-        _showSelectAddressDialog(addresses);
-      }
-    } catch (e) {
-      setState(() {
-        _isUpdating = false;
-      });
-      _showError('Failed to load shipping addresses: $e');
+    if (selected.isEmpty) {
+      _showError('Please select at least 1 item to proceed to checkout.');
+      return;
     }
-  }
 
-  // Dialog to add new address
-  void _showAddAddressDialog() {
-    final formKey = GlobalKey<FormState>();
-    final provinceCtrl = TextEditingController();
-    final districtCtrl = TextEditingController();
-    final wardCtrl = TextEditingController();
-    final detailsCtrl = TextEditingController();
-    bool isDefault = true;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Shipping Address'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: provinceCtrl,
-                    decoration: const InputDecoration(labelText: 'Province / City'),
-                    validator: (v) => v == null || v.isEmpty ? 'Cannot be empty' : null,
-                  ),
-                  TextFormField(
-                    controller: districtCtrl,
-                    decoration: const InputDecoration(labelText: 'District'),
-                    validator: (v) => v == null || v.isEmpty ? 'Cannot be empty' : null,
-                  ),
-                  TextFormField(
-                    controller: wardCtrl,
-                    decoration: const InputDecoration(labelText: 'Ward'),
-                    validator: (v) => v == null || v.isEmpty ? 'Cannot be empty' : null,
-                  ),
-                  TextFormField(
-                    controller: detailsCtrl,
-                    decoration: const InputDecoration(labelText: 'Street Name, House No.'),
-                    validator: (v) => v == null || v.isEmpty ? 'Cannot be empty' : null,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  Navigator.pop(context);
-                  setState(() {
-                    _isUpdating = true;
-                  });
-                  try {
-                    final ok = await _apiService.addAddress(
-                      province: provinceCtrl.text.trim(),
-                      district: districtCtrl.text.trim(),
-                      ward: wardCtrl.text.trim(),
-                      addressDetails: detailsCtrl.text.trim(),
-                      isDefault: isDefault,
-                    );
-                    if (ok) {
-                      _startCheckout();
-                    } else {
-                      _showError('Failed to add address.');
-                    }
-                  } catch (e) {
-                    _showError('Address Error: $e');
-                  } finally {
-                    setState(() {
-                      _isUpdating = false;
-                    });
-                  }
-                }
-              },
-              child: const Text('Save & Continue'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Dialog to select shipping address & confirm order
-  void _showSelectAddressDialog(List<AddressModel> addresses) {
-    AddressModel selectedAddress = addresses.firstWhere((a) => a.isDefault, orElse: () => addresses.first);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Select Shipping Address'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: addresses.length,
-                  itemBuilder: (context, index) {
-                    final addr = addresses[index];
-                    return RadioListTile<AddressModel>(
-                      title: Text(addr.fullAddress, style: const TextStyle(fontSize: 14)),
-                      subtitle: addr.isDefault ? const Text('Default', style: TextStyle(color: Colors.teal, fontSize: 11)) : null,
-                      value: addr,
-                      groupValue: selectedAddress,
-                      onChanged: (val) {
-                        setDialogState(() {
-                          selectedAddress = val!;
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => _showAddAddressDialog(),
-                  child: const Text('New Address'),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    _confirmOrder(selectedAddress);
-                  },
-                  child: const Text('Place COD Order'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // Submit order request
-  void _confirmOrder(AddressModel address) async {
-    setState(() {
-      _isUpdating = true;
-    });
-
-    try {
-      final result = await _apiService.placeCodOrder(
-        addressId: address.addressId,
-        items: _currentCart!.cartDetails,
-      );
-
-      if (mounted) {
-        final isSuccess = result['success'] == true || result['Success'] == true || result['orderId'] != null || result['OrderId'] != null;
-        if (isSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🎉 Order placed successfully! It is now being processed.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          _loadCart();
-        } else {
-          _showError(result['message'] ?? result['Message'] ?? 'Order placement failed.');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        _showError('Order Error: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isUpdating = false;
-        });
-      }
+    if (selected.length > 10) {
+      _showError('Each order can contain a maximum of 10 items.');
+      return;
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutScreen(selectedItems: selected),
+      ),
+    ).then((_) => _loadCart());
   }
 
   @override
@@ -339,6 +213,14 @@ class _CartScreenState extends State<CartScreen> {
         title: const Text('My Shopping Cart'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        actions: [
+          if (_currentCart != null && _currentCart!.cartDetails.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_sweep_outlined),
+              tooltip: 'Clear Cart',
+              onPressed: _clearAllCart,
+            ),
+        ],
       ),
       body: FutureBuilder<CartResponseModel>(
         future: _cartFuture,
@@ -377,6 +259,31 @@ class _CartScreenState extends State<CartScreen> {
 
           return Column(
             children: [
+              // Header Select All Bar
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: _isAllSelected,
+                      activeColor: AppColors.primary,
+                      onChanged: _toggleSelectAll,
+                    ),
+                    const Text(
+                      'Select All Items',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Selected (${_selectedItems.length}/${_currentCart!.cartDetails.length})',
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Items List
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -403,14 +310,23 @@ class _CartScreenState extends State<CartScreen> {
                       elevation: 2,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
                         child: Row(
                           children: [
+                            Checkbox(
+                              value: detail.isSelected,
+                              activeColor: AppColors.primary,
+                              onChanged: (val) {
+                                setState(() {
+                                  detail.isSelected = val ?? false;
+                                });
+                              },
+                            ),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
-                                width: 80,
-                                height: 80,
+                                width: 72,
+                                height: 72,
                                 color: Colors.grey.shade100,
                                 child: product.images.isNotEmpty
                                     ? Image.network(
@@ -422,7 +338,7 @@ class _CartScreenState extends State<CartScreen> {
                                     : const Icon(Icons.shopping_bag, color: Colors.grey),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,7 +347,7 @@ class _CartScreenState extends State<CartScreen> {
                                     product.productName,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -442,15 +358,22 @@ class _CartScreenState extends State<CartScreen> {
                                   Row(
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.remove_circle_outline, size: 20),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: const Icon(Icons.remove_circle_outline, size: 22),
                                         onPressed: () => _updateQuantity(detail, detail.quantity - 1),
                                       ),
-                                      Text(
-                                        '${detail.quantity}',
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Text(
+                                          '${detail.quantity}',
+                                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                        ),
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.add_circle_outline, size: 20),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: const Icon(Icons.add_circle_outline, size: 22),
                                         onPressed: () => _updateQuantity(detail, detail.quantity + 1),
                                       ),
                                     ],
@@ -470,6 +393,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
 
+              // Bottom Total & Checkout Bar
               Card(
                 margin: EdgeInsets.zero,
                 shape: const RoundedRectangleBorder(
@@ -477,14 +401,14 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 elevation: 8,
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Total:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const Text('Total Payment:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           Text(
                             '${_calculateTotal().toStringAsFixed(0)}đ',
                             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
@@ -493,7 +417,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       const SizedBox(height: 16),
                       CustomButton(
-                        text: 'Place COD Order',
+                        text: 'Proceed to Checkout (${_selectedItems.length})',
                         isLoading: _isUpdating,
                         onPressed: _startCheckout,
                       ),
