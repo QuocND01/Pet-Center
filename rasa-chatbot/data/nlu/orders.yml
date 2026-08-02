@@ -1,7 +1,7 @@
 version: "3.1"
 
 # ════════════════════════════════════════════════════════════════════════════
-#  NHÓM ĐƠN HÀNG + VOUCHER + FAQ ĐƠN HÀNG (ĐÃ MỞ RỘNG MẪU CÂU TRAINING)
+#  NHÓM ĐƠN HÀNG + VOUCHER + THUỘC TÍNH CHI TIẾT ĐƠN HÀNG
 # ════════════════════════════════════════════════════════════════════════════
 
 nlu:
@@ -57,6 +57,99 @@ nlu:
     - xem thông tin chi tiết đơn này
     - chi tiết đơn hàng vừa đặt
     - thông tin đơn hàng của tôi
+
+- intent: hoi_ngay_dat_don
+  examples: |
+    - ngày mua là bao nhiêu
+    - ngày mua đơn hàng này là ngày nào
+    - đơn này mua ngày nào
+    - đơn hàng của tôi đặt hôm nào
+    - ngày đặt đơn hàng [a1b2c3d4](order_id) là ngày mấy
+    - cho mình hỏi ngày mua đơn này
+    - xem ngày đặt đơn hàng
+    - ngày mua đơn hàng
+    - đơn này được đặt lúc nào
+    - cho hỏi ngày mua đơn [f47ac10b](order_id)
+    - thời gian đặt đơn hàng này
+    - ngày tạo đơn hàng là bao nhiêu
+    - ngày thanh toán mua đơn
+
+- intent: hoi_ngay_giao_don
+  examples: |
+    - tôi muốn xem ngày giao đơn hàng của tôi
+    - ngày giao đơn hàng của tôi là khi nào
+    - thế ngày giao đơn là khi nào
+    - ngày nhận hàng đơn này là ngày mấy
+    - đơn hàng [a1b2c3d4](order_id) đã giao ngày nào
+    - khi nào đơn hàng giao tới
+    - ngày giao của đơn hàng [f47ac10b](order_id)
+    - ngày giao mua là bao nhiêu
+    - ngày hoàn thành đơn hàng là khi nào
+    - khi nào nhận được đơn hàng
+    - ngày shipper giao đơn
+
+- intent: hoi_gia_tong_tien_don
+  examples: |
+    - giá đơn hàng của tôi như thế nào
+    - giá đơn hàng của tôi như thế nào?
+    - đơn này hết bao nhiêu tiền
+    - tổng tiền đơn hàng của tôi
+    - giá tiền của các sản phẩm trong đơn
+    - tổng tiền đơn [a1b2c3d4](order_id) là bao nhiêu
+    - chi tiết giá tiền đơn hàng
+    - đơn này tổng cộng bao nhiêu
+    - giá của đơn hàng vừa đặt
+    - đơn này bao nhiêu tiền vậy shop
+    - xem tổng tiền đơn hàng này
+    - giá đơn hàng là bao nhiêu
+    - đơn này thanh toán hết bao nhiêu tiền
+
+- intent: hoi_so_luong_san_pham_don
+  examples: |
+    - đơn hàng của tôi có bao nhiêu sản phẩm vậy
+    - đơn hàng của tôi có bao nhiêu sản phẩm vậy?
+    - số lượng bao nhiêu
+    - đơn này gồm mấy món
+    - có bao nhiêu sản phẩm trong đơn
+    - đơn hàng [a1b2c3d4](order_id) mua bao nhiêu món
+    - tổng số lượng sản phẩm đã mua trong đơn
+    - đơn này có mấy đồ
+    - số sản phẩm đã mua trong đơn
+    - xem số lượng mặt hàng trong đơn
+    - trong đơn này có mấy mặt hàng
+    - số lượng sản phẩm của đơn hàng
+
+- intent: hoi_thanh_toan_phuong_thuc_don
+  examples: |
+    - đơn này thanh toán bằng gì
+    - phương thức thanh toán của đơn hàng
+    - đơn hàng [a1b2c3d4](order_id) đã thanh toán chưa
+    - trạng thái thanh toán đơn hàng thế nào
+    - đơn này trả tiền chưa
+    - hình thức thanh toán đơn này là gì
+    - đơn này thanh toán COD hay chuyển khoản
+    - kiểm tra thanh toán đơn hàng
+
+- intent: hoi_thong_tin_nguoi_nhan_dia_chi
+  examples: |
+    - giao đến địa chỉ nào
+    - địa chỉ nhận đơn hàng của tôi
+    - người nhận đơn này là ai
+    - thông tin người mua trong đơn
+    - đơn hàng giao về địa chỉ nào
+    - số điện thoại nhận đơn hàng [a1b2c3d4](order_id)
+    - ai là người nhận đơn hàng này
+    - xem địa chỉ giao hàng của đơn
+    - ai đặt đơn này
+    - Người đặt
+    - thông tin người đặt
+    - Thông tin người dùng đã đặt đơn hàng này
+    - người đã đặt đơn
+    - người mua đơn hàng này là ai
+    - cho xem thông tin người đặt
+    - thông tin khách hàng đặt đơn
+    - ai mua đơn này
+    - số điện thoại người đặt đơn
 
 - intent: huy_don_hang
   examples: |
