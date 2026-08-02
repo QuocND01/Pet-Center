@@ -344,24 +344,73 @@ class ActionXemThuongHieu(Action):
         return []
 
 
+import re
+
+
 class ActionXemChiTietSanPham(Action):
     def name(self) -> Text:
         return "action_xem_chi_tiet_san_pham"
 
     def run(self, dispatcher, tracker, domain):
         product_id = tracker.get_slot("product_id_chon")
+        user_text = tracker.latest_message.get("text", "") or ""
+
+        # 1. Trích xuất mã GUID nếu người dùng gõ chuỗi dạng GUID (#0a8e421f hoặc 0a8e421f-...)
+        if not product_id:
+            guid_match = re.search(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", user_text, re.I)
+            if guid_match:
+                product_id = guid_match.group(0)
+
+        # 2. Nếu đang xem đơn hàng (có slot order_id) -> Tự lấy danh sách sản phẩm trong đơn đó
+        if not product_id:
+            order_id = tracker.get_slot("order_id")
+            if order_id:
+                ok_o, order_data = api_get(f"/api/orders/{order_id}", tracker)
+                if ok_o and order_data:
+                    items = extract_list(get_field(order_data, "orderItems", "OrderItems", default=[]))
+                    if len(items) == 1:
+                        product_id = str(get_field(items[0], "productId", "ProductId", default=""))
+                    elif len(items) > 1:
+                        lines = ["Bạn muốn xem chi tiết sản phẩm nào trong đơn hàng này?"]
+                        buttons = []
+                        for it in items[:5]:
+                            pid = str(get_field(it, "productId", "ProductId", default=""))
+                            nm = get_field(it, "productName", "ProductName", default="Sản phẩm")
+                            if pid:
+                                buttons.append({
+                                    "title": f"🔍 SP: {nm[:30]}",
+                                    "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
+                                })
+                        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+                        return []
+
+        # 3. Fallback: xem từ kết quả tìm kiếm trước đó
         if not product_id:
             results: Optional[list] = tracker.get_slot("ket_qua_tim_kiem")
             if results and len(results) == 1:
                 product_id = results[0].get("id")
-            else:
-                dispatcher.utter_message(text="Bạn muốn xem chi tiết sản phẩm nào? Hãy tìm sản phẩm trước nhé!")
+            elif results and len(results) > 1:
+                lines = ["Bạn muốn xem chi tiết sản phẩm nào dưới đây?"]
+                buttons = []
+                for p in results[:5]:
+                    pid = p.get("id")
+                    nm = p.get("name", "Sản phẩm")
+                    if pid:
+                        buttons.append({
+                            "title": f"🔍 SP: {nm[:30]}",
+                            "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
+                        })
+                dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
                 return []
+
+        if not product_id:
+            dispatcher.utter_message(text="Bạn muốn xem chi tiết sản phẩm nào? Bạn thử tìm sản phẩm trước nhé! (Ví dụ: 'tìm thức ăn cho chó')")
+            return []
 
         ok, p = api_get(f"/api/products/{product_id}", tracker)
         if not ok or not p:
-            dispatcher.utter_message(text="Không tìm thấy thông tin sản phẩm này.")
-            return []
+            dispatcher.utter_message(text="Không tìm thấy thông tin sản phẩm này. Bạn vui lòng thử lại nhé!")
+            return [SlotSet("product_id_chon", None)]
 
         name = get_field(p, "productName", "ProductName", default="(Không rõ tên)")
         price = get_field(p, "productPrice", "ProductPrice", default=0)
@@ -399,4 +448,4 @@ class ActionXemChiTietSanPham(Action):
              "payload": f'/xem_danh_gia{{"product_id_chon": "{product_id}"}}'},
         ]
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        return []
+        return [SlotSet("product_id_chon", product_id)]

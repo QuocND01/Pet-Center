@@ -130,6 +130,36 @@ rules:
     - intent: xem_voucher
     - action: action_xem_voucher
 
+- rule: Hỏi ngày đặt mua đơn hàng
+  steps:
+    - intent: hoi_ngay_dat_don
+    - action: action_hoi_ngay_dat_don
+
+- rule: Hỏi ngày giao đơn hàng
+  steps:
+    - intent: hoi_ngay_giao_don
+    - action: action_hoi_ngay_giao_don
+
+- rule: Hỏi giá và tổng tiền đơn hàng
+  steps:
+    - intent: hoi_gia_tong_tien_don
+    - action: action_hoi_gia_tong_tien_don
+
+- rule: Hỏi số lượng sản phẩm trong đơn hàng
+  steps:
+    - intent: hoi_so_luong_san_pham_don
+    - action: action_hoi_so_luong_san_pham_don
+
+- rule: Hỏi phương thức và trạng thái thanh toán đơn hàng
+  steps:
+    - intent: hoi_thanh_toan_phuong_thuc_don
+    - action: action_hoi_thanh_toan_phuong_thuc_don
+
+- rule: Hỏi thông tin người nhận và địa chỉ giao đơn hàng
+  steps:
+    - intent: hoi_thong_tin_nguoi_nhan_dia_chi
+    - action: action_hoi_thong_tin_nguoi_nhan_dia_chi
+
 - rule: Hỏi thời gian giao hàng
   steps:
     - intent: hoi_thoi_gian_giao_hang

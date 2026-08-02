@@ -1,14 +1,20 @@
 """
-orders.py — Nhóm ĐƠN HÀNG + VOUCHER (ĐÃ TỐI ƯU TRẢI NGHIỆM NÚT BẤM & TỰ ĐỘNG CHỌN ĐƠN HÀNG).
+orders.py — Nhóm ĐƠN HÀNG + VOUCHER + THUỘC TÍNH CHI TIẾT ĐƠN HÀNG (ĐÃ TỐI ƯU SỬA FIELD DTO BACKEND C# & CHỐNG LỖI).
 
 Intents phục vụ:
-  - xem_don_hang_cua_toi -> action_xem_don_hang  (Pattern A, cần JWT)
-  - xem_chi_tiet_don     -> action_chi_tiet_don  (cần order_id hoặc tự tìm đơn gần nhất)
-  - huy_don_hang         -> action_huy_don_hang  (Pattern B, ghi)
-  - xem_voucher          -> action_xem_voucher   (AllowAnonymous, cần customer_id)
+  - xem_don_hang_cua_toi             -> action_xem_don_hang  (Pattern A, cần JWT)
+  - xem_chi_tiet_don                 -> action_chi_tiet_don  (cần order_id hoặc tự tìm đơn gần nhất)
+  - huy_don_hang                     -> action_huy_don_hang  (Pattern B, ghi)
+  - xem_voucher                      -> action_xem_voucher   (AllowAnonymous, cần customer_id)
+  - hoi_ngay_dat_don                 -> action_hoi_ngay_dat_don
+  - hoi_ngay_giao_don                -> action_hoi_ngay_giao_don
+  - hoi_gia_tong_tien_don            -> action_hoi_gia_tong_tien_don
+  - hoi_so_luong_san_pham_don        -> action_hoi_so_luong_san_pham_don
+  - hoi_thanh_toan_phuong_thuc_don    -> action_hoi_thanh_toan_phuong_thuc_don
+  - hoi_thong_tin_nguoi_nhan_dia_chi  -> action_hoi_thong_tin_nguoi_nhan_dia_chi
 """
 
-from typing import Text, List, Dict, Any
+from typing import Text, List, Dict, Any, Tuple, Optional
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
@@ -20,10 +26,67 @@ from .common import (
 )
 
 
-class ActionXemDonHang(Action):
-    """Pattern A — Python gọi /api/orders/my-orders với JWT.
-    Hiển thị danh sách đơn gần nhất kèm Nút bấm trực tiếp cho từng đơn.
+def _resolve_target_order(
+    dispatcher: CollectingDispatcher, 
+    tracker: Tracker, 
+    payload_intent: str, 
+    field_label: str
+) -> Tuple[Optional[str], Optional[dict], List[Dict[Text, Any]]]:
     """
+    Hàm dùng chung tự động giải quyết order_id thông minh:
+    1. Ưu tiên dùng slot `order_id` sẵn có trong bộ nhớ (nếu user vừa xem/chọn đơn).
+    2. Nếu chưa có `order_id`:
+       - Kiểm tra danh sách đơn của user:
+         * 0 đơn: Thông báo chưa có đơn.
+         * 1 đơn: Tự động dùng đơn duy nhất đó.
+         * >1 đơn: Hiện nút bấm hỏi người dùng chọn đơn muốn xem `field_label`.
+    """
+    order_id = tracker.get_slot("order_id")
+    events = []
+
+    # 1. Nếu đã có sẵn order_id trong slot -> Gọi API lấy chi tiết đơn
+    if order_id:
+        ok, data = api_get(f"/api/orders/{order_id}", tracker)
+        if ok and data:
+            return str(order_id), data, events
+
+    # 2. Nếu chưa có order_id -> Kiểm tra người dùng đã đăng nhập chưa
+    if not is_logged_in(tracker):
+        dispatcher.utter_message(text=f"🔒 Bạn cần đăng nhập để xem {field_label} của đơn hàng nhé!")
+        return None, None, events
+
+    ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+    my_orders = extract_list(my_data) if ok_my else []
+
+    if not my_orders:
+        dispatcher.utter_message(text="Bạn chưa có đơn hàng nào để tra cứu.")
+        return None, None, events
+    elif len(my_orders) == 1:
+        # Tự động lấy đơn duy nhất
+        order_id = str(get_field(my_orders[0], "orderId", "OrderId", default=""))
+        events.append(SlotSet("order_id", order_id))
+        ok, data = api_get(f"/api/orders/{order_id}", tracker)
+        if ok and data:
+            return order_id, data, events
+        return order_id, my_orders[0], events
+    else:
+        # Nhiều đơn -> Hỏi lại để người dùng bấm chọn đúng đơn muốn xem
+        lines = [f"Bạn muốn xem **{field_label}** của đơn hàng nào dưới đây?"]
+        buttons = []
+        for o in my_orders[:5]:
+            oid = str(get_field(o, "orderId", "OrderId", default=""))
+            total = get_field(o, "totalAmount", "TotalAmount", default=0)
+            short_id = oid[:8] if oid else "đơn hàng"
+            buttons.append({
+                "title": f"📋 Đơn #{short_id} ({format_price(total)})",
+                "payload": f'/{payload_intent}{{"order_id": "{oid}"}}'
+            })
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return None, None, events
+
+
+class ActionXemDonHang(Action):
+    """Hiển thị danh sách đơn gần nhất kèm Nút bấm trực tiếp cho từng đơn."""
     def name(self) -> Text:
         return "action_xem_don_hang"
 
@@ -63,72 +126,30 @@ class ActionXemDonHang(Action):
                     "title": f"📋 Chi tiết #{short_id}",
                     "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
                 })
-                # Trạng thái 1 (Chờ xác nhận) hoặc 2 (Đã xác nhận) cho phép hủy
                 if int(status_code) in (1, 2):
                     buttons.append({
                         "title": f"❌ Hủy đơn #{short_id}",
                         "payload": f'/huy_don_hang{{"order_id": "{oid}"}}'
                     })
 
-        # Nút chuyển hướng sang trang quản lý đơn trên web
         buttons.append({
             "title": "🔗 Xem tất cả đơn trên Web",
             "payload": "/goto_orders_page"
         })
 
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        # Tự lưu slot order_id của đơn mới nhất để nếu user hỏi tiếp không cần gõ mã
         return [SlotSet("order_id", latest_order_id)]
 
 
 class ActionChiTietDon(Action):
-    """Xem chi tiết 1 đơn hàng.
-    Hỗ trợ TỰ ĐỘNG LẤY ĐƠN GẦN NHẤT nếu người dùng không truyền order_id.
-    """
+    """Xem chi tiết 1 đơn hàng."""
     def name(self) -> Text:
         return "action_chi_tiet_don"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        order_id = tracker.get_slot("order_id")
-
-        # ── TỰ ĐỘNG CHỌN ĐƠN NẾU CHƯA CÓ ORDER_ID ──
-        if not order_id:
-            if not is_logged_in(tracker):
-                dispatcher.utter_message(text="🔒 Bạn cần đăng nhập hoặc cung cấp mã đơn hàng để tra cứu nhé!")
-                return []
-
-            ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
-            my_orders = extract_list(my_data) if ok_my else []
-
-            if not my_orders:
-                dispatcher.utter_message(text="Bạn chưa có đơn hàng nào để xem chi tiết.")
-                return []
-            elif len(my_orders) == 1:
-                # Nếu chỉ có 1 đơn -> Tự động dùng đơn đó
-                order_id = str(get_field(my_orders[0], "orderId", "OrderId", default=""))
-            else:
-                # Nếu có nhiều đơn -> Hiện nút chọn
-                lines = ["Bạn muốn xem chi tiết đơn hàng nào dưới đây?"]
-                buttons = []
-                for o in my_orders[:5]:
-                    oid = str(get_field(o, "orderId", "OrderId", default=""))
-                    total = get_field(o, "totalAmount", "TotalAmount", default=0)
-                    short_id = oid[:8] if oid else "đơn hàng"
-                    buttons.append({
-                        "title": f"📋 Chi tiết #{short_id} ({format_price(total)})",
-                        "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
-                    })
-                dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-                return []
-
-        if not order_id:
-            dispatcher.utter_message(text="Không xác định được mã đơn hàng. Bạn vui lòng thử lại nhé!")
-            return []
-
-        ok, data = api_get(f"/api/orders/{order_id}", tracker)
-        if not ok or not data:
-            dispatcher.utter_message(text=f"Không tìm thấy thông tin đơn hàng với mã '{order_id[:8]}…'.")
-            return [SlotSet("order_id", None)]
+        order_id, data, events = _resolve_target_order(dispatcher, tracker, "xem_chi_tiet_don", "thông tin chi tiết")
+        if not order_id or not data:
+            return events
 
         status_code = get_field(data, "status", "Status", default=0)
         status = order_status_label(status_code)
@@ -136,9 +157,11 @@ class ActionChiTietDon(Action):
         total = get_field(data, "totalAmount", "TotalAmount", default=0)
         items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
         
-        address = get_field(data, "shippingAddress", "ShippingAddress", default="")
-        phone = get_field(data, "receiverPhone", "ReceiverPhone", "phone", "Phone", default="")
-        name = get_field(data, "receiverName", "ReceiverName", "fullName", "FullName", default="")
+        # ⚠️ ĐỌC ĐÚNG CÁC TRƯỜNG DTO BẢNG ĐƠN HÀNG TỪ C# API (AddressSnapshot, CustomerName, PhoneNumber)
+        address = get_field(data, "addressSnapshot", "AddressSnapshot", "shippingAddress", "ShippingAddress", default="Chưa cập nhật")
+        phone = get_field(data, "phoneNumber", "PhoneNumber", "receiverPhone", "ReceiverPhone", "phone", "Phone", default="Chưa cập nhật")
+        name = get_field(data, "customerName", "CustomerName", "receiverName", "ReceiverName", "fullName", "FullName", default="Khách hàng")
+        email = get_field(data, "email", "Email", default="")
 
         lines = [
             f"📋 CHI TIẾT ĐƠN HÀNG #{str(order_id)[:8]}…",
@@ -147,24 +170,29 @@ class ActionChiTietDon(Action):
             f" Tổng tiền: {format_price(total)}",
         ]
 
-        if address or phone or name:
-            lines.append("\n📍 THÔNG TIN GIAO HÀNG:")
-            if name:
-                lines.append(f"  • Người nhận: {name}")
-            if phone:
-                lines.append(f"  • SĐT: {phone}")
-            if address:
-                lines.append(f"  • Địa chỉ: {address}")
+        lines.append("\n📍 THÔNG TIN NGƯỜI ĐẶT & GIAO HÀNG:")
+        lines.append(f"  • Người đặt: {name}")
+        lines.append(f"  • Số điện thoại: {phone}" + (f" (Email: {email})" if email else ""))
+        lines.append(f"  • Địa chỉ nhận hàng: {address}")
+
+        buttons = []
 
         if items:
-            lines.append("\n📦 SẢN PHẨM:")
+            lines.append("\n📦 SẢN PHẨM TRONG ĐƠN:")
             for it in items[:5]:
+                pid = str(get_field(it, "productId", "ProductId", default=""))
                 nm = get_field(it, "productName", "ProductName", default="Sản phẩm")
                 qty = get_field(it, "quantity", "Quantity", default=1)
                 price = get_field(it, "unitPrice", "UnitPrice", "price", "Price", default=0)
                 lines.append(f"  • {nm} x{qty} ({format_price(price)})")
+                
+                # Gắn nút xem chi tiết trực tiếp từng sản phẩm trong đơn
+                if pid:
+                    buttons.append({
+                        "title": f"🔍 SP: {nm[:25]}",
+                        "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
+                    })
 
-        buttons = []
         if int(status_code) in (1, 2):
             buttons.append({
                 "title": f"❌ Hủy đơn hàng này",
@@ -176,20 +204,235 @@ class ActionChiTietDon(Action):
         })
 
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        return [SlotSet("order_id", order_id)]
+        return events + [SlotSet("order_id", order_id)]
+
+
+class ActionHoiNgayDatDon(Action):
+    """Hỏi chính xác ngày đặt mua (OrderDate / CreatedAt)."""
+    def name(self) -> Text:
+        return "action_hoi_ngay_dat_don"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_ngay_dat_don", "ngày đặt mua")
+        if not order_id or not data:
+            return events
+
+        created_date = get_field(data, "orderDate", "OrderDate", "createdDate", "CreatedDate", "createdAt", "CreatedAt", default="Chưa rõ")
+        status_code = get_field(data, "status", "Status", default=0)
+        status_text = order_status_label(status_code)
+        short_id = str(order_id)[:8]
+
+        date_display = str(created_date).replace("T", " ")[:19] if "T" in str(created_date) else str(created_date)
+
+        lines = [
+            f"📅 **NGÀY ĐẶT MUA ĐƠN HÀNG #{short_id}…**",
+            f"• Thời gian đặt mua: **{date_display}**",
+            f"• Trạng thái hiện tại: **{status_text}**"
+        ]
+
+        buttons = [
+            {"title": f"🚚 Xem ngày giao", "payload": f'/hoi_ngay_giao_don{{"order_id": "{order_id}"}}'},
+            {"title": f"📋 Xem chi tiết", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'}
+        ]
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return events + [SlotSet("order_id", order_id)]
+
+
+class ActionHoiNgayGiaoDon(Action):
+    """Hỏi chính xác ngày giao / ngày hoàn thành (DeliveredDate)."""
+    def name(self) -> Text:
+        return "action_hoi_ngay_giao_don"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_ngay_giao_don", "ngày giao hàng")
+        if not order_id or not data:
+            return events
+
+        delivered_date = get_field(data, "deliveredDate", "DeliveredDate", default=None)
+        status_code = get_field(data, "status", "Status", default=0)
+        status_text = order_status_label(status_code)
+        short_id = str(order_id)[:8]
+
+        lines = [f"🚚 **THÔNG TIN GIAO HÀNG ĐƠN #{short_id}…**"]
+
+        if delivered_date:
+            date_display = str(delivered_date).replace("T", " ")[:19] if "T" in str(delivered_date) else str(delivered_date)
+            lines.append(f"• Ngày giao hoàn thành: **{date_display}**")
+            lines.append(f"• Trạng thái: **{status_text}** (Đã giao thành công)")
+        else:
+            lines.append(f"• Trạng thái hiện tại: **{status_text}**")
+            if int(status_code) in (1, 2):
+                lines.append("• Dự kiến giao hàng: Trong vòng **1 - 3 ngày làm việc** tiếp theo.")
+            elif int(status_code) == 3:
+                lines.append("• Dự kiến giao hàng: **Đang trên đường giao**, dự kiến trong hôm nay hoặc ngày mai!")
+            elif int(status_code) == 0:
+                lines.append("• Đơn hàng này đã bị hủy, không có thông tin ngày giao.")
+
+        buttons = [
+            {"title": f"📅 Xem ngày đặt mua", "payload": f'/hoi_ngay_dat_don{{"order_id": "{order_id}"}}'},
+            {"title": f"📋 Xem chi tiết", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'}
+        ]
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return events + [SlotSet("order_id", order_id)]
+
+
+class ActionHoiGiaTongTienDon(Action):
+    """Hỏi giá tiền / chi tiết giá sản phẩm / tổng tiền đơn hàng."""
+    def name(self) -> Text:
+        return "action_hoi_gia_tong_tien_don"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_gia_tong_tien_don", "giá tiền / tổng tiền")
+        if not order_id or not data:
+            return events
+
+        total = get_field(data, "totalAmount", "TotalAmount", default=0)
+        items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
+        short_id = str(order_id)[:8]
+
+        lines = [
+            f"💰 **THÔNG TIN GIÁ TIỀN ĐƠN HÀNG #{short_id}…**",
+            f"• Tổng tiền đơn hàng: **{format_price(total)}**"
+        ]
+
+        buttons = []
+
+        if items:
+            lines.append("\nChi tiết đơn giá các sản phẩm:")
+            for it in items[:5]:
+                pid = str(get_field(it, "productId", "ProductId", default=""))
+                nm = get_field(it, "productName", "ProductName", default="Sản phẩm")
+                qty = get_field(it, "quantity", "Quantity", default=1)
+                price = get_field(it, "unitPrice", "UnitPrice", "price", "Price", default=0)
+                lines.append(f"  • {nm}: {format_price(price)} x{qty}")
+                if pid:
+                    buttons.append({
+                        "title": f"🔍 SP: {nm[:25]}",
+                        "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
+                    })
+
+        buttons.append({"title": f"📋 Chi tiết đơn", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'})
+        buttons.append({"title": f"💳 Xem thanh toán", "payload": f'/hoi_thanh_toan_phuong_thuc_don{{"order_id": "{order_id}"}}'})
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return events + [SlotSet("order_id", order_id)]
+
+
+class ActionHoiSoLuongSanPhamDon(Action):
+    """Hỏi số lượng sản phẩm / số mặt hàng trong đơn."""
+    def name(self) -> Text:
+        return "action_hoi_so_luong_san_pham_don"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_so_luong_san_pham_don", "số lượng sản phẩm")
+        if not order_id or not data:
+            return events
+
+        items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
+        total_items_count = len(items)
+        total_quantity = sum(int(get_field(it, "quantity", "Quantity", default=1)) for it in items)
+        short_id = str(order_id)[:8]
+
+        lines = [
+            f"📦 **SỐ LƯỢNG SẢN PHẨM ĐƠN HÀNG #{short_id}…**",
+            f"• Đơn gồm: **{total_items_count} loại mặt hàng**",
+            f"• Tổng số lượng: **{total_quantity} sản phẩm**"
+        ]
+
+        buttons = []
+
+        if items:
+            lines.append("\nDanh sách chi tiết số lượng:")
+            for it in items[:5]:
+                pid = str(get_field(it, "productId", "ProductId", default=""))
+                nm = get_field(it, "productName", "ProductName", default="Sản phẩm")
+                qty = get_field(it, "quantity", "Quantity", default=1)
+                lines.append(f"  • {nm}: x{qty}")
+                if pid:
+                    buttons.append({
+                        "title": f"🔍 SP: {nm[:25]}",
+                        "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
+                    })
+
+        buttons.append({"title": f"📋 Chi tiết đơn", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'})
+        buttons.append({"title": f"💰 Xem tổng tiền", "payload": f'/hoi_gia_tong_tien_don{{"order_id": "{order_id}"}}'})
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return events + [SlotSet("order_id", order_id)]
+
+
+class ActionHoiThanhToanPhuongThucDon(Action):
+    """Hỏi trạng thái & phương thức thanh toán của đơn hàng."""
+    def name(self) -> Text:
+        return "action_hoi_thanh_toan_phuong_thuc_don"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_thanh_toan_phuong_thuc_don", "thanh toán & phương thức")
+        if not order_id or not data:
+            return events
+
+        pay_status = payment_status_label(get_field(data, "paymentStatus", "PaymentStatus", default=0))
+        pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD (Thanh toán khi nhận hàng)")
+        total = get_field(data, "totalAmount", "TotalAmount", default=0)
+        short_id = str(order_id)[:8]
+
+        lines = [
+            f"💳 **THANH TOÁN ĐƠN HÀNG #{short_id}…**",
+            f"• Trạng thái thanh toán: **{pay_status}**",
+            f"• Phương thức: **{pay_method}**",
+            f"• Tổng số tiền: **{format_price(total)}**"
+        ]
+
+        buttons = [
+            {"title": f"📋 Chi tiết #{short_id}", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'}
+        ]
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return events + [SlotSet("order_id", order_id)]
+
+
+class ActionHoiThongTinNguoiNhanDiaChi(Action):
+    """Hỏi thông tin người đặt, SĐT và địa chỉ giao đơn hàng."""
+    def name(self) -> Text:
+        return "action_hoi_thong_tin_nguoi_nhan_dia_chi"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_thong_tin_nguoi_nhan_dia_chi", "thông tin người đặt & địa chỉ")
+        if not order_id or not data:
+            return events
+
+        # ⚠️ ĐỌC ĐÚNG CÁC TRƯỜNG DTO TỪ C# API: AddressSnapshot, CustomerName, PhoneNumber, Email
+        address = get_field(data, "addressSnapshot", "AddressSnapshot", "shippingAddress", "ShippingAddress", default="Chưa cập nhật")
+        phone = get_field(data, "phoneNumber", "PhoneNumber", "receiverPhone", "ReceiverPhone", "phone", "Phone", default="Chưa cập nhật")
+        name = get_field(data, "customerName", "CustomerName", "receiverName", "ReceiverName", "fullName", "FullName", default="Khách hàng")
+        email = get_field(data, "email", "Email", default="")
+        short_id = str(order_id)[:8]
+
+        lines = [
+            f"📍 **THÔNG TIN NGƯỜI ĐẶT & GIAO HÀNG ĐƠN #{short_id}…**",
+            f"• Người đặt: **{name}**",
+            f"• Số điện thoại: **{phone}**" + (f" (Email: {email})" if email else ""),
+            f"• Địa chỉ nhận hàng: **{address}**"
+        ]
+
+        buttons = [
+            {"title": f"📋 Chi tiết #{short_id}", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'}
+        ]
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return events + [SlotSet("order_id", order_id)]
 
 
 class ActionHuyDonHang(Action):
-    """Pattern B — gửi tín hiệu cho chatbot.js gọi PATCH /api/orders/{id}/cancel.
-    Hỗ trợ TỰ CHỌN ĐƠN CÓ THỂ HỦY nếu không truyền order_id.
-    """
+    """Pattern B — gửi tín hiệu cho chatbot.js gọi PATCH /api/orders/{id}/cancel."""
     def name(self) -> Text:
         return "action_huy_don_hang"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         order_id = tracker.get_slot("order_id")
 
-        # ── TỰ CHỌN ĐƠN NẾU CHƯA CÓ ORDER_ID ──
         if not order_id:
             if not is_logged_in(tracker):
                 dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để thực hiện hủy đơn hàng!")
@@ -198,7 +441,6 @@ class ActionHuyDonHang(Action):
             ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
             my_orders = extract_list(my_data) if ok_my else []
 
-            # Lọc các đơn đang ở trạng thái có thể hủy (1: Chờ xác nhận, 2: Đã xác nhận)
             cancellable_orders = [
                 o for o in my_orders 
                 if int(get_field(o, "status", "Status", default=0)) in (1, 2)
@@ -210,10 +452,8 @@ class ActionHuyDonHang(Action):
                 )
                 return []
             elif len(cancellable_orders) == 1:
-                # Nếu chỉ có đúng 1 đơn hủy được -> Tự chọn đơn đó
                 order_id = str(get_field(cancellable_orders[0], "orderId", "OrderId", default=""))
             else:
-                # Nhiều đơn hủy được -> Hiện nút bấm chọn
                 lines = ["Bạn muốn hủy đơn hàng nào dưới đây?"]
                 buttons = []
                 for o in cancellable_orders[:5]:
@@ -231,7 +471,6 @@ class ActionHuyDonHang(Action):
             dispatcher.utter_message(text="Không xác định được đơn hàng cần hủy. Bạn thử lại nhé!")
             return []
 
-        # Phát tín hiệu custom cho chatbot.js ở Trình duyệt tự gọi API hủy với JWT an toàn
         dispatcher.utter_message(json_message={"type": "cancel_order", "orderId": order_id})
         return [SlotSet("order_id", None)]
 
@@ -247,10 +486,9 @@ class ActionXemVoucher(Action):
             dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem mã giảm giá dành cho mình nhé!")
             return []
 
-        # orderAmount=0 để lấy toàn bộ voucher đang áp dụng được
         ok, data = api_get(f"/api/orders/Checkout/vouchers/{cid}", tracker, params={"orderAmount": "0"})
         if not ok:
-            dispatcher.utter_message(text="⚠️ Không thể tải voucher lúc me. Vui lòng thử lại sau!")
+            dispatcher.utter_message(text="⚠️ Không thể tải voucher lúc này. Vui lòng thử lại sau!")
             return []
 
         vouchers = extract_list(data)

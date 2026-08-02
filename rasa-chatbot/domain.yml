@@ -40,6 +40,12 @@ intents:
   - hoi_thoi_gian_giao_hang
   - hoi_phi_van_chuyen
   - hoi_chinh_sach_doi_tra
+  - hoi_ngay_dat_don
+  - hoi_ngay_giao_don
+  - hoi_gia_tong_tien_don
+  - hoi_so_luong_san_pham_don
+  - hoi_thanh_toan_phuong_thuc_don
+  - hoi_thong_tin_nguoi_nhan_dia_chi
   # — Dịch vụ —
   - xem_dich_vu
   - dat_lich_dich_vu
@@ -210,6 +216,12 @@ actions:
   - action_chi_tiet_don
   - action_huy_don_hang
   - action_xem_voucher
+  - action_hoi_ngay_dat_don
+  - action_hoi_ngay_giao_don
+  - action_hoi_gia_tong_tien_don
+  - action_hoi_so_luong_san_pham_don
+  - action_hoi_thanh_toan_phuong_thuc_don
+  - action_hoi_thong_tin_nguoi_nhan_dia_chi
   # Dịch vụ
   - action_xem_dich_vu
   - action_dat_lich
