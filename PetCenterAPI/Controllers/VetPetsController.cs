@@ -19,29 +19,29 @@ namespace PetCenterAPI.Controllers
             _petService = petService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllPets([FromQuery] ODataQueryOptions<PetCenterAPI.DTOs.Requests.VetPetRequestDTO.ReadVetPetListDTO> queryOptions)
-        {
-            // Support OData $filter/$orderby/$skip/$top from client (the client builds OData query string)
-            try
-            {
-                var baseQuery = _petService.GetAllPetsForVetQuery();
+        //[HttpGet]
+        //public async Task<IActionResult> GetAllPets([FromQuery] ODataQueryOptions<PetCenterAPI.DTOs.Requests.VetPetRequestDTO.ReadVetPetListDTO> queryOptions)
+        //{
+        //    // Support OData $filter/$orderby/$skip/$top from client (the client builds OData query string)
+        //    try
+        //    {
+        //        var baseQuery = _petService.GetAllPetsForVetQuery();
 
-                if (queryOptions != null && (queryOptions.Filter != null || queryOptions.OrderBy != null || queryOptions.Skip != null || queryOptions.Top != null))
-                {
-                    var filtered = (IQueryable<PetCenterAPI.DTOs.Requests.VetPetRequestDTO.ReadVetPetListDTO>)queryOptions.ApplyTo(baseQuery);
-                    var list = await filtered.ToListAsync();
-                    return Ok(list);
-                }
+        //        if (queryOptions != null && (queryOptions.Filter != null || queryOptions.OrderBy != null || queryOptions.Skip != null || queryOptions.Top != null))
+        //        {
+        //            var filtered = (IQueryable<PetCenterAPI.DTOs.Requests.VetPetRequestDTO.ReadVetPetListDTO>)queryOptions.ApplyTo(baseQuery);
+        //            var list = await filtered.ToListAsync();
+        //            return Ok(list);
+        //        }
 
-                var listAll = await baseQuery.ToListAsync();
-                return Ok(listAll);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
-        }
+        //        var listAll = await baseQuery.ToListAsync();
+        //        return Ok(listAll);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { success = false, message = ex.Message });
+        //    }
+        //}
 
         [HttpGet("debug")]
         public async Task<IActionResult> Debug()

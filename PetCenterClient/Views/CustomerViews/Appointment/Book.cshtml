@@ -5,7 +5,7 @@
 }
 
 <!-- Liên kết CSS & Icon -->
-<link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" append-version="true"/>
+<link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" append-version="true" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 <!-- CẤU TRÚC TOAST NOTIFICATION CONTAINER (NẰM GÓC TRÊN BÊN PHẢI MÀN HÌNH) -->
@@ -23,7 +23,7 @@
 
 <div class="booking-wrapper py-5" data-bs-theme="light">
     <div class="container">
-        
+
         <!-- THANH TIẾN TRÌNH (STEPPER) -->
         <div class="stepper-container mb-5">
             <div class="stepper-wrapper">
@@ -52,15 +52,14 @@
             <div class="col-lg-8">
                 <form asp-action="Book" method="post" id="bookingForm" class="booking-multistep-form bg-white p-4 rounded-4 shadow-sm">
                     @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-
+                    <!-- SỬA 1: ĐÃ XÓA asp-validation-summary ĐỂ LỖI ĐẨY HOÀN TOÀN LÊN TOAST FLOATING -->
                     <!-- BƯỚC 1: CHỌN VÀ XEM THÚ CƯNG -->
                     <div class="booking-step-content active" data-step-content="1">
                         <div class="step-header mb-4">
                             <h4 class="fw-bold text-dark m-0">Select Your Pet</h4>
                             <p class="text-muted small m-0">Which furry friend are we taking care of today?</p>
                         </div>
-                        
+
                         <div class="modern-grid-select">
                             @foreach (var pet in Model.Pets)
                             {
@@ -159,7 +158,7 @@
 
                         <div class="slots-section">
                             <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-clock me-2"></i>Available Time Slots</label>
-                            
+
                             <div id="slotLoading" class="text-center py-4" style="display:none;">
                                 <div class="spinner-border text-success" role="status"></div>
                                 <p class="text-muted small mt-2">Searching for best available slots...</p>
@@ -178,7 +177,7 @@
                             <textarea asp-for="Note" class="form-control modern-textarea" rows="3" placeholder="Describe any symptoms or requirements here..."></textarea>
                         </div>
 
-                        <input type="hidden" id="SelectedStartTime" name="AppointmentStart" />             
+                        <input type="hidden" id="SelectedStartTime" name="AppointmentStart" />
                     </div>
 
                     <!-- THANH ĐIỀU HƯỚNG CONTROL BUTTONS -->
@@ -228,7 +227,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="price-summary-box p-3 rounded-3 mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-secondary">Total Price</span>
@@ -263,7 +262,7 @@
 
 <!-- CORE LOGIC SCRIPTS -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         let currentStep = 1;
         const totalSteps = 4;
         let totalDuration = 0;
@@ -273,10 +272,10 @@
             const toastEl = document.getElementById('bookingToast');
             const toastMessage = document.getElementById('toastMessage');
             const toastIcon = document.getElementById('toastIcon');
-            
+
             // Reset lớp màu cũ
-            toastEl.classList.remove('bg-warning', 'bg-danger', 'bg-success', 'bg-info');
-            
+            toastEl.classList.remove('bg-warning', 'bg-danger', 'bg-success', 'bg-info', 'text-dark');
+
             // Thiết lập style và icon phù hợp theo type
             if (type === 'danger') {
                 toastEl.classList.add('bg-danger');
@@ -285,48 +284,66 @@
                 toastEl.classList.add('bg-success');
                 toastIcon.className = 'fas fa-check-circle fs-5';
             } else {
-                toastEl.classList.add('bg-warning', 'text-dark'); // Warning đổi chữ tối cho dễ nhìn
+                toastEl.classList.add('bg-warning', 'text-dark');
                 toastIcon.className = 'fas fa-exclamation-triangle fs-5';
             }
-            
+
             toastMessage.innerText = message;
-            
+
             // Khởi tạo và kích hoạt Bootstrap Toast
             const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
             toast.show();
         }
 
-        // --- HỆ THỐNG ĐIỀU HƯỚNG MULTI-STEP ---
-        function updateStepperUI() {
-            document.querySelectorAll('.step-node').forEach(node => {
-                const stepNum = parseInt(node.getAttribute('data-step'));
-                if (stepNum <= currentStep) {
-                    node.classList.add('active');
-                } else {
-                    node.classList.remove('active');
+        // SỬA 2: SỬA ĐOẠN ĐỌC LỖI TỪ MODELSTATE (ĐÃ XÓA SCRIPT LỒNG KHỦNG KHIẾP VÀ KHẮC PHỤC RAZOR ERROR)
+        @if (!ViewData.ModelState.IsValid)
+            {
+                    foreach (var modelState in ViewData.ModelState.Values)
+                {
+                            foreach (var error in modelState.Errors)
+                    {
+                        if (!string.IsNullOrEmpty(error.ErrorMessage))
+                        {
+                            var safeMsg = System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(error.ErrorMessage);
+                            <text>
+                                    showToast("@safeMsg", "danger");
+                            </text>
+                    }
+                    }
                 }
-            });
-
-            const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
-            const progressBar = document.getElementById('stepProgressBar');
-            if(progressBar) progressBar.style.width = `${progressPercent}%`;
-
-            document.querySelectorAll('.booking-step-content').forEach(content => {
-                if (parseInt(content.getAttribute('data-step-content')) === currentStep) {
-                    content.classList.add('active');
-                } else {
-                    content.classList.remove('active');
-                }
-            });
-
-            document.getElementById('btnPrevStep').style.display = currentStep === 1 ? 'none' : 'block';
-            
-            if (currentStep === totalSteps) {
-                document.getElementById('btnNextStep').style.display = 'none';
-            } else {
-                document.getElementById('btnNextStep').style.display = 'block';
             }
-        }
+
+            // --- HỆ THỐNG ĐIỀU HƯỚNG MULTI-STEP ---
+            function updateStepperUI() {
+                document.querySelectorAll('.step-node').forEach(node => {
+                    const stepNum = parseInt(node.getAttribute('data-step'));
+                    if (stepNum <= currentStep) {
+                        node.classList.add('active');
+                    } else {
+                        node.classList.remove('active');
+                    }
+                });
+
+                const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+                const progressBar = document.getElementById('stepProgressBar');
+                if (progressBar) progressBar.style.width = `${progressPercent}%`;
+
+                document.querySelectorAll('.booking-step-content').forEach(content => {
+                    if (parseInt(content.getAttribute('data-step-content')) === currentStep) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+
+                document.getElementById('btnPrevStep').style.display = currentStep === 1 ? 'none' : 'block';
+
+                if (currentStep === totalSteps) {
+                    document.getElementById('btnNextStep').style.display = 'none';
+                } else {
+                    document.getElementById('btnNextStep').style.display = 'block';
+                }
+            }
 
         document.getElementById('btnNextStep').addEventListener('click', function() {
             if (currentStep < totalSteps) {
@@ -359,47 +376,47 @@
 
         document.querySelectorAll('.btn-view-detail').forEach(btn => {
             btn.addEventListener('click', function(e) {
-                e.stopPropagation(); 
+                e.stopPropagation();
                 const card = this.closest('.modern-card');
-                
+
                 if (card.classList.contains('card-pet')) {
                     modalTitle.innerText = "Pet Information";
                     modalBody.innerHTML = `
-                        <div class="text-center mb-3">
-                            <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
-                            <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
-                            <span class="badge bg-success-subtle text-success">${card.dataset.species}</span>
-                        </div>
-                        <ul class="list-group list-group-flush small">
-                            <li class="list-group-item d-flex justify-content-between"><span>Breed:</span> <strong class="text-dark">${card.dataset.breed || 'N/A'}</strong></li>
-                            <li class="list-group-item d-flex justify-content-between"><span>Gender:</span> <strong class="text-dark">${card.dataset.gender || 'N/A'}</strong></li>
-                            <li class="list-group-item d-flex justify-content-between"><span>Weight:</span> <strong class="text-dark">${card.dataset.weight ? card.dataset.weight + ' kg' : 'N/A'}</strong></li>
-                        </ul>`;
-                } 
+                            <div class="text-center mb-3">
+                                <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
+                                <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
+                                <span class="badge bg-success-subtle text-success">${card.dataset.species}</span>
+                            </div>
+                            <ul class="list-group list-group-flush small">
+                                <li class="list-group-item d-flex justify-content-between"><span>Breed:</span> <strong class="text-dark">${card.dataset.breed || 'N/A'}</strong></li>
+                                <li class="list-group-item d-flex justify-content-between"><span>Gender:</span> <strong class="text-dark">${card.dataset.gender || 'N/A'}</strong></li>
+                                <li class="list-group-item d-flex justify-content-between"><span>Weight:</span> <strong class="text-dark">${card.dataset.weight ? card.dataset.weight + ' kg' : 'N/A'}</strong></li>
+                            </ul>`;
+                }
                 else if (card.classList.contains('card-staff')) {
                     modalTitle.innerText = "Doctor Profile";
                     modalBody.innerHTML = `
-                        <div class="text-center mb-3">
-                            <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
-                            <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
-                            <span class="text-muted small">License: ${card.dataset.license || 'N/A'}</span>
-                        </div>
-                        <p class="text-muted small text-center px-2 mb-3">"${card.dataset.desc || 'No description provided.'}"</p>
-                        <ul class="list-group list-group-flush small">
-                            <li class="list-group-item d-flex justify-content-between"><span>Experience:</span> <strong class="text-dark">${card.dataset.exp} Years</strong></li>
-                            <li class="list-group-item d-flex justify-content-between"><span>Email:</span> <strong class="text-dark">${card.dataset.email}</strong></li>
-                            <li class="list-group-item d-flex justify-content-between"><span>Hotline:</span> <strong class="text-dark">${card.dataset.phone}</strong></li>
-                        </ul>`;
-                } 
+                            <div class="text-center mb-3">
+                                <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
+                                <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
+                                <span class="text-muted small">License: ${card.dataset.license || 'N/A'}</span>
+                            </div>
+                            <p class="text-muted small text-center px-2 mb-3">"${card.dataset.desc || 'No description provided.'}"</p>
+                            <ul class="list-group list-group-flush small">
+                                <li class="list-group-item d-flex justify-content-between"><span>Experience:</span> <strong class="text-dark">${card.dataset.exp} Years</strong></li>
+                                <li class="list-group-item d-flex justify-content-between"><span>Email:</span> <strong class="text-dark">${card.dataset.email}</strong></li>
+                                <li class="list-group-item d-flex justify-content-between"><span>Hotline:</span> <strong class="text-dark">${card.dataset.phone}</strong></li>
+                            </ul>`;
+                }
                 else if (card.classList.contains('card-service')) {
                     modalTitle.innerText = "Service Information";
                     modalBody.innerHTML = `
-                        <h4 class="fw-bold text-dark mb-2">${card.dataset.name}</h4>
-                        <div class="d-flex gap-3 mb-3 small">
-                            <span><i class="fas fa-tags text-success me-1"></i> Price: <strong class="text-dark">${parseFloat(card.dataset.price).toLocaleString('vi-VN')} đ</strong></span>
-                            <span><i class="far fa-clock text-success me-1"></i> Duration: <strong class="text-dark">${card.dataset.duration} mins</strong></span>
-                        </div>
-                        <p class="text-muted small">Professional healthcare service optimized for your pet comfort and medical requirements.</p>`;
+                            <h4 class="fw-bold text-dark mb-2">${card.dataset.name}</h4>
+                            <div class="d-flex gap-3 mb-3 small">
+                                <span><i class="fas fa-tags text-success me-1"></i> Price: <strong class="text-dark">${parseFloat(card.dataset.price).toLocaleString('vi-VN')} đ</strong></span>
+                                <span><i class="far fa-clock text-success me-1"></i> Duration: <strong class="text-dark">${card.dataset.duration} mins</strong></span>
+                            </div>
+                            <p class="text-muted small">Professional healthcare service optimized for your pet comfort and medical requirements.</p>`;
                 }
                 detailModal.show();
             });
@@ -412,10 +429,10 @@
                 document.querySelectorAll('.card-pet').forEach(c => c.classList.remove('selected-active'));
                 this.classList.add('selected-active');
                 document.getElementById('selectedPetId').value = this.getAttribute('data-id');
-                
+
                 document.getElementById('summaryPet').innerHTML = `
-                    <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
-                    <span>${this.dataset.name} <small class="text-muted">(${this.dataset.species})</small></span>`;
+                        <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
+                        <span>${this.dataset.name} <small class="text-muted">(${this.dataset.species})</small></span>`;
             });
         });
 
@@ -426,10 +443,10 @@
                 document.querySelectorAll('.card-staff').forEach(c => c.classList.remove('selected-active'));
                 this.classList.add('selected-active');
                 document.getElementById('selectedStaffId').value = this.getAttribute('data-id');
-                
+
                 document.getElementById('summaryStaff').innerHTML = `
-                    <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
-                    <span>${this.dataset.name}</span>`;
+                        <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
+                        <span>${this.dataset.name}</span>`;
             });
         });
 
@@ -440,7 +457,7 @@
             card.addEventListener('click', function() {
                 const chk = this.querySelector('.service-checkbox-input');
                 const checkedCards = Array.from(serviceCards).filter(c => c.querySelector('.service-checkbox-input').checked);
-                
+
                 if (!chk.checked) {
                     if (checkedCards.length >= 2) {
                         showToast("You can only select a maximum of 2 services per appointment.", "warning");
@@ -459,7 +476,7 @@
 
                     chk.checked = true;
                     this.classList.add('selected-active');
-                } 
+                }
                 else {
                     chk.checked = false;
                     this.classList.remove('selected-active');
@@ -474,12 +491,12 @@
             listContainer.innerHTML = '';
 
             let totalPrice = 0;
-            totalDuration = 0; 
+            totalDuration = 0;
             let hasService = false;
 
             serviceCards.forEach(card => {
                 const chk = card.querySelector('.service-checkbox-input');
-                if(chk.checked) {
+                if (chk.checked) {
                     hasService = true;
                     const name = card.getAttribute('data-name');
                     const price = parseFloat(card.getAttribute('data-price'));
@@ -495,7 +512,7 @@
                 }
             });
 
-            if(!hasService) {
+            if (!hasService) {
                 listContainer.innerHTML = '<span class="placeholder-dash text-muted small">—</span>';
             }
 
@@ -507,10 +524,10 @@
         // --- TÁI TẠO TRẠNG THÁI KHI SỰ KIỆN VALIDATION LỖI ---
         const initOldState = () => {
             const oldPet = document.getElementById('selectedPetId').value;
-            if(oldPet) document.querySelector(`.card-pet[data-id="${oldPet}"]`)?.click();
+            if (oldPet) document.querySelector(`.card-pet[data-id="${oldPet}"]`)?.click();
 
             const oldStaff = document.getElementById('selectedStaffId').value;
-            if(oldStaff) document.querySelector(`.card-staff[data-id="${oldStaff}"]`)?.click();
+            if (oldStaff) document.querySelector(`.card-staff[data-id="${oldStaff}"]`)?.click();
 
             serviceCards.forEach(card => {
                 const chk = card.querySelector('.service-checkbox-input');
@@ -601,11 +618,12 @@
                     document.querySelectorAll("#slotContainer .btn-slot").forEach(x => x.classList.remove("active"));
                     btn.classList.add("active");
                     document.getElementById("SelectedStartTime").value = slot.startTime;
-                    
+
                     const summarySchedule = document.getElementById('summarySchedule');
                     summarySchedule.style.display = "block";
-                    summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} @@ ${timeText.split('-')[0]}`;
-                    
+                    // SỬA 3: ĐÃ THAY @@ THÀNH KÝ TỰ DẤU GẠCH MANG Ý NGHĨA KẾT NỐI VÀ TRÁNH LỖI BIÊN DỊCH RAZOR
+                    summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} - ${timeText.split('-')[0]}`;
+
                     document.getElementById('btnSubmitBooking').removeAttribute('disabled');
                 };
 
@@ -614,7 +632,7 @@
         }
 
         document.getElementById('btnSubmitBooking').addEventListener('click', function() {
-            if(document.getElementById("SelectedStartTime").value) {
+            if (document.getElementById("SelectedStartTime").value) {
                 document.getElementById('bookingForm').submit();
             }
         });
