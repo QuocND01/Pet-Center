@@ -76,6 +76,12 @@ namespace PetCenterClient.Controllers
             if (!selectedItems.Any())
                 return RedirectToAction("Index", "Cart");
 
+            if (selectedItems.Count > 10)
+            {
+                TempData["ErrorMessage"] = "Each order can contain a maximum of 10 items.";
+                return RedirectToAction("Index", "Cart");
+            }
+
             var subTotal = selectedItems.Sum(i => i.SubTotal);
 
             // ── Lấy địa chỉ active của customer (dùng endpoint mới) ──────

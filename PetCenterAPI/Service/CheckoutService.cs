@@ -56,6 +56,15 @@ namespace PetCenterAPI.Service
             await using var tx = await _orderRepo.BeginTransactionAsync();
             try
             {
+                // ── 0. Validate order constraints ───────────────────────────
+                if (dto.Items.Count > 10)
+                    throw new InvalidOperationException("Each order can contain a maximum of 10 items.");
+
+                var existingOrders = await _orderRepo.GetOrdersByCustomerIdAsync(dto.CustomerId);
+                var activeOrderCount = existingOrders.Count(o => o.Status != 0);
+                if (activeOrderCount >= 5)
+                    throw new InvalidOperationException("A customer can place a maximum of 5 orders.");
+
                 // ── 1. Validate address ──────────────────────────────────────
                 var address = await _addressRepo.GetAddressByIdAsync(dto.AddressId, dto.CustomerId);
 
@@ -97,6 +106,9 @@ namespace PetCenterAPI.Service
                 }
 
                 var finalAmount = subtotal - discountAmount;
+
+                if (finalAmount > 5000000m)
+                    throw new InvalidOperationException("COD orders cannot exceed 5,000,000 ₫.");
 
                 // ── 4. Check inventory ───────────────────────────────────────
                 var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
@@ -147,8 +159,7 @@ namespace PetCenterAPI.Service
                         OrderId = order.OrderId,
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        ImportStockDetailsId = null
+                        UnitPrice = item.UnitPrice
                     };
                     orderDetailsList.Add(detail);
 
@@ -260,6 +271,15 @@ namespace PetCenterAPI.Service
             await using var tx = await _orderRepo.BeginTransactionAsync();
             try
             {
+                // ── 0. Validate order constraints ───────────────────────────
+                if (dto.Items.Count > 10)
+                    throw new InvalidOperationException("Each order can contain a maximum of 10 items.");
+
+                var existingOrders = await _orderRepo.GetOrdersByCustomerIdAsync(dto.CustomerId);
+                var activeOrderCount = existingOrders.Count(o => o.Status != 0);
+                if (activeOrderCount >= 5)
+                    throw new InvalidOperationException("A customer can place a maximum of 5 orders.");
+
                 // ── 1. Validate address ──────────────────────────────────────
                 var address = await _addressRepo.GetAddressByIdAsync(dto.AddressId, dto.CustomerId);
 
@@ -301,6 +321,9 @@ namespace PetCenterAPI.Service
                 }
 
                 var finalAmount = subtotal - discountAmount;
+
+                if (finalAmount > 10000000m)
+                    throw new InvalidOperationException("Online payment orders cannot exceed 10,000,000 ₫.");
 
                 // ── 4. Check inventory (availability only, NO reservation) ───
                 var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
@@ -353,8 +376,7 @@ namespace PetCenterAPI.Service
                         OrderId = order.OrderId,
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        ImportStockDetailsId = null
+                        UnitPrice = item.UnitPrice
                     };
                     orderDetailsList.Add(detail);
 

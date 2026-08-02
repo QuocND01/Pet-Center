@@ -812,7 +812,10 @@
 
 
 
+    var currentDiscountAmount = 0;
+
     function recalcSummary(disc) {
+        currentDiscountAmount = disc;
         document.getElementById('finalDisplay').textContent = fmt(SUB_TOTAL - disc);
         var row = document.getElementById('discountRow');
         if (disc > 0) {
@@ -839,10 +842,27 @@
             var pid          = inp.dataset.productId;
             var qty          = parseInt(inp.dataset.qty)    || 1;
             var price        = parseFloat(inp.dataset.price) || 0;
-            if (pid && qty > 0) items.push({ cartDetailId: cartDetailId, productId: pid, quantity: qty, unitPrice: price });
+            if (pid && qty > 0) {
+                items.push({ cartDetailId: cartDetailId, productId: pid, quantity: qty, unitPrice: price });
+            }
         });
 
         if (!items.length) { showToast('No items. Go back to cart.', 'e'); return; }
+
+        if (items.length > 10) {
+            showToast('Each order can contain a maximum of 10 items.', 'e');
+            return;
+        }
+
+        var finalAmt = SUB_TOTAL - (currentDiscountAmount || 0);
+        if (selPaymentMethod === 'COD' && finalAmt > 5000000) {
+            showToast('COD orders cannot exceed 5,000,000 ₫. Please select Online Payment (VNPay/MoMo).', 'e');
+            return;
+        }
+        if ((selPaymentMethod === 'VNPAY' || selPaymentMethod === 'MOMO') && finalAmt > 10000000) {
+            showToast('Online payment orders cannot exceed 10,000,000 ₫.', 'e');
+            return;
+        }
 
         setLoading(true);
         try {
