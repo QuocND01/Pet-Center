@@ -192,6 +192,11 @@ namespace PetCenterClient.Controllers
             if (!string.IsNullOrEmpty(staffId))
                 HttpContext.Session.SetString("StaffId", staffId);
 
+            if (primaryRole == "Vet" || primaryRole == "Groomer")
+            {
+                return RedirectToAction("Index", "VetPets");
+            }
+
             return RedirectToAction("Indexadmin", "Products");
         }
 
@@ -207,7 +212,13 @@ namespace PetCenterClient.Controllers
             var token = HttpContext.Session.GetString("JWT");
             var role = HttpContext.Session.GetString("Role");
 
-            if (string.IsNullOrEmpty(token) || (role != "Admin" && role != "Staff"))
+            var validRoles = new HashSet<string>
+            {
+                "Admin", "Staff",
+                "Sale Staff", "Inventory Staff", "Vet", "Groomer"
+            };
+
+            if (string.IsNullOrEmpty(token) || !validRoles.Contains(role ?? ""))
                 return Json(new { isAuthenticated = false });
 
             return Json(new { isAuthenticated = true, role });
