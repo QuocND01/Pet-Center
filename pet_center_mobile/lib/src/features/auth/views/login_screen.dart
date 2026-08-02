@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/custom_button.dart';
@@ -33,7 +34,10 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isObscure = true;
   bool _rememberMe = false;
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
+  late final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb
+        ? '205673219686-i049i9ug1nrhik4oh6521fo06t1tllef.apps.googleusercontent.com'
+        : null,
     serverClientId:
         '205673219686-i049i9ug1nrhik4oh6521fo06t1tllef.apps.googleusercontent.com',
     scopes: ['email', 'profile'],
