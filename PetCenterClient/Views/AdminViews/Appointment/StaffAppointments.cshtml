@@ -1,8 +1,23 @@
-﻿@model IEnumerable<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
+﻿@using Microsoft.AspNetCore.Http
+@model IEnumerable<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
 
 @{
     ViewData["Title"] = "Staff Console - Appointments";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // 🔑 Lấy StaffId trực tiếp từ Session
+    var staffIdSession = Context.Session.GetString("StaffId") 
+                      ?? Context.Session.GetString("UserId");
+
+    Guid currentStaffId = Guid.TryParse(staffIdSession, out var parsedGuid) ? parsedGuid : Guid.Empty;
+
+    // Trích xuất danh sách Doctor duy nhất cho Dropdown Lọc
+    var doctorList = Model?
+        .Where(x => !string.IsNullOrEmpty(x.VetName))
+        .Select(x => x.VetName)
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList() ?? new List<string>();
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -21,7 +36,6 @@
         display: inline-block;
     }
 
-    /* Standardized 4-State Badges (0-3) */
     .badge-status-0 {
         background-color: #ffe5e5;
         color: #cc0000;
@@ -49,10 +63,10 @@
         font-weight: bold;
     }
 
-        .btn-emerald-outline:hover {
-            background-color: #198754;
-            color: white;
-        }
+    .btn-emerald-outline:hover {
+        background-color: #198754;
+        color: white;
+    }
 
     .sticky-sidebar {
         position: sticky;
@@ -60,8 +74,8 @@
         z-index: 10;
     }
 
-    .clickable-row {
-        cursor: pointer;
+    .my-assigned-row {
+        background-color: #f0fdf4 !important; /* Highlight lịch phân công cho mình */
     }
 </style>
 
@@ -88,8 +102,39 @@
             <div class="col-lg-9">
                 <div class="bg-white rounded-4 shadow-sm p-4 border-0">
 
-                    <div class="d-flex gap-2 mb-4">
-                        <input type="text" id="consoleSearchInput" class="form-control rounded-3 bg-light border-0 small px-3" placeholder="Search Pet name or Doctor..." style="max-width: 350px;">
+                    <!-- THANH CÔNG CỤ LỌC PHÍA TRÊN TABLE -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
+                        <!-- TỪ KHÓA TÌM KIẾM -->
+                        <div class="flex-grow-1" style="min-width: 240px; max-width: 350px;">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" id="consoleSearchInput" class="form-control rounded-end-3 bg-light border-0 small" placeholder="Search Pet or Doctor...">
+                            </div>
+                        </div>
+
+                        <!-- LỌC THEO BÁC SĨ (VET FILTER) -->
+                        <div style="min-width: 180px;">
+                            <select id="doctorSelectFilter" class="form-select bg-light border-0 small rounded-3">
+                                <option value="all">-- All Doctors --</option>
+                                @foreach (var vet in doctorList)
+                                {
+                                    <option value="@vet.ToLower()">Dr. @vet</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- LỌC THEO NGÀY CỤ THỂ -->
+                        <div style="min-width: 160px;">
+                            <input type="date" id="dateInputFilter" class="form-control bg-light border-0 small rounded-3" title="Filter by Schedule Date" />
+                        </div>
+
+                        <!-- TOGGLE SWITCH - LỊCH CỦA TÔI -->
+                        <div class="form-check form-switch bg-light p-2 px-3 rounded-3 border mb-0">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" id="myAssignedOnlyToggle">
+                            <label class="form-check-label small fw-bold text-dark" for="myAssignedOnlyToggle">
+                                <i class="fas fa-user-check text-success me-1"></i> Only Mine
+                            </label>
+                        </div>
                     </div>
 
                     <div class="table-responsive">
@@ -99,6 +144,7 @@
                                     <th>Patient Name</th>
                                     <th>Assigned Doctor</th>
                                     <th>Schedule Date</th>
+                                    <th>Total Cost</th>
                                     <th>Status</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
@@ -108,6 +154,8 @@
                                 {
                                     foreach (var app in Model)
                                     {
+                                        bool isMyAssignment = (currentStaffId != Guid.Empty && app.StaffId == currentStaffId);
+
                                         string statusText = app.Status switch
                                         {
                                             0 => "Cancelled / Expired",
@@ -117,12 +165,32 @@
                                             _ => "Unknown"
                                         };
 
-                                        <tr class="appointment-row" data-status="@app.Status" data-search="@app.PetName.ToLower() @(app.VetName?.ToLower() ?? "")">
-                                            <td class="fw-bold text-dark fs-6">@app.PetName</td>
-                                            <td class="text-secondary"><i class="fas fa-user-md text-success me-1"></i>Dr. @(app.VetName ?? "Unassigned")</td>
+                                        <tr class="appointment-row @(isMyAssignment ? "my-assigned-row" : "")" 
+                                            data-status="@app.Status" 
+                                            data-staff-id="@app.StaffId.ToString()"
+                                            data-vet="@(app.VetName?.ToLower() ?? "")"
+                                            data-date="@app.AppointmentStart.ToString("yyyy-MM-dd")"
+                                            data-price="@app.Total"
+                                            data-search="@app.PetName.ToLower() @(app.VetName?.ToLower() ?? "")">
+                                            
+                                            <td class="fw-bold text-dark fs-6">
+                                                @app.PetName
+                                                @if (isMyAssignment)
+                                                {
+                                                    <span class="badge bg-success text-white small d-block mt-1" style="width: fit-content; font-size: 0.65rem;">
+                                                        <i class="fas fa-user-tag me-1"></i>You
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-secondary">
+                                                <i class="fas fa-user-md text-success me-1"></i>Dr. @(app.VetName ?? "Unassigned")
+                                            </td>
                                             <td>
                                                 <div class="fw-bold text-dark">@app.AppointmentStart.ToString("dd/MM/yyyy")</div>
-                                                <div class="text-muted small">@app.AppointmentStart.ToString("HH:mm")</div>
+                                                <div class="text-muted small">@app.AppointmentStart.ToString("HH:mm") - @app.AppointmentEnd.ToString("HH:mm")</div>
+                                            </td>
+                                            <td class="fw-bold text-success">
+                                                @app.Total.ToString("N0") đ
                                             </td>
                                             <td>
                                                 <span class="status-badge badge-status-@app.Status">State @app.Status: @statusText</span>
@@ -138,7 +206,7 @@
                                 else
                                 {
                                     <tr id="emptyRow">
-                                        <td colspan="5" class="text-center py-5 text-muted">
+                                        <td colspan="6" class="text-center py-5 text-muted">
                                             <i class="fas fa-folder-open d-block fs-3 mb-2"></i> No records available.
                                         </td>
                                     </tr>
@@ -149,15 +217,33 @@
                 </div>
             </div>
 
-            <!-- CỘT PHẢI: SIDEBAR LỌC TRẠNG THÁI KHÔNG TẢI LẠI TRANG -->
+            <!-- CỘT PHẢI: SIDEBAR BỘ LỌC TRẠNG THÁI & TÙY CHỌN NÂNG CAO -->
             <div class="col-lg-3">
                 <div class="bg-white rounded-4 shadow-sm p-4 sticky-sidebar border-0">
-                    <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom"><i class="fas fa-filter text-success me-2"></i>Quick Filters</h5>
+                    <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
+                        <h5 class="fw-bold text-dark m-0"><i class="fas fa-filter text-success me-2"></i>Quick Filters</h5>
+                        <button type="button" id="btnResetFilters" class="btn btn-link text-decoration-none text-muted p-0 small">
+                            <i class="fas fa-undo me-1"></i>Reset
+                        </button>
+                    </div>
 
-                    <div class="d-flex flex-column gap-2" id="filterButtonGroup">
+                    <!-- LỌC NHANH THEO NGÀY HÔM NAY -->
+                    <div class="mb-3">
+                        <button id="btnTodayFilter" class="btn btn-outline-success w-100 rounded-3 text-start fw-bold p-2 px-3 small">
+                            <i class="far fa-calendar-check me-2"></i> Today's Schedule
+                        </button>
+                    </div>
+
+                    <!-- PIPELINE STATE BUTTON GROUP -->
+                    <label class="text-muted small fw-bold mb-2">Workflow Status</label>
+                    <div class="d-flex flex-column gap-2 mb-4" id="filterButtonGroup">
                         <button class="btn btn-light text-start fw-bold text-dark p-3 rounded-3 active border-start border-success border-4" data-target-status="all">
                             <i class="fas fa-list me-2 text-secondary"></i> All Tracks
                         </button>
+                        <button class="btn btn-light text-start fw-bold text-success p-3 rounded-3" data-target-staff="@currentStaffId.ToString()">
+                            <i class="fas fa-user-check me-2"></i> My Assigned Tracks
+                        </button>
+                        <hr class="my-1 text-muted" />
                         <button class="btn btn-light text-start fw-bold text-warning p-3 rounded-3" data-target-status="1">
                             <i class="far fa-clock me-2"></i> 1: Reserved / Pending
                         </button>
@@ -171,6 +257,20 @@
                             <i class="fas fa-times-circle me-2"></i> 0: Cancelled / Expired
                         </button>
                     </div>
+
+                    <!-- LỌC THEO KHOẢNG GIÁ (PRICE RANGE) -->
+                    <div>
+                        <label class="text-muted small fw-bold mb-2">Total Amount Range</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" id="minPriceInput" class="form-control form-control-sm bg-light border-0 rounded-2" placeholder="Min (đ)">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" id="maxPriceInput" class="form-control form-control-sm bg-light border-0 rounded-2" placeholder="Max (đ)">
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -182,20 +282,65 @@
     document.addEventListener("DOMContentLoaded", function() {
         const filterButtons = document.querySelectorAll("#filterButtonGroup button");
         const searchInput = document.getElementById("consoleSearchInput");
+        const doctorSelectFilter = document.getElementById("doctorSelectFilter");
+        const dateInputFilter = document.getElementById("dateInputFilter");
+        const myAssignedOnlyToggle = document.getElementById("myAssignedOnlyToggle");
+        const minPriceInput = document.getElementById("minPriceInput");
+        const maxPriceInput = document.getElementById("maxPriceInput");
+        const btnTodayFilter = document.getElementById("btnTodayFilter");
+        const btnResetFilters = document.getElementById("btnResetFilters");
+        
         const rows = document.querySelectorAll(".appointment-row");
+        const currentStaffId = "@currentStaffId.ToString()";
 
         function filterTable() {
-            const activeFilter = document.querySelector("#filterButtonGroup button.active").getAttribute("data-target-status");
+            const activeBtn = document.querySelector("#filterButtonGroup button.active");
+            const targetStatus = activeBtn ? activeBtn.getAttribute("data-target-status") : "all";
+            const targetStaff = activeBtn ? activeBtn.getAttribute("data-target-staff") : null;
+            
+            const selectedDoctor = doctorSelectFilter.value;
+            const selectedDate = dateInputFilter.value;
+            const isToggleMyAssigned = myAssignedOnlyToggle.checked;
             const query = searchInput.value.toLowerCase().trim();
+            
+            const minPrice = parseFloat(minPriceInput.value) || 0;
+            const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
 
             rows.forEach(row => {
                 const status = row.getAttribute("data-status");
+                const staffId = row.getAttribute("data-staff-id");
+                const vet = row.getAttribute("data-vet");
+                const rowDate = row.getAttribute("data-date");
+                const price = parseFloat(row.getAttribute("data-price")) || 0;
                 const searchContent = row.getAttribute("data-search");
 
-                const matchesFilter = (activeFilter === "all") || (status === activeFilter);
-                const matchesSearch = !query || searchContent.includes(query);
+                // 1. Kiểm tra Status
+                let matchesStatus = true;
+                if (targetStatus && targetStatus !== "all") {
+                    matchesStatus = (status === targetStatus);
+                }
 
-                if (matchesFilter && matchesSearch) {
+                // 2. Kiểm tra Staff Assignment
+                let matchesStaff = true;
+                if (targetStaff) {
+                    matchesStaff = (staffId === targetStaff);
+                } else if (isToggleMyAssigned) {
+                    matchesStaff = (staffId === currentStaffId);
+                }
+
+                // 3. Kiểm tra Doctor Select
+                let matchesDoctor = (selectedDoctor === "all") || (vet === selectedDoctor);
+
+                // 4. Kiểm tra Ngày hẹn
+                let matchesDate = !selectedDate || (rowDate === selectedDate);
+
+                // 5. Kiểm tra Giá thành
+                let matchesPrice = (price >= minPrice) && (price <= maxPrice);
+
+                // 6. Kiểm tra Từ khóa
+                let matchesSearch = !query || searchContent.includes(query);
+
+                if (matchesStatus && matchesStaff && matchesDoctor && matchesDate && matchesPrice && matchesSearch) {
                     row.style.display = "";
                 } else {
                     row.style.display = "none";
@@ -203,6 +348,7 @@
             });
         }
 
+        // Sự kiện click Button Group
         filterButtons.forEach(btn => {
             btn.addEventListener("click", function() {
                 filterButtons.forEach(b => b.classList.remove("active", "border-start", "border-success", "border-4"));
@@ -211,6 +357,34 @@
             });
         });
 
+        // Nút lọc lịch Hôm Nay
+        btnTodayFilter.addEventListener("click", function() {
+            const today = new Date().toISOString().split('T')[0];
+            dateInputFilter.value = today;
+            filterTable();
+        });
+
+        // Nút Reset tất cả bộ lọc
+        btnResetFilters.addEventListener("click", function() {
+            searchInput.value = "";
+            doctorSelectFilter.value = "all";
+            dateInputFilter.value = "";
+            minPriceInput.value = "";
+            maxPriceInput.value = "";
+            myAssignedOnlyToggle.checked = false;
+
+            filterButtons.forEach(b => b.classList.remove("active", "border-start", "border-success", "border-4"));
+            filterButtons[0].classList.add("active", "border-start", "border-success", "border-4");
+            
+            filterTable();
+        });
+
+        // Lắng nghe thay đổi trên các ô Input
         searchInput.addEventListener("input", filterTable);
+        doctorSelectFilter.addEventListener("change", filterTable);
+        dateInputFilter.addEventListener("change", filterTable);
+        myAssignedOnlyToggle.addEventListener("change", filterTable);
+        minPriceInput.addEventListener("input", filterTable);
+        maxPriceInput.addEventListener("input", filterTable);
     });
 </script>
