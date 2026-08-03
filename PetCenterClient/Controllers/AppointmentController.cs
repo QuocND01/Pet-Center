@@ -193,6 +193,7 @@ namespace PetCenterClient.Controllers
         [HttpGet]
         public async Task<IActionResult> StaffAppointments()
         {
+            
             try
             {
                 var model = await _appointmentApiService.GetAllAppointmentsAsync();

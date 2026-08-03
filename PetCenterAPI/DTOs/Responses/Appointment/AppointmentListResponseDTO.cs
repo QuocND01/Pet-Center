@@ -5,7 +5,7 @@
         public Guid AppointmentId { get; set; }
 
         public string PetName { get; set; } = string.Empty;
-
+        public Guid StaffId { get; set; }
         public string VetName { get; set; } = string.Empty;
 
         public DateTime AppointmentStart { get; set; }
