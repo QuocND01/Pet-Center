@@ -54,6 +54,30 @@ def is_logged_in(tracker) -> bool:
     return bool(get_customer_id(tracker) or get_jwt(tracker))
 
 
+def require_login(
+    dispatcher: CollectingDispatcher,
+    action_desc: str = "thực hiện thao tác này"
+) -> bool:
+    """
+    Gửi message yêu cầu đăng nhập và trả về True — action gọi hàm này phải return [] ngay.
+    Sử dụng: if not is_logged_in(tracker): return require_login(dispatcher, "xem đơn hàng") and []
+    Hoặc:    if require_login(dispatcher, "..."):  return []
+    """
+    dispatcher.utter_message(
+        text=(
+            f"🔒 Bạn cần **đăng nhập** để {action_desc} nhé!\n\n"
+            "Sau khi đăng nhập, tôi sẽ hỗ trợ bạn ngay lập tức. 🐾\n\n"
+            "Trong lúc đó, tôi có thể giúp bạn:"
+        ),
+        buttons=[
+            {"title": "🛍️ Xem sản phẩm mới", "payload": "/xem_san_pham_moi"},
+            {"title": "🔥 Sản phẩm bán chạy", "payload": "/xem_san_pham_hot"},
+            {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
+        ]
+    )
+    return True
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # HTTP helpers
 # ─────────────────────────────────────────────────────────────────────────────
@@ -175,12 +199,13 @@ def payment_status_label(n) -> str:
 
 
 class ActionDefaultFallback(Action):
-    """Xử lý Fallback Động với Nút bấm Gợi ý 1-chạm thông minh."""
+    """Fallback động thông minh: phân biệt guest và đă đăng nhập, hiển thị nút phù hợp."""
     def name(self) -> str:
         return "action_default_fallback"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict) -> list:
         user_text = (tracker.latest_message.get("text") or "").strip().lower()
+        logged_in = is_logged_in(tracker)
 
         # 1. Bắt ngữ cảnh Sản phẩm / Mua sắm
         if any(w in user_text for w in ["sản phẩm", "mua", "bán", "giá", "thức ăn", "đồ chơi", "cát", "xem đồ"]):
@@ -188,16 +213,30 @@ class ActionDefaultFallback(Action):
                 {"title": "🛍️ Sản phẩm HOT", "payload": "/xem_san_pham_hot"},
                 {"title": "🐶 Đồ cho Chó", "payload": '/tim_san_pham{"tu_khoa": "chó"}'},
                 {"title": "🐱 Đồ cho Mèo", "payload": '/tim_san_pham{"tu_khoa": "mèo"}'},
-                {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"}
             ]
+            if logged_in:
+                buttons.append({"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"})
             dispatcher.utter_message(
-                text="Có phải bạn đang muốn tìm kiếm sản phẩm cho thú cưng? Bạn có thể bấm chọn nhanh một trong các gợi ý dưới đây nhé: 🐾",
+                text="Có phải bạn đang muốn tìm kiếm sản phẩm cho thú cưng? Bấm chọn nhanh nhé: 🐾",
                 buttons=buttons
             )
             return []
 
-        # 2. Bắt ngữ cảnh Đơn hàng / Giao hàng
+        # 2. Bắt ngữ cảnh Đơn hàng / Giao hàng — chỉ cho user đă đăng nhập
         if any(w in user_text for w in ["đơn", "giao", "ship", "hàng", "tiền", "thanh toán", "nhận"]):
+            if not logged_in:
+                # Guest hỏi về đơn hàng → hướng dẫn đăng nhập, không hiển thị data
+                dispatcher.utter_message(
+                    text=(
+                        "🔒 Để xem đơn hàng, bạn cần **đăng nhập** vào tài khoản trước nhé!\n\n"
+                        "Sau khi đăng nhập, tôi sẽ hiển thị đầy đủ đơn hàng của bạn ngay. 🐾"
+                    ),
+                    buttons=[
+                        {"title": "🛍️ Xem sản phẩm mới", "payload": "/xem_san_pham_moi"},
+                        {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
+                    ]
+                )
+                return []
             buttons = [
                 {"title": "🆕 Đơn hàng vừa đặt", "payload": "/xem_don_hang_vua_dat"},
                 {"title": "📦 Tất cả đơn hàng", "payload": "/xem_don_hang_cua_toi"},
@@ -205,19 +244,28 @@ class ActionDefaultFallback(Action):
                 {"title": "💳 Phương thức thanh toán", "payload": "/hoi_thanh_toan_phuong_thuc_don"}
             ]
             dispatcher.utter_message(
-                text="Có phải bạn đang muốn tra cứu thông tin đơn hàng hoặc giao hàng? Bạn bấm chọn nhanh dưới đây nhé: 🐾",
+                text="Có phải bạn đang muốn tra cứu thông tin đơn hàng hoặc giao hàng? Bấm chọn nhanh dưới đây nhé: 🐾",
                 buttons=buttons
             )
             return []
 
-        # 3. Fallback tổng quát với Nút Bấm 1-Chạm 5 chủ đề chính
-        buttons = [
-            {"title": "🛍️ Tìm sản phẩm", "payload": "/xem_san_pham_hot"},
-            {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"},
-            {"title": "🎟️ Mã giảm giá", "payload": "/xem_voucher"},
-            {"title": "🩺 Dịch vụ & Đặt lịch", "payload": "/xem_dich_vu"},
-            {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"}
-        ]
+        # 3. Fallback tổng quát — Nút bấm khác nhau theo trạng thái đăng nhập
+        if logged_in:
+            # Đã đăng nhập: hiển thị đầy đủ các tiện ích
+            buttons = [
+                {"title": "🛍️ Tìm sản phẩm", "payload": "/xem_san_pham_hot"},
+                {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"},
+                {"title": "🎟️ Mã giảm giá", "payload": "/xem_voucher"},
+                {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
+            ]
+        else:
+            # Guest: không hiển thị nút cần đăng nhập, định hướng sang sản phẩm và tư vấn
+            buttons = [
+                {"title": "🛍️ Tìm sản phẩm", "payload": "/xem_san_pham_hot"},
+                {"title": "🆕 Hàng mới về", "payload": "/xem_san_pham_moi"},
+                {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
+            ]
+
         dispatcher.utter_message(
             text="Tôi chưa hiểu rõ ý bạn lắm. Bạn có thể bấm chọn nhanh một trong các chủ đề dưới đây để tôi hỗ trợ ngay nhé: 🐾",
             buttons=buttons

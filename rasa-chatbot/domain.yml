@@ -58,6 +58,8 @@ intents:
   # — Đánh giá —
   - xem_danh_gia
   - gui_danh_gia
+  # — Bảo mật đơn hàng —
+  - xem_don_hang_nguoi_khac
   # — Điều hướng (từ nút bấm) —
   - goto_service_page
   - goto_address_page
@@ -160,7 +162,7 @@ slots:
 
 responses:
   utter_greet:
-    - text: "Xin chào! 🐾 Tôi là trợ lý PetCenter.\nTôi có thể giúp bạn:\n• Tìm sản phẩm, xem hàng mới/bán chạy\n• Tra cứu đơn hàng, voucher\n• Xem dịch vụ, hồ sơ thú cưng\n\nBạn cần gì nào?"
+    - text: "Xin chào! 🐾 Tôi là trợ lý PetCenter.\nTôi có thể giúp bạn:\n• Tìm sản phẩm, xem hàng mới/bán chạy\n• Tra cứu đơn hàng, voucher\n\nBạn cần gì nào?"
 
   utter_goodbye:
     - text: "Tạm biệt! Hẹn gặp lại bạn tại PetCenter 🐾"
@@ -172,7 +174,7 @@ responses:
     - text: "Tôi có thể hỗ trợ bạn:\n• Tìm kiếm sản phẩm, xem hàng mới/bán chạy\n• Kiểm tra giỏ hàng, đơn hàng, voucher\n• Đặt lịch dịch vụ & xem hồ sơ thú cưng\n\nLưu ý: Tôi là trợ lý AI tư vấn và xử lý thông tin, việc vận chuyển và giao hàng sẽ do shipper của PetCenter thực hiện bạn nhé! 🚚"
 
   utter_ask_human:
-    - text: "Bạn có thể liên hệ trực tiếp với bộ phận chăm sóc khách hàng của PetCenter qua:\n📞 Hotline: +84 123 456 789\n✉ Email: support@petcenter.com\nĐội ngũ tư vấn viên sẽ hỗ trợ bạn ngay!"
+    - text: "Bạn có thể liên hệ trực tiếp với bộ phận chăm sóc khách hàng của PetCenter qua:\n📞 Hotline: +84 123 456 789\n✉ Email: support@petcenter.com\n\n💬 Ngoài ra, bạn có thể nhắn tin trực tiếp với staff hoặc admin ngay trên trang web — bấm vào nút Chat 💬 (khác với chat AI này) ở góc màn hình để được tư vấn trực tiếp bởi nhân viên PetCenter nhé!"
 
   utter_khong_hieu:
     - text: "Xin lỗi, tôi chưa hiểu ý bạn. Bạn thử hỏi: 'tìm thức ăn cho chó', 'đơn hàng của tôi', 'có voucher nào', 'dịch vụ spa'..."
@@ -194,6 +196,9 @@ responses:
 
   utter_hoi_chinh_sach_doi_tra:
     - text: "🔄 Chính sách đổi trả sản phẩm:\n• Hỗ trợ đổi trả trong vòng 7 ngày nếu sản phẩm lỗi do nhà sản xuất hoặc giao sai mẫu.\n• Sản phẩm đổi trả cần giữ nguyên tem mác và chưa qua sử dụng.\nLiên hệ Hotline +84 123 456 789 để được hỗ trợ nhanh nhất!"
+
+  utter_tu_choi_xem_don_nguoi_khac:
+    - text: "🔒 Vì lý do bảo mật và quyền riêng tư, tôi chỉ có thể hiển thị đơn hàng của tài khoản đang đăng nhập — tức là đơn hàng của chính bạn.\n\nNếu muốn tra cứu đơn của người khác, họ cần tự đăng nhập vào tài khoản của mình để xem nhé! 🐾\n\nBạn có muốn xem đơn hàng của mình không?"
 
 actions:
   # Sản phẩm + giỏ hàng

@@ -283,3 +283,44 @@ nlu:
     - điều kiện hoàn tiền đơn hàng
     - hàng bị hỏng có được đổi lại không
     - shop có hỗ trợ đổi trả hàng không
+
+# ════════════════════════════════════════════════════════════════════════════
+#  BẢO MẬT: Từ chối xem đơn hàng của người khác
+#  ⚠️ Ranh giới rõ ràng với xem_don_hang_cua_toi:
+#     - intent này: luôn có tên người, quan hệ xã hội, hoặc "người khác"
+#     - xem_don_hang_cua_toi: chỉ có "của tôi", "của mình", "của tui"
+# ════════════════════════════════════════════════════════════════════════════
+
+- intent: xem_don_hang_nguoi_khac
+  examples: |
+    - cho tôi xem đơn hàng của Nguyen Van A
+    - xem đơn hàng của Trần Thị B
+    - đơn hàng của bạn tôi đâu rồi
+    - cho tôi xem đơn của bạn tôi
+    - xem đơn hàng của vợ tôi
+    - đơn của chồng tôi ở đâu
+    - xem đơn hàng của em trai mình
+    - cho xem đơn của chị gái tôi
+    - đơn hàng của người nhà mình
+    - cho tôi xem đơn hàng của người thân
+    - xem đơn của anh ấy
+    - đơn hàng của cô ấy như thế nào
+    - cho xem đơn của anh tôi
+    - xem đơn hàng của người khác
+    - tôi muốn xem đơn hàng của tài khoản khác
+    - tra cứu đơn hàng của khách hàng khác
+    - xem đơn hàng không phải của tôi
+    - đơn của họ đâu
+    - tôi muốn xem đơn hàng cho bạn tôi
+    - giúp tôi xem đơn hàng của Minh nhé
+    - đơn hàng của Nguyen Van B ở đâu
+    - cho mình hỏi đơn của bạn mình tên Lan
+    - kiểm tra đơn hàng của người quen tôi
+    - tôi muốn tra đơn hàng của một người khác
+    - bạn tôi nhờ tôi hỏi đơn hàng của họ
+    - đơn hàng của đứa bạn mình đâu vậy
+    - anh ấy nhờ tôi hỏi đơn hàng giúp
+    - cho tôi xem đơn của người bạn tên Tuấn
+    - đơn hàng của ông xã tôi giao chưa
+    - xem giúp đơn hàng của người thân mình với
+
