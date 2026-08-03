@@ -32,96 +32,133 @@
                         $"Cleanup job error: {ex.Message}");
                 }
 
+                //await Task.Delay(
+                //    TimeSpan.FromSeconds(30),
+                //    stoppingToken);
                 await Task.Delay(
-                    TimeSpan.FromSeconds(30),
-                    stoppingToken);
+                    TimeSpan.FromDays(7),
+                        stoppingToken);
             }
         }
+        #region cleanup old version -Quoc
+        //private async Task ProcessCleanup(CancellationToken token)
+        //{
+        //    using var scope = _scopeFactory.CreateScope();
 
-        private async Task ProcessCleanup(
-            CancellationToken token)
+        //    var db = scope.ServiceProvider.GetRequiredService<PetCenterContext>();
+        //    var cloudinaryService = scope.ServiceProvider.GetRequiredService<ICloudinaryService>();
+
+        //    var threshold = DateTime.Now.AddDays(-3);
+
+        //    // 1️⃣ lấy ảnh inactive quá 3 ngày
+        //    var images = await db.ProductImages
+        //        .Where(x => !x.IsActive == true)
+        //        .Where(x => x.InactiveAt != null && x.InactiveAt < threshold)
+        //        .OrderBy(x => x.InactiveAt)
+        //        .Take(100)
+        //        .ToListAsync(token);
+
+        //    if (!images.Any())
+        //        return;
+
+        //    var imageUrls = images
+        //        .Select(x => x.ImageUrl)
+        //        .ToList();
+
+        //    // 2️⃣ lấy tất cả snapshot image đang dùng
+        //    var orderUsedImages = await db.OrderProductSnapshots
+        //        .Where(x => imageUrls.Contains(x.ProductImage))
+        //        .Select(x => x.ProductImage)
+        //        .Distinct()
+        //        .ToListAsync(token);
+
+        //    var importUsedImages = await db.ImportProductSnapshots
+        //        .Where(x => imageUrls.Contains(x.ProductImage))
+        //        .Select(x => x.ProductImage)
+        //        .Distinct()
+        //        .ToListAsync(token);
+
+        //    var usedImages = orderUsedImages
+        //        .Union(importUsedImages)
+        //        .ToHashSet();
+
+        //    // 3️⃣ cleanup
+        //    foreach (var img in images)
+        //    {
+        //        try
+        //        {
+        //            // ảnh đang được dùng trong historical transaction
+        //            if (usedImages.Contains(img.ImageUrl))
+        //                continue;
+
+        //            // xóa cloudinary
+        //            if (!string.IsNullOrEmpty(img.PublicId))
+        //            {
+        //                await cloudinaryService.DeleteImageAsync(img.PublicId);
+        //            }
+        //            // xóa DB
+        //            db.ProductImages.Remove(img);
+        //            Console.WriteLine($"Deleted image: {img.ImageUrl}");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"Delete image failed: {ex.Message}");
+        //        }
+        //    }
+
+        //    await db.SaveChangesAsync(token);
+        //}
+        #endregion
+        private async Task ProcessCleanup(CancellationToken token)
         {
             using var scope = _scopeFactory.CreateScope();
-
-            var db = scope.ServiceProvider
-                .GetRequiredService<PetCenterContext>();
-
-            var cloudinaryService = scope.ServiceProvider
-                .GetRequiredService<ICloudinaryService>();
+            var db = scope.ServiceProvider.GetRequiredService<PetCenterContext>();
+            var cloudinaryService = scope.ServiceProvider.GetRequiredService<ICloudinaryService>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<CleanupProductImageJob>>();
 
             var threshold = DateTime.Now.AddDays(-3);
 
-            // 1️⃣ lấy ảnh inactive quá 3 ngày
+            // 1. Lấy tối đa 30 ảnh inactive
             var images = await db.ProductImages
-                .Where(x => !x.IsActive == true)
-                .Where(x =>
-                    x.InactiveAt != null &&
-                    x.InactiveAt < threshold)
+                .Where(x => x.IsActive == false && x.InactiveAt != null && x.InactiveAt < threshold)
                 .OrderBy(x => x.InactiveAt)
-                .Take(100)
+                .Take(30)
                 .ToListAsync(token);
 
-            if (!images.Any())
-                return;
+            if (!images.Any()) return;
 
-            var imageUrls = images
-                .Select(x => x.ImageUrl)
-                .ToList();
+            var imageUrls = images.Select(x => x.ImageUrl).Where(u => !string.IsNullOrEmpty(u)).Distinct().ToList();
+            if (!imageUrls.Any()) return;
 
-            // 2️⃣ lấy tất cả snapshot image đang dùng
-            var orderUsedImages = await db.OrderProductSnapshots
-                .Where(x =>
-                    imageUrls.Contains(
-                        x.ProductImage))
-                .Select(x => x.ProductImage)
-                .Distinct()
-                .ToListAsync(token);
+            // 2. Tra cứu snapshot
+            var orderUsed = await db.OrderProductSnapshots.AsNoTracking()
+                .Where(x => imageUrls.Contains(x.ProductImage)).Select(x => x.ProductImage).ToListAsync(token);
+            var importUsed = await db.ImportProductSnapshots.AsNoTracking()
+                .Where(x => imageUrls.Contains(x.ProductImage)).Select(x => x.ProductImage).ToListAsync(token);
 
-            var importUsedImages = await db.ImportProductSnapshots
-                .Where(x =>
-                    imageUrls.Contains(
-                        x.ProductImage))
-                .Select(x => x.ProductImage)
-                .Distinct()
-                .ToListAsync(token);
+            var usedImages = new HashSet<string>(orderUsed.Concat(importUsed));
 
-            var usedImages = orderUsedImages
-                .Union(importUsedImages)
-                .ToHashSet();
-
-            // 3️⃣ cleanup
+            // 3. Xóa ảnh
+            bool hasChanges = false;
             foreach (var img in images)
             {
                 try
                 {
-                    // ảnh đang được dùng
-                    // trong historical transaction
-                    if (usedImages.Contains(img.ImageUrl))
-                    {
-                        continue;
-                    }
+                    if (!string.IsNullOrEmpty(img.ImageUrl) && usedImages.Contains(img.ImageUrl)) continue;
 
-                    // xóa cloudinary
                     if (!string.IsNullOrEmpty(img.PublicId))
-                    {
-                        await cloudinaryService
-                            .DeleteImageAsync(img.PublicId);
-                    }
+                        await cloudinaryService.DeleteImageAsync(img.PublicId);
 
-                    // xóa DB
                     db.ProductImages.Remove(img);
-
-                    Console.WriteLine(
-                        $"Deleted image: {img.ImageUrl}");
+                    hasChanges = true;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(
-                        $"Delete image failed: {ex.Message}");
+                    logger.LogError(ex, "Lỗi xóa ảnh ID: {Id}", img.ImageId);
                 }
             }
-
-            await db.SaveChangesAsync(token);
+            if (hasChanges)
+                await db.SaveChangesAsync(token);
         }
     }
 }

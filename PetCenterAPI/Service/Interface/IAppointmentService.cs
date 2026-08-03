@@ -13,7 +13,6 @@ namespace PetCenterAPI.Service.Interface
         //View for customer
         Task<List<AppointmentListResponseDTO>> GetMyAppointmentsAsync(Guid customerId);
         Task<List<AppointmentListResponseDTO>> GetAllAppointmentsAsync();
-
         Task<AppointmentResponseDTO> GetAppointmentDetailAsync(Guid appointmentId);
         Task CancelAppointmentAsync(Guid appointmentId,Guid customerId);
         Task ForwardAppointmentStatusAsync(Guid appointmentId,Guid staffId);

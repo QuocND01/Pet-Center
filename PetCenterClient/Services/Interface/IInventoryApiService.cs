@@ -13,5 +13,6 @@ namespace PetCenterClient.Services.Interface
     int page = 1,
     int pageSize = 10);
         Task<InventoryDetailViewModel?> GetByIdAsync(Guid id);
+        Task<HttpResponseMessage> DownloadExcelReportAsync();
     }
 }

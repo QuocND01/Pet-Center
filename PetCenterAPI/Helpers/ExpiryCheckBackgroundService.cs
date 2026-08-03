@@ -37,8 +37,12 @@ namespace PetCenterAPI.BackgroundServices
             {
                 try
                 {
-                    var nowUtc = DateTime.Now;
-                    var nextRunUtc = _cronExpression.GetNextOccurrence(nowUtc, _vietnamTimeZone);
+                    var nowUtc = DateTime.UtcNow;
+
+                    var nextRunUtc = _cronExpression.GetNextOccurrence(
+                        nowUtc,
+                        _vietnamTimeZone
+                    );
 
                     if (nextRunUtc.HasValue)
                     {
@@ -64,7 +68,6 @@ namespace PetCenterAPI.BackgroundServices
 
         private async Task ExecuteAllExpiryChecksAsync(CancellationToken stoppingToken)
         {
-            // Tạo Scope ngắn hạn để Resolve các Scoped Service & Repository
             using (var scope = _serviceProvider.CreateScope())
             {
                 var inventoryExpiryService = scope.ServiceProvider.GetRequiredService<IInventoryService>();
@@ -72,11 +75,10 @@ namespace PetCenterAPI.BackgroundServices
 
                 try
                 {
-                    // Chạy song song 2 tác vụ để tối ưu
-                    await Task.WhenAll(
-                        inventoryExpiryService.ProcessExpiredBatchesAsync(stoppingToken),
-                        appointmentExpiryService.ProcessExpiredAppointmentsAsync(stoppingToken)
-                    );
+                    // Chạy tuần tự để tránh dùng chung DbContext cùng lúc
+                    await inventoryExpiryService.ProcessExpiredBatchesAsync(stoppingToken);
+
+                    await appointmentExpiryService.ProcessExpiredAppointmentsAsync(stoppingToken);
                 }
                 catch (Exception ex)
                 {

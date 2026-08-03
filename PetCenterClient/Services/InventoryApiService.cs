@@ -49,5 +49,11 @@ namespace PetCenterClient.Services
             return await _http.GetFromJsonAsync<InventoryDetailViewModel>(
                 $"api/inventories/{id}");
         }
+        public async Task<HttpResponseMessage> DownloadExcelReportAsync()
+        {
+            // Gọi sang endpoint của API Backend: /api/inventories/reports/export-excel
+            var response = await _http.GetAsync("api/inventories/reports/export-excel");
+            return response;
+        }
     }
 }
