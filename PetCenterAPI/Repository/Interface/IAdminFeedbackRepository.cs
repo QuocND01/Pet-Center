@@ -1,5 +1,5 @@
-﻿using PetCenterAPI.DTOs.Requests.ManageFeedback;
-using PetCenterAPI.DTOs.Responses.ManageFeedback;
+using PetCenterAPI.DTOs.Requests.ManageFeedback;
+using PetCenterAPI.Models;
 
 namespace PetCenterAPI.Repository.Interface
 {
@@ -8,12 +8,12 @@ namespace PetCenterAPI.Repository.Interface
         // ============================================================
         // FEEDBACK — VIEW LIST (ADMIN/STAFF)
         // ============================================================
-        Task<PagedResult<AdminFeedbackItemResponseDTO>> GetAllAsync(FeedbackFilterRequestDTO filter);
+        Task<(List<ProductFeedback> Items, int TotalCount)> GetAllAsync(FeedbackFilterRequestDTO filter);
 
         // ============================================================
         // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
         // ============================================================
-        Task<AdminFeedbackItemResponseDTO?> GetByIdAsync(Guid feedbackId);
+        Task<ProductFeedback?> GetByIdAsync(Guid feedbackId);
 
         // ============================================================
         // FEEDBACK — REPLY

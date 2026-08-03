@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using PetCenterAPI.DTOs.Requests.ManageFeedback;
 using PetCenterAPI.DTOs.Responses.ManageFeedback;
+using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 
@@ -43,23 +44,23 @@ namespace PetCenterTestProject.FeedbackTest
         }
 
         //=========================================================
-        // Helper: Build a single feedback item (RowNumber = 0, chưa gán)
+        // Helper: Build a single feedback entity
         //=========================================================
-        private AdminFeedbackItemResponseDTO BuildFeedbackItem()
+        private ProductFeedback BuildFeedbackItem()
         {
-            return new AdminFeedbackItemResponseDTO
+            return new ProductFeedback
             {
                 FeedbackId = Guid.NewGuid(),
                 CustomerId = Guid.NewGuid(),
-                CustomerName = "Nguyen Van A",
-                CustomerEmail = "customer@petcenter.com",
+                Customer = new Customer { FullName = "Nguyen Van A", Email = "customer@petcenter.com" },
                 ProductId = Guid.NewGuid(),
-                ProductName = "Dog Food",
+                Product = new Product { ProductName = "Dog Food" },
                 OrderId = Guid.NewGuid(),
                 Rating = 5,
                 Comment = "Great product",
-                HasReply = false,
-                CreatedDate = DateTime.UtcNow
+                Reply = null,
+                CreatedAt = DateTime.UtcNow,
+                Status = 1
             };
         }
 
@@ -80,26 +81,24 @@ namespace PetCenterTestProject.FeedbackTest
         }
 
         //=========================================================
-        // Helper: Build an existing feedback DTO returned by repository
+        // Helper: Build an existing feedback entity returned by repository
         //=========================================================
-        private AdminFeedbackItemResponseDTO BuildExistingFeedback(
+        private ProductFeedback BuildExistingFeedback(
             Guid feedbackId,
             string? replyContent = null)
         {
-            return new AdminFeedbackItemResponseDTO
+            return new ProductFeedback
             {
                 FeedbackId = feedbackId,
                 CustomerId = Guid.NewGuid(),
-                CustomerName = "Nguyen Van A",
-                CustomerEmail = "customer@petcenter.com",
+                Customer = new Customer { FullName = "Nguyen Van A", Email = "customer@petcenter.com" },
                 ProductId = Guid.NewGuid(),
-                ProductName = "Dog Food Premium",
+                Product = new Product { ProductName = "Dog Food Premium" },
                 Rating = 5,
                 Comment = "Great product!",
-                ReplyContent = replyContent,
-                HasReply = !string.IsNullOrEmpty(replyContent),
-                CreatedDate = DateTime.Now,
-                IsVisible = true
+                Reply = replyContent,
+                CreatedAt = DateTime.Now,
+                Status = 1
             };
         }
 
@@ -128,22 +127,16 @@ namespace PetCenterTestProject.FeedbackTest
         {
             // Arrange
             var filter = BuildFilter(page: 2, pageSize: 10);
-            var pagedResult = new PagedResult<AdminFeedbackItemResponseDTO>
+            var items = new List<ProductFeedback>
             {
-                Items = new List<AdminFeedbackItemResponseDTO>
-                {
-                    BuildFeedbackItem(),
-                    BuildFeedbackItem(),
-                    BuildFeedbackItem()
-                },
-                TotalCount = 23,
-                Page = filter.Page,
-                PageSize = filter.PageSize
+                BuildFeedbackItem(),
+                BuildFeedbackItem(),
+                BuildFeedbackItem()
             };
 
             _adminFeedbackRepositoryMock
                 .Setup(x => x.GetAllAsync(filter))
-                .ReturnsAsync(pagedResult);
+                .ReturnsAsync((items, 23));
 
             // Act
             var result = await _service.GetAllAsync(filter);
@@ -169,17 +162,10 @@ namespace PetCenterTestProject.FeedbackTest
         {
             // Arrange
             var filter = BuildFilter();
-            var pagedResult = new PagedResult<AdminFeedbackItemResponseDTO>
-            {
-                Items = new List<AdminFeedbackItemResponseDTO>(),
-                TotalCount = 0,
-                Page = filter.Page,
-                PageSize = filter.PageSize
-            };
 
             _adminFeedbackRepositoryMock
                 .Setup(x => x.GetAllAsync(filter))
-                .ReturnsAsync(pagedResult);
+                .ReturnsAsync((new List<ProductFeedback>(), 0));
 
             // Act
             var result = await _service.GetAllAsync(filter);
@@ -300,7 +286,7 @@ namespace PetCenterTestProject.FeedbackTest
 
             _adminFeedbackRepositoryMock
                 .Setup(x => x.GetByIdAsync(feedbackId))
-                .ReturnsAsync((AdminFeedbackItemResponseDTO?)null);
+                .ReturnsAsync((ProductFeedback?)null);
 
             // Act
             var result = await _service.ReplyAsync(request);
@@ -704,8 +690,8 @@ namespace PetCenterTestProject.FeedbackTest
             Assert.True(result.Success);
             Assert.NotNull(result.Data);
             Assert.Equal(feedbackId, result.Data!.FeedbackId);
-            Assert.Equal(existingFeedback.CustomerName, result.Data.CustomerName);
-            Assert.Equal(existingFeedback.ReplyContent, result.Data.ReplyContent);
+            Assert.Equal(existingFeedback.Customer.FullName, result.Data.CustomerName);
+            Assert.Equal(existingFeedback.Reply, result.Data.ReplyContent);
         }
 
         //=========================================================
@@ -720,7 +706,7 @@ namespace PetCenterTestProject.FeedbackTest
 
             _adminFeedbackRepositoryMock
                 .Setup(x => x.GetByIdAsync(feedbackId))
-                .ReturnsAsync((AdminFeedbackItemResponseDTO?)null);
+                .ReturnsAsync((ProductFeedback?)null);
 
             // Act
             var result = await _service.GetByIdAsync(feedbackId);
