@@ -86,6 +86,34 @@ namespace PetCenterClient.Controllers
 
             return View("~/Views/AdminViews/Inventory/Detail.cshtml", inventory);
         }
+        [HttpGet]
+        public async Task<IActionResult> ExportExcel()
+        {
+            try
+            {
+                // 1. Gọi sang ApiService
+                var response = await _inventoryApiService.DownloadExcelReportAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    TempData["Error"] = "Không thể tải báo cáo kho lúc này. Vui lòng thử lại!";
+                    return RedirectToAction("Index"); // Hoặc trang danh sách kho
+                }
+
+                // 2. Đọc luồng dữ liệu file từ API trả về
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                string fileName = $"BaoCaoKho_PetCenter_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+                // 3. Trả file cho Trình duyệt người dùng tự tải xuống
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Đã xảy ra lỗi kết nối đến hệ thống máy chủ.";
+                return RedirectToAction("Index");
+            }
+        }
     }
 
 }

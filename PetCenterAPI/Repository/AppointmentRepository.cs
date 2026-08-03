@@ -191,7 +191,7 @@ namespace PetCenterAPI.Repository
 
             foreach (var app in expiredAppointments)
             {
-                app.Status = 5; // 5: Expired
+                app.Status = 0; // 0: Expired
                 app.UpdatedAt = nowUtc;
             }
 

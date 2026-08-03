@@ -9,10 +9,12 @@ namespace PetCenterAPI.Controllers
     public class InventoriesController : ControllerBase
     {
         private readonly IInventoryService _service;
+        private readonly IImportStockService _import;
 
-        public InventoriesController(IInventoryService service)
+        public InventoriesController(IInventoryService service, IImportStockService import  )
         {
             _service = service;
+            _import = import;
         }
 
         /// <summary>
@@ -67,22 +69,57 @@ namespace PetCenterAPI.Controllers
             return Ok(data);
         }
 
-        /// <summary>
-        /// Tải file Excel Báo cáo kho
-        /// </summary>
         [HttpGet("reports/export-excel")]
         public async Task<IActionResult> ExportExcel()
         {
-            var fileBytes = await _service.GenerateInventoryExcelReportAsync();
-            string fileName = $"BaoCaoKho_PetCenter_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            try
+            {
+                Console.WriteLine("1. Start Export");
 
-            return File(
-                fileBytes,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                fileName
-            );
+                var fileBytes = await _service.GenerateInventoryExcelReportAsync();
+
+                if (fileBytes == null || fileBytes.Length == 0)
+                {
+                    Console.WriteLine("❌ Error: File bytes is NULL or Empty!");
+                    return BadRequest("File xuất ra bị rỗng.");
+                }
+
+                Console.WriteLine($"2. Generated: {fileBytes.Length} bytes");
+
+                string fileName = $"BaoCaoKho_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+                Console.WriteLine("3. Preparing File result...");
+
+                // Trả file dạng Byte Array chuẩn
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                // In toàn bộ chi tiết lỗi ra Console thay vì để Crash ngầm
+                Console.WriteLine("🔥 CRITICAL ERROR IN EXPORT EXCEL:");
+                Console.WriteLine($"Message: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         #endregion
+        //// GET: api/inventory/export
+        //[HttpGet("export")]
+        //public async Task<IActionResult> Export(
+        //    DateTime? fromDate,
+        //    DateTime? toDate)
+        //{
+        //    var result = await _import.Export(fromDate, toDate);
+
+        //    return Ok(result);
+        //}
     }
 }

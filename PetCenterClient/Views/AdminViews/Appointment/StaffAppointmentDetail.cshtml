@@ -12,6 +12,14 @@
         3 => "Completed",
         _ => "Unknown"
     };
+
+    // Fallback Image Utilities
+    string defaultPetImg = "https://cdn-icons-png.flaticon.com/512/616/616408.png";
+    string defaultVetImg = "https://cdn-icons-png.flaticon.com/512/387/387561.png";
+
+    string petAvatarUrl = string.IsNullOrWhiteSpace(Model.PetAvatar) ? defaultPetImg : Model.PetAvatar;
+    string vetAvatarUrl = string.IsNullOrWhiteSpace(Model.VetAvatar) ? defaultVetImg : Model.VetAvatar;
+    string assignedVetName = !string.IsNullOrWhiteSpace(Model.VetName) ? Model.VetName : (Model.Snapshot?.VetName ?? "Not Assigned");
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -65,7 +73,6 @@
         text-align: center;
     }
 
-    /* CSS Mapping cho 4 trạng thái (0, 1, 2, 3) */
     .badge-status-0 {
         background-color: #f8d7da;
         color: #842029;
@@ -84,6 +91,26 @@
     .badge-status-3 {
         background-color: #d1e7dd;
         color: #0f5132;
+    }
+
+    .star-rating .fa-star {
+        font-size: 1.1rem;
+    }
+
+    .avatar-pet {
+        width: 72px;
+        height: 72px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #198754;
+    }
+
+    .avatar-vet {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #0d6efd;
     }
 </style>
 
@@ -114,14 +141,50 @@
         </div>
 
         <div class="row g-4">
-            <!-- CỘT TRÁI: THÔNG TIN PATIENT & LOGS DỊCH VỤ -->
+            <!-- CỘT TRÁI: THÔNG TIN PATIENT, VET, LOGS DỊCH VỤ & RATING FEEDBACK -->
             <div class="col-lg-8">
 
-                <!-- BANNER THÔNG TIN CHUNG -->
+                <!-- BANNER THÔNG TIN CHUNG (BỔ SUNG PET AVATAR & SNAPSHOT INFO) -->
                 <div class="status-banner p-4 rounded-4 shadow-sm mb-4">
-                    <span class="text-muted text-uppercase small fw-bold tracking-wider">Active Operation Track</span>
-                    <h2 class="fw-bold text-dark my-1">Patient: @Model.PetName</h2>
-                    <p class="text-secondary small m-0"><i class="far fa-user me-1"></i><strong>Customer Account:</strong> @Model.CustomerName</p>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <img src="@petAvatarUrl" alt="@Model.PetName" class="avatar-pet shadow-sm" onerror="this.src='@defaultPetImg';" />
+                        <div>
+                            <span class="text-muted text-uppercase small fw-bold tracking-wider">Active Operation Track</span>
+                            <h2 class="fw-bold text-dark m-0">Patient: @Model.PetName</h2>
+                            <p class="text-secondary small m-0 mt-1">
+                                <i class="far fa-user me-1"></i><strong>Customer:</strong> @Model.CustomerName
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- HIỂN THỊ CHI TIẾT THÔNG TIN PET TỪ SNAPSHOT -->
+                    @if (Model.Snapshot != null)
+                    {
+                        <div class="row g-2 bg-light p-3 rounded-3 text-dark small mb-3 border">
+                            <div class="col-6 col-md-3">
+                                <i class="fas fa-paw text-success me-1"></i><strong>Species:</strong> @(string.IsNullOrWhiteSpace(Model.Snapshot.Species) ? "N/A" : Model.Snapshot.Species)
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <i class="fas fa-dna text-success me-1"></i><strong>Breed:</strong> @(string.IsNullOrWhiteSpace(Model.Snapshot.Breed) ? "N/A" : Model.Snapshot.Breed)
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <i class="fas fa-venus-mars text-success me-1"></i><strong>Gender:</strong> @(string.IsNullOrWhiteSpace(Model.Snapshot.Gender) ? "N/A" : Model.Snapshot.Gender)
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <i class="fas fa-weight-hanging text-success me-1"></i><strong>Weight:</strong> @Model.Snapshot.Weight kg
+                            </div>
+                        </div>
+                    }
+
+                    <!-- HIỂN THỊ THÔNG TIN VET PHỤ TRÁCH -->
+                    <div class="d-flex align-items-center gap-3 p-3 bg-success-subtle rounded-3 border border-success-subtle">
+                        <img src="@vetAvatarUrl" alt="@assignedVetName" class="avatar-vet shadow-sm" onerror="this.src='@defaultVetImg';" />
+                        <div>
+                            <span class="text-muted small d-block">Assigned Veterinarian</span>
+                            <strong class="text-dark"><i class="fas fa-user-md text-success me-1"></i>Dr. @assignedVetName</strong>
+                        </div>
+                    </div>
+
                     @if (!string.IsNullOrEmpty(Model.Note))
                     {
                         <div class="mt-3 p-3 bg-light rounded-3 text-secondary small">
@@ -131,7 +194,7 @@
                 </div>
 
                 <!-- CHI TIẾT CÁC HẠNG MỤC DỊCH VỤ CỦA LỊCH HẸN -->
-                <div class="bg-white rounded-4 shadow-sm p-4 border-0">
+                <div class="bg-white rounded-4 shadow-sm p-4 border-0 mb-4">
                     <h5 class="fw-bold text-dark mb-3"><i class="fas fa-notes-medical text-success me-2"></i>Treatment Log / Services</h5>
 
                     <div class="d-flex flex-column gap-3">
@@ -139,12 +202,14 @@
                         {
                             foreach (var srv in Model.AppointmentServices)
                             {
-                                // Logic: Dịch vụ con hoàn thành khi Status == 2 (hoặc Status == 1 tùy theo DB)
                                 bool isSrvDone = srv.CompleteAt.HasValue;
 
                                 <div class="p-3 rounded-3 border service-card-item @(isSrvDone ? "completed-state" : "") shadow-sm d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="fw-bold text-dark mb-1">@srv.ServiceName</h6>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <h6 class="fw-bold text-dark m-0">@srv.ServiceName</h6>
+                                            <span class="badge bg-secondary-subtle text-secondary border small">Type @srv.ServiceType</span>
+                                        </div>
                                         <span class="text-muted small">@srv.Price.ToString("N0") đ • <i class="far fa-clock me-1"></i>@srv.Duration min</span>
                                     </div>
                                     <div>
@@ -157,7 +222,7 @@
                                         }
                                         else
                                         {
-                                            @if (Model.Status == 3)
+                                            if (Model.Status == 3)
                                             {
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
                                                     <i class="fas fa-check-circle me-1"></i>Completed
@@ -165,7 +230,6 @@
                                             }
                                             else if (Model.Status == 2)
                                             {
-                                                <!-- Đã Confirmed: Cho phép Staff bấm Mark Done từng dịch vụ -->
                                                 <form asp-action="CompleteAppointmentService" method="post" class="d-inline">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
@@ -175,9 +239,13 @@
                                                     </button>
                                                 </form>
                                             }
+                                            else if (Model.Status == 1)
+                                            {
+                                                <span class="text-warning small fw-bold"><i class="fas fa-hourglass-half me-1"></i> Awaiting Payment (State 1)</span>
+                                            }
                                             else
                                             {
-                                                <span class="text-muted small italic"><i class="fas fa-lock me-1"></i> Awaiting Payment (State 2)</span>
+                                                <span class="text-danger small fw-bold"><i class="fas fa-times-circle me-1"></i> Cancelled</span>
                                             }
                                         }
                                     </div>
@@ -185,6 +253,59 @@
                             }
                         }
                     </div>
+                </div>
+
+                <!-- KHỐI HIỂN THỊ ĐÁNH GIÁ VÀ PHẢN HỒI CỦA KHÁCH HÀNG -->
+                <div class="bg-white rounded-4 shadow-sm p-4 border-0">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fas fa-star text-warning me-2"></i>Customer Rating &amp; Feedback
+                    </h5>
+
+                    @if (Model.Snapshot != null && (Model.Snapshot.Rating > 0 || !string.IsNullOrWhiteSpace(Model.Snapshot.Feedback)))
+                    {
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="fw-bold me-2 text-dark">Rating:</span>
+                                <div class="star-rating text-warning me-2">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= Math.Floor(Model.Snapshot.Rating))
+                                        {
+                                            <i class="fas fa-star"></i>
+                                        }
+                                        else if (i - Model.Snapshot.Rating <= 0.5m)
+                                        {
+                                            <i class="fas fa-star-half-alt"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star text-muted"></i>
+                                        }
+                                    }
+                                </div>
+                                <span class="badge bg-warning text-dark fw-bold">@Model.Snapshot.Rating / 5.0</span>
+                            </div>
+
+                            <div class="mt-2">
+                                <strong class="text-dark small d-block mb-1"><i class="far fa-comment-alt me-1"></i>Feedback:</strong>
+                                @if (!string.IsNullOrWhiteSpace(Model.Snapshot.Feedback))
+                                {
+                                    <p class="text-secondary small mb-0 fst-italic">"@Model.Snapshot.Feedback"</p>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small fst-italic">No written review provided.</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted bg-light rounded-3 border">
+                            <i class="far fa-smile-beam fs-3 mb-2 d-block text-secondary"></i>
+                            <span class="small">No feedback or rating has been provided for this appointment yet.</span>
+                        </div>
+                    }
                 </div>
 
             </div>
@@ -202,23 +323,30 @@
                         </div>
                     </div>
 
-                    <!-- THỜI GIAN LÀM VIỆC -->
+                    <!-- THỜI GIAN LÀM VIỆC & BẢO HIỂM / TỔNG TIỀN (BỔ SUNG TOTAL) -->
                     <div class="text-start p-3 bg-light rounded-3 mb-4 small">
                         <div class="mb-2"><strong><i class="far fa-calendar-alt text-success me-2"></i>Date:</strong> @Model.AppointmentStart.ToString("dd MMMM, yyyy")</div>
-                        <div><strong><i class="far fa-clock text-success me-2"></i>Time Window:</strong> @Model.AppointmentStart.ToString("HH:mm") - @Model.AppointmentEnd.ToString("HH:mm")</div>
+                        <div class="mb-2"><strong><i class="far fa-clock text-success me-2"></i>Time Window:</strong> @Model.AppointmentStart.ToString("HH:mm") - @Model.AppointmentEnd.ToString("HH:mm")</div>
+                        <div class="pt-2 border-top"><strong><i class="fas fa-receipt text-success me-2"></i>Total Payment:</strong> <span class="fs-6 fw-bold text-success">@Model.Total.ToString("N0") đ</span></div>
                     </div>
 
-                    <!-- FORM SUBMIT TIẾN TRÌNH TIẾP THEO (CHỈ MỞ Ở STATE 1 VÀ 2) -->
-                    @if (Model.Status == 1 || Model.Status == 2)
+                    <!-- FORM SUBMIT TIẾN TRÌNH TIẾP THEO (CHỈ MỞ Ở STATE 2 - PAID) -->
+                    @if (Model.Status == 2)
                     {
                         <form asp-action="ForwardAppointment" method="post" id="forwardWorkflowForm">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
 
                             <button type="button" class="btn btn-emerald btn-lg w-100 shadow rounded-3 py-3" onclick="confirmWorkflowTransition()">
-                                FORWARD PROGRESS <i class="fas fa-arrow-alt-circle-right ms-2"></i>
+                                COMPLETE APPOINTMENT <i class="fas fa-check-circle ms-2"></i>
                             </button>
                         </form>
+                    }
+                    else if (Model.Status == 1)
+                    {
+                        <div class="alert alert-warning small mb-0 text-start">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Awaiting customer payment before proceeding.
+                        </div>
                     }
                     else
                     {
@@ -238,9 +366,9 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-body p-4 text-center">
-                <i class="fas fa-exclamation-triangle text-warning fs-1 mb-3"></i>
-                <h5 class="fw-bold text-dark">Promote Stage?</h5>
-                <p class="text-muted small">Are you sure you want to push this operation tracking file to the next systematic pipeline node?</p>
+                <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
+                <h5 class="fw-bold text-dark">Complete Appointment?</h5>
+                <p class="text-muted small">Are you sure you want to mark this appointment as fully completed?</p>
                 <div class="d-flex gap-2 justify-content-center mt-3">
                     <button type="button" class="btn btn-light btn-sm px-3 rounded-3 fw-bold" data-bs-dismiss="modal">Abort</button>
                     <button type="button" class="btn btn-emerald btn-sm px-3 rounded-3 fw-bold" id="btnModalConfirmSubmit">Execute</button>

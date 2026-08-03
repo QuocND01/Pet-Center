@@ -91,16 +91,7 @@ namespace PetCenterAPI.Controllers
             return NoContent();
         }
 
-        // GET: api/importstock/export
-        [HttpGet("export")]
-        public async Task<IActionResult> Export(
-            DateTime? fromDate,
-            DateTime? toDate)
-        {
-            var result = await _service.Export(fromDate, toDate);
-
-            return Ok(result);
-        }
+        
 
         //// POST: api/importstock/deduct
         //[HttpPost("deduct")]
