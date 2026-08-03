@@ -1,4 +1,5 @@
 using AutoMapper;
+using Google.Apis.Util;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.DTOs;
 using PetCenterAPI.DTOs.Requests.Appointment;
@@ -21,6 +22,7 @@ namespace PetCenterAPI.Service
         private readonly IMoMoService _moMoService;
         private readonly IPaymentRepository _paymentRepo;
         private readonly ILogger<AppointmentService> _logger;
+        private readonly IStaffRepository _staffRepo; 
 
 
         public AppointmentService(
@@ -30,6 +32,7 @@ namespace PetCenterAPI.Service
             IMapper mapper,
             ILogger<AppointmentService> logger,
             IScheduleRepository scheduleRepository,
+            IStaffRepository staffRepository,
             IMoMoService? moMoService = null,
             IVnPayService? vnPayService = null,
             IPaymentRepository? paymentRepository = null
@@ -41,6 +44,7 @@ namespace PetCenterAPI.Service
             _serviceRepo = serviceRepo;
             _mapper = mapper;
             _scheduleRepo = scheduleRepository;
+            _staffRepo = staffRepository;
             _moMoService = moMoService!;
             _vnPayService = vnPayService!;
             _paymentRepo = paymentRepository!;
@@ -65,6 +69,7 @@ namespace PetCenterAPI.Service
             }
 
             #endregion
+
             #region Validate
 
             if (request.ServiceIds == null || !request.ServiceIds.Any())
@@ -78,9 +83,11 @@ namespace PetCenterAPI.Service
             #region Get Services
 
             var services = await _appointmentRepo.GetServicesAsync(request.ServiceIds);
-
+            
             if (services.Count != request.ServiceIds.Count)
                 throw new Exception("One or more services do not exist.");
+            if (services.Any(s => s.Status == PetCenterAPI.Common.Status.Inactive))
+                throw new Exception("One or more selected services are unavailable.");
 
             #endregion
 
@@ -119,6 +126,14 @@ namespace PetCenterAPI.Service
                     throw new Exception("Appointment is outside working hours.");
             }
 
+            #endregion
+
+            #region Check staff status
+            var vet = await _staffRepo.GetByIdAsync(request.StaffId);
+            if (vet.IsActive == false)
+            {
+                throw new Exception("Doctor is unavailable.");
+            }
             #endregion
 
             #region Check Global Exception
@@ -192,6 +207,10 @@ namespace PetCenterAPI.Service
             if (petConflict)
                 throw new Exception("Pet already has another appointment at this time.");
 
+            var petStatus = await _petRepo.GetPetByIdWithOwnerAsync(request.PetId);
+
+            if (petStatus == null)
+                throw new Exception("Pet is unavailable");
             #endregion
 
             #region Create Appointment
