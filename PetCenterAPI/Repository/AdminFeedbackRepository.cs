@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.DTOs.Requests.ManageFeedback;
 using PetCenterAPI.DTOs.Responses.ManageFeedback;
 using PetCenterAPI.Models;
@@ -18,9 +18,14 @@ namespace PetCenterAPI.Repository
         // ============================================================
         // FEEDBACK — VIEW LIST (ADMIN/STAFF)
         // ============================================================
-        public async Task<PagedResult<AdminFeedbackItemResponseDTO>> GetAllAsync(FeedbackFilterRequestDTO filter)
+        public async Task<(List<ProductFeedback> Items, int TotalCount)> GetAllAsync(FeedbackFilterRequestDTO filter)
         {
-            var query = _context.ProductFeedbacks.AsQueryable();
+            var query = _context.ProductFeedbacks
+                .Include(f => f.Customer)
+                .Include(f => f.Product)
+                    .ThenInclude(p => p.ProductImages)
+                .Include(f => f.Staff)
+                .AsQueryable();
 
             // ── Filters ───────────────────────────────────────────
             if (filter.Rating.HasValue)
@@ -46,93 +51,26 @@ namespace PetCenterAPI.Repository
 
             var totalCount = await query.CountAsync();
 
-            // ── Join directly with Customer, Product, Staff, no HTTP enrichment needed ──
             var items = await query
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .Select(f => new AdminFeedbackItemResponseDTO
-                {
-                    FeedbackId = f.FeedbackId,
-                    CustomerId = f.CustomerId,
-                    CustomerName = f.Customer.FullName,
-                    CustomerEmail = f.Customer.Email,
-                    ProductId = f.ProductId,
-                    ProductName = f.Product.ProductName,
-                    ProductImage = f.Product.ProductImages
-                        .Where(pi => pi.IsActive == true)
-                        .Select(pi => pi.ImageUrl)
-                        .FirstOrDefault(),
-                    OrderId = f.OrderId,
-                    Rating = f.Rating,
-                    Comment = f.Comment,
-                    ReplyContent = f.Reply,
-                    HasReply = !string.IsNullOrEmpty(f.Reply),
-                    StaffId = f.StaffId,
-                    StaffName = f.Staff != null ? f.Staff.FullName : null,
-                    ReplyDate = f.ReplyDate,
-                    CreatedDate = f.CreatedAt,
-                    IsVisible = f.Status == 1
-                })
                 .ToListAsync();
 
-            return new PagedResult<AdminFeedbackItemResponseDTO>
-            {
-                Items = items,
-                TotalCount = totalCount,
-                Page = filter.Page,
-                PageSize = filter.PageSize
-            };
+            return (items, totalCount);
         }
 
         // ============================================================
         // FEEDBACK — VIEW DETAIL (ADMIN/STAFF)
         // ============================================================
-        public async Task<AdminFeedbackItemResponseDTO?> GetByIdAsync(Guid feedbackId)
+        public async Task<ProductFeedback?> GetByIdAsync(Guid feedbackId)
         {
             return await _context.ProductFeedbacks
-                .Where(f => f.FeedbackId == feedbackId)
-                .Select(f => new AdminFeedbackItemResponseDTO
-                {
-                    FeedbackId = f.FeedbackId,
-                    CustomerId = f.CustomerId,
-                    CustomerName = f.Customer.FullName,
-                    CustomerEmail = f.Customer.Email,
-                    ProductId = f.ProductId,
-                    ProductName = f.Product.ProductName,
-                    ProductImage = f.Product.ProductImages
-                        .Where(pi => pi.IsActive == true)
-                        .Select(pi => pi.ImageUrl)
-                        .FirstOrDefault(),
-                    OrderId = f.OrderId,
-                    Rating = f.Rating,
-                    Comment = f.Comment,
-                    ReplyContent = f.Reply,
-                    HasReply = !string.IsNullOrEmpty(f.Reply),
-                    StaffId = f.StaffId,
-                    StaffName = f.Staff != null ? f.Staff.FullName : null,
-                    ReplyDate = f.ReplyDate,
-                    CreatedDate = f.CreatedAt,
-                    IsVisible = f.Status == 1,
-
-                    MediaFiles = f.FeedbackImages
-                        .Where(img => img.IsActive == true)
-                        .Select(img => new FeedbackMediaItemDTO
-                        {
-                            MediaId = img.ImageId,
-                            MediaUrl = img.ImageUrl,
-                            PublicId = img.PublicId,
-                            MediaType = img.ImageUrl.Contains("/video/upload/", StringComparison.OrdinalIgnoreCase)
-                                ? "video"
-                                : img.ImageUrl.Contains("/image/upload/", StringComparison.OrdinalIgnoreCase)
-                                    ? "image"
-                                    : (img.ImageUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
-                                       img.ImageUrl.EndsWith(".mov", StringComparison.OrdinalIgnoreCase) ||
-                                       img.ImageUrl.EndsWith(".webm", StringComparison.OrdinalIgnoreCase)
-                                        ? "video" : "image")
-                        })
-                        .ToList()
-                })
-                .FirstOrDefaultAsync();
+                .Include(f => f.Customer)
+                .Include(f => f.Product)
+                    .ThenInclude(p => p.ProductImages)
+                .Include(f => f.Staff)
+                .Include(f => f.FeedbackImages)
+                .FirstOrDefaultAsync(f => f.FeedbackId == feedbackId);
         }
 
         // ============================================================

@@ -1,5 +1,6 @@
-﻿using PetCenterAPI.DTOs.Requests.ManageFeedback;
+using PetCenterAPI.DTOs.Requests.ManageFeedback;
 using PetCenterAPI.DTOs.Responses.ManageFeedback;
+using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
 
@@ -19,13 +20,43 @@ namespace PetCenterAPI.Service
         // ============================================================
         public async Task<ApiResponse<PagedResult<AdminFeedbackItemResponseDTO>>> GetAllAsync(FeedbackFilterRequestDTO filter)
         {
-            var paged = await _adminFeedbackRepository.GetAllAsync(filter);
+            var (items, totalCount) = await _adminFeedbackRepository.GetAllAsync(filter);
 
             int startIndex = (filter.Page - 1) * filter.PageSize + 1;
-            for (int i = 0; i < paged.Items.Count; i++)
-                paged.Items[i].RowNumber = startIndex + i;
+            var dtoList = items.Select((f, index) => new AdminFeedbackItemResponseDTO
+            {
+                RowNumber = startIndex + index,
+                FeedbackId = f.FeedbackId,
+                CustomerId = f.CustomerId,
+                CustomerName = f.Customer?.FullName,
+                CustomerEmail = f.Customer?.Email,
+                ProductId = f.ProductId,
+                ProductName = f.Product?.ProductName,
+                ProductImage = f.Product?.ProductImages?
+                    .Where(pi => pi.IsActive == true)
+                    .Select(pi => pi.ImageUrl)
+                    .FirstOrDefault(),
+                OrderId = f.OrderId,
+                Rating = f.Rating,
+                Comment = f.Comment,
+                ReplyContent = f.Reply,
+                HasReply = !string.IsNullOrEmpty(f.Reply),
+                StaffId = f.StaffId,
+                StaffName = f.Staff?.FullName,
+                ReplyDate = f.ReplyDate,
+                CreatedDate = f.CreatedAt,
+                IsVisible = f.Status == 1
+            }).ToList();
 
-            return ApiResponse<PagedResult<AdminFeedbackItemResponseDTO>>.Ok(paged);
+            var pagedResult = new PagedResult<AdminFeedbackItemResponseDTO>
+            {
+                Items = dtoList,
+                TotalCount = totalCount,
+                Page = filter.Page,
+                PageSize = filter.PageSize
+            };
+
+            return ApiResponse<PagedResult<AdminFeedbackItemResponseDTO>>.Ok(pagedResult);
         }
 
         // ============================================================
@@ -33,11 +64,59 @@ namespace PetCenterAPI.Service
         // ============================================================
         public async Task<ApiResponse<AdminFeedbackItemResponseDTO>> GetByIdAsync(Guid feedbackId)
         {
-            var feedback = await _adminFeedbackRepository.GetByIdAsync(feedbackId);
-            if (feedback == null)
+            var f = await _adminFeedbackRepository.GetByIdAsync(feedbackId);
+            if (f == null)
                 return ApiResponse<AdminFeedbackItemResponseDTO>.Fail("Feedback Not Found.");
 
-            return ApiResponse<AdminFeedbackItemResponseDTO>.Ok(feedback);
+            var dto = new AdminFeedbackItemResponseDTO
+            {
+                FeedbackId = f.FeedbackId,
+                CustomerId = f.CustomerId,
+                CustomerName = f.Customer?.FullName,
+                CustomerEmail = f.Customer?.Email,
+                ProductId = f.ProductId,
+                ProductName = f.Product?.ProductName,
+                ProductImage = f.Product?.ProductImages?
+                    .Where(pi => pi.IsActive == true)
+                    .Select(pi => pi.ImageUrl)
+                    .FirstOrDefault(),
+                OrderId = f.OrderId,
+                Rating = f.Rating,
+                Comment = f.Comment,
+                ReplyContent = f.Reply,
+                HasReply = !string.IsNullOrEmpty(f.Reply),
+                StaffId = f.StaffId,
+                StaffName = f.Staff?.FullName,
+                ReplyDate = f.ReplyDate,
+                CreatedDate = f.CreatedAt,
+                IsVisible = f.Status == 1,
+                MediaFiles = f.FeedbackImages != null
+                    ? f.FeedbackImages
+                        .Where(img => img.IsActive == true)
+                        .Select(img => new FeedbackMediaItemDTO
+                        {
+                            MediaId = img.ImageId,
+                            MediaUrl = img.ImageUrl,
+                            PublicId = img.PublicId,
+                            MediaType = DetermineMediaType(img.ImageUrl)
+                        })
+                        .ToList()
+                    : new List<FeedbackMediaItemDTO>()
+            };
+
+            return ApiResponse<AdminFeedbackItemResponseDTO>.Ok(dto);
+        }
+
+        private static string DetermineMediaType(string? imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl)) return "image";
+            if (imageUrl.Contains("/video/upload/", StringComparison.OrdinalIgnoreCase)) return "video";
+            if (imageUrl.Contains("/image/upload/", StringComparison.OrdinalIgnoreCase)) return "image";
+            if (imageUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) ||
+                imageUrl.EndsWith(".mov", StringComparison.OrdinalIgnoreCase) ||
+                imageUrl.EndsWith(".webm", StringComparison.OrdinalIgnoreCase))
+                return "video";
+            return "image";
         }
 
         // ============================================================
@@ -55,7 +134,7 @@ namespace PetCenterAPI.Service
             if (existing == null)
                 return ApiResponse<bool>.Fail("Feedback does not exist.");
 
-            if (!string.IsNullOrEmpty(existing.ReplyContent))
+            if (!string.IsNullOrEmpty(existing.Reply))
                 return ApiResponse<bool>.Fail("This feedback already has a reply. Please use the update function.");
 
             var success = await _adminFeedbackRepository.ReplyAsync(
