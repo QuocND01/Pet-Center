@@ -14,7 +14,7 @@ from rasa_sdk.executor import CollectingDispatcher
 
 from .common import (
     api_get, extract_list, get_field,
-    get_customer_id, is_logged_in,
+    get_customer_id, is_logged_in, require_login,
 )
 
 
@@ -25,7 +25,7 @@ class ActionXemHoSo(Action):
 
     def run(self, dispatcher, tracker, domain):
         if not is_logged_in(tracker):
-            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem hồ sơ nhé!")
+            require_login(dispatcher, "xem hồ sơ tài khoản")
             return []
 
         ok, data = api_get("/api/customer/profile", tracker, with_auth=True)
@@ -50,7 +50,7 @@ class ActionXemDiaChi(Action):
 
     def run(self, dispatcher, tracker, domain):
         if not is_logged_in(tracker):
-            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem địa chỉ đã lưu nhé!")
+            require_login(dispatcher, "xem địa chỉ đã lưu")
             return []
 
         ok, data = api_get("/api/addresses/my-addresses", tracker, with_auth=True)
@@ -83,6 +83,9 @@ class ActionThemDiaChi(Action):
         return "action_them_dia_chi"
 
     def run(self, dispatcher, tracker, domain):
+        if not is_logged_in(tracker):
+            require_login(dispatcher, "thêm địa chỉ mới")
+            return []
         dispatcher.utter_message(
             text="Để thêm địa chỉ mới (có chọn Tỉnh/Huyện/Xã), bạn vào trang Địa chỉ nhé! 📍",
             buttons=[{"title": "📍 Quản lý địa chỉ", "payload": "/goto_address_page"}])
@@ -98,7 +101,7 @@ class ActionXemHoSoYTe(Action):
     def run(self, dispatcher, tracker, domain):
         cid = get_customer_id(tracker)
         if not cid:
-            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem hồ sơ y tế thú cưng nhé!")
+            require_login(dispatcher, "xem hồ sơ y tế thú cưng")
             return []
 
         ok, data = api_get(f"/api/medicalrecords/customer/{cid}", tracker, with_auth=True)

@@ -44,6 +44,12 @@ nlu:
     - thế thôi nhé
     - vậy thôi cảm ơn
     - ok tks shop
+    - bai bai
+    - bai
+    - bye bye
+    - đủ rồi
+    - mệt
+    - thôi bye
 
 - intent: affirm
   examples: |

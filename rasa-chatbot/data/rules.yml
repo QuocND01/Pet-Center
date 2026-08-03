@@ -237,3 +237,10 @@ rules:
   steps:
     - intent: goto_orders_page
     - action: action_gui_danh_gia
+
+# — Bảo mật: từ chối xem đơn hàng người khác —
+- rule: Từ chối xem đơn hàng của người khác
+  steps:
+    - intent: xem_don_hang_nguoi_khac
+    - action: utter_tu_choi_xem_don_nguoi_khac
+

@@ -21,7 +21,7 @@ from rasa_sdk.events import SlotSet
 
 from .common import (
     api_get, extract_list, get_field, format_price,
-    get_customer_id, is_logged_in,
+    get_customer_id, is_logged_in, require_login,
     order_status_label, payment_status_label,
 )
 
@@ -52,6 +52,11 @@ def _resolve_target_order(
     raw_slot_id = tracker.get_slot("order_id")
     raw_entity_id = None
 
+    # █ Bảo vệ bảo mật: chặn guest ngay từ đầu — trước khi đụng vào bất kỳ slot hay entity nào
+    if not is_logged_in(tracker):
+        require_login(dispatcher, f"xem {field_label} của đơn hàng")
+        return None, None, []
+
     # Tìm entity order_id trong tin nhắn vừa gõ
     for e in tracker.latest_message.get("entities", []):
         if e.get("entity") == "order_id" and e.get("value"):
@@ -62,43 +67,38 @@ def _resolve_target_order(
     events = []
 
     if target_id:
-        # 1. Thử gọi trực tiếp với ID
-        ok, data = api_get(f"/api/orders/{target_id}", tracker)
+        # 1. Gọi API với JWT (bắt buộc có auth — không cho phép truy cập khi không có token)
+        ok, data = api_get(f"/api/orders/{target_id}", tracker, with_auth=True)
         if ok and data:
             full_id = str(get_field(data, "orderId", "OrderId", default=target_id)).strip().lstrip('#')
             events.append(SlotSet("order_id", full_id))
             return full_id, data, events
 
-        # 2. Nếu gõ mã ngắn (như 4581016) -> Khớp Prefix trong danh sách đơn của User
-        if is_logged_in(tracker):
-            ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
-            my_orders = extract_list(my_data) if ok_my else []
-            clean_search = target_id.lower().replace("-", "")
+        # 2. Nếu gõ mã ngắn (như 4581016) → Khớp Prefix trong danh sách đơn của User
+        ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+        my_orders = extract_list(my_data) if ok_my else []
+        clean_search = target_id.lower().replace("-", "")
 
-            matched_order = None
-            for o in my_orders:
-                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#').lower().replace("-", "")
-                if oid.startswith(clean_search):
-                    matched_order = o
-                    break
+        matched_order = None
+        for o in my_orders:
+            oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#').lower().replace("-", "")
+            if oid.startswith(clean_search):
+                matched_order = o
+                break
 
-            if matched_order:
-                full_id = str(get_field(matched_order, "orderId", "OrderId", default="")).strip().lstrip('#')
-                events.append(SlotSet("order_id", full_id))
-                ok_det, det_data = api_get(f"/api/orders/{full_id}", tracker)
-                if ok_det and det_data:
-                    return full_id, det_data, events
-                return full_id, matched_order, events
+        if matched_order:
+            full_id = str(get_field(matched_order, "orderId", "OrderId", default="")).strip().lstrip('#')
+            events.append(SlotSet("order_id", full_id))
+            ok_det, det_data = api_get(f"/api/orders/{full_id}", tracker, with_auth=True)
+            if ok_det and det_data:
+                return full_id, det_data, events
+            return full_id, matched_order, events
 
-        # 3. Nếu hoàn toàn không khớp đơn nào -> Báo lịch sự
+        # 3. Hoàn toàn không khớp đơn nào → Báo lịch sự
         dispatcher.utter_message(text=f"Không tìm thấy đơn hàng nào khớp với mã '#{target_id}'. Bạn kiểm tra lại mã nhé!")
         return None, None, [SlotSet("order_id", None)]
 
-    # 3. Nếu chưa có order_id nào được truyền vào
-    if not is_logged_in(tracker):
-        dispatcher.utter_message(text=f"🔒 Bạn cần đăng nhập để xem {field_label} của đơn hàng nhé!")
-        return None, None, events
-
+    # Không có order_id — lấy danh sách đơn để cho chọn
     ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
     my_orders = extract_list(my_data) if ok_my else []
 
@@ -108,14 +108,15 @@ def _resolve_target_order(
     elif len(my_orders) == 1:
         full_id = str(get_field(my_orders[0], "orderId", "OrderId", default="")).strip().lstrip('#')
         events.append(SlotSet("order_id", full_id))
-        ok, data = api_get(f"/api/orders/{full_id}", tracker)
+        ok, data = api_get(f"/api/orders/{full_id}", tracker, with_auth=True)
         if ok and data:
             return full_id, data, events
         return full_id, my_orders[0], events
     else:
-        lines = [f"Bạn muốn xem **{field_label}** của đơn hàng nào dưới đây?"]
+        # Nhiều đơn → hỏi người dùng chọn đơn nào (giới hạn 3 đơn gần nhất)
+        lines = [f"❓ Bạn muốn xem **{field_label}** của đơn hàng nào? Bấm chọn đơn dưới đây:"]
         buttons = []
-        for o in my_orders[:5]:
+        for o in my_orders[:3]:
             oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
             total = get_field(o, "totalAmount", "TotalAmount", default=0)
             short_id = oid[:8] if oid else "đơn hàng"
@@ -123,12 +124,19 @@ def _resolve_target_order(
                 "title": f"📋 Đơn #{short_id} ({format_price(total)})",
                 "payload": f'/{payload_intent}{{"order_id": "{oid}"}}'
             })
+        buttons.append({
+            "title": "🔗 Xem tất cả đơn trên Web",
+            "payload": "/goto_orders_page"
+        })
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
         return None, None, events
 
 
 class ActionXemDonHang(Action):
-    """Hiển thị danh sách đơn gần nhất kèm Nút bấm trực tiếp cho từng đơn."""
+    """
+    Hiển thị tối đa 3 đơn hàng gần nhất kèm Nút bấm trực tiếp.
+    Không tự set slot order_id — việc chọn đơn chỉ xảy ra khi user bấm nút hoặc gõ mã.
+    """
     def name(self) -> Text:
         return "action_xem_don_hang"
 
@@ -147,19 +155,23 @@ class ActionXemDonHang(Action):
             dispatcher.utter_message(text="Bạn chưa có đơn hàng nào. Cùng mua sắm nhé! 🛍️")
             return [SlotSet("order_id", None)]
 
-        lines = [f"📦 Bạn có {len(orders)} đơn hàng gần đây:"]
-        buttons = []
-        latest_order_id = None
+        # Giới hạn hiển thị 3 đơn gần nhất — đủ dễ đọc, không quá tải
+        display_orders = orders[:3]
+        total_count = len(orders)
 
-        for i, o in enumerate(orders[:5], 1):
+        if total_count > 3:
+            lines = [f"📦 3 đơn hàng gần nhất của bạn (tổng {total_count} đơn):"]
+        else:
+            lines = [f"📦 Bạn có {total_count} đơn hàng gần đây:"]
+
+        buttons = []
+
+        for i, o in enumerate(display_orders, 1):
             oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
             total = get_field(o, "totalAmount", "TotalAmount", default=0)
             status_code = get_field(o, "status", "Status", default=0)
             status_text = order_status_label(status_code)
             short_id = oid[:8] if oid else f"#{i}"
-
-            if i == 1 and oid:
-                latest_order_id = oid
 
             lines.append(f"{i}. Mã #{short_id}… — {format_price(total)} — {status_text}")
 
@@ -180,7 +192,9 @@ class ActionXemDonHang(Action):
         })
 
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        return [SlotSet("order_id", latest_order_id)]
+        # Không set slot order_id — user chưa chọn đơn cụ thể nào
+        # Chỉ set khi user bấm nút chọn hoặc gõ mã đơn
+        return [SlotSet("order_id", None)]
 
 
 class ActionXemDonHangVuaDat(Action):
@@ -190,7 +204,7 @@ class ActionXemDonHangVuaDat(Action):
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         if not is_logged_in(tracker):
-            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem đơn hàng vừa mới đặt nhé!")
+            require_login(dispatcher, "xem đơn hàng vừa đặt")
             return []
 
         ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
@@ -207,7 +221,7 @@ class ActionXemDonHangVuaDat(Action):
             dispatcher.utter_message(text="Không lấy được mã đơn hàng vừa đặt. Bạn thử lại nhé!")
             return []
 
-        ok_det, data = api_get(f"/api/orders/{latest_id}", tracker)
+        ok_det, data = api_get(f"/api/orders/{latest_id}", tracker, with_auth=True)
         if not ok_det or not data:
             data = latest_order
 
