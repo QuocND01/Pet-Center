@@ -393,36 +393,6 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           ),
 
           const SizedBox(height: 10),
-
-          // ===================================================================
-          // TODO: Team member - Connect AI Skin Disease Detection feature route here
-          // ===================================================================
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.purple,
-              side: const BorderSide(color: Colors.purple, width: 1.5),
-              minimumSize: const Size(double.infinity, 46),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-            onPressed: () {
-              // TODO: Team member - Replace with actual AI Skin Disease Detection navigation
-              // Example: Navigator.pushNamed(context, '/ai-skin-detection');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('AI Skin Detection: Snap a photo of your pet to analyze skin condition.'),
-                  backgroundColor: Colors.purple,
-                ),
-              );
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.auto_awesome, size: 18),
-                SizedBox(width: 8),
-                Text('Detect Pet Skin Disease with AI', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
         ],
       ),
     );
