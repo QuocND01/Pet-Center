@@ -41,13 +41,19 @@ namespace PetCenterAPI.Controllers
 
             var staffId = Guid.Parse(staffClaim);
 
-            ////=== TEST ===
-            //var staffId = dto.StaffId;
-            ////============
-
-            var id = await _service.CreateAsync(dto, staffId);
-
-            return Ok(id);
+            try
+            {
+                var id = await _service.CreateAsync(dto, staffId);
+                return Ok(id);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Status = false,
+                    Message = ex.Message
+                });
+            }
         }
 
         // GET: api/importstock/{id}
