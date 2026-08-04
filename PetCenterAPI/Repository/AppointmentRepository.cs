@@ -42,25 +42,25 @@ namespace PetCenterAPI.Repository
 
         public async Task<bool> IsTimeConflictAsync(Guid staffId, DateTime appointmentStart, DateTime appointmentEnd)
         {
+            // Kiểm tra trùng lịch nhân viên đối với các lịch đang Active (1: Reserved, 2: Confirmed)
             return await _context.Appointments.AnyAsync(x =>
                 x.StaffId == staffId
                 && appointmentStart < x.AppointmentEnd
                 && appointmentEnd > x.AppointmentStart
-                && x.Status != 0
+                && (x.Status == 1 || x.Status == 2)
             );
         }
+
         public async Task<int> GetActiveAppointmentsCountByCustomerAsync(Guid customerId)
         {
-            // Các trạng thái được tính là lịch hẹn đang hoạt động/chờ xử lý:
-            // Status 1: Reserved / Pending
-            // Status 2: Confirmed / Paid
-            // Status 3: In Progress
-            // (Bỏ qua Status 0: Cancelled, 4: Completed, 5: Expired)
+            var now = DateTime.Now;
+
             return await _context.Appointments
                 .CountAsync(a => a.CustomerId == customerId
-                              && (a.Status == 1 || a.Status == 2 || a.Status == 3)
-                              && a.AppointmentStart > DateTime.Now);
+                              && (a.Status == 1 || a.Status == 2)
+                              && a.AppointmentStart > now);
         }
+
         public async Task<Appointment> CreateAppointmentAsync(Appointment appointment)
         {
             var entry = await _context.Appointments.AddAsync(appointment);
@@ -146,19 +146,16 @@ namespace PetCenterAPI.Repository
                     a.StaffId == staffId &&
                     a.AppointmentStart >= startDate &&
                     a.AppointmentStart < endDate &&
-                    (a.Status == 1 || a.Status == 2 || a.Status == 3))
+                    (a.Status == 1 || a.Status == 2))
                 .OrderBy(a => a.AppointmentStart)
                 .ToListAsync();
         }
 
         public async Task UpdateAsync(Appointment appointment)
         {
-            // Do Entity đã được Track trong DbContext từ trước,
-            // ta chỉ cần gọi SaveChangesAsync() để EF Core tự sinh SQL UPDATE.
             await _context.SaveChangesAsync();
         }
 
-        // HÀM QUAN TRỌNG NHẤT CHO FEATURE UPDATE
         public async Task<Appointment?> GetByIdForUpdateAsync(Guid appointmentId)
         {
             return await _context.Appointments
@@ -166,36 +163,28 @@ namespace PetCenterAPI.Repository
                 .Include(a => a.AppointmentSnapshot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
         }
+
         public async Task<bool> IsPetTimeConflictAsync(Guid petId, DateTime start, DateTime end)
         {
-            // Giả sử Status: 1 = Pending/Confirmed, các status đã Cancelled/Completed thì không tính trùng
-            // Bạn có thể điều chỉnh danh sách Status tùy theo Logic của dự án (ví dụ: status != 3 với 3 là Cancelled)
             return await _context.Appointments
                 .AnyAsync(a => a.PetId == petId
-                            && a.Status != 0
-                            && a.Status != 5
+                            && (a.Status == 1 || a.Status == 2)
                             && a.AppointmentStart < end
                             && a.AppointmentEnd > start);
         }
+
         public async Task<int> UpdateExpiredAppointmentsAsync(CancellationToken cancellationToken = default)
         {
-            var nowUtc = DateTime.Now;
+            var now = DateTime.Now; // Sử dụng giờ hệ thống Local Time
 
-            var expiredAppointments = await _context.Appointments
-                .Where(a => a.Status == 1 // 1: Reserved
+            return await _context.Appointments
+                .Where(a => a.Status == 1
                          && a.ReservedUntil.HasValue
-                         && a.ReservedUntil.Value <= nowUtc)
-                .ToListAsync(cancellationToken);
-
-            if (!expiredAppointments.Any()) return 0;
-
-            foreach (var app in expiredAppointments)
-            {
-                app.Status = 0; // 0: Expired
-                app.UpdatedAt = nowUtc;
-            }
-
-            return await _context.SaveChangesAsync(cancellationToken);
+                         && a.ReservedUntil.Value <= now)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(a => a.Status, 0)
+                    .SetProperty(a => a.UpdatedAt, now),
+                    cancellationToken);
         }
     }
 }

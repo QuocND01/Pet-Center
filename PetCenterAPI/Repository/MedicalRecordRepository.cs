@@ -82,12 +82,12 @@ namespace PetCenterAPI.Repository
 
         public async Task<IEnumerable<Appointment>> GetCompletedAppointmentsAsync()
         {
-            // Status 4 = Completed appointment, exclude those already having a medical record
+            // Status 3 = Completed appointment, exclude those already having a medical record
             return await _db.Appointments
                 .Include(a => a.Customer)
                 .Include(a => a.Pet)
                 .Include(a => a.AppointmentSnapshot)
-                .Where(a => a.Status == 4 && !_db.MedicalRecords.Any(mr => mr.AppointmentId == a.AppointmentId))
+                .Where(a => a.Status == 3 && !_db.MedicalRecords.Any(mr => mr.AppointmentId == a.AppointmentId))
                 .OrderByDescending(a => a.AppointmentStart)
                 .ToListAsync();
         }
