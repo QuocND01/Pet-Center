@@ -282,8 +282,10 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
           // ===================================================================
           InkWell(
             onTap: () {
-              // TODO: Team member - Replace with actual AI Skin Disease Detection navigation
-              // Example: Navigator.pushNamed(context, '/ai-skin-detection');
+              Navigator.pushNamed(
+                context,
+                '/classify-ai',
+              );
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('AI Skin Detection: Snap a photo of your pet to detect skin conditions.'),
