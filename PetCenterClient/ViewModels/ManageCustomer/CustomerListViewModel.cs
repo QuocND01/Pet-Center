@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace PetCenterClient.ViewModels.ManageCustomer
 {
@@ -7,6 +7,10 @@ namespace PetCenterClient.ViewModels.ManageCustomer
         public Guid CustomerId { get; set; }
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
+        
+        [JsonPropertyName("isVerified")]
+        public bool IsVerified { get; set; }
+
         public bool IsActive { get; set; }
     }
 

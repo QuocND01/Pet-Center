@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
 
 :root {
     --surface: #ffffff;
@@ -264,6 +264,11 @@
     color: #991b1b;
 }
 
+.badge-unverified {
+    background: #fef3c7;
+    color: #92400e;
+}
+
 .badge-dot {
     width: 6px;
     height: 6px;
@@ -276,6 +281,10 @@
 
 .badge-inactive .badge-dot {
     background: var(--danger);
+}
+
+.badge-unverified .badge-dot {
+    background: #f59e0b;
 }
 
 .btn-detail {

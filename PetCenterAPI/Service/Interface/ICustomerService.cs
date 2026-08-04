@@ -1,4 +1,4 @@
-﻿using PetCenterAPI.DTOs.Requests.CustomerProfile;
+using PetCenterAPI.DTOs.Requests.CustomerProfile;
 using PetCenterAPI.DTOs.Responses.CustomerProfile;
 using PetCenterAPI.DTOs.Responses.ManageCustomer;
 
@@ -21,6 +21,6 @@ namespace PetCenterAPI.Service.Interface
         // ============================================================
         Task<List<CustomerResponseDTO>> GetAllCustomersAsync();
         Task<CustomerResponseDTO?> GetCustomerByIdAsync(Guid customerId);
-        Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive);
+        Task<(bool Success, string Message)> ChangeCustomerStatusAsync(Guid customerId, bool isActive);
     }
 }
