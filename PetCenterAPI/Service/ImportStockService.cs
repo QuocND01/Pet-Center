@@ -38,7 +38,17 @@ namespace PetCenterAPI.Service
                 .Select(x => x.ProductId)
                 .Distinct()
                 .ToList();
+            var batchCodes = dto.Details
+                .Select(x => x.BatchCode)
+                .ToList();
 
+            bool exists = await _context.ImportStockDetails
+                .AnyAsync(x => batchCodes.Contains(x.BatchCode));
+
+            if (exists)
+            {
+                throw new Exception("Batch number is duplicated.Please try again!");
+            }
             var products = await _context.Products
                 .Include(p => p.Brand)
                 .Include(p => p.Category)

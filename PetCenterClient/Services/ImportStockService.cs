@@ -1,7 +1,7 @@
 ﻿
-using DocumentFormat.OpenXml.Office2010.Excel;
-using PetCenterClient.ViewModels;
+
 using PetCenterClient.Services.Interface;
+using PetCenterClient.ViewModels;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -65,13 +65,17 @@ namespace PetCenterClient.Services
         public async Task<Guid> CreateAsync(CreateImportViewModel model)
         {
             AddAuthorizationHeader();
+
             var res = await _httpClient.PostAsJsonAsync("/api/importstocks", model);
 
-            res.EnsureSuccessStatusCode();
-            var result = await res.Content.ReadAsStringAsync();
-            Console.WriteLine(result);
-            // Xử lý nếu Guid trả về dạng chuỗi có ngoặc kép
-            return JsonSerializer.Deserialize<Guid>(result);
+            if (!res.IsSuccessStatusCode)
+            {
+                var error = await res.Content.ReadFromJsonAsync<ApiResponseViewModel<object>>();
+
+                throw new Exception(error?.Message ?? "Unknown error.");
+            }
+
+            return await res.Content.ReadFromJsonAsync<Guid>();
         }
 
         public async Task ConfirmAsync(Guid id)
