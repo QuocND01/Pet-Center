@@ -77,9 +77,11 @@ namespace PetCenterTestProject.OrderTest
         //=====================================================================
         // DỌN DẸP RÁC TRONG DB (Đã fix triệt để lỗi Foreign Key)
         //=====================================================================
-        private async Task ClearDatabaseAsync(PetCenterContext context)
+                                                        private async Task ClearDatabaseAsync(PetCenterContext context)
         {
             context.ChangeTracker.Clear();
+
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [StaffRoles];");
 
             context.PrescriptionItems.RemoveRange(context.PrescriptionItems);
             context.MedicalRecords.RemoveRange(context.MedicalRecords);
@@ -87,10 +89,16 @@ namespace PetCenterTestProject.OrderTest
             context.AppointmentServices.RemoveRange(context.AppointmentServices);
             context.Appointments.RemoveRange(context.Appointments);
             context.Pets.RemoveRange(context.Pets);
+            context.Diseases.RemoveRange(context.Diseases);
+            context.VetFeedbacks.RemoveRange(context.VetFeedbacks);
+            context.VetProfiles.RemoveRange(context.VetProfiles);
+            context.ScheduleExceptions.RemoveRange(context.ScheduleExceptions);
+            context.GlobalWorkSchedules.RemoveRange(context.GlobalWorkSchedules);
             context.CartDetails.RemoveRange(context.CartDetails);
             context.Carts.RemoveRange(context.Carts);
             context.OtpCodes.RemoveRange(context.OtpCodes);
-            context.InventoryTransactions.RemoveRange(context.InventoryTransactions);
+            context.CustomerVouchers.RemoveRange(context.CustomerVouchers);
+            context.Vouchers.RemoveRange(context.Vouchers);
             context.FeedbackImages.RemoveRange(context.FeedbackImages);
             context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
             context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
@@ -98,39 +106,22 @@ namespace PetCenterTestProject.OrderTest
             context.Payments.RemoveRange(context.Payments);
             context.Orders.RemoveRange(context.Orders);
             context.Addresses.RemoveRange(context.Addresses);
-
-            var dummyStockDetails = context.ImportStockDetails.Where(b => b.BatchCode.StartsWith("BATCH-TEST-") || b.BatchCode == "SEED-BATCH");
-            context.ImportStockDetails.RemoveRange(dummyStockDetails);
-
-            var dummyStocks = context.ImportStocks.Where(s => s.Note == "Seed Import Stock");
-            context.ImportStocks.RemoveRange(dummyStocks);
-
-            var dummySuppliers = context.Suppliers.Where(s => s.SupplierName == "Test Supplier");
-            context.Suppliers.RemoveRange(dummySuppliers);
-
-            var dummyStaffs = context.Staffs.Where(s => s.Email == "staff@test.com");
-            context.Staffs.RemoveRange(dummyStaffs);
-
-            // Selective delete for our new test objects to preserve seed database script data:
-            context.CustomerVouchers.RemoveRange(context.CustomerVouchers);
-            
-            var ourVouchers = context.Vouchers.Where(v => v.Code.StartsWith("VOUCHER") || v.Code.StartsWith("SALE") || v.Code.StartsWith("USED") || v.Code.StartsWith("INACTIVE") || v.Code.StartsWith("EXPIRED") || v.Code.StartsWith("HIGHMIN") || v.Code.StartsWith("LIMITREACHED"));
-            context.Vouchers.RemoveRange(ourVouchers);
-
-            var ourInventories = context.Inventories.Where(i => i.SKU.StartsWith("SKU-"));
-            context.Inventories.RemoveRange(ourInventories);
-
-            var ourProducts = context.Products.Where(p => p.ProductName.StartsWith("Product") || p.ProductName == "TestFakeProduct");
-            context.Products.RemoveRange(ourProducts);
-
-            var ourCategories = context.Categories.Where(c => c.CategoryName.StartsWith("Test"));
-            context.Categories.RemoveRange(ourCategories);
-
-            var ourBrands = context.Brands.Where(b => b.BrandName.StartsWith("Test"));
-            context.Brands.RemoveRange(ourBrands);
-
-            var ourCustomers = context.Customers.Where(c => c.FullName.StartsWith("Test"));
-            context.Customers.RemoveRange(ourCustomers);
+            context.Customers.RemoveRange(context.Customers);
+            context.InventoryTransactions.RemoveRange(context.InventoryTransactions);
+            context.ImportProductSnapshots.RemoveRange(context.ImportProductSnapshots);
+            context.ImportStockDetails.RemoveRange(context.ImportStockDetails);
+            context.ImportStocks.RemoveRange(context.ImportStocks);
+            context.Suppliers.RemoveRange(context.Suppliers);
+            context.Staffs.RemoveRange(context.Staffs);
+            context.Inventories.RemoveRange(context.Inventories);
+            context.ProductImages.RemoveRange(context.ProductImages);
+            context.ProductAttributes.RemoveRange(context.ProductAttributes);
+            context.Products.RemoveRange(context.Products);
+            context.CategoryAttributes.RemoveRange(context.CategoryAttributes);
+            context.Categories.RemoveRange(context.Categories);
+            context.Brands.RemoveRange(context.Brands);
+            context.ServiceImages.RemoveRange(context.ServiceImages);
+            context.Services.RemoveRange(context.Services);
 
             await context.SaveChangesAsync();
         }

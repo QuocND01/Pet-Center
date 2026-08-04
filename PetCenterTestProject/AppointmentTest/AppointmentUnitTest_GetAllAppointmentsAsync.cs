@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 ﻿using AutoMapper;
 using Moq;
 using PetCenterAPI.DTOs.Responses.Appointment;
@@ -18,6 +19,7 @@ namespace PetCenterTestProject.AppointmentTest
         private readonly Mock<IServiceRepository> _serviceRepoMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IScheduleRepository> _scheduleRepoMock;
+        private readonly Mock<IStaffRepository> _staffRepoMock;
         private readonly PetCenterAPI.Service.AppointmentService _service;
 
         public AppointmentUnitTest_GetAllAppointmentsAsync()
@@ -27,13 +29,19 @@ namespace PetCenterTestProject.AppointmentTest
             _serviceRepoMock = new Mock<IServiceRepository>();
             _mapperMock = new Mock<IMapper>();
             _scheduleRepoMock = new Mock<IScheduleRepository>();
+            _staffRepoMock = new Mock<IStaffRepository>();
+            _staffRepoMock.Setup(s => s.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Guid id) => new PetCenterAPI.Models.Staff { StaffId = id, IsActive = true });
+            _staffRepoMock = new Mock<IStaffRepository>();
+            _staffRepoMock.Setup(s => s.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Guid id) => new PetCenterAPI.Models.Staff { StaffId = id, IsActive = true });
 
             _service = new PetCenterAPI.Service.AppointmentService(
                 _repositoryMock.Object,
                 _petRepoMock.Object,
                 _serviceRepoMock.Object,
                 _mapperMock.Object,
-                _scheduleRepoMock.Object);
+                NullLogger<PetCenterAPI.Service.AppointmentService>.Instance,
+                _scheduleRepoMock.Object,
+                _staffRepoMock.Object);
         }
 
         //=========================================================

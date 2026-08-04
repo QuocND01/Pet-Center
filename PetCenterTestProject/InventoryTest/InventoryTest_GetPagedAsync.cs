@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Moq;
 using PetCenterAPI.DTOs.Requests.Inventory;
 using PetCenterAPI.DTOs.Responses.Inventory;
@@ -28,8 +28,8 @@ namespace PetCenterTestProject.InventoryTest
 
             _service = new InventoryService(
                 _repositoryMock.Object,
-                _mapperMock.Object
-                
+                _mapperMock.Object,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<InventoryService>.Instance
             );
         }
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 ﻿using AutoMapper;
 using Moq;
 using PetCenterAPI.DTOs.Requests; // Thay đổi theo namespace chứa SubmitReviewRequestDTO của bạn
@@ -19,6 +20,7 @@ namespace PetCenterTestProject.AppointmentTest
         private readonly Mock<IServiceRepository> _serviceRepoMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IScheduleRepository> _scheduleRepoMock;
+        private readonly Mock<IStaffRepository> _staffRepoMock;
         private readonly PetCenterAPI.Service.AppointmentService _service;
 
         public AppointmentUnitTest_SubmitReviewAsync()
@@ -28,13 +30,19 @@ namespace PetCenterTestProject.AppointmentTest
             _serviceRepoMock = new Mock<IServiceRepository>();
             _mapperMock = new Mock<IMapper>();
             _scheduleRepoMock = new Mock<IScheduleRepository>();
+            _staffRepoMock = new Mock<IStaffRepository>();
+            _staffRepoMock.Setup(s => s.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Guid id) => new PetCenterAPI.Models.Staff { StaffId = id, IsActive = true });
+            _staffRepoMock = new Mock<IStaffRepository>();
+            _staffRepoMock.Setup(s => s.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Guid id) => new PetCenterAPI.Models.Staff { StaffId = id, IsActive = true });
 
             _service = new PetCenterAPI.Service.AppointmentService(
                 _repositoryMock.Object,
                 _petRepoMock.Object,
                 _serviceRepoMock.Object,
                 _mapperMock.Object,
-                _scheduleRepoMock.Object);
+                NullLogger<PetCenterAPI.Service.AppointmentService>.Instance,
+                _scheduleRepoMock.Object,
+                _staffRepoMock.Object);
         }
 
         //=========================================================
@@ -150,7 +158,7 @@ namespace PetCenterTestProject.AppointmentTest
             {
                 AppointmentId = request.AppointmentId,
                 CustomerId = customerId,
-                Status = 4,
+                Status =  3,
                 AppointmentSnapshot = null // Lỗi hệ thống: Snapshot bị null
             };
 
@@ -258,7 +266,7 @@ namespace PetCenterTestProject.AppointmentTest
             {
                 AppointmentId = request.AppointmentId,
                 CustomerId = customerId,
-                Status = 4,
+                Status =  3,
                 AppointmentSnapshot = mockSnapshot
             };
 
@@ -292,7 +300,7 @@ namespace PetCenterTestProject.AppointmentTest
                 {
                     AppointmentId = appointmentId,
                     CustomerId = customerId,
-                    Status = 4, // Trạng thái đã hoàn thành hợp lệ
+                    Status =  3, // Trạng thái đã hoàn thành hợp lệ
                     AppointmentSnapshot = new AppointmentSnapshot
                     {
                         AppointmentSnapshotId = Guid.NewGuid(),

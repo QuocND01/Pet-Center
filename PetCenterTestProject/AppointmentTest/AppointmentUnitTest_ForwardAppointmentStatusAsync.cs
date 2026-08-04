@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 ﻿using AutoMapper;
 using Moq;
 using PetCenterAPI.DTOs.Requests;
@@ -18,6 +19,7 @@ namespace PetCenterTestProject.AppointmentTest
         private readonly Mock<IServiceRepository> _serviceRepoMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IScheduleRepository> _scheduleRepoMock;
+        private readonly Mock<IStaffRepository> _staffRepoMock;
         private readonly PetCenterAPI.Service.AppointmentService _service;
 
         public AppointmentUnitTest_ForwardAppointmentStatusAsync()
@@ -27,13 +29,17 @@ namespace PetCenterTestProject.AppointmentTest
             _serviceRepoMock = new Mock<IServiceRepository>();
             _mapperMock = new Mock<IMapper>();
             _scheduleRepoMock = new Mock<IScheduleRepository>();
+            _staffRepoMock = new Mock<IStaffRepository>();
+            _staffRepoMock.Setup(s => s.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Guid id) => new PetCenterAPI.Models.Staff { StaffId = id, IsActive = true });
 
             _service = new PetCenterAPI.Service.AppointmentService(
                 _repositoryMock.Object,
                 _petRepoMock.Object,
                 _serviceRepoMock.Object,
                 _mapperMock.Object,
-                _scheduleRepoMock.Object);
+                NullLogger<PetCenterAPI.Service.AppointmentService>.Instance,
+                _scheduleRepoMock.Object,
+                _staffRepoMock.Object);
         }
 
         //=========================================================
@@ -117,7 +123,7 @@ namespace PetCenterTestProject.AppointmentTest
             var exception = await Assert.ThrowsAsync<Exception>(
                 () => _service.ForwardAppointmentStatusAsync(appointmentId, staffId));
 
-            Assert.Equal("Appointment status cannot be updated.", exception.Message);
+            Assert.Equal("Cannot forward a cancelled appointment.", exception.Message);
 
             _repositoryMock.Verify(x => x.GetByIdAsync(appointmentId), Times.Once);
             _repositoryMock.Verify(x => x.SaveChangesAsync(), Times.Never);
@@ -148,7 +154,7 @@ namespace PetCenterTestProject.AppointmentTest
             var exception = await Assert.ThrowsAsync<Exception>(
                 () => _service.ForwardAppointmentStatusAsync(appointmentId, staffId));
 
-            Assert.Equal("Appointment status cannot be updated.", exception.Message);
+            Assert.Equal("Invalid appointment status.", exception.Message);
 
             _repositoryMock.Verify(x => x.GetByIdAsync(appointmentId), Times.Once);
             _repositoryMock.Verify(x => x.SaveChangesAsync(), Times.Never);
@@ -192,7 +198,7 @@ namespace PetCenterTestProject.AppointmentTest
         // Valid status progression check at upper bound (Status 3 -> 4)
         //=========================================================
         [Fact]
-        public async Task UTCID06_ForwardAppointmentStatusAsync_FromStatusThree_ShouldIncrementStatus()
+        public async Task UTCID06_ForwardAppointmentStatusAsync_FromStatusThree_ShouldThrowException()
         {
             // Arrange
             var appointmentId = Guid.NewGuid();
@@ -202,22 +208,20 @@ namespace PetCenterTestProject.AppointmentTest
             {
                 AppointmentId = appointmentId,
                 StaffId = staffId,
-                Status = 3,
-                UpdatedAt = null
+                Status = 3
             };
 
             _repositoryMock.Setup(x => x.GetByIdAsync(appointmentId))
                 .ReturnsAsync(mockAppointment);
 
-            // Act
-            await _service.ForwardAppointmentStatusAsync(appointmentId, staffId);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<Exception>(
+                () => _service.ForwardAppointmentStatusAsync(appointmentId, staffId));
 
-            // Assert
-            Assert.Equal(4, mockAppointment.Status); // Tăng trạng thái lên 4
-            Assert.NotNull(mockAppointment.UpdatedAt);
+            Assert.Equal("Appointment is already completed.", exception.Message);
 
             _repositoryMock.Verify(x => x.GetByIdAsync(appointmentId), Times.Once);
-            _repositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
+            _repositoryMock.Verify(x => x.SaveChangesAsync(), Times.Never);
         }
 
         //=========================================================

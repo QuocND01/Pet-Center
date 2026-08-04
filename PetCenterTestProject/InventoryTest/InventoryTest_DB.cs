@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -47,7 +47,8 @@ namespace PetCenterTestProject.InventoryTest
 
             _service = new InventoryService(
                 repository,
-                _mapper);
+                _mapper,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<InventoryService>.Instance);
         }
 
 
