@@ -8,22 +8,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             background: linear-gradient(135deg, #2ecc71, #27ae60);
             font-family: Segoe UI;
+            margin: 0;
+            padding: 20px 15px;
+            overflow-y: auto;
         }
 
         .login-card {
-            width: 420px;
+            width: 100%;
+            max-width: 420px;
             background: white;
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 6px;
+            text-align: left;
         }
 
         .login-title {
@@ -37,6 +52,18 @@
         .form-control {
             height: 45px;
             border-radius: 10px;
+            background-image: none !important;
+        }
+
+        /* Hide Edge / IE native password reveal icon so only 1 custom eye icon is shown */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
+
+        .position-relative .form-control {
+            background-image: none !important;
+            padding-right: 42px !important;
         }
 
         .btn-login {
@@ -60,9 +87,15 @@
         }
 
         .error {
-            color: red;
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13.5px;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            word-break: break-word;
         }
 
         .success {
@@ -73,6 +106,7 @@
             border-radius: 10px;
             text-align: center;
             margin-bottom: 15px;
+            word-break: break-word;
         }
 
         .divider {
@@ -185,17 +219,39 @@
         <!-- ── Form login thường ── -->
         <form method="post" id="loginForm">
             <div class="mb-3">
-                <input type="email" name="Email" class="form-control"
-                       placeholder="Email" required
+                <label for="emailInput" class="field-label">Email Address</label>
+                <input type="email" id="emailInput" name="Email" class="form-control"
+                       placeholder="e.g. customer@example.com" required
                        value="@(TempData["PrefilledEmail"]?.ToString() ?? "")" />
             </div>
             <div class="mb-3">
-                <input type="password" name="Password" class="form-control"
-                       placeholder="Password" required
-                       value="@(TempData["PrefilledPassword"]?.ToString() ?? "")" />
+                <label for="passwordInput" class="field-label">Password</label>
+                <div class="position-relative">
+                    <input type="password" id="passwordInput" name="Password" class="form-control pe-5"
+                           placeholder="Enter your password" required
+                           value="@(TempData["PrefilledPassword"]?.ToString() ?? "")" />
+                    <button type="button" class="btn border-0 position-absolute end-0 top-50 translate-middle-y me-2 text-muted shadow-none"
+                            onclick="togglePasswordVisibility('passwordInput', this)" tabindex="-1" style="z-index: 10;">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
             </div>
             <button type="submit" class="btn btn-login">Login</button>
         </form>
+
+        <script>
+            function togglePasswordVisibility(inputId, btn) {
+                const input = document.getElementById(inputId);
+                const icon = btn.querySelector("i");
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.className = "bi bi-eye-slash";
+                } else {
+                    input.type = "password";
+                    icon.className = "bi bi-eye";
+                }
+            }
+        </script>
 
         <!-- ── Forgot password ── -->
         <div class="text-center mt-2" style="font-size:13px;">

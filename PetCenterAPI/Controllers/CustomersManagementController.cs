@@ -67,10 +67,15 @@ namespace PetCenterAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _customerService.ChangeCustomerStatusAsync(id, request.IsActive);
+            var (success, message) = await _customerService.ChangeCustomerStatusAsync(id, request.IsActive);
 
-            if (!result)
-                return NotFound(new { status = 404, message = "Customer not found" });
+            if (!success)
+            {
+                if (message == "Customer not found")
+                    return NotFound(new { status = 404, message });
+
+                return BadRequest(new { status = 400, message });
+            }
 
             if (!request.IsActive)
             {
@@ -92,7 +97,7 @@ namespace PetCenterAPI.Controllers
             return Ok(new
             {
                 status = 200,
-                message = $"Customer status changed to {(request.IsActive ? "Active" : "Inactive")} successfully"
+                message
             });
         }
     }

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using PetCenterAPI.DTOs.Requests.CustomerProfile;
 using PetCenterAPI.DTOs.Responses.CustomerProfile;
 using PetCenterAPI.DTOs.Responses.ManageCustomer;
@@ -71,15 +71,23 @@ namespace PetCenterAPI.Service
             return customer == null ? null : _mapper.Map<CustomerResponseDTO>(customer);
         }
 
-        public async Task<bool> ChangeCustomerStatusAsync(Guid customerId, bool isActive)
+        public async Task<(bool Success, string Message)> ChangeCustomerStatusAsync(Guid customerId, bool isActive)
         {
             var customer = await _customerRepository.GetByIdAsync(customerId);
-            if (customer == null) return false;
+            if (customer == null)
+                return (false, "Customer not found");
+
+            if (isActive && customer.IsVerified != true)
+                return (false, "Cannot activate an unverified account. Customer must verify email OTP first.");
 
             customer.IsActive = isActive;
             customer.UpdatedAt = DateTime.Now;
 
-            return await _customerRepository.UpdateAsync(customer);
+            var updated = await _customerRepository.UpdateAsync(customer);
+            if (!updated)
+                return (false, "Failed to update customer status.");
+
+            return (true, $"Customer status changed to {(isActive ? "Active" : "Inactive")} successfully");
         }
     }
 }

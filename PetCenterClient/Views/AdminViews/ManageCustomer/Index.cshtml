@@ -63,7 +63,9 @@
                     foreach (var c in Model)
                     {
                         var initials = string.Join("", c.FullName.Split(' ').Take(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
-                        <tr data-status="@(c.IsActive ? "active" : "inactive")">
+                        var isUnverified = !c.IsVerified;
+                        var rowStatus = isUnverified ? "unverified" : (c.IsActive ? "active" : "inactive");
+                        <tr data-status="@rowStatus">
                             <td><span class="row-num">@i</span></td>
                             <td>
                                 <div class="customer-cell">
@@ -73,7 +75,11 @@
                             </td>
                             <td><span class="email-cell">@c.Email</span></td>
                             <td>
-                                @if (c.IsActive)
+                                @if (isUnverified)
+                                {
+                                    <span class="badge-status badge-unverified"><span class="badge-dot"></span> Unverified</span>
+                                }
+                                else if (c.IsActive)
                                 {
                                     <span class="badge-status badge-active"><span class="badge-dot"></span> Active</span>
                                 }
@@ -87,12 +93,15 @@
                                     <button class="btn-detail js-view-customer" data-id="@c.CustomerId">
                                         <i class="bi bi-person-lines-fill"></i> View Detail
                                     </button>
-                                    <button class="btn-toggle-status @(c.IsActive ? "active" : "inactive")"
-                                            data-customer-id="@c.CustomerId"
-                                            data-is-active="@(c.IsActive ? "true" : "false")">
-                                        <i class="bi @(c.IsActive ? "bi-lock" : "bi-unlock")"></i>
-                                        @(c.IsActive ? "Deactivate" : "Activate")
-                                    </button>
+                                    @if (!isUnverified)
+                                    {
+                                        <button class="btn-toggle-status @(c.IsActive ? "active" : "inactive")"
+                                                data-customer-id="@c.CustomerId"
+                                                data-is-active="@(c.IsActive ? "true" : "false")">
+                                            <i class="bi @(c.IsActive ? "bi-lock" : "bi-unlock")"></i>
+                                            @(c.IsActive ? "Deactivate" : "Activate")
+                                        </button>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -318,11 +327,21 @@
 
             results.forEach((customer, index) => {
                 const initials = getInitials(customer.fullName);
-                const statusClass = customer.isActive ? 'active' : 'inactive';
-                const statusText = customer.isActive ? 'Active' : 'Inactive';
-                const statusBadgeClass = customer.isActive ? 'badge-active' : 'badge-inactive';
+                const isVerified = customer.isVerified === true;
+                const statusClass = !isVerified ? 'unverified' : (customer.isActive ? 'active' : 'inactive');
+                const statusText = !isVerified ? 'Unverified' : (customer.isActive ? 'Active' : 'Inactive');
+                const statusBadgeClass = !isVerified ? 'badge-unverified' : (customer.isActive ? 'badge-active' : 'badge-inactive');
                 const buttonText = customer.isActive ? 'Deactivate' : 'Activate';
                 const iconClass = customer.isActive ? 'bi-lock' : 'bi-unlock';
+
+                const toggleBtnHtml = isVerified ? `
+                    <button class="btn-toggle-status ${customer.isActive ? 'active' : 'inactive'}"
+                            data-customer-id="${customer.customerId}"
+                            data-is-active="${customer.isActive}">
+                        <i class="bi ${iconClass}"></i>
+                        ${buttonText}
+                    </button>
+                ` : '';
 
                 const row = document.createElement('tr');
                 row.setAttribute('data-status', statusClass);
@@ -342,15 +361,10 @@
                     </td>
                     <td>
                         <div style="display: flex; gap: 8px;">
-                                    <button class="btn-detail js-view-customer" data-id="${customer.customerId}">
-                                        <i class="bi bi-person-lines-fill"></i> View Detail
-                                    </button>
-                            <button class="btn-toggle-status ${statusClass}"
-                                    data-customer-id="${customer.customerId}"
-                                    data-is-active="${customer.isActive}">
-                                <i class="bi ${iconClass}"></i>
-                                ${buttonText}
+                            <button class="btn-detail js-view-customer" data-id="${customer.customerId}">
+                                <i class="bi bi-person-lines-fill"></i> View Detail
                             </button>
+                            ${toggleBtnHtml}
                         </div>
                     </td>
                 `;
