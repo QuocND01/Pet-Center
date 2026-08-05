@@ -60,7 +60,7 @@
             <p>Manage customer orders and tracking status</p>
         </div>
         <div class="header-stat">
-            <span class="num">@(ViewBag.TotalPages * 10 > 0 ? ViewBag.TotalPages * 10 : Model?.Count() ?? 0)+</span>
+            <span class="num">@(ViewBag.TotalItems ?? (Model?.Count() ?? 0))</span>
             <span class="label">Orders</span>
         </div>
     </div>
