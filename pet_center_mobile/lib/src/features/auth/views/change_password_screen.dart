@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -201,7 +202,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _apiError = e.toString().replaceAll('Exception: ', '');
+          _apiError = AppErrorUtils.getFriendlyMessage(e);
         });
       }
     } finally {

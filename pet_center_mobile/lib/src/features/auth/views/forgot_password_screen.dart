@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 import '../../../widgets/custom_button.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -57,11 +58,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       } catch (e) {
         if (!mounted) return;
-        // Offline demo fallback
-        setState(() {
-          _isSuccess = true;
-          _sentEmail = trimmedEmail;
-        });
+        _showError(e);
       } finally {
         if (mounted) {
           setState(() {
@@ -72,14 +69,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  void _showError(String message) {
+  void _showError(dynamic error) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-      ),
-    );
+    AppErrorUtils.showErrorSnackBar(context, error);
   }
 
   @override

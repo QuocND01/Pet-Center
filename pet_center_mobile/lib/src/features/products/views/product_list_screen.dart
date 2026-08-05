@@ -4,6 +4,7 @@ import 'package:pet_center_mobile/src/models/brand_model.dart';
 import 'package:pet_center_mobile/src/models/category_model.dart';
 import 'package:pet_center_mobile/src/models/product_model.dart';
 import 'package:pet_center_mobile/src/services/api_service.dart';
+import 'product_detail_screen.dart';
 class ProductPage extends StatefulWidget {
   const ProductPage({super.key});
 
@@ -1529,8 +1530,12 @@ class _ProductPageState extends State<ProductPage> {
 
     return GestureDetector(
       onTap: () {
-// TODO:
-// Navigate to Product Detail
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(product: product),
+          ),
+        );
       },
 
       child:

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 import 'otp_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -115,25 +116,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         } else {
           final errorMessage = result['message'] ?? result['Message'] ?? 'Registration failed. Please check your inputs.';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Registration Error: $errorMessage'),
-              backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 4),
-            ),
-          );
+          AppErrorUtils.showErrorSnackBar(context, errorMessage);
         }
       }).catchError((error) {
         if (!mounted) return;
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('API Connection Error: $error'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppErrorUtils.showErrorSnackBar(context, error);
       });
     }
   }

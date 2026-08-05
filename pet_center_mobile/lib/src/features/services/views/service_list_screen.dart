@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/service_model.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 import 'service_detail_screen.dart';
 
 class ServiceListScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
 
   List<ServiceModel> _services = [];
   bool _isLoading = true;
+  String? _errorMessage;
   int? _selectedServiceType; // null = All, 1 = Veterinary, 2 = Grooming
 
   @override
@@ -28,6 +30,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
   Future<void> _fetchServices() async {
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
 
     try {
@@ -45,6 +48,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
       if (!mounted) return;
       setState(() {
         _services = [];
+        _errorMessage = AppErrorUtils.getFriendlyMessage(e);
         _isLoading = false;
       });
     }
@@ -378,6 +382,37 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
               CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 12),
               Text('Loading pet services...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.signal_wifi_off_rounded, size: 64, color: AppColors.textSecondary),
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: _fetchServices,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Retry', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
             ],
           ),
         ),

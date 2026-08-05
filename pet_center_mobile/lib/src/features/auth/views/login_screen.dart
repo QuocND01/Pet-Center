@@ -5,8 +5,9 @@ import '../../../constants/app_colors.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../services/api_service.dart';
 import '../../../services/auth_service.dart';
-import 'otp_screen.dart';
 import 'forgot_password_screen.dart';
+import 'otp_screen.dart';
+import '../../../utils/app_error_utils.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? prefilledEmail;
@@ -113,21 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isGoogleLoading = false;
       });
-      final String rawMsg = error.toString().replaceAll('Exception: ', '');
-      String userFriendlyMessage = rawMsg;
-      if (rawMsg.contains('ApiException: 10') ||
-          rawMsg.contains('sign_in_failed')) {
-        userFriendlyMessage =
-            'Google Sign-In configuration error: Android debug SHA-1 key must be added to Google Cloud Console OAuth Clients.';
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(userFriendlyMessage),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      AppErrorUtils.showErrorSnackBar(context, error);
     }
   }
 
@@ -211,14 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = false;
       });
-      final String cleanMsg = error.toString().replaceAll('Exception: ', '');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(cleanMsg),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      AppErrorUtils.showErrorSnackBar(context, error);
     }
   }
 

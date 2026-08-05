@@ -632,9 +632,11 @@ class ApiService {
   }
   // Get product details
   Future<ProductModel> getProductDetails(String productId) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/Products/$productId'),
-      headers: _getHeaders(),
+    final response = await _sendRequest(
+      () => _client.get(
+        Uri.parse('$baseUrl/Products/$productId'),
+        headers: _getHeaders(),
+      ),
     );
     final data = _handleResponse(response);
     return ProductModel.fromJson(data);
@@ -642,16 +644,18 @@ class ApiService {
 
   // Get feedbacks by product id (ProductFeedbacksController)
   Future<List<ProductFeedbackModel>> getFeedbacksByProductId(String productId) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/ProductFeedbacks/product/$productId'),
-      headers: _getHeaders(),
+    final response = await _sendRequest(
+      () => _client.get(
+        Uri.parse('$baseUrl/ProductFeedbacks/product/$productId'),
+        headers: _getHeaders(),
+      ),
     );
     final data = _handleResponse(response);
     if (data != null && (data['success'] == true || data['Success'] == true)) {
       final List list = data['data'] ?? data['Data'] ?? [];
       return list.map((json) => ProductFeedbackModel.fromJson(json)).toList();
     }
-    return [];
+    return <ProductFeedbackModel>[];
   }
 
   // Check if order has feedback

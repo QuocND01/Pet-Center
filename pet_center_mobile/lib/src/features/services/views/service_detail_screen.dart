@@ -3,6 +3,7 @@ import 'package:pet_center_mobile/src/features/appointment/booking_screen.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/service_model.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final String serviceId;
@@ -52,7 +53,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       if (!mounted) return;
       if (_service == null) {
         setState(() {
-          _errorMessage = 'Failed to load service details.';
+          _errorMessage = AppErrorUtils.getFriendlyMessage(e);
           _isLoading = false;
         });
       }
