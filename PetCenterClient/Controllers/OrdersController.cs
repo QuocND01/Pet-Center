@@ -34,6 +34,10 @@ namespace PetCenterClient.Controllers
             int totalItems = result?.Count ?? 0;
             var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
+            // Expose total item count to the view so the header can display the actual
+            // number of orders instead of a pages*pageSize approximation.
+            ViewBag.TotalItems = totalItems;
+
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.Search = search;
