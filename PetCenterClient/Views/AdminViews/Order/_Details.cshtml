@@ -1,8 +1,8 @@
-﻿@model ReadOrderDetailViewModel
+@model ReadOrderDetailViewModel
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     var role = HttpContextAccessor.HttpContext?.Session.GetString("Role");
-    var isStaffOrAdmin = (role == "Sales" || role == "Admin");
+    var isStaffOrAdmin = (role != "Customer");
     var customerDisplayName = HttpContextAccessor.HttpContext?.Session.GetString("FullName")
         ?? HttpContextAccessor.HttpContext?.Session.GetString("Name")
         ?? "You";

@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Feedback Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
@@ -818,6 +818,27 @@
     </div>
 </div>
 
+<!-- ══ MODAL: CONFIRM TOGGLE VISIBILITY ════════════════════════ -->
+<div class="fb-overlay" id="modalToggleVisibility">
+    <div class="fb-modal" style="max-width:420px">
+        <div class="fb-modal-body" style="padding:28px 24px">
+            <div class="fb-confirm-icon" id="toggleVisIcon">👁️</div>
+            <div class="fb-confirm-title" id="toggleVisTitle">Hide Feedback?</div>
+            <div class="fb-confirm-desc" id="toggleVisDesc">
+                Are you sure you want to change the visibility of this customer feedback?
+            </div>
+            <input type="hidden" id="toggleVisFeedbackId" />
+            <input type="hidden" id="toggleVisTargetState" />
+        </div>
+        <div class="fb-modal-footer">
+            <button class="fb-btn fb-btn-ghost" onclick="closeModal('modalToggleVisibility')">Cancel</button>
+            <button class="fb-btn fb-btn-primary" id="toggleVisConfirmBtn" onclick="confirmToggleVisibility()">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // ── STATE ────────────────────────────────────────────────────
@@ -1390,16 +1411,47 @@
         }
 
         // ── TOGGLE VISIBILITY ─────────────────────────────────────────
-        async function toggleVisibility(feedbackId, isVisible) {
+        function toggleVisibility(feedbackId, isVisible) {
+            document.getElementById('toggleVisFeedbackId').value = feedbackId;
+            document.getElementById('toggleVisTargetState').value = isVisible ? 'true' : 'false';
+
+            const iconEl = document.getElementById('toggleVisIcon');
+            const titleEl = document.getElementById('toggleVisTitle');
+            const descEl = document.getElementById('toggleVisDesc');
+            const confirmBtn = document.getElementById('toggleVisConfirmBtn');
+
+            if (isVisible) {
+                iconEl.innerText = '👁️';
+                titleEl.innerText = 'Show Customer Feedback?';
+                descEl.innerHTML = 'Are you sure you want to restore this feedback?<br>It will be visible to the public again.';
+                confirmBtn.className = 'fb-btn fb-btn-primary';
+                confirmBtn.innerHTML = '<i class="bi bi-eye me-1"></i> Show Feedback';
+            } else {
+                iconEl.innerText = '🙈';
+                titleEl.innerText = 'Hide Customer Feedback?';
+                descEl.innerHTML = 'Are you sure you want to hide this feedback?<br>It will be hidden from public view.';
+                confirmBtn.className = 'fb-btn fb-btn-danger';
+                confirmBtn.innerHTML = '<i class="bi bi-eye-slash me-1"></i> Hide Feedback';
+            }
+
+            openModal('modalToggleVisibility');
+        }
+
+        async function confirmToggleVisibility() {
+            const feedbackId = document.getElementById('toggleVisFeedbackId').value;
+            const isVisible = document.getElementById('toggleVisTargetState').value === 'true';
+
+            closeModal('modalToggleVisibility');
+
             try {
-                const res  = await fetch('/AdminFeedback/ToggleVisibility', {
+                const res = await fetch('/AdminFeedback/ToggleVisibility', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ feedbackId, isVisible })
                 });
                 const json = await res.json();
                 if (json.success) {
-                    showToast(json.message || 'Updated.', 'success');
+                    showToast(json.message || 'Updated successfully.', 'success');
                     loadFeedbacks(currentPage);
                 } else {
                     showToast(json.message || 'An error occurred.', 'error');
