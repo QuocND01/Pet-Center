@@ -27,10 +27,35 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.customer.fullName);
-    _phoneController = TextEditingController(text: widget.customer.phoneNumber);
-    _birthdayController = TextEditingController(text: widget.customer.birthDay);
-    _selectedGender = widget.customer.gender;
+    _nameController = TextEditingController(text: widget.customer.fullName ?? '');
+    _phoneController = TextEditingController(
+      text: (widget.customer.phoneNumber == null || widget.customer.phoneNumber == 'Not updated')
+          ? ''
+          : widget.customer.phoneNumber,
+    );
+    _birthdayController = TextEditingController(
+      text: (widget.customer.birthDay == null || widget.customer.birthDay == 'Not updated')
+          ? ''
+          : _formatBirthDay(widget.customer.birthDay),
+    );
+    _selectedGender = _parseGender(widget.customer.gender);
+  }
+
+  String? _parseGender(String? raw) {
+    if (raw == null) return null;
+    final g = raw.trim();
+    if (g == 'Male' || g == 'Nam') return 'Male';
+    if (g == 'Female' || g == 'Nữ') return 'Female';
+    if (g == 'Other' || g == 'Khác') return 'Other';
+    if (['Male', 'Female', 'Other'].contains(g)) return g;
+    return null;
+  }
+
+  String _formatBirthDay(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '';
+    final trimmed = raw.trim();
+    if (trimmed.contains('T')) return trimmed.split('T')[0];
+    return trimmed;
   }
 
   // Regex checks for letters only (supports Vietnamese letters) and space
@@ -40,11 +65,15 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
   final RegExp _phoneRegex = RegExp(r'^(03[2-9]|05[2689]|07[06-9]|08[1-9]|09[0-9])\d{7}$');
 
   Future<void> _selectBirthday() async {
+    DateTime initial = DateTime(2000, 1, 1);
+    if (_birthdayController.text.isNotEmpty) {
+      final parsed = DateTime.tryParse(_birthdayController.text);
+      if (parsed != null) initial = parsed;
+    }
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _birthdayController.text.isNotEmpty 
-          ? DateTime.tryParse(_birthdayController.text) ?? DateTime(2000, 1, 1)
-          : DateTime(2000, 1, 1),
+      initialDate: initial,
       firstDate: DateTime(DateTime.now().year - 100),
       lastDate: DateTime.now(),
     );
@@ -58,12 +87,12 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
   }
 
   String? _validateBirthday(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Date of birth is required';
     }
-    final birthDate = DateTime.tryParse(value);
+    final birthDate = DateTime.tryParse(value.trim());
     if (birthDate == null) {
-      return 'Invalid date format';
+      return 'Invalid date format (YYYY-MM-DD)';
     }
 
     final today = DateTime.now();
@@ -89,12 +118,13 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
 
       final String trimmedName = _nameController.text.trim();
       final String trimmedPhone = _phoneController.text.trim();
+      final String trimmedBirthday = _birthdayController.text.trim();
 
       final updatedCustomer = CustomerModel(
         customerId: widget.customer.customerId,
         fullName: trimmedName,
         phoneNumber: trimmedPhone,
-        birthDay: _birthdayController.text,
+        birthDay: trimmedBirthday,
         gender: _selectedGender,
         email: widget.customer.email,
         isVerified: widget.customer.isVerified,
@@ -102,20 +132,24 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
       );
 
       try {
-        final success = await _apiService.updateCustomerProfile(updatedCustomer);
+        final result = await _apiService.updateCustomerProfile(updatedCustomer);
 
         if (!mounted) return;
-        if (success) {
+        if (result['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
+            SnackBar(
+              content: Text(result['message'] ?? 'Profile updated successfully!'),
+              backgroundColor: AppColors.success,
+            ),
           );
           Navigator.pop(context, true); 
         } else {
-          _showError('Update failed. Please verify your information.');
+          _showError(result['message'] ?? 'Update failed. Please verify your information.');
         }
       } catch (e) {
         if (!mounted) return;
-        _showMockSuccess(updatedCustomer);
+        final cleanMsg = e.toString().replaceAll('Exception: ', '');
+        _showError(cleanMsg);
       } finally {
         if (mounted) {
           setState(() {
@@ -131,17 +165,6 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppColors.error),
     );
-  }
-
-  void _showMockSuccess(CustomerModel updated) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Offline: Profile updated successfully (Demo).'),
-        backgroundColor: Colors.orange,
-      ),
-    );
-    Navigator.pop(context, true);
   }
 
   @override
@@ -177,7 +200,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                   ),
                   const Divider(height: 24),
 
-                  // Full name (max 50 chars hard cap matching UpdateCustomerProfileRequestDTO.cs)
+                  // Full name
                   TextFormField(
                     controller: _nameController,
                     maxLength: 50,
@@ -207,7 +230,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Phone number (max 15 chars hard cap, digits only, matching UpdateCustomerProfileRequestDTO.cs)
+                  // Phone number
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -245,6 +268,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: 'Date of Birth (YYYY-MM-DD)',
+                      hintText: 'Select date of birth',
                       prefixIcon: const Icon(Icons.cake_outlined),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.calendar_month),
@@ -259,9 +283,10 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
 
                   // Gender
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedGender,
+                    value: _selectedGender,
                     decoration: InputDecoration(
                       labelText: 'Gender',
+                      hintText: 'Select Gender',
                       prefixIcon: const Icon(Icons.wc_outlined),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -276,8 +301,8 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
                       });
                     },
                     validator: (value) {
-                      if (value == null) {
-                        return 'Gender is required';
+                      if (value == null || value.isEmpty) {
+                        return 'Please select gender';
                       }
                       return null;
                     },
