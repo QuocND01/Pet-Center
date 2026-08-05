@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/customer_model.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 import '../../../widgets/custom_button.dart';
 
 class EditCustomerProfileScreen extends StatefulWidget {
@@ -148,8 +149,7 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
         }
       } catch (e) {
         if (!mounted) return;
-        final cleanMsg = e.toString().replaceAll('Exception: ', '');
-        _showError(cleanMsg);
+        _showError(e);
       } finally {
         if (mounted) {
           setState(() {
@@ -160,11 +160,9 @@ class _EditCustomerProfileScreenState extends State<EditCustomerProfileScreen> {
     }
   }
 
-  void _showError(String message) {
+  void _showError(dynamic error) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AppColors.error),
-    );
+    AppErrorUtils.showErrorSnackBar(context, error);
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
 import '../../../models/customer_model.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 import '../../address/views/address_list_screen.dart';
 import '../../pet/views/pet_list_screen.dart';
 import '../../medical_records/views/medical_record_list_screen.dart';
@@ -87,7 +88,35 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           }
 
           if (snapshot.hasError) {
-            return _buildMockProfile();
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.signal_wifi_off_rounded, size: 64, color: AppColors.textSecondary),
+                    const SizedBox(height: 16),
+                    Text(
+                      AppErrorUtils.getFriendlyMessage(snapshot.error),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      onPressed: _loadProfile,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Retry', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           if (!snapshot.hasData) {

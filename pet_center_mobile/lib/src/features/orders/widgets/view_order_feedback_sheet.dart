@@ -3,6 +3,7 @@ import '../../../constants/app_colors.dart';
 import '../../../models/order_model.dart';
 import '../../../models/product_feedback_model.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 import 'edit_order_feedback_sheet.dart';
 
 class ViewOrderFeedbackSheet extends StatefulWidget {
@@ -128,7 +129,11 @@ class _ViewOrderFeedbackSheetState extends State<ViewOrderFeedbackSheet> {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
-                      child: Text('Unable to load reviews: ${snapshot.error}', style: const TextStyle(color: AppColors.error)),
+                      child: Text(
+                        AppErrorUtils.getFriendlyMessage(snapshot.error),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.error, fontSize: 13),
+                      ),
                     ),
                   );
                 }

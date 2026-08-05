@@ -3,15 +3,18 @@ import '../../../constants/app_colors.dart';
 import '../../../models/product_model.dart';
 import '../../../models/product_feedback_model.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 import '../widgets/product_feedback_widgets.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  final ProductModel product;
+  final ProductModel? product;
+  final String? productId;
 
   const ProductDetailScreen({
     super.key,
-    required this.product,
-  });
+    this.product,
+    this.productId,
+  }) : assert(product != null || productId != null, 'Either product or productId must be provided.');
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -19,6 +22,12 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final ApiService _apiService = ApiService();
+  
+  ProductModel? _product;
+  late String _targetProductId;
+  bool _isLoadingProduct = false;
+  String? _productError;
+
   int _quantityToBuy = 1;
   int _selectedImageIndex = 0;
   bool _isAddingToCart = false;
@@ -33,7 +42,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _product = widget.product;
+    _targetProductId = widget.product?.productId ?? widget.productId!;
+    _loadProductDetails();
     _loadFeedbacks();
+  }
+
+  Future<void> _loadProductDetails() async {
+    if (_product == null) {
+      setState(() {
+        _isLoadingProduct = true;
+        _productError = null;
+      });
+    }
+
+    try {
+      final freshProduct = await _apiService.getProductDetails(_targetProductId);
+      if (mounted) {
+        setState(() {
+          _product = freshProduct;
+          _isLoadingProduct = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _productError = AppErrorUtils.getFriendlyMessage(e);
+          _isLoadingProduct = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadFeedbacks() async {
@@ -43,7 +81,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     });
 
     try {
-      final list = await _apiService.getFeedbacksByProductId(widget.product.productId);
+      final list = await _apiService.getFeedbacksByProductId(_targetProductId);
       if (mounted) {
         setState(() {
           _allFeedbacks = list;
@@ -53,7 +91,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _feedbackError = e.toString();
+          _feedbackError = AppErrorUtils.getFriendlyMessage(e);
           _isLoadingFeedbacks = false;
         });
       }
@@ -89,10 +127,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _addToCart() async {
+    if (_product == null) return;
+
     if (_apiService.token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.'),
+          content: Text('Please sign in to add products to your cart.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -105,32 +145,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     });
 
     try {
-      final success = await _apiService.addToCart(widget.product.productId, _quantityToBuy);
+      final success = await _apiService.addToCart(_product!.productId, _quantityToBuy);
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Đã thêm ${widget.product.productName} vào giỏ hàng!'),
-              backgroundColor: Colors.green,
+              content: Text('Added ${_product!.productName} to cart!'),
+              backgroundColor: AppColors.success,
             ),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Thêm vào giỏ hàng thất bại. Vui lòng thử lại.'),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          AppErrorUtils.showErrorSnackBar(context, 'Failed to add item to cart. Please try again.');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi giỏ hàng: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppErrorUtils.showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {
@@ -143,7 +173,60 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final product = widget.product;
+    if (_isLoadingProduct && _product == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Product Details'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (_productError != null && _product == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: const Text('Product Details'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.signal_wifi_off_rounded, size: 64, color: AppColors.textSecondary),
+                const SizedBox(height: 16),
+                Text(
+                  _productError!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: _loadProductDetails,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Retry', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final product = _product!;
     final filtered = _filteredFeedbacks;
     final currentVisibleFeedbacks = filtered.take(_visibleCount).toList();
     final remainingCount = filtered.length - currentVisibleFeedbacks.length;
@@ -239,7 +322,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.12),
+                                  color: AppColors.primary.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                                 child: Text(
@@ -275,8 +358,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                               child: Text(
                                 product.stockQuantity > 0
-                                    ? '✓ Còn ${product.stockQuantity} sản phẩm'
-                                    : '✕ Hết hàng',
+                                    ? '✓ In Stock (${product.stockQuantity})'
+                                    : '✕ Out of Stock',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -315,7 +398,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         if (product.productDescription != null &&
                             product.productDescription!.trim().isNotEmpty) ...[
                           const Text(
-                            'Mô tả sản phẩm',
+                            'Product Description',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -349,7 +432,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         Row(
                           children: [
                             const Text(
-                              '⭐ Đánh Giá Từ Khách Hàng',
+                              '⭐ Customer Reviews',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -361,11 +444,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                                 child: Text(
-                                  '${_allFeedbacks.length} đánh giá',
+                                  '${_allFeedbacks.length} reviews',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -394,14 +477,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   const Icon(Icons.error_outline, color: AppColors.error, size: 40),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Không thể tải đánh giá: $_feedbackError',
+                                    _feedbackError!,
                                     style: const TextStyle(color: AppColors.error, fontSize: 13),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 8),
                                   TextButton(
                                     onPressed: _loadFeedbacks,
-                                    child: const Text('Thử lại'),
+                                    child: const Text('Retry'),
                                   ),
                                 ],
                               ),
@@ -413,7 +496,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.03),
+                              color: AppColors.primary.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
                             ),
@@ -422,7 +505,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 Text('🐾', style: TextStyle(fontSize: 48)),
                                 SizedBox(height: 10),
                                 Text(
-                                  'Chưa có đánh giá nào',
+                                  'No reviews yet',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -431,7 +514,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'Hãy là người đầu tiên chia sẻ trải nghiệm về sản phẩm này!',
+                                  'Be the first to review this product!',
                                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                                   textAlign: TextAlign.center,
                                 ),
@@ -452,14 +535,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: [
-                                _buildFilterChip(label: 'Tất cả (${_allFeedbacks.length})', filterValue: 0),
+                                _buildFilterChip(label: 'All (${_allFeedbacks.length})', filterValue: 0),
                                 _buildFilterChip(label: '5 ★ (${_ratingCounts[5]})', filterValue: 5),
                                 _buildFilterChip(label: '4 ★ (${_ratingCounts[4]})', filterValue: 4),
                                 _buildFilterChip(label: '3 ★ (${_ratingCounts[3]})', filterValue: 3),
                                 _buildFilterChip(label: '2 ★ (${_ratingCounts[2]})', filterValue: 2),
                                 _buildFilterChip(label: '1 ★ (${_ratingCounts[1]})', filterValue: 1),
                                 _buildFilterChip(
-                                  label: 'Có ảnh/video (${_allFeedbacks.where((f) => f.mediaFiles.isNotEmpty).length})',
+                                  label: 'With Photos/Videos (${_allFeedbacks.where((f) => f.mediaFiles.isNotEmpty).length})',
                                   filterValue: 6,
                                 ),
                               ],
@@ -473,7 +556,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               padding: EdgeInsets.symmetric(vertical: 24),
                               child: Center(
                                 child: Text(
-                                  'Không có đánh giá nào phù hợp với bộ lọc.',
+                                  'No reviews match this filter.',
                                   style: TextStyle(color: AppColors.textSecondary),
                                 ),
                               ),
@@ -509,7 +592,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   });
                                 },
                                 child: Text(
-                                  'Xem thêm đánh giá (Còn $remainingCount)',
+                                  'View More Reviews ($remainingCount left)',
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -531,7 +614,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -600,8 +683,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             : const Icon(Icons.shopping_cart_outlined),
                         label: Text(
                           product.stockQuantity > 0
-                              ? (_isAddingToCart ? 'Đang thêm...' : 'Thêm Vào Giỏ Hàng')
-                              : 'Hết Hàng',
+                              ? (_isAddingToCart ? 'Adding...' : 'Add to Cart')
+                              : 'Out of Stock',
                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                       ),

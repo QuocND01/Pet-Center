@@ -5,6 +5,7 @@ import '../../../constants/app_colors.dart';
 import '../../../models/order_model.dart';
 import '../../../models/product_feedback_model.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/app_error_utils.dart';
 
 class EditOrderFeedbackSheet extends StatefulWidget {
   final ProductFeedbackModel feedback;
@@ -181,18 +182,14 @@ class _EditOrderFeedbackSheetState extends State<EditOrderFeedbackSheet> {
         Navigator.pop(context, true); // return true to refresh
       } else {
         final msg = res['message'] ?? res['Message'] ?? 'Unable to update review. Please try again.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), backgroundColor: AppColors.error),
-        );
+        AppErrorUtils.showErrorSnackBar(context, msg);
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isSubmitting = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-      );
+      AppErrorUtils.showErrorSnackBar(context, e);
     }
   }
 
