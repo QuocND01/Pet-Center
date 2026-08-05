@@ -57,49 +57,16 @@ namespace PetCenterTestProject.VoucherTest
         {
             context.ChangeTracker.Clear();
 
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM [StaffRoles];");
-
-            context.PrescriptionItems.RemoveRange(context.PrescriptionItems);
-            context.MedicalRecords.RemoveRange(context.MedicalRecords);
-            context.AppointmentSnapshots.RemoveRange(context.AppointmentSnapshots);
-            context.AppointmentServices.RemoveRange(context.AppointmentServices);
-            context.Appointments.RemoveRange(context.Appointments);
-            context.Pets.RemoveRange(context.Pets);
-            context.Diseases.RemoveRange(context.Diseases);
-            context.VetFeedbacks.RemoveRange(context.VetFeedbacks);
-            context.VetProfiles.RemoveRange(context.VetProfiles);
-            context.ScheduleExceptions.RemoveRange(context.ScheduleExceptions);
-            context.GlobalWorkSchedules.RemoveRange(context.GlobalWorkSchedules);
-            context.CartDetails.RemoveRange(context.CartDetails);
-            context.Carts.RemoveRange(context.Carts);
-            context.OtpCodes.RemoveRange(context.OtpCodes);
-            context.CustomerVouchers.RemoveRange(context.CustomerVouchers);
-            context.Vouchers.RemoveRange(context.Vouchers);
-            context.FeedbackImages.RemoveRange(context.FeedbackImages);
-            context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
-            context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
-            context.OrderDetails.RemoveRange(context.OrderDetails);
-            context.Payments.RemoveRange(context.Payments);
-            context.Orders.RemoveRange(context.Orders);
-            context.Addresses.RemoveRange(context.Addresses);
-            context.Customers.RemoveRange(context.Customers);
-            context.InventoryTransactions.RemoveRange(context.InventoryTransactions);
-            context.ImportProductSnapshots.RemoveRange(context.ImportProductSnapshots);
-            context.ImportStockDetails.RemoveRange(context.ImportStockDetails);
-            context.ImportStocks.RemoveRange(context.ImportStocks);
-            context.Suppliers.RemoveRange(context.Suppliers);
-            context.Staffs.RemoveRange(context.Staffs);
-            context.Inventories.RemoveRange(context.Inventories);
-            context.ProductImages.RemoveRange(context.ProductImages);
-            context.ProductAttributes.RemoveRange(context.ProductAttributes);
-            context.Products.RemoveRange(context.Products);
-            context.CategoryAttributes.RemoveRange(context.CategoryAttributes);
-            context.Categories.RemoveRange(context.Categories);
-            context.Brands.RemoveRange(context.Brands);
-            context.ServiceImages.RemoveRange(context.ServiceImages);
-            context.Services.RemoveRange(context.Services);
-
-            await context.SaveChangesAsync();
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [CustomerVouchers]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Vouchers]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [FeedbackImages]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [ProductFeedbacks]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [VetFeedbacks]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Orders]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Pets]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [OtpCodes]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Addresses]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Customers]");
         }
 
         //=========================================================

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -735,7 +735,7 @@ namespace PetCenterTestProject.CustomerTest
             var result = await _service.ChangeCustomerStatusAsync(customer.CustomerId, true);
 
             // Assert
-            Assert.True(result);
+            Assert.True(result.Success);
             Assert.True(customer.IsActive);
             Assert.NotEqual(oldUpdatedAt, customer.UpdatedAt);
             _customerRepositoryMock.Verify(x => x.UpdateAsync(customer), Times.Once);
@@ -759,7 +759,7 @@ namespace PetCenterTestProject.CustomerTest
             var result = await _service.ChangeCustomerStatusAsync(customerId, true);
 
             // Assert
-            Assert.False(result);
+            Assert.False(result.Success);
             _customerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Customer>()), Times.Never);
         }
 
@@ -784,7 +784,7 @@ namespace PetCenterTestProject.CustomerTest
             var result = await _service.ChangeCustomerStatusAsync(customer.CustomerId, false);
 
             // Assert
-            Assert.False(result);
+            Assert.False(result.Success);
             Assert.False(customer.IsActive);
             _customerRepositoryMock.Verify(x => x.UpdateAsync(customer), Times.Once);
         }
