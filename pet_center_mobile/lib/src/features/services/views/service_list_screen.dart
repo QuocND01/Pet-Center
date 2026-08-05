@@ -43,73 +43,11 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      // Fallback mock services if backend connection unavailable
       setState(() {
-        _services = _getMockServices();
+        _services = [];
         _isLoading = false;
       });
     }
-  }
-
-  List<ServiceModel> _getMockServices() {
-    final mockList = [
-      ServiceModel(
-        serviceId: 'srv-001',
-        serviceName: 'Veterinary General Health Checkup',
-        price: 250000,
-        serviceDescription: 'Comprehensive medical checkup for dogs and cats by certified veterinarians. Includes physical examination, temperature, heart rate, and health assessment.',
-        duration: 30,
-        serviceType: 1, // Veterinary
-        imageFiles: [
-          'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=800',
-        ],
-      ),
-      ServiceModel(
-        serviceId: 'srv-002',
-        serviceName: 'Full Pet Grooming & Spa Care',
-        price: 350000,
-        serviceDescription: 'Premium grooming treatment including bath, fur trim, nail trimming, ear cleaning, and refreshing scent application.',
-        duration: 60,
-        serviceType: 2, // Grooming
-        imageFiles: [
-          'https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=800',
-        ],
-      ),
-      ServiceModel(
-        serviceId: 'srv-003',
-        serviceName: 'Pet Vaccination & Immunization',
-        price: 200000,
-        serviceDescription: 'Essential annual rabies and 5-in-1 vaccination package ensuring full immunization for your beloved pets.',
-        duration: 20,
-        serviceType: 1, // Veterinary
-        imageFiles: [
-          'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800',
-        ],
-      ),
-      ServiceModel(
-        serviceId: 'srv-004',
-        serviceName: 'Cat & Dog Dental Care & Scaling',
-        price: 450000,
-        serviceDescription: 'Professional ultrasonic dental scaling, plaque removal, and oral hygiene treatment for fresh breath and healthy teeth.',
-        duration: 45,
-        serviceType: 1, // Veterinary
-        imageFiles: [
-          'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800',
-        ],
-      ),
-    ];
-
-    var filtered = mockList;
-    if (_searchController.text.trim().isNotEmpty) {
-      final query = _searchController.text.trim().toLowerCase();
-      filtered = filtered.where((s) => s.serviceName.toLowerCase().contains(query)).toList();
-    }
-
-    if (_selectedServiceType != null && _selectedServiceType! > 0) {
-      filtered = filtered.where((s) => s.serviceType == _selectedServiceType).toList();
-    }
-
-    return filtered;
   }
 
   String _formatCurrency(double amount) {

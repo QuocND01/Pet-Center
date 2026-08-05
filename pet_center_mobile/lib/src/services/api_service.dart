@@ -123,14 +123,14 @@ class ApiService {
     return headers;
   }
 
-  // Helper to execute any HTTP request with a 20-second timeout & connection error handling
+  // Helper to execute any HTTP request with a 45-second timeout & connection error handling
   Future<http.Response> _sendRequest(
       Future<http.Response> Function() fn) async {
     try {
       final response = await fn().timeout(
-        const Duration(seconds: 20),
+        const Duration(seconds: 45),
         onTimeout: () => throw Exception(
-            'Connection timeout (20s). Please check if backend API server is running.'),
+            'Connection timeout (45s). Please check if backend API server is running.'),
       );
       return response;
     } on SocketException catch (_) {
@@ -138,7 +138,7 @@ class ApiService {
           'Cannot connect to server ($baseUrl). Please verify backend API server is running.');
     } on TimeoutException catch (_) {
       throw Exception(
-          'Connection timed out (20s). Backend API server is not responding.');
+          'Connection timed out (45s). Backend API server is not responding.');
     } catch (e) {
       if (e.toString().contains('SocketException') ||
           e.toString().contains('Connection refused') ||
@@ -844,10 +844,10 @@ class ApiService {
 
   // Get customer profile details
   Future<CustomerModel> getCustomerProfile() async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/customer/profile'),
-      headers: _getHeaders(),
-    );
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/customer/profile'),
+          headers: _getHeaders(),
+        ));
     final jsonResult = _handleResponse(response);
     final profileData = jsonResult?['data'] ?? jsonResult?['Data'];
     if (jsonResult != null && profileData != null) {
@@ -857,16 +857,40 @@ class ApiService {
   }
 
   // Update customer profile
-  Future<bool> updateCustomerProfile(CustomerModel customer) async {
-    final response = await _client.put(
-      Uri.parse('$baseUrl/customer/profile'),
-      headers: _getHeaders(),
-      body: json.encode(customer.toJson()),
-    );
-    final jsonResult = _handleResponse(response);
-    final isSuccess =
-        jsonResult?['success'] == true || jsonResult?['Success'] == true;
-    return jsonResult != null && isSuccess;
+  Future<Map<String, dynamic>> updateCustomerProfile(
+      CustomerModel customer) async {
+    final response = await _sendRequest(() => _client.put(
+          Uri.parse('$baseUrl/customer/profile'),
+          headers: _getHeaders(),
+          body: json.encode(customer.toJson()),
+        ));
+
+    if (response.body.isNotEmpty) {
+      try {
+        final jsonResult = json.decode(response.body);
+        final isSuccess = jsonResult['success'] == true ||
+            jsonResult['Success'] == true ||
+            response.statusCode == 200;
+        final msg = jsonResult['message'] ??
+            jsonResult['Message'] ??
+            (isSuccess ? 'Profile updated successfully' : 'Update failed');
+        return {
+          'success': isSuccess,
+          'message': msg,
+        };
+      } catch (_) {
+        return {
+          'success': response.statusCode == 200,
+          'message': response.statusCode == 200
+              ? 'Profile updated successfully'
+              : 'Failed to update profile (${response.statusCode})',
+        };
+      }
+    }
+    return {
+      'success': response.statusCode == 200,
+      'message': 'Status code: ${response.statusCode}'
+    };
   }
 
   // ============================================================
@@ -1052,10 +1076,10 @@ class ApiService {
   // ============================================================
   Future<List<ServiceModel>> getServices(
       {String? search, int? serviceType}) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/Services'),
-      headers: _getHeaders(),
-    );
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/Services'),
+          headers: _getHeaders(),
+        ));
 
     final data = _handleResponse(response);
     List<ServiceModel> list = [];
@@ -1081,10 +1105,10 @@ class ApiService {
   }
 
   Future<ServiceModel> getServiceDetails(String serviceId) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl/Services/$serviceId'),
-      headers: _getHeaders(),
-    );
+    final response = await _sendRequest(() => _client.get(
+          Uri.parse('$baseUrl/Services/$serviceId'),
+          headers: _getHeaders(),
+        ));
     final data = _handleResponse(response);
     return ServiceModel.fromJson(data);
   }

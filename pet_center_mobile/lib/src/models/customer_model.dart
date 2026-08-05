@@ -23,13 +23,33 @@ class CustomerModel {
 
   // Chuyển đổi dữ liệu JSON trả về từ api/customer/profile
   factory CustomerModel.fromJson(Map<String, dynamic> json) {
+    String? rawBirthday = json['birthDay'] ?? json['BirthDay'];
+    if (rawBirthday != null && rawBirthday.trim().isNotEmpty) {
+      if (rawBirthday.contains('T')) {
+        rawBirthday = rawBirthday.split('T')[0];
+      }
+      rawBirthday = rawBirthday.trim();
+    } else {
+      rawBirthday = null;
+    }
+
+    String? phone = json['phoneNumber'] ?? json['PhoneNumber'];
+    if (phone != null && (phone.trim().isEmpty || phone == 'Not updated')) {
+      phone = null;
+    }
+
+    String? gen = json['gender'] ?? json['Gender'];
+    if (gen != null && (gen.trim().isEmpty || gen == 'Not updated')) {
+      gen = null;
+    }
+
     return CustomerModel(
       customerId: json['customerId'] ?? json['CustomerId'] ?? '',
       fullName: json['fullName'] ?? json['FullName'],
       email: json['email'] ?? json['Email'],
-      phoneNumber: json['phoneNumber'] ?? json['PhoneNumber'],
-      birthDay: json['birthDay'] ?? json['BirthDay'],
-      gender: json['gender'] ?? json['Gender'],
+      phoneNumber: phone,
+      birthDay: rawBirthday,
+      gender: gen,
       isVerified: json['isVerified'] ?? json['IsVerified'],
       isActive: json['isActive'] ?? json['IsActive'],
       createdAt: json['createdAt'] != null 
