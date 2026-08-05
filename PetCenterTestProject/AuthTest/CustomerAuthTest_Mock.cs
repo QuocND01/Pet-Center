@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -213,8 +213,8 @@ namespace PetCenterTestProject.AuthTest
                 CustomerId = customerId,
                 PasswordResetToken = _passwordService.Hash(rawToken),
                 PasswordResetExpire = expired
-                    ? DateTime.UtcNow.AddMinutes(-1)
-                    : DateTime.UtcNow.AddMinutes(10)
+                    ? DateTime.Now.AddMinutes(-1)
+                    : DateTime.Now.AddMinutes(10)
             };
         }
 
@@ -1124,8 +1124,8 @@ namespace PetCenterTestProject.AuthTest
                 OtpId = Guid.NewGuid(),
                 CustomerId = existingCustomer.CustomerId,
                 VerificationCode = "111111",
-                VerificationExpire = DateTime.UtcNow.AddMinutes(5),
-                LastOtpSentAt = DateTime.UtcNow,
+                VerificationExpire = DateTime.Now.AddMinutes(5),
+                LastOtpSentAt = DateTime.Now,
                 OtpAttemptCount = 0
             };
 
@@ -1252,8 +1252,8 @@ namespace PetCenterTestProject.AuthTest
                 OtpId = Guid.NewGuid(),
                 CustomerId = customerId,
                 VerificationCode = code,
-                VerificationExpire = verificationExpire ?? DateTime.UtcNow.AddMinutes(5),
-                LastOtpSentAt = DateTime.UtcNow,
+                VerificationExpire = verificationExpire ?? DateTime.Now.AddMinutes(5),
+                LastOtpSentAt = DateTime.Now,
                 OtpAttemptCount = otpAttemptCount
             };
         }
@@ -1369,7 +1369,7 @@ namespace PetCenterTestProject.AuthTest
             var otp = BuildOtp(
                 customer.CustomerId,
                 otpAttemptCount: 0,
-                verificationExpire: DateTime.UtcNow.AddMinutes(-1)); // đã hết hạn
+                verificationExpire: DateTime.Now.AddMinutes(-1)); // đã hết hạn
 
             _customerRepositoryMock
                 .Setup(x => x.GetByEmailAsyncWithoutActiveCheck(request.Email))
@@ -1638,7 +1638,7 @@ namespace PetCenterTestProject.AuthTest
             var otp = BuildOtp(
                 customer.CustomerId,
                 otpAttemptCount: 0);
-            otp.LastOtpSentAt = DateTime.UtcNow.AddSeconds(-10); // mới gửi cách đây 10s
+            otp.LastOtpSentAt = DateTime.Now.AddSeconds(-10); // mới gửi cách đây 10s
 
             _customerRepositoryMock
                 .Setup(x => x.GetByEmailAsyncWithoutActiveCheck(customer.Email!))
@@ -1703,7 +1703,7 @@ namespace PetCenterTestProject.AuthTest
             // Arrange
             var customer = BuildCustomer(email: "unverified@petcenter.com", isVerified: false);
             var otp = BuildOtp(customer.CustomerId, otpAttemptCount: 2);
-            otp.LastOtpSentAt = DateTime.UtcNow.AddSeconds(-31); // đã qua cooldown
+            otp.LastOtpSentAt = DateTime.Now.AddSeconds(-31); // đã qua cooldown
 
             _customerRepositoryMock
                 .Setup(x => x.GetByEmailAsyncWithoutActiveCheck(customer.Email!))
@@ -1768,7 +1768,7 @@ namespace PetCenterTestProject.AuthTest
             // Arrange
             var customer = BuildCustomer(email: "unverified@petcenter.com", isVerified: false);
             var otp = BuildOtp(customer.CustomerId, otpAttemptCount: 1);
-            otp.LastOtpSentAt = DateTime.UtcNow.AddSeconds(-31);
+            otp.LastOtpSentAt = DateTime.Now.AddSeconds(-31);
 
             _customerRepositoryMock
                 .Setup(x => x.GetByEmailAsyncWithoutActiveCheck(customer.Email!))
@@ -1799,7 +1799,7 @@ namespace PetCenterTestProject.AuthTest
             // Arrange
             var customer = BuildCustomer(email: "unverified@petcenter.com", isVerified: false);
             var otp = BuildOtp(customer.CustomerId, otpAttemptCount: 1);
-            otp.LastOtpSentAt = DateTime.UtcNow.AddSeconds(-31);
+            otp.LastOtpSentAt = DateTime.Now.AddSeconds(-31);
 
             _customerRepositoryMock
                 .Setup(x => x.GetByEmailAsyncWithoutActiveCheck(customer.Email!))
@@ -1978,7 +1978,7 @@ namespace PetCenterTestProject.AuthTest
                 OtpId = Guid.NewGuid(),
                 CustomerId = customer.CustomerId,
                 PasswordResetToken = "old-hash",
-                PasswordResetExpire = DateTime.UtcNow.AddMinutes(-1)
+                PasswordResetExpire = DateTime.Now.AddMinutes(-1)
             };
 
             _customerRepositoryMock
@@ -2194,7 +2194,7 @@ namespace PetCenterTestProject.AuthTest
                 OtpId = Guid.NewGuid(),
                 CustomerId = customer.CustomerId,
                 PasswordResetToken = null,
-                PasswordResetExpire = DateTime.UtcNow.AddMinutes(10)
+                PasswordResetExpire = DateTime.Now.AddMinutes(10)
             };
 
             _customerRepositoryMock
@@ -2260,7 +2260,7 @@ namespace PetCenterTestProject.AuthTest
                 OtpId = Guid.NewGuid(),
                 CustomerId = customer.CustomerId,
                 PasswordResetToken = _passwordService.Hash("some-token"),
-                PasswordResetExpire = DateTime.UtcNow.AddMinutes(-1) // đã hết hạn
+                PasswordResetExpire = DateTime.Now.AddMinutes(-1) // đã hết hạn
             };
 
             _customerRepositoryMock
@@ -2293,7 +2293,7 @@ namespace PetCenterTestProject.AuthTest
                 OtpId = Guid.NewGuid(),
                 CustomerId = customer.CustomerId,
                 PasswordResetToken = _passwordService.Hash("correct-token"),
-                PasswordResetExpire = DateTime.UtcNow.AddMinutes(10)
+                PasswordResetExpire = DateTime.Now.AddMinutes(10)
             };
 
             _customerRepositoryMock
@@ -2326,7 +2326,7 @@ namespace PetCenterTestProject.AuthTest
                 OtpId = Guid.NewGuid(),
                 CustomerId = customer.CustomerId,
                 PasswordResetToken = _passwordService.Hash("correct-token"),
-                PasswordResetExpire = DateTime.UtcNow.AddMinutes(10)
+                PasswordResetExpire = DateTime.Now.AddMinutes(10)
             };
 
             _customerRepositoryMock

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -45,7 +45,7 @@ namespace PetCenterTestProject.CustomerTest
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
-                    "Trusted_Connection=True;",
+                    "TrustServerCertificate=True;",
             builder => builder.EnableRetryOnFailure())
         .Options;
 
@@ -520,7 +520,7 @@ namespace PetCenterTestProject.CustomerTest
             var result = await service.ChangeCustomerStatusAsync(customerId, true);
 
             // Assert
-            Assert.True(result);
+            Assert.True(result.Success);
 
             using var verifyContext = CreateContext();
             var updatedCustomer = await verifyContext.Customers
@@ -550,7 +550,7 @@ namespace PetCenterTestProject.CustomerTest
             var result = await service.ChangeCustomerStatusAsync(Guid.NewGuid(), true);
 
             // Assert
-            Assert.False(result);
+            Assert.False(result.Success);
         }
     }
 }
