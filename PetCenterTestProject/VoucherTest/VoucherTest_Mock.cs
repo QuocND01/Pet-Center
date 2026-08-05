@@ -576,8 +576,8 @@ namespace PetCenterTestProject.VoucherTest
             // Assert
             Assert.Contains("Code is required.", messages);
             Assert.Contains("Discount must be between 1% and 80%.", messages);
-            Assert.Contains("Min order amount must be between 1₫ and 999,999,999₫.", messages);
-            Assert.Contains("Max discount must be between 1₫ and 50,000,000₫.", messages);
+            Assert.Contains("Min order amount must be between 1₫ and 10,000,000₫.", messages);
+            Assert.Contains("Max discount must be between 1₫ and 10,000,000₫.", messages);
         }
 
         //=========================================================
@@ -685,7 +685,7 @@ namespace PetCenterTestProject.VoucherTest
             var messages = errors.Select(e => e.ErrorMessage).ToList();
 
             // Assert
-            Assert.Contains("Min order amount must be between 1₫ and 999,999,999₫.", messages);
+            Assert.Contains("Min order amount must be between 1₫ and 10,000,000₫.", messages);
         }
 
         //=========================================================
@@ -702,12 +702,12 @@ namespace PetCenterTestProject.VoucherTest
             var messages = errors.Select(e => e.ErrorMessage).ToList();
 
             // Assert
-            Assert.Contains("Min order amount must be between 1₫ and 999,999,999₫.", messages);
+            Assert.Contains("Min order amount must be between 1₫ and 10,000,000₫.", messages);
         }
 
         //=========================================================
         // UTCID18 - MaxDiscountAmount < 1
-        // Expected: "Max discount must be between 1₫ and 50,000,000₫."
+        // Expected: "Max discount must be between 1₫ and 10,000,000₫."
         //=========================================================
         [Fact]
         public void UTCID18_CreateVoucherRequestDTO_MaxDiscountAmountUnder1_ReturnRangeError()
@@ -720,25 +720,25 @@ namespace PetCenterTestProject.VoucherTest
             var messages = errors.Select(e => e.ErrorMessage).ToList();
 
             // Assert
-            Assert.Contains("Max discount must be between 1₫ and 50,000,000₫.", messages);
+            Assert.Contains("Max discount must be between 1₫ and 10,000,000₫.", messages);
         }
 
         //=========================================================
-        // UTCID21 - MaxDiscountAmount > 50,000,000
-        // Expected: "Max discount must be between 1₫ and 50,000,000₫."
+        // UTCID21 - MaxDiscountAmount > 10,000,000
+        // Expected: "Max discount must be between 1₫ and 10,000,000₫."
         //=========================================================
         [Fact]
-        public void UTCID21_CreateVoucherRequestDTO_MaxDiscountAmountOver50Million_ReturnRangeError()
+        public void UTCID21_CreateVoucherRequestDTO_MaxDiscountAmountOver10Million_ReturnRangeError()
         {
             // Arrange
-            var request = BuildCreateVoucherRequest(maxDiscountAmount: 50_000_001);
+            var request = BuildCreateVoucherRequest(maxDiscountAmount: 10_000_001);
 
             // Act
             var errors = Validate(request);
             var messages = errors.Select(e => e.ErrorMessage).ToList();
 
             // Assert
-            Assert.Contains("Max discount must be between 1₫ and 50,000,000₫.", messages);
+            Assert.Contains("Max discount must be between 1₫ and 10,000,000₫.", messages);
         }
 
         //=========================================================
@@ -984,12 +984,12 @@ namespace PetCenterTestProject.VoucherTest
         // Expected: (true, "Voucher created successfully.")
         //=========================================================
         [Fact]
-        public async Task UTCID20_CreateAsync_MaxDiscountAmountExactly50Million_ReturnSuccess()
+        public async Task UTCID20_CreateAsync_MaxDiscountAmountWithinLimit_ReturnSuccess()
         {
             // Arrange
             var request = BuildCreateVoucherRequest(
-                minOrderAmount: 100_000_000,
-                maxDiscountAmount: 50_000_000); // ratio 50%, Max < Min
+                minOrderAmount: 10_000_000,
+                maxDiscountAmount: 5_000_000); // ratio 50%, Max < Min
 
             SetupCodeExists(false);
             SetupCreateAsyncSuccess();

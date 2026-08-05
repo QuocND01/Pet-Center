@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterClient.ViewModels.ManageVoucher
 {
@@ -25,10 +25,10 @@ namespace PetCenterClient.ViewModels.ManageVoucher
         [StringLength(100)]
         public string? Description { get; set; }
 
-        [Range(1, 999_999_999, ErrorMessage = "Min order amount must be between 1₫ and 999,999,999₫.")]
+        [Range(1, 10_000_000, ErrorMessage = "Min order amount must be between 1₫ and 10,000,000₫.")]
         public decimal MinOrderAmount { get; set; }
 
-        [Range(1, 50_000_000, ErrorMessage = "Max discount must be between 1₫ and 50,000,000₫.")]
+        [Range(1, 10_000_000, ErrorMessage = "Max discount must be between 1₫ and 10,000,000₫.")]
         public decimal MaxDiscountAmount { get; set; }
 
         [Range(1, 500, ErrorMessage = "Usage limit must be between 1 and 500.")]

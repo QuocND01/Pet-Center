@@ -798,19 +798,19 @@ namespace PetCenterTestProject.VoucherTest
         }
 
         //=========================================================
-        // UTCID20 - MaxDiscountAmount = 50,000,000 (boundary hợp lệ)
+        // UTCID20 - MaxDiscountAmount boundary valid (within 10M limit)
         // Expected: (true, "Voucher created successfully.")
         //=========================================================
         [Fact]
-        public async Task UTCID20_CreateAsync_MaxDiscountAmountExactly50Million_ReturnSuccess()
+        public async Task UTCID20_CreateAsync_MaxDiscountAmountWithinLimit_ReturnSuccess()
         {
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
 
             var request = BuildCreateVoucherRequest(
                 code: "SALE20",
-                minOrderAmount: 100_000_000,
-                maxDiscountAmount: 50_000_000);
+                minOrderAmount: 10_000_000,
+                maxDiscountAmount: 5_000_000);
 
             var service = CreateService(context);
 

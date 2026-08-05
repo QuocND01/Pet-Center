@@ -137,6 +137,34 @@
     </div>
 </div>
 
+<!-- ══ CONFIRM STATUS MODAL ══════════════════════════════════ -->
+<div class="modal fade" id="modalCustomerStatusConfirm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content" style="border-radius:20px; border:none; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+            <div class="modal-body text-center" style="padding:32px 24px;">
+                <div id="custStatusIcon" style="width:68px; height:68px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;">
+                    <i class="bi bi-person-exclamation"></i>
+                </div>
+                <h4 id="custStatusTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:8px;">Change Customer Status</h4>
+                <p id="custStatusDesc" style="font-size:14px; color:#64748b; line-height:1.5; margin-bottom:24px;">
+                    Are you sure you want to change this customer's status?
+                </p>
+                <input type="hidden" id="custStatusCustomerId" />
+                <input type="hidden" id="custStatusNewState" />
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn" data-bs-dismiss="modal" style="flex:1; background:#f1f5f9; color:#475569; font-weight:700; border-radius:12px; padding:10px; border:1px solid #cbd5e1;">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn" id="custStatusConfirmBtn" onclick="confirmCustomerStatusToggle()" style="flex:1; color:#fff; font-weight:700; border-radius:12px; padding:10px; border:none;">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <style>
     /* Modal reuse styles từ manage-customer.css */
     #viewCustomerModal .detail-section-title {
@@ -250,6 +278,30 @@
     }
 
     }
+
+    /* Toast styles (matching Feedback management) */
+    .fb-toast-wrap {
+        position: fixed; top: 20px; right: 20px;
+        z-index: 99999; display: flex;
+        flex-direction: column; gap: 8px;
+        pointer-events: none;
+    }
+    .fb-toast {
+        background: #0f172a;
+        color: #fff; font-size: 13px; font-weight: 700;
+        padding: 12px 18px; border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        display: flex; align-items: center; gap: 8px;
+        animation: toastIn .25s ease;
+        pointer-events: all;
+        max-width: 340px;
+    }
+    .fb-toast.success { background: #10b981; }
+    .fb-toast.error   { background: #ef4444; }
+    @@keyframes toastIn {
+        from { transform: translateX(20px); opacity: 0; }
+        to   { transform: translateX(0);    opacity: 1; }
+    }
 </style>
 
 @section Scripts {
@@ -259,12 +311,35 @@
         let debounceTimer;
         let originalTableHTML = null;
 
-        // Lưu HTML gốc của table khi load trang
+        // ===== TOAST NOTIFICATIONS =====
+        function showToast(msg, type = 'success') {
+            let wrap = document.getElementById('fbToastWrap');
+            if (!wrap) {
+                wrap = document.createElement('div');
+                wrap.id = 'fbToastWrap';
+                wrap.className = 'fb-toast-wrap';
+                document.body.appendChild(wrap);
+            }
+            const icon = type === 'success' ? '✓' : '✕';
+            const el = document.createElement('div');
+            el.className = `fb-toast ${type}`;
+            el.innerHTML = `<span>${icon}</span> ${msg}`;
+            wrap.appendChild(el);
+            setTimeout(() => el.remove(), 3500);
+        }
+
+        // Lưu HTML gốc của table khi load trang & kiểm tra toast pending
         document.addEventListener('DOMContentLoaded', function() {
             const tbody = document.querySelector('#customerTable tbody');
             originalTableHTML = tbody.innerHTML;
             attachStatusButtonListeners();
             attachViewDetailListeners();
+
+            const pendingToast = sessionStorage.getItem('custToastSuccess');
+            if (pendingToast) {
+                sessionStorage.removeItem('custToastSuccess');
+                showToast(pendingToast, 'success');
+            }
         });
 
         // ===== SEARCH EVENT LISTENER =====
@@ -565,48 +640,100 @@
         }
 
         // ===== HANDLE STATUS TOGGLE =====
-        async function handleStatusToggle(e) {
+        let pendingStatusBtn = null;
+
+        function handleStatusToggle(e) {
             e.preventDefault();
 
-            const btn = this;
-            const customerId = btn.dataset.customerId;
-            const currentStatus = btn.dataset.isActive === 'true';
+            pendingStatusBtn = this;
+            const customerId = pendingStatusBtn.dataset.customerId;
+            const currentStatus = pendingStatusBtn.dataset.isActive === 'true';
             const newStatus = !currentStatus;
-            const statusText = newStatus ? 'Activate' : 'Deactivate';
 
-            // Confirm
-            if (!confirm(`Are you sure you want to ${statusText} this customer?`)) {
-                return;
+            // Retrieve customer name from table row if available
+            const row = pendingStatusBtn.closest('tr');
+            let customerName = 'this customer';
+            if (row) {
+                const nameEl = row.querySelector('.customer-name') || row.querySelector('td:nth-child(2)');
+                if (nameEl) customerName = nameEl.innerText.trim();
+            }
+
+            document.getElementById('custStatusCustomerId').value = customerId;
+            document.getElementById('custStatusNewState').value = newStatus ? 'true' : 'false';
+
+            const iconDiv = document.getElementById('custStatusIcon');
+            const titleEl = document.getElementById('custStatusTitle');
+            const descEl = document.getElementById('custStatusDesc');
+            const confirmBtn = document.getElementById('custStatusConfirmBtn');
+
+            if (newStatus) {
+                iconDiv.style.background = '#ecfdf5';
+                iconDiv.style.color = '#10b981';
+                iconDiv.innerHTML = '<i class="bi bi-person-check-fill"></i>';
+                titleEl.innerText = 'Activate Customer Account?';
+                descEl.innerHTML = `Are you sure you want to activate the account for <strong>${escapeHtml(customerName)}</strong>?<br>Their account access will be restored.`;
+                confirmBtn.style.background = '#10b981';
+                confirmBtn.innerText = 'Activate Account';
+            } else {
+                iconDiv.style.background = '#fef2f2';
+                iconDiv.style.color = '#dc2626';
+                iconDiv.innerHTML = '<i class="bi bi-person-x-fill"></i>';
+                titleEl.innerText = 'Deactivate Customer Account?';
+                descEl.innerHTML = `Are you sure you want to deactivate the account for <strong>${escapeHtml(customerName)}</strong>?<br>They will be restricted from accessing customer services.`;
+                confirmBtn.style.background = '#dc2626';
+                confirmBtn.innerText = 'Deactivate Account';
+            }
+
+            const modalEl = document.getElementById('modalCustomerStatusConfirm');
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+
+        async function confirmCustomerStatusToggle() {
+            const modalEl = document.getElementById('modalCustomerStatusConfirm');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+
+            const customerId = document.getElementById('custStatusCustomerId').value;
+            const newStatus = document.getElementById('custStatusNewState').value === 'true';
+            const btn = pendingStatusBtn;
+            let originalHTML = '';
+
+            if (btn) {
+                btn.disabled = true;
+                originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
             }
 
             try {
-                btn.disabled = true;
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
-
                 const response = await fetch(`/ManageCustomer/ChangeStatus/${customerId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ isActive: newStatus })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    alert(`Customer status changed to ${statusText} successfully!`);
+                    const actionText = newStatus ? 'activated' : 'deactivated';
+                    sessionStorage.setItem('custToastSuccess', `Customer account ${actionText} successfully.`);
                     location.reload();
                 } else {
-                    alert(result.message || 'Failed to change status');
-                    btn.disabled = false;
-                    btn.innerHTML = originalHTML;
+                    if (typeof showToast === 'function') {
+                        showToast(result.message || 'Failed to change status', 'error');
+                    } else {
+                        console.error(result.message || 'Failed to change status');
+                    }
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHTML;
+                    }
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred: ' + error.message);
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
             }
         }
     </script>
