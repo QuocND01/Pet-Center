@@ -16,7 +16,6 @@ intents:
   - ask_human
   - out_of_scope
   # — Sản phẩm + giỏ hàng —
-  - tim_san_pham
   - xem_san_pham_moi
   - xem_san_pham_hot
   - them_vao_gio_hang
@@ -34,6 +33,7 @@ intents:
   - xem_chi_tiet_san_pham
   # — Đơn hàng —
   - xem_don_hang_cua_toi
+  - tim_don_hang_theo_san_pham
   - xem_chi_tiet_don
   - huy_don_hang
   - hoi_thoi_gian_giao_hang
@@ -158,16 +158,16 @@ slots:
 
 responses:
   utter_greet:
-    - text: "Xin chào! 🐾 Tôi là trợ lý PetCenter.\nTôi có thể giúp bạn:\n• Tìm sản phẩm, xem hàng mới/bán chạy\n• Tra cứu đơn hàng, voucher\n\nBạn cần gì nào?"
+    - text: "Xin chào! 🐾 Tôi là trợ lý ảo PetCenter.\nTôi có thể hỗ trợ bạn:\n• 📦 Tra cứu lịch sử & tìm kiếm sản phẩm trong đơn hàng\n• 🛍️ Khám phá sản phẩm hot, hàng mới & danh mục\n• 🩺 Tư vấn dịch vụ & đặt lịch hẹn chăm sóc thú cưng\n\nBạn cần tôi hỗ trợ thông tin gì hôm nay ạ?"
 
   utter_goodbye:
-    - text: "Tạm biệt! Hẹn gặp lại bạn tại PetCenter 🐾"
+    - text: "Tạm biệt! Hẹn gặp lại bạn tại PetCenter 🐾 Cần hỗ trợ gì thêm cứ gọi tôi nhé!"
 
   utter_bot_challenge:
-    - text: "Tôi là PetCenter Bot 🐾 - trợ lý AI thông minh của PetCenter, được lập trình để hỗ trợ bạn mua sắm sản phẩm và dịch vụ thú cưng 24/7!"
+    - text: "Tôi là PetCenter Bot 🐾 - trợ lý AI thông minh của PetCenter, luôn sẵn sàng hỗ trợ bạn tra cứu đơn hàng, tư vấn sản phẩm và dịch vụ thú cưng 24/7!"
 
   utter_ask_bot_capabilities:
-    - text: "Tôi có thể hỗ trợ bạn:\n• Tìm kiếm sản phẩm, xem hàng mới/bán chạy\n• Kiểm tra giỏ hàng, đơn hàng, voucher\n• Đặt lịch dịch vụ & xem hồ sơ thú cưng\n\nLưu ý: Tôi là trợ lý AI tư vấn và xử lý thông tin, việc vận chuyển và giao hàng sẽ do shipper của PetCenter thực hiện bạn nhé! 🚚"
+    - text: "Tôi là trợ lý AI của PetCenter! 🐾 Tôi có thể hỗ trợ bạn:\n• 📦 Tra cứu chi tiết & tìm kiếm sản phẩm trong đơn hàng đã mua\n• 🛍️ Xem sản phẩm bán chạy, hàng mới về & danh mục sản phẩm\n• 🛒 Quản lý giỏ hàng & áp dụng voucher ưu đãi\n• 🩺 Đặt lịch dịch vụ chăm sóc & xem sổ y tế thú cưng\n\nLưu ý: Tôi hỗ trợ thông tin và tra cứu dữ liệu 24/7, công đoạn giao hàng thực tế sẽ do shipper của PetCenter phụ trách bạn nhé! 🚚"
 
   utter_ask_human:
     - text: "Bạn có thể liên hệ trực tiếp với bộ phận chăm sóc khách hàng của PetCenter qua:\n📞 Hotline: +84 123 456 789\n✉ Email: support@petcenter.com\n\n💬 Ngoài ra, bạn có thể nhắn tin trực tiếp với staff hoặc admin ngay trên trang web — bấm vào nút Chat 💬 (khác với chat AI này) ở góc màn hình để được tư vấn trực tiếp bởi nhân viên PetCenter nhé!"
@@ -198,7 +198,6 @@ responses:
 
 actions:
   # Sản phẩm + giỏ hàng
-  - action_tim_san_pham
   - action_xem_san_pham_moi
   - action_xem_san_pham_hot
   - action_them_vao_gio_hang
@@ -215,6 +214,7 @@ actions:
   - action_xem_chi_tiet_san_pham
   # Đơn hàng
   - action_xem_don_hang
+  - action_tim_don_hang_theo_san_pham
   - action_xem_don_hang_vua_dat
   - action_chi_tiet_don
   - action_huy_don_hang
