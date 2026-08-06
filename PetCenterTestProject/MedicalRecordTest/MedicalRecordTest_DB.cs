@@ -9,6 +9,7 @@ using PetCenterAPI.Models;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
+using PetCenterTestProject;
 using Xunit;
 using static PetCenterAPI.DTOs.Requests.MedicalRecord.MedicalRecordRequestDTO;
 using static PetCenterAPI.DTOs.Responses.MedicalRecord.MedicalRecordResponseDTO;
@@ -22,10 +23,11 @@ namespace PetCenterTestProject.MedicalRecordTest
         {
             var options = new DbContextOptionsBuilder<PetCenterContext>()
                 .UseSqlServer(
-                    "Server=.;" +
+                    "Server=127.0.0.1,1433;" +
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
+                    "Encrypt=False;" +
                     "TrustServerCertificate=True;",
                     builder => builder.EnableRetryOnFailure())
                 .Options;
@@ -43,53 +45,9 @@ namespace PetCenterTestProject.MedicalRecordTest
             return new MedicalRecordService(CreateRepository(context));
         }
 
-                                                private async Task ClearDatabaseAsync(PetCenterContext context)
+        private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            context.ChangeTracker.Clear();
-
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM [StaffRoles];");
-
-            context.PrescriptionItems.RemoveRange(context.PrescriptionItems);
-            context.MedicalRecords.RemoveRange(context.MedicalRecords);
-            context.AppointmentSnapshots.RemoveRange(context.AppointmentSnapshots);
-            context.AppointmentServices.RemoveRange(context.AppointmentServices);
-            context.Appointments.RemoveRange(context.Appointments);
-            context.Pets.RemoveRange(context.Pets);
-            context.Diseases.RemoveRange(context.Diseases);
-            context.VetFeedbacks.RemoveRange(context.VetFeedbacks);
-            context.VetProfiles.RemoveRange(context.VetProfiles);
-            context.ScheduleExceptions.RemoveRange(context.ScheduleExceptions);
-            context.GlobalWorkSchedules.RemoveRange(context.GlobalWorkSchedules);
-            context.CartDetails.RemoveRange(context.CartDetails);
-            context.Carts.RemoveRange(context.Carts);
-            context.OtpCodes.RemoveRange(context.OtpCodes);
-            context.CustomerVouchers.RemoveRange(context.CustomerVouchers);
-            context.Vouchers.RemoveRange(context.Vouchers);
-            context.FeedbackImages.RemoveRange(context.FeedbackImages);
-            context.ProductFeedbacks.RemoveRange(context.ProductFeedbacks);
-            context.OrderProductSnapshots.RemoveRange(context.OrderProductSnapshots);
-            context.OrderDetails.RemoveRange(context.OrderDetails);
-            context.Payments.RemoveRange(context.Payments);
-            context.Orders.RemoveRange(context.Orders);
-            context.Addresses.RemoveRange(context.Addresses);
-            context.Customers.RemoveRange(context.Customers);
-            context.InventoryTransactions.RemoveRange(context.InventoryTransactions);
-            context.ImportProductSnapshots.RemoveRange(context.ImportProductSnapshots);
-            context.ImportStockDetails.RemoveRange(context.ImportStockDetails);
-            context.ImportStocks.RemoveRange(context.ImportStocks);
-            context.Suppliers.RemoveRange(context.Suppliers);
-            context.Staffs.RemoveRange(context.Staffs);
-            context.Inventories.RemoveRange(context.Inventories);
-            context.ProductImages.RemoveRange(context.ProductImages);
-            context.ProductAttributes.RemoveRange(context.ProductAttributes);
-            context.Products.RemoveRange(context.Products);
-            context.CategoryAttributes.RemoveRange(context.CategoryAttributes);
-            context.Categories.RemoveRange(context.Categories);
-            context.Brands.RemoveRange(context.Brands);
-            context.ServiceImages.RemoveRange(context.ServiceImages);
-            context.Services.RemoveRange(context.Services);
-
-            await context.SaveChangesAsync();
+            await TestDatabaseCleaner.ClearAllAsync(context);
         }
 
         private async Task EnsureStaffExistsAsync(PetCenterContext context, Guid staffId, string fullName = "Vet Dr. A")
@@ -707,7 +665,7 @@ namespace PetCenterTestProject.MedicalRecordTest
             var petId = Guid.NewGuid();
             var staffId = Guid.NewGuid();
 
-            await EnsureAppointmentExistsAsync(context, apptId, custId, petId, staffId, 4, "Dog", "Husky", "Vet 1");
+            await EnsureAppointmentExistsAsync(context, apptId, custId, petId, staffId, 3, "Dog", "Husky", "Vet 1");
 
             var customer = await context.Customers.FindAsync(custId);
             customer.FullName = "Customer 1";
@@ -735,7 +693,7 @@ namespace PetCenterTestProject.MedicalRecordTest
             var petId = Guid.NewGuid();
             var staffId = Guid.NewGuid();
 
-            await EnsureAppointmentExistsAsync(context, apptId, custId, petId, staffId, 4, "Cat", "Maine Coon", "Vet 1");
+            await EnsureAppointmentExistsAsync(context, apptId, custId, petId, staffId, 3, "Cat", "Maine Coon", "Vet 1");
 
             // Remove snapshot
             var snapshot = await context.AppointmentSnapshots.FirstOrDefaultAsync(s => s.AppointmentId == apptId);

@@ -11,6 +11,7 @@ using PetCenterAPI.Models;
 using PetCenterAPI.Profiles;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Service;
+using PetCenterTestProject;
 
 namespace PetCenterTestProject.CustomerTest
 {
@@ -41,10 +42,11 @@ namespace PetCenterTestProject.CustomerTest
         {
             var options = new DbContextOptionsBuilder<PetCenterContext>()
                 .UseSqlServer(
-                    "Server=.;" +
+                    "Server=127.0.0.1,1433;" +
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
+                    "Encrypt=False;" +
                     "TrustServerCertificate=True;",
             builder => builder.EnableRetryOnFailure())
         .Options;
@@ -75,14 +77,7 @@ namespace PetCenterTestProject.CustomerTest
         //=========================================================
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM FeedbackImages");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductFeedbacks");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM VetFeedbacks");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Orders");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Pets");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM OtpCodes");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Addresses");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Customers");
+            await TestDatabaseCleaner.ClearAllAsync(context);
         }
 
         //=========================================================

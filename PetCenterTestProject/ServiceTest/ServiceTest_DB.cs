@@ -11,6 +11,7 @@ using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
+using PetCenterTestProject;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -82,8 +83,7 @@ namespace PetCenterTestProject.ServiceTest
 
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            context.Services.RemoveRange(context.Services);
-            await context.SaveChangesAsync();
+            await TestDatabaseCleaner.ClearServicesAsync(context);
         }
 
         private IList<ValidationResult> Validate(object model)
@@ -101,7 +101,7 @@ namespace PetCenterTestProject.ServiceTest
         //=========================================================
 
         [Fact]
-        public async Task UTCID01_GetAllServiceAsync()
+        public async Task UTCID01_GetAllService()
         {
             // Arrange
             using var context = CreateContext();
@@ -114,27 +114,35 @@ namespace PetCenterTestProject.ServiceTest
                 ServiceName = "Pet Grooming",
                 Status = PetCenterAPI.Common.Status.Active
             });
+
             await context.SaveChangesAsync();
 
-            // Act & Assert
-            await Assert.ThrowsAsync<NullReferenceException>(() => service.GetAllServiceAsync(null!));
+            // Act
+            var result = service.GetAllService().ToList();
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Pet Grooming", result[0].ServiceName);
         }
 
         [Fact]
-        public async Task UTCID02_GetAllServiceAsync()
+        public async Task UTCID02_GetAllService_ReturnEmpty()
         {
             // Arrange
             using var context = CreateContext();
             await ClearDatabaseAsync(context);
             var service = CreateService(context);
 
-            // Act & Assert
-            // OData QueryOptions is null, so it throws NullReferenceException in the service
-            await Assert.ThrowsAsync<NullReferenceException>(() => service.GetAllServiceAsync(null!));
+            // Act
+            var result = service.GetAllService().ToList();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         [Fact]
-        public async Task UTCID03_GetAllServiceAsync_RepositoryThrowsException()
+        public void UTCID03_GetAllService_RepositoryThrowsException()
         {
             // Arrange
             var repositoryMock = new Mock<IServiceRepository>();
@@ -145,11 +153,10 @@ namespace PetCenterTestProject.ServiceTest
 
             var service = CreateService(repositoryMock.Object);
 
-            // Act
-            var ex = await Assert.ThrowsAsync<Exception>(() =>
-                service.GetAllServiceAsync(null!));
+            // Act & Assert
+            var ex = Assert.Throws<Exception>(() =>
+                service.GetAllService());
 
-            // Assert
             Assert.Equal("Service Temporarily Unavailable", ex.Message);
         }
 

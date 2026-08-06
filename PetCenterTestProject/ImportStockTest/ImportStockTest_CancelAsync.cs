@@ -31,6 +31,7 @@ namespace PetCenterTestProject.ImportStockTest
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
+                    "Encrypt=False;" +
                     "TrustServerCertificate=True;")
                 .Options;
 
@@ -48,6 +49,45 @@ namespace PetCenterTestProject.ImportStockTest
                 _repository,
                 _context,
                 _mapper);
+
+            EnsureSeedData();
+        }
+
+        private void EnsureSeedData()
+        {
+            if (!_context.Staffs.Any(x => x.IsActive))
+            {
+                var id = Guid.NewGuid();
+                _context.Staffs.Add(new Staff
+                {
+                    StaffId = id,
+                    FullName = "Test Staff",
+                    PhoneNumber = "0123456789",
+                    BirthDate = DateTime.UtcNow.AddYears(-30),
+                    Gender = "Male",
+                    HireDate = DateTime.UtcNow,
+                    Email = $"cancel-{id:N}@test.com",
+                    PasswordHash = "hashed-password",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            if (!_context.Suppliers.Any(x => x.IsActive))
+            {
+                _context.Suppliers.Add(new Supplier
+                {
+                    SupplierId = Guid.NewGuid(),
+                    SupplierName = "Cancel Test Supplier",
+                    SupplierEmail = $"supplier-{Guid.NewGuid():N}@test.com",
+                    SupplierPhoneNumber = "0912345678",
+                    SupplierAddress = "Can Tho",
+                    TaxId = Guid.NewGuid().ToString("N")[..10],
+                    IsActive = true
+                });
+            }
+
+            _context.SaveChanges();
         }
 
         public void Dispose()

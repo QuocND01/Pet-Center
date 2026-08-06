@@ -44,11 +44,37 @@ namespace PetCenterTestProject.SupplierTest
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
+                    "Encrypt=False;" +
                     "TrustServerCertificate=True;")
                 .Options;
 
             return new PetCenterContext(options);
         }
+
+        private async Task<Supplier> EnsureActiveSupplierAsync(PetCenterContext context, string? taxId = null)
+        {
+            var supplier = await context.Suppliers.FirstOrDefaultAsync(x => x.IsActive && (taxId == null || x.TaxId == taxId));
+            if (supplier != null)
+            {
+                return supplier;
+            }
+
+            supplier = new Supplier
+            {
+                SupplierId = Guid.NewGuid(),
+                SupplierName = "Integration Seed Supplier",
+                SupplierEmail = $"supplier-{Guid.NewGuid():N}@test.com",
+                SupplierPhoneNumber = "0912345678",
+                SupplierAddress = "Can Tho",
+                TaxId = taxId ?? Guid.NewGuid().ToString("N")[..10],
+                IsActive = true
+            };
+
+            context.Suppliers.Add(supplier);
+            await context.SaveChangesAsync();
+            return supplier;
+        }
+
         [Fact]
         public async Task ITCID01_GetAllAsync_ShouldReturnSuppliers()
         {
@@ -86,8 +112,7 @@ namespace PetCenterTestProject.SupplierTest
         {
             using var context = CreateContext();
 
-            // THAY ĐỔI TẠI ĐÂY: Chỉ lấy supplier nào đang Active để test logic chính xác
-            var supplier = context.Suppliers.First(x => x.IsActive);
+            var supplier = await EnsureActiveSupplierAsync(context);
 
             var repository = new SupplierRepository(context);
             var service = new SupplierService(repository, _mapper);
@@ -140,9 +165,7 @@ namespace PetCenterTestProject.SupplierTest
         {
             using var context = CreateContext();
 
-            var exist = context.Suppliers.FirstOrDefault(x => x.TaxId != null);
-
-            Assert.NotNull(exist);
+            var exist = await EnsureActiveSupplierAsync(context, Guid.NewGuid().ToString("N")[..10]);
 
             var repository = new SupplierRepository(context);
 
@@ -154,7 +177,7 @@ namespace PetCenterTestProject.SupplierTest
                 SupplierEmail = "duplicate@test.com",
                 SupplierPhoneNumber = "0912345678",
                 SupplierAddress = "Can Tho",
-                TaxId = exist!.TaxId
+                TaxId = exist.TaxId
             };
 
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -165,8 +188,7 @@ namespace PetCenterTestProject.SupplierTest
         {
             using var context = CreateContext();
 
-            // THAY ĐỔI TẠI ĐÂY: Chỉ bốc supplier đang Active để Update
-            var supplier = context.Suppliers.AsNoTracking().First(x => x.IsActive);
+            var supplier = await EnsureActiveSupplierAsync(context);
             var supplierId = supplier.SupplierId;
 
             var repository = new SupplierRepository(context);
@@ -224,7 +246,7 @@ namespace PetCenterTestProject.SupplierTest
         {
             using var context = CreateContext();
 
-            var supplier = context.Suppliers.First(x => x.IsActive);
+            var supplier = await EnsureActiveSupplierAsync(context);
 
             var repository = new SupplierRepository(context);
 

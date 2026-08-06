@@ -56,79 +56,79 @@ namespace PetCenterTestProject.ServiceTest
                 return results;
             }
 
-            //=========================================================
-            // GetAllService()
-            //=========================================================
+        //=========================================================
+        // GetAllService()
+        //=========================================================
 
-            [Fact]
-            public async Task UTCID01_GetAllServiceAsync()
-            {
-                // Arrange
-                var services = new List<PetCenterAPI.Models.Service>
-            {
-                new PetCenterAPI.Models.Service
-                {
-                    ServiceId = Guid.NewGuid(),
-                    ServiceName = "Pet Grooming",
-                    Price = 100,
-                    Status = PetCenterAPI.Common.Status.Active
-                }
-            };
+        [Fact]
+        public void UTCID01_GetAllService()
+        {
+            // Arrange
+            var services = new List<PetCenterAPI.Models.Service>
+    {
+        new PetCenterAPI.Models.Service
+        {
+            ServiceId = Guid.NewGuid(),
+            ServiceName = "Pet Grooming",
+            Price = 100,
+            Status = PetCenterAPI.Common.Status.Active
+        }
+    };
 
-                _serviceRepositoryMock
-                    .Setup(x => x.GetAllService())
-                    .Returns(services.AsQueryable());
+            _serviceRepositoryMock
+                .Setup(x => x.GetAllService())
+                .Returns(services.AsQueryable());
 
-                // Act
-                // OData QueryOptions is null, so it throws NullReferenceException in the service
-                await Assert.ThrowsAsync<NullReferenceException>(() =>
-                    _service.GetAllServiceAsync(null!));
+            // Act
+            var result = _service.GetAllService().ToList();
 
-                // Assert
-                _serviceRepositoryMock.Verify(x => x.GetAllService(), Times.Once);
-            }
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Pet Grooming", result[0].ServiceName);
+            _serviceRepositoryMock.Verify(x => x.GetAllService(), Times.Once);
+        }
 
-            [Fact]
-            public async Task UTCID02_GetAllServiceAsync()
-            {
-                // Arrange
-                var services = new List<PetCenterAPI.Models.Service>();
+        [Fact]
+        public void UTCID02_GetAllService_ReturnEmpty()
+        {
+            // Arrange
+            var services = new List<PetCenterAPI.Models.Service>();
 
-                _serviceRepositoryMock
-                    .Setup(x => x.GetAllService())
-                    .Returns(services.AsQueryable());
+            _serviceRepositoryMock
+                .Setup(x => x.GetAllService())
+                .Returns(services.AsQueryable());
 
-                // Act
-                // OData QueryOptions is null, so it throws NullReferenceException in the service
-                await Assert.ThrowsAsync<NullReferenceException>(() =>
-                    _service.GetAllServiceAsync(null!));
+            // Act
+            var result = _service.GetAllService().ToList();
 
-                // Assert
-                _serviceRepositoryMock.Verify(x => x.GetAllService(), Times.Once);
-            }
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+            _serviceRepositoryMock.Verify(x => x.GetAllService(), Times.Once);
+        }
 
-            [Fact]
-            public async Task UTCID03_GetAllServiceAsync()
-            {
-                // Arrange
-                _serviceRepositoryMock
-                    .Setup(x => x.GetAllService())
-                    .Throws(new Exception("Service Temporarily Unavailable"));
+        [Fact]
+        public void UTCID03_GetAllService_RepositoryThrowsException()
+        {
+            // Arrange
+            _serviceRepositoryMock
+                .Setup(x => x.GetAllService())
+                .Throws(new Exception("Service Temporarily Unavailable"));
 
-                // Act
-                var ex = await Assert.ThrowsAsync<Exception>(() =>
-                    _service.GetAllServiceAsync(null!));
+            // Act
+            var ex = Assert.Throws<Exception>(() =>
+                _service.GetAllService());
 
-                // Assert
-                Assert.Equal("Service Temporarily Unavailable", ex.Message);
-                _serviceRepositoryMock.Verify(x => x.GetAllService(), Times.Once);
-            }
+            // Assert
+            Assert.Equal("Service Temporarily Unavailable", ex.Message);
+            _serviceRepositoryMock.Verify(x => x.GetAllService(), Times.Once);
+        }
 
-            //=========================================================
-            // GetAllServiceAdminAsync()
-            //=========================================================
+        //=========================================================
+        // GetAllServiceAdminAsync()
+        //=========================================================
 
-            [Fact]
+        [Fact]
             public async Task UTCID01_GetAllServiceAdminAsync()
             {
                 // Arrange
@@ -1241,7 +1241,7 @@ namespace PetCenterTestProject.ServiceTest
                 await _service.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active);
 
                 // Assert
-                _serviceRepositoryMock.Verify(x => x.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active, false), Times.Once);
+                _serviceRepositoryMock.Verify(x => x.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active), Times.Once);
             }
 
             [Fact]
@@ -1259,7 +1259,7 @@ namespace PetCenterTestProject.ServiceTest
                 await _service.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active);
 
                 // Assert
-                _serviceRepositoryMock.Verify(x => x.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active, false), Times.Once);
+                _serviceRepositoryMock.Verify(x => x.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active), Times.Once);
             }
 
             [Fact]
@@ -1277,7 +1277,7 @@ namespace PetCenterTestProject.ServiceTest
                 await _service.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active);
 
                 // Assert
-                _serviceRepositoryMock.Verify(x => x.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active, false), Times.Once);
+                _serviceRepositoryMock.Verify(x => x.ChangeServiceStatusAsync(id, PetCenterAPI.Common.Status.Active), Times.Once);
             }
 
             [Fact]

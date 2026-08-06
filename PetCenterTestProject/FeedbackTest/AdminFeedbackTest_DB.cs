@@ -9,6 +9,7 @@ using PetCenterAPI.DTOs.Requests.ManageFeedback;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Service;
+using PetCenterTestProject;
 
 namespace PetCenterTestProject.FeedbackTest
 {
@@ -22,10 +23,11 @@ namespace PetCenterTestProject.FeedbackTest
         {
             var options = new DbContextOptionsBuilder<PetCenterContext>()
                 .UseSqlServer(
-                    "Server=.;" +
+                    "Server=127.0.0.1,1433;" +
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
+                    "Encrypt=False;" +
                     "TrustServerCertificate=True;")
                 .Options;
 
@@ -54,22 +56,7 @@ namespace PetCenterTestProject.FeedbackTest
         //=========================================================
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM FeedbackImages");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductFeedbacks");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Orders");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductAttributes");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM ProductImages");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Products");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM CategoryAttributes");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Categories");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Brands");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Addresses");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM OtpCodes");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Pets");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Customers");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM StaffRoles");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Staffs");
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM Roles");
+            await TestDatabaseCleaner.ClearAllAsync(context);
         }
 
         //=========================================================
