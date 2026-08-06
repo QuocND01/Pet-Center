@@ -7,6 +7,13 @@ version: "3.1"
 
 nlu:
 
+- intent: goto_product_details
+  examples: |
+    - xem sản phẩm trên web
+    - xem chi tiết sản phẩm trên web
+    - chuyển đến trang sản phẩm
+    - xem hình ảnh sản phẩm trên web
+
 - intent: xem_san_pham_moi
   examples: |
     - sản phẩm mới

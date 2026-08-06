@@ -109,6 +109,11 @@ rules:
     - intent: xem_chi_tiet_san_pham
     - action: action_xem_chi_tiet_san_pham
 
+- rule: Xem sản phẩm trên Web
+  steps:
+    - intent: goto_product_details
+    - action: action_goto_product_details
+
 # — Đơn hàng + voucher —
 - rule: Xem đơn hàng của tôi
   steps:
@@ -202,9 +207,24 @@ rules:
     - intent: xem_ho_so
     - action: action_xem_ho_so
 
+- rule: Hướng dẫn mua hàng
+  steps:
+    - intent: huong_dan_mua_hang
+    - action: utter_huong_dan_mua_hang
+
+- rule: Hướng dẫn thanh toán
+  steps:
+    - intent: huong_dan_thanh_toan
+    - action: utter_huong_dan_thanh_toan
+
 - rule: Xem địa chỉ
   steps:
     - intent: xem_dia_chi
+    - action: action_xem_dia_chi
+
+- rule: Xem địa chỉ người khác
+  steps:
+    - intent: xem_dia_chi_nguoi_khac
     - action: action_xem_dia_chi
 
 - rule: Thêm địa chỉ
@@ -215,7 +235,12 @@ rules:
 - rule: Điều hướng trang địa chỉ
   steps:
     - intent: goto_address_page
-    - action: action_them_dia_chi
+    - action: action_goto_address_page
+
+- rule: Điều hướng trang đăng nhập
+  steps:
+    - intent: goto_login_page
+    - action: action_goto_login_page
 
 - rule: Xem hồ sơ y tế
   steps:

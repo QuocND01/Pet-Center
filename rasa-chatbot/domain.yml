@@ -16,6 +16,7 @@ intents:
   - ask_human
   - out_of_scope
   # — Sản phẩm + giỏ hàng —
+  - goto_product_details
   - xem_san_pham_moi
   - xem_san_pham_hot
   - them_vao_gio_hang
@@ -54,12 +55,17 @@ intents:
   - xem_dia_chi
   - them_dia_chi
   - xem_ho_so_y_te
+  - xem_dia_chi_nguoi_khac
+  # — Hướng dẫn mua hàng & thanh toán —
+  - huong_dan_mua_hang
+  - huong_dan_thanh_toan
   # — Bảo mật đơn hàng —
   - xem_don_hang_nguoi_khac
   # — Điều hướng (từ nút bấm) —
   - goto_service_page
   - goto_address_page
   - goto_orders_page
+  - goto_login_page
 
 entities:
   - tu_khoa
@@ -196,6 +202,12 @@ responses:
   utter_tu_choi_xem_don_nguoi_khac:
     - text: "🔒 Vì lý do bảo mật và quyền riêng tư, tôi chỉ có thể hiển thị đơn hàng của tài khoản đang đăng nhập — tức là đơn hàng của chính bạn.\n\nNếu muốn tra cứu đơn của người khác, họ cần tự đăng nhập vào tài khoản của mình để xem nhé! 🐾\n\nBạn có muốn xem đơn hàng của mình không?"
 
+  utter_huong_dan_mua_hang:
+    - text: "🛍️ **HƯỚNG DẪN MUA HÀNG TẠI PETCENTER**\n\nĐể đặt mua sản phẩm nhanh chóng trên Website, bạn thực hiện theo các bước sau:\n\n1️⃣ **Tìm & Chọn sản phẩm:** Khám phá sản phẩm trên Trang chủ hoặc tìm theo Danh mục / Thương hiệu.\n2️⃣ **Xem chi tiết:** Bấm chọn sản phẩm để xem thông tin chi tiết, giá cả và đánh giá từ khách hàng.\n3️⃣ **Thêm vào giỏ:** Bấm nút **\"🛒 Add to Cart\"** để thêm sản phẩm vào giỏ hàng.\n4️⃣ **Kiểm tra giỏ hàng:** Bấm vào **Tên tài khoản** ở góc trên bên phải màn hình ➔ Chọn **\"🛒 Cart\"** ➔ Tích chọn sản phẩm cần mua và bấm **\"Checkout\"**.\n5️⃣ **Hoàn tất đặt hàng:** Chọn địa chỉ nhận hàng, chọn Voucher ưu đãi, chọn phương thức thanh toán và bấm **\"Place Order\"**.\n\n✨ *Đơn hàng của bạn sẽ được đóng gói và giao đến tận nơi nhanh chóng!* 🚚"
+
+  utter_huong_dan_thanh_toan:
+    - text: "💳 **HƯỚNG DẪN THANH TOÁN TẠI PETCENTER**\n\nPetCenter hỗ trợ các phương thức thanh toán linh hoạt và an toàn tại bước Checkout:\n\n💵 **1. Thanh toán khi nhận hàng (COD):**\n• Bạn chọn phương thức **COD (Cash on Delivery)** và bấm **\"Place Order\"**. Thanh toán tiền mặt trực tiếp cho shipper khi nhận hàng.\n\n🏦 **2. Thanh toán Online / Chuyển khoản Banking / VNPay:**\n• Chọn phương thức **Online / VNPay** và bấm **\"Place Order\"**.\n• Quét mã QR hiển thị trên màn hình hoặc chuyển khoản theo đúng cú pháp mã đơn hàng.\n• Hệ thống sẽ tự động xác nhận đơn hàng ngay khi giao dịch thành công.\n\n🔒 *Mọi giao dịch trên PetCenter đều được mã hóa bảo mật an toàn 100%!*"
+
 actions:
   # Sản phẩm + giỏ hàng
   - action_xem_san_pham_moi
@@ -212,6 +224,7 @@ actions:
   - action_xem_danh_muc
   - action_xem_thuong_hieu
   - action_xem_chi_tiet_san_pham
+  - action_goto_product_details
   # Đơn hàng
   - action_xem_don_hang
   - action_tim_don_hang_theo_san_pham
@@ -234,6 +247,8 @@ actions:
   - action_xem_ho_so_y_te
   # Điều hướng
   - action_goto_orders_page
+  - action_goto_address_page
+  - action_goto_login_page
   # Fallback động
   - action_default_fallback
 
