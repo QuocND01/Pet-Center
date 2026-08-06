@@ -32,11 +32,10 @@ intents:
   - xem_danh_muc_san_pham
   - xem_thuong_hieu
   - xem_chi_tiet_san_pham
-  # — Đơn hàng + voucher —
+  # — Đơn hàng —
   - xem_don_hang_cua_toi
   - xem_chi_tiet_don
   - huy_don_hang
-  - xem_voucher
   - hoi_thoi_gian_giao_hang
   - hoi_phi_van_chuyen
   - hoi_chinh_sach_doi_tra
@@ -55,9 +54,6 @@ intents:
   - xem_dia_chi
   - them_dia_chi
   - xem_ho_so_y_te
-  # — Đánh giá —
-  - xem_danh_gia
-  - gui_danh_gia
   # — Bảo mật đơn hàng —
   - xem_don_hang_nguoi_khac
   # — Điều hướng (từ nút bấm) —
@@ -217,12 +213,11 @@ actions:
   - action_xem_danh_muc
   - action_xem_thuong_hieu
   - action_xem_chi_tiet_san_pham
-  # Đơn hàng + voucher
+  # Đơn hàng
   - action_xem_don_hang
   - action_xem_don_hang_vua_dat
   - action_chi_tiet_don
   - action_huy_don_hang
-  - action_xem_voucher
   - action_hoi_ngay_dat_don
   - action_hoi_ngay_giao_don
   - action_hoi_gia_tong_tien_don
@@ -237,9 +232,8 @@ actions:
   - action_xem_dia_chi
   - action_them_dia_chi
   - action_xem_ho_so_y_te
-  # Đánh giá
-  - action_xem_danh_gia
-  - action_gui_danh_gia
+  # Điều hướng
+  - action_goto_orders_page
   # Fallback động
   - action_default_fallback
 

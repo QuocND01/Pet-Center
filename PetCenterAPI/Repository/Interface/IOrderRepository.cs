@@ -16,6 +16,10 @@ namespace PetCenterAPI.Repository.Interface
         Task SaveAsync();
         Task SaveChangesAsync();
         Task<List<Order>> GetOrdersByCustomerIdAsync(Guid customerId);
+        /// <summary>
+        /// Truy vấn danh sách đơn hàng của khách kèm thông tin sản phẩm dành riêng cho Rasa Chatbot.
+        /// </summary>
+        Task<List<Order>> GetOrdersWithItemsByCustomerIdAsync(Guid customerId);
     }
 }
 

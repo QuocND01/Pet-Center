@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace PetCenterAPI.DTOs.Requests.Order
@@ -17,6 +17,14 @@ namespace PetCenterAPI.DTOs.Requests.Order
             public string PaymentMethod { get; set; } = null!;
             public int PaymentStatus { get; set; }
             public string AddressSnapshot { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// DTO dành riêng cho Rasa Chatbot: Danh sách đơn hàng kèm chi tiết các sản phẩm trong đơn.
+        /// </summary>
+        public class ReadOrderListWithItemsDTO : ReadOrderListDTO
+        {
+            public List<ReadOrderItemDTO> OrderItems { get; set; } = new();
         }
 
         // 2. DTO cho chi tiết đơn hàng

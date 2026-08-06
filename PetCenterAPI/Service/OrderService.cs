@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.SignalR;
@@ -129,6 +129,39 @@ namespace PetCenterAPI.Service
                 PaymentMethod = o.PaymentMethod,
                 PaymentStatus = o.PaymentStatus,
                 AddressSnapshot = o.AddressSnapshot
+            }).ToList();
+
+            return dtoList;
+        }
+
+        /// <summary>
+        /// Truy xuất lịch sử đơn hàng của khách hàng kèm danh sách chi tiết các sản phẩm (Dành riêng cho Rasa Chatbot).
+        /// </summary>
+        public async Task<List<ReadOrderListWithItemsDTO>> GetCustomerOrderHistoryWithItemsAsync(Guid customerId)
+        {
+            _logger.LogInformation($"[Rasa Chatbot] Truy xuất lịch sử đơn hàng kèm sản phẩm cho Customer ID: {customerId}");
+            var orders = await _orderRepository.GetOrdersWithItemsByCustomerIdAsync(customerId);
+
+            var dtoList = orders.Select(o => new ReadOrderListWithItemsDTO
+            {
+                OrderId = o.OrderId,
+                CustomerName = o.Customer?.FullName ?? "Unknown",
+                PhoneNumber = o.Customer?.PhoneNumber ?? "N/A",
+                OrderDate = o.OrderDate ?? DateTime.Now,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                PaymentMethod = o.PaymentMethod,
+                PaymentStatus = o.PaymentStatus,
+                AddressSnapshot = o.AddressSnapshot,
+                OrderItems = o.OrderDetails.Select(od => new ReadOrderItemDTO
+                {
+                    ProductId = od.ProductId,
+                    ProductName = od.Product?.ProductName ?? "Sản phẩm",
+                    ProductCategory = od.Product?.Category?.CategoryName ?? "Sản phẩm",
+                    ProductBrand = od.Product?.Brand?.BrandName ?? "PetCenter",
+                    Quantity = od.Quantity,
+                    UnitPrice = od.UnitPrice
+                }).ToList()
             }).ToList();
 
             return dtoList;

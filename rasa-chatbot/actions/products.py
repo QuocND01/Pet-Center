@@ -58,6 +58,12 @@ class ActionTimSanPham(Action):
         return "action_tim_san_pham"
 
     def run(self, dispatcher, tracker, domain):
+        user_text = (tracker.latest_message.get("text") or "").lower()
+        # █ Lưới an toàn: Nếu tin nhắn liên quan tới đơn hàng -> Chuyển hướng sang ActionXemDonHang
+        if any(w in user_text for w in ["đơn hàng", "đã mua", "mã đơn", "tìm đơn", "xem đơn", "xem lại đơn"]):
+            from .orders import ActionXemDonHang
+            return ActionXemDonHang().run(dispatcher, tracker, domain)
+
         keyword = tracker.get_slot("tu_khoa")
         if not keyword:
             dispatcher.utter_message(response="utter_yeu_cau_tu_khoa")
@@ -197,6 +203,11 @@ class ActionTimSanPhamTheoDanhMuc(Action):
         return "action_tim_san_pham_theo_danh_muc"
 
     def run(self, dispatcher, tracker, domain):
+        user_text = (tracker.latest_message.get("text") or "").lower()
+        if any(w in user_text for w in ["đơn hàng", "đã mua", "mã đơn", "tìm đơn", "xem đơn", "xem lại đơn"]):
+            from .orders import ActionXemDonHang
+            return ActionXemDonHang().run(dispatcher, tracker, domain)
+
         danh_muc = tracker.get_slot("danh_muc")
         if not danh_muc:
             dispatcher.utter_message(text="Bạn muốn xem sản phẩm thuộc danh mục nào? Ví dụ: thức ăn, đồ chơi, phụ kiện...")
@@ -222,6 +233,11 @@ class ActionTimSanPhamTheoThuongHieu(Action):
         return "action_tim_san_pham_theo_thuong_hieu"
 
     def run(self, dispatcher, tracker, domain):
+        user_text = (tracker.latest_message.get("text") or "").lower()
+        if any(w in user_text for w in ["đơn hàng", "đã mua", "mã đơn", "tìm đơn", "xem đơn", "xem lại đơn"]):
+            from .orders import ActionXemDonHang
+            return ActionXemDonHang().run(dispatcher, tracker, domain)
+
         thuong_hieu = tracker.get_slot("thuong_hieu")
         if not thuong_hieu:
             dispatcher.utter_message(text="Bạn muốn xem sản phẩm của thương hiệu nào? Ví dụ: Royal Canin, Whiskas...")
@@ -442,10 +458,8 @@ class ActionXemChiTietSanPham(Action):
 
         safe = name.replace('"', "'")
         buttons = [
-            {"title": "🛒 Mua",
-             "payload": f'/chon_san_pham{{"product_id_chon": "{product_id}", "product_name_chon": "{safe}"}}'},
-            {"title": "⭐ Xem đánh giá",
-             "payload": f'/xem_danh_gia{{"product_id_chon": "{product_id}"}}'},
+            {"title": "🛒 Mua ngay",
+             "payload": f'/chon_san_pham{{"product_id_chon": "{product_id}", "product_name_chon": "{safe}"}}'}
         ]
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
         return [SlotSet("product_id_chon", product_id)]
