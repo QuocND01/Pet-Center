@@ -289,16 +289,12 @@
     <script>
 
         let imageIndex = 1;
-
             $("#addImage").click(function () {
-
                 const imageSlots = $(".image-item").length;
-
         if (imageSlots >= 10) {
             alert("Maximum 10 images are allowed.");
             return;
         }
-
             const html = `
             <div class="image-item">
 
@@ -356,7 +352,7 @@
             reader.readAsDataURL(file);
         }
 
-                    $("form").submit(function (e) {
+          $("form").submit(function (e) {
 
             const imageCount = $("input[name='ImageFiles']").filter(function () {
                 return this.files && this.files.length > 0;

@@ -22,12 +22,12 @@ namespace PetCenterAPI.Repository
         }
 
         public async Task<bool> CheckCategoryExistAsync(
-    string categoryName,
-    Guid? excludeId = null)
+            string categoryName,
+            Guid? excludeId = null)
         {
-            return await _db.Categories.Where(c => c.Status != Status.Deleted).AnyAsync(c =>
+            return await _db.Categories.AnyAsync(c =>
                 c.CategoryName == categoryName.Trim() &&
-                c.Status == Status.Active &&
+                c.Status != Status.Deleted &&
                 (!excludeId.HasValue || c.CategoryId != excludeId.Value));
         }
 
@@ -113,11 +113,6 @@ namespace PetCenterAPI.Repository
         public async Task UpdateCategoryAsync(Category category)
         {
             _db.Categories.Update(category);
-            foreach (var e in _db.ChangeTracker.Entries<CategoryAttribute>())
-            {
-                Console.WriteLine(
-                    $"{e.Entity.AttributeName} - {e.Entity.CategoryAttributeId} - {e.State}");
-            }
             await _db.SaveChangesAsync();
         }
     }

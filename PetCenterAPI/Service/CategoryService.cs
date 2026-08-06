@@ -6,6 +6,7 @@ using PetCenterAPI.Models;
 using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
+using System.Net;
 using System.Xml.Linq;
 using static PetCenterAPI.DTOs.Requests.Category.CategoryAttributeRequestDTO;
 using static PetCenterAPI.DTOs.Requests.Category.CategoryRequestDTO;
@@ -29,13 +30,12 @@ namespace PetCenterAPI.Service
 
         public async Task AddCategoryAsync(CreateCategoryDTO createCategory)
         {
+            createCategory.CategoryName = createCategory.CategoryName.Trim();
 
             if (string.IsNullOrWhiteSpace(createCategory.CategoryName))
             {
                 throw new Exception("Category name is required");
             }
-
-            createCategory.CategoryName = createCategory.CategoryName.Trim();
 
             if (createCategory.Attributes != null && createCategory.Attributes.Any())
             {
@@ -52,7 +52,6 @@ namespace PetCenterAPI.Service
                     {
                         throw new InvalidOperationException("Attribute name is required.");
                     }
-
                     attribute.AttributeName = attribute.AttributeName.Trim();
                 }
 
@@ -119,25 +118,31 @@ namespace PetCenterAPI.Service
                 category.CategoryLogo = uploadResult.SecureUrl.ToString();
                 category.PublicId = uploadResult.PublicId;
             }
-            Console.WriteLine(category.CategoryAttributes?.Count);
-
-            foreach (var attr in category.CategoryAttributes ?? [])
-            {
-                Console.WriteLine(attr.AttributeName);
-            }
+    
 
             await _categoryRepository.AddCategoryAsync(category);
         }
 
 
-        public async Task ChangeCategoryStatusAsync(
-      Guid id,
-      Status status)
+        public async Task ChangeCategoryStatusAsync(Guid id, Status status)
         {
             var category = await _categoryRepository.GetCategoryByIdAsync(id);
 
             if (category == null)
                 throw new Exception("Category not found");
+
+
+            if (status == Status.Deleted)
+            {
+                if (!string.IsNullOrEmpty(category.PublicId))
+                {
+                    await _cloudinaryService.DeleteImageAsync(category.PublicId);
+                }
+
+                category.CategoryLogo = null;
+                category.PublicId = null;
+            }
+
 
             await _categoryRepository.ChangeCategoryStatusAsync(id, status);
         }
@@ -184,12 +189,10 @@ namespace PetCenterAPI.Service
             }
             catch (KeyNotFoundException)
             {
-                // Giữ nguyên lỗi Category not found
                 throw;
             }
             catch (Exception)
             {
-                // Chuyển lỗi từ Repository/Database thành lỗi Service
                 throw new Exception("Service Temporarily Unavailable");
             }
         }
@@ -232,19 +235,19 @@ namespace PetCenterAPI.Service
 
             if (category.CategoryLogo != null)
             {
-                if (!string.IsNullOrEmpty(existingCategory.PublicId))
-                {
-                    await _cloudinaryService.DeleteImageAsync(existingCategory.PublicId);
-                }
                 var uploadResult = await _cloudinaryService
                     .UploadImageAsync(category.CategoryLogo, "categories");
 
                 if (uploadResult == null ||
-                    uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+                    uploadResult.StatusCode != HttpStatusCode.OK)
                 {
                     throw new Exception("Failed to upload category logo");
                 }
 
+                if (!string.IsNullOrEmpty(existingCategory.PublicId))
+                {
+                    await _cloudinaryService.DeleteImageAsync(existingCategory.PublicId);
+                }
                 existingCategory.CategoryLogo = uploadResult.SecureUrl.ToString();
                 existingCategory.PublicId = uploadResult.PublicId;
             }

@@ -25,33 +25,15 @@ namespace PetCenterAPI.Repository
             await _db.SaveChangesAsync();
         }
 
-        public async Task ChangeServiceStatusAsync(
-       Guid id,
-       Status status,
-       bool hardDeleteImages = false)
+        public async Task ChangeServiceStatusAsync(Guid id, Status status)
         {
             var service = await _db.Services
-                .Include(s => s.ServiceImages)
                 .FirstOrDefaultAsync(s => s.ServiceId == id);
 
             if (service == null)
                 throw new Exception("Service not found");
 
             service.Status = status;
-
-            if (status == Status.Deleted)
-            {
-                var imageIds = service.ServiceImages
-                    .Select(i => i.ImageId)
-                    .ToList();
-
-                if (hardDeleteImages && imageIds.Any())
-                {
-                    await _db.ServiceImages
-                        .Where(i => imageIds.Contains(i.ImageId))
-                        .ExecuteDeleteAsync();
-                }
-            }
 
             await _db.SaveChangesAsync();
         }
@@ -98,11 +80,6 @@ namespace PetCenterAPI.Repository
 
         public async Task UpdateServiceAsync(Models.Service Service)
         {
-
-            foreach (var e in _db.ChangeTracker.Entries<ServiceImage>())
-            {
-                Console.WriteLine($"{e.State} - {e.Entity.ImageId}");
-            }
             _db.Services.Update(Service);
             await _db.SaveChangesAsync();
         }
@@ -128,6 +105,7 @@ namespace PetCenterAPI.Repository
         {
             _db.ServiceImages.Remove(image);
         }
+
         //Vinh
         public async Task<IEnumerable<Models.Service>> GetAllActiveServicesAsync()
         {

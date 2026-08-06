@@ -53,7 +53,6 @@ namespace PetCenterAPI.Service
 
             service.ServiceId = Guid.NewGuid();
             service.ServiceImages ??= new List<ServiceImage>();
-
             var uploadedImages = new List<ImageUploadResult>();
 
             try
@@ -142,7 +141,6 @@ namespace PetCenterAPI.Service
 
                 case Status.Deleted:
                     {
-                        // 1️⃣ update Service status only
                         await _ServiceRepository.ChangeServiceStatusAsync(id, Status.Deleted);
 
                         foreach (var image in Service.ServiceImages.ToList())
@@ -163,17 +161,11 @@ namespace PetCenterAPI.Service
         }
 
 
-        public async Task<List<ReadServiceDTOForCustomer>> GetAllServiceAsync(
-     ODataQueryOptions<ReadServiceDTOForCustomer> queryOptions)
+        public IQueryable<ReadServiceDTOForCustomer> GetAllService()
         {
-            var query = _ServiceRepository
+            return _ServiceRepository
                 .GetAllService()
                 .ProjectTo<ReadServiceDTOForCustomer>(_mapper.ConfigurationProvider);
-
-            var filtered = (IQueryable<ReadServiceDTOForCustomer>)
-                queryOptions.ApplyTo(query);
-
-            return await filtered.ToListAsync();
         }
 
 
@@ -242,7 +234,6 @@ namespace PetCenterAPI.Service
 
             Service.ServiceImages ??= new List<ServiceImage>();
 
-            // 1️⃣ xử lý ảnh bị xoá
             var existingImages = updateService.ExistingImages ?? new List<string>();
 
             var currentImages = Service.ServiceImages

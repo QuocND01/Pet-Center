@@ -172,21 +172,32 @@ namespace PetCenterClient.Services
             }
 
             model.ProductName = model.ProductName.Trim();
-
+            var content = new MultipartFormDataContent();
             // Validate AttributeValue
             if (model.Attributes != null)
             {
-                foreach (var attribute in model.Attributes)
+                for (int i = 0; i < model.Attributes.Count; i++)
                 {
+                    var attribute = model.Attributes[i];
+
                     if (string.IsNullOrWhiteSpace(attribute.AttributeValue))
                     {
                         throw new InvalidOperationException("Attribute value is required.");
                     }
 
                     attribute.AttributeValue = attribute.AttributeValue.Trim();
+
+                    content.Add(
+                        new StringContent(attribute.CategoryAttributeId.ToString()),
+                        $"Attributes[{i}].CategoryAttributeId"
+                    );
+
+                    content.Add(
+                        new StringContent(attribute.AttributeValue),
+                        $"Attributes[{i}].AttributeValue"
+                    );
                 }
             }
-
             // Validate ImageFiles
             if (model.ImageFiles != null && model.ImageFiles.Any())
             {
@@ -207,16 +218,20 @@ namespace PetCenterClient.Services
                         throw new InvalidOperationException("Invalid image file.");
                     }
 
-                    // Giới hạn 5MB mỗi ảnh
                     if (file.Length > 5 * 1024 * 1024)
                     {
                         throw new InvalidOperationException(
                             "Each image size cannot exceed 5 MB.");
                     }
+
+                    var streamContent = new StreamContent(file.OpenReadStream());
+                    streamContent.Headers.ContentType =
+                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+                    content.Add(streamContent, "ImageFiles", file.FileName);
                 }
             }
-            var content = new MultipartFormDataContent();
-
+     
             content.Add(new StringContent(model.ProductName), "ProductName");
             content.Add(new StringContent(model.ProductPrice.ToString()), "ProductPrice");
 
@@ -226,36 +241,6 @@ namespace PetCenterClient.Services
 
             content.Add(new StringContent(model.BrandId.ToString()), "BrandId");
             content.Add(new StringContent(model.CategoryId.ToString()), "CategoryId");
-
-            // gửi attributes
-            if (model.Attributes != null)
-            {
-                for (int i = 0; i < model.Attributes.Count; i++)
-                {
-                    content.Add(
-                        new StringContent(model.Attributes[i].CategoryAttributeId.ToString()),
-                        $"Attributes[{i}].CategoryAttributeId"
-                    );
-
-                    content.Add(
-                        new StringContent(model.Attributes[i].AttributeValue),
-                        $"Attributes[{i}].AttributeValue"
-                    );
-                }
-            }
-
-            // gửi ảnh
-            if (model.ImageFiles != null)
-            {
-                foreach (var file in model.ImageFiles)
-                {
-                    var streamContent = new StreamContent(file.OpenReadStream());
-                    streamContent.Headers.ContentType =
-                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-
-                    content.Add(streamContent, "ImageFiles", file.FileName);
-                }
-            }
 
             var response = await _http.PostAsync("api/Products", content);
 
@@ -283,18 +268,28 @@ namespace PetCenterClient.Services
             }
 
             model.ProductName = model.ProductName.Trim();
-
+            var form = new MultipartFormDataContent();
             // Validate AttributeValue
             if (model.Attributes != null)
             {
-                foreach (var attribute in model.Attributes)
+                for (int i = 0; i < model.Attributes.Count; i++)
                 {
+                    var attribute = model.Attributes[i];
+
                     if (string.IsNullOrWhiteSpace(attribute.AttributeValue))
                     {
                         throw new InvalidOperationException("Attribute value is required.");
                     }
 
                     attribute.AttributeValue = attribute.AttributeValue.Trim();
+
+                    form.Add(
+                        new StringContent(attribute.CategoryAttributeId.ToString()),
+                        $"Attributes[{i}].CategoryAttributeId");
+
+                    form.Add(
+                        new StringContent(attribute.AttributeValue),
+                        $"Attributes[{i}].AttributeValue");
                 }
             }
 
@@ -308,25 +303,21 @@ namespace PetCenterClient.Services
                     var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
                     if (!allowedExtensions.Contains(extension))
-                    {
-                        throw new InvalidOperationException(
-                            "Only JPG, JPEG, PNG, and WEBP images are allowed.");
-                    }
+                        throw new InvalidOperationException("Only JPG, JPEG, PNG, and WEBP images are allowed.");
 
                     if (!file.ContentType.StartsWith("image/"))
-                    {
                         throw new InvalidOperationException("Invalid image file.");
-                    }
 
-                    // Giới hạn 5MB mỗi ảnh
                     if (file.Length > 5 * 1024 * 1024)
-                    {
-                        throw new InvalidOperationException(
-                            "Each image size cannot exceed 5 MB.");
-                    }
+                        throw new InvalidOperationException("Each image size cannot exceed 5 MB.");
+
+                    var streamContent = new StreamContent(file.OpenReadStream());
+                    streamContent.Headers.ContentType =
+                        new MediaTypeHeaderValue(file.ContentType);
+
+                    form.Add(streamContent, "ImageFiles", file.FileName);
                 }
             }
-            var form = new MultipartFormDataContent();
 
             form.Add(new StringContent(model.ProductName), "ProductName");
             form.Add(new StringContent(model.ProductPrice.ToString()), "ProductPrice");
@@ -343,39 +334,11 @@ namespace PetCenterClient.Services
             if (model.CategoryId != null)
                 form.Add(new StringContent(model.CategoryId.ToString()), "CategoryId");
 
-            // Existing Images (ảnh còn giữ lại)
             if (model.ExistingImages != null)
             {
                 foreach (var img in model.ExistingImages)
                 {
                     form.Add(new StringContent(img), "ExistingImages");
-                }
-            }
-
-            // Upload images
-            if (model.ImageFiles != null && model.ImageFiles.Any())
-            {
-                foreach (var file in model.ImageFiles)
-                {
-                    var stream = file.OpenReadStream();
-                    var content = new StreamContent(stream);
-                    content.Headers.ContentType =
-                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-
-                    form.Add(content, "ImageFiles", file.FileName);
-                }
-            }
-
-            // Attributes
-            if (model.Attributes != null)
-            {
-                for (int i = 0; i < model.Attributes.Count; i++)
-                {
-                    form.Add(new StringContent(model.Attributes[i].CategoryAttributeId.ToString()),
-                             $"Attributes[{i}].CategoryAttributeId");
-
-                    form.Add(new StringContent(model.Attributes[i].AttributeValue ?? ""),
-                             $"Attributes[{i}].AttributeValue");
                 }
             }
 
@@ -394,6 +357,8 @@ namespace PetCenterClient.Services
             response.EnsureSuccessStatusCode();
         }
 
+
+
         public async Task ChangeProductStatusAsync(
      Guid id,
      Status status)
@@ -409,7 +374,6 @@ namespace PetCenterClient.Services
         }
         
 
-        
 
 
         public async Task<List<ReadProductViewModelForCustomer>> GetHotProductsAsync()
@@ -427,6 +391,7 @@ namespace PetCenterClient.Services
 
             return result ?? new List<ReadProductViewModelForCustomer>();
         }
+
         private void AddAuthorizationHeader()
         {
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWT");

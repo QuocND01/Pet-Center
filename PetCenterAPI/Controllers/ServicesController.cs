@@ -21,9 +21,11 @@ namespace PetCenterAPI.Controllers
 
         // GET: api/
         [HttpGet]
-        public async Task<IActionResult> Get(ODataQueryOptions<ReadServiceDTOForCustomer> queryOptions)
+        [EnableQuery]
+        public IActionResult Get()
         {
-            var result = await _ServiceService.GetAllServiceAsync(queryOptions);
+            var result = _ServiceService.GetAllService();
+
             return Ok(result);
         }
 

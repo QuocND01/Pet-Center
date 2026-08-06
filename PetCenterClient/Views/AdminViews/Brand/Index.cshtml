@@ -400,91 +400,74 @@
 @section Scripts {
 
     <script>
-
+        // load form vào model popup
         $('#brandModal').on('show.bs.modal', function (e) {
-
             var button = $(e.relatedTarget);
             var url = button.data('url');
-
             var modalBody = $("#brandModalBody");
-
             modalBody.html("Loading...");
-
-                  modalBody.load(url, function () {
-
+            modalBody.load(url, function () {
             $.validator.unobtrusive.parse("#brandModalBody");
-
+        });
         });
 
-        });
 
-
+        // chặn gửi mặc định và gửi form bằng ajax
         $('#brandModal').on('submit','form',function(e){
-
             e.preventDefault();
-
             var form = $(this);
-
             var formData = new FormData(form[0]);
-
             $("#pageLoadingOverlay").css("display","flex");
-
             $.ajax({
-
                 url: form.attr('action'),
                 type: form.attr('method'),
                 data: formData,
                 contentType:false,
                 processData:false,
-
              success: function (res) {
+                    $("#pageLoadingOverlay").hide();
+                    // Thành công
+                    if (typeof res === "object" && res.success) {
 
-    $("#pageLoadingOverlay").hide();
+                        $('#brandModal').modal('hide');
 
-    // Thành công
-    if (typeof res === "object" && res.success) {
+                        showToast("Success");
 
-        $('#brandModal').modal('hide');
+                        setTimeout(function () {
+                            location.reload();
+                        }, 800);
 
-        showToast("Success");
+                        return;
+                    }
 
-        setTimeout(function () {
-            location.reload();
-        }, 800);
+                        // Thất bại -> server trả PartialView thay html trong HTMLModElement bằng html mới
+                        $("#brandModalBody").html(res);
+                        // đọc lại các validation của jquery
+                        $.validator.unobtrusive.parse("#brandModalBody");
 
-        return;
-    }
+                        // Lấy lỗi đầu tiên để hiện Toast
+                        let message =
+                            $("#brandModalBody .validation-summary-errors li:first").text().trim() ||
+                            $("#brandModalBody .field-validation-error:first").text().trim() ||
+                            "Please check the form.";
 
-  // Thất bại -> server trả PartialView
-$("#brandModalBody").html(res);
+                        showToast(message);
+                        },
 
-$.validator.unobtrusive.parse("#brandModalBody");
+            error: function (xhr) {
 
-// Lấy lỗi đầu tiên để hiện Toast
-let message =
-    $("#brandModalBody .validation-summary-errors li:first").text().trim() ||
-    $("#brandModalBody .field-validation-error:first").text().trim() ||
-    "Please check the form.";
+                    $("#pageLoadingOverlay").hide();
 
-showToast(message);
-},
+                    let message = "An unexpected error occurred.";
 
-              error: function (xhr) {
+                    if (xhr.responseJSON?.message) {
+                        message = xhr.responseJSON.message;
+                    }
 
-    $("#pageLoadingOverlay").hide();
+                    showToast(message);
+                            }});
 
-    let message = "An unexpected error occurred.";
-
-    if (xhr.responseJSON?.message) {
-        message = xhr.responseJSON.message;
-    }
-
-    showToast(message);
-}
-
-            });
-
-        });
+                        });
 
 
         function showToast(message){

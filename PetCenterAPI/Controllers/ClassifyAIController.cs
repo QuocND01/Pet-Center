@@ -17,7 +17,6 @@ namespace PetCenterAPI.Controllers
 
         [HttpPost("predict")]
         [Consumes("multipart/form-data")]
-        [ProducesResponseType(typeof(AIResultDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> Predict([FromForm] AIPredictRequest request)
         {
             if (request.File == null || request.File.Length == 0)

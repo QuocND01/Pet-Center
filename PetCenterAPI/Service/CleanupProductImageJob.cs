@@ -130,7 +130,6 @@
             var imageUrls = images.Select(x => x.ImageUrl).Where(u => !string.IsNullOrEmpty(u)).Distinct().ToList();
             if (!imageUrls.Any()) return;
 
-            // 2. Tra cứu snapshot
             var orderUsed = await db.OrderProductSnapshots.AsNoTracking()
                 .Where(x => imageUrls.Contains(x.ProductImage)).Select(x => x.ProductImage).ToListAsync(token);
             var importUsed = await db.ImportProductSnapshots.AsNoTracking()

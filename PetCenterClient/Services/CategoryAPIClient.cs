@@ -30,18 +30,25 @@ namespace PetCenterClient.Services
             }
 
             createCategory.CategoryName = createCategory.CategoryName.Trim();
-
+            var content = new MultipartFormDataContent();
             // Validate Attributes
             if (createCategory.Attributes != null)
             {
-                foreach (var attribute in createCategory.Attributes)
+                for (int i = 0; i < createCategory.Attributes.Count; i++)
                 {
+                    var attribute = createCategory.Attributes[i];
+
                     if (string.IsNullOrWhiteSpace(attribute.AttributeName))
                     {
                         throw new InvalidOperationException("Attribute name is required.");
                     }
 
                     attribute.AttributeName = attribute.AttributeName.Trim();
+
+                    content.Add(
+                        new StringContent(attribute.AttributeName),
+                        $"Attributes[{i}].AttributeName"
+                    );
                 }
             }
 
@@ -71,7 +78,7 @@ namespace PetCenterClient.Services
                 }
             }
 
-            var content = new MultipartFormDataContent();
+           
 
             content.Add(new StringContent(createCategory.CategoryName), "CategoryName");
 
@@ -87,17 +94,6 @@ namespace PetCenterClient.Services
                     new System.Net.Http.Headers.MediaTypeHeaderValue(createCategory.CategoryLogo.ContentType);
 
                 content.Add(streamContent, "CategoryLogo", createCategory.CategoryLogo.FileName);
-            }
-
-            if (createCategory.Attributes != null)
-            {
-                for (int i = 0; i < createCategory.Attributes.Count; i++)
-                {
-                    content.Add(
-                        new StringContent(createCategory.Attributes[i].AttributeName),
-                        $"Attributes[{i}].AttributeName"
-                    );
-                }
             }
 
             var response = await _http.PostAsync("api/Categories", content);
@@ -174,18 +170,30 @@ namespace PetCenterClient.Services
             }
 
             updateCategory.CategoryName = updateCategory.CategoryName.Trim();
-
+            var form = new MultipartFormDataContent();
             // Validate Attributes
             if (updateCategory.Attributes != null)
             {
-                foreach (var attribute in updateCategory.Attributes)
+                for (int i = 0; i < updateCategory.Attributes.Count; i++)
                 {
+                    var attribute = updateCategory.Attributes[i];
+
                     if (string.IsNullOrWhiteSpace(attribute.AttributeName))
                     {
                         throw new InvalidOperationException("Attribute name is required.");
                     }
 
                     attribute.AttributeName = attribute.AttributeName.Trim();
+
+                    form.Add(
+                        new StringContent(attribute.CategoryAttributeId.ToString()),
+                        $"Attributes[{i}].CategoryAttributeId"
+                    );
+
+                    form.Add(
+                        new StringContent(attribute.AttributeName),
+                        $"Attributes[{i}].AttributeName"
+                    );
                 }
             }
 
@@ -215,7 +223,7 @@ namespace PetCenterClient.Services
                 }
             }
 
-            var form = new MultipartFormDataContent();
+         
 
             form.Add(new StringContent(updateCategory.CategoryName), "CategoryName");
 
@@ -234,23 +242,6 @@ namespace PetCenterClient.Services
 
                 form.Add(content, "CategoryLogo", updateCategory.CategoryLogo.FileName);
             }
-
-            if (updateCategory.Attributes != null)
-            {
-                for (int i = 0; i < updateCategory.Attributes.Count; i++)
-                {
-                    form.Add(
-                        new StringContent(updateCategory.Attributes[i].CategoryAttributeId.ToString()),
-                        $"Attributes[{i}].CategoryAttributeId"
-                    );
-
-                    form.Add(
-                        new StringContent(updateCategory.Attributes[i].AttributeName),
-                        $"Attributes[{i}].AttributeName"
-                    );
-                }
-            }
-
             var response = await _http.PutAsync($"api/Categories/{id}", form);
 
             if (response.StatusCode == HttpStatusCode.BadRequest ||
