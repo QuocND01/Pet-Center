@@ -154,7 +154,6 @@ namespace PetCenterClient.Services
         {
             AddAuthorizationHeader();
 
-            // Validate BrandName
             if (string.IsNullOrWhiteSpace(updateBrand.BrandName))
             {
                 throw new InvalidOperationException("Brand name is required.");
@@ -162,7 +161,6 @@ namespace PetCenterClient.Services
 
             updateBrand.BrandName = updateBrand.BrandName.Trim();
 
-            // Validate BrandLogo
             if (updateBrand.BrandLogo != null)
             {
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };

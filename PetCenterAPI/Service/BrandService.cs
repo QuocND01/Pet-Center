@@ -53,16 +53,15 @@ namespace PetCenterAPI.Service
 
         public async Task AddBrandAsync(CreateBrandDTO createBrand)
         {
-            bool brandHasExist = await _brandRepository
-                .CheckBrandExistAsync(createBrand.BrandName);
-
+            
             if (string.IsNullOrWhiteSpace(createBrand.BrandName))
             {
                 throw new Exception("Brand name is required");
             }
 
             createBrand.BrandName = createBrand.BrandName.Trim();
-
+            bool brandHasExist = await _brandRepository
+                .CheckBrandExistAsync(createBrand.BrandName);
             if (brandHasExist)
             {
                 throw new InvalidOperationException("Brand already exists");
@@ -72,7 +71,6 @@ namespace PetCenterAPI.Service
 
             brand.BrandId = Guid.NewGuid();
 
-            // 👇 xử lý upload ảnh giống Product
             if (createBrand.BrandLogo != null)
             {
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
@@ -119,12 +117,12 @@ namespace PetCenterAPI.Service
             if (brand == null)
                 throw new KeyNotFoundException("Brand not found");
 
+
+            updateBrand.BrandName = updateBrand.BrandName.Trim();
             if (string.IsNullOrWhiteSpace(updateBrand.BrandName))
             {
                 throw new Exception("Brand name is required");
             }
-
-            updateBrand.BrandName = updateBrand.BrandName.Trim();
 
             bool brandHasExist = await _brandRepository.CheckBrandExistAsync(updateBrand.BrandName, id);
 
@@ -168,13 +166,10 @@ namespace PetCenterAPI.Service
                     throw new Exception("Failed to upload brand logo");
                 }
 
-                // Upload thành công mới xóa ảnh cũ
                 if (!string.IsNullOrEmpty(brand.PublicId))
                 {
                     await _cloudinaryService.DeleteImageAsync(brand.PublicId);
                 }
-
-                // Cập nhật thông tin ảnh mới
                 brand.BrandLogo = uploadResult.SecureUrl.ToString();
                 brand.PublicId = uploadResult.PublicId;
             }
@@ -182,18 +177,25 @@ namespace PetCenterAPI.Service
             await _brandRepository.UpdateBrandAsync(brand);
         }
 
-        public async Task ChangeBrandStatusAsync(
-    Guid id,
-    Status status)
+        public async Task ChangeBrandStatusAsync(Guid id, Status status)
         {
             var brand = await _brandRepository.GetBrandByIdAsync(id);
 
             if (brand == null)
                 throw new Exception("Brand not found");
 
+
+            if (status == Status.Deleted)
+            {
+                if (!string.IsNullOrEmpty(brand.PublicId))
+                {
+                    await _cloudinaryService.DeleteImageAsync(brand.PublicId);
+                }
+            }
+
+
             await _brandRepository.ChangeBrandStatusAsync(id, status);
         }
-
 
     }
 }

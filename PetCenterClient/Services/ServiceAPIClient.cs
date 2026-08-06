@@ -144,6 +144,7 @@ namespace PetCenterClient.Services
             }
 
             model.ServiceName = model.ServiceName.Trim();
+            var content = new MultipartFormDataContent();
 
             // Validate ImageFiles
             if (model.ImageFiles != null && model.ImageFiles.Any())
@@ -165,15 +166,20 @@ namespace PetCenterClient.Services
                         throw new InvalidOperationException("Invalid image file.");
                     }
 
-                    // Giới hạn 5MB mỗi ảnh
                     if (file.Length > 5 * 1024 * 1024)
                     {
                         throw new InvalidOperationException(
                             "Each image size cannot exceed 5 MB.");
                     }
+
+                    var streamContent = new StreamContent(file.OpenReadStream());
+                    streamContent.Headers.ContentType =
+                        new MediaTypeHeaderValue(file.ContentType);
+
+                    content.Add(streamContent, "ImageFiles", file.FileName);
                 }
             }
-            var content = new MultipartFormDataContent();
+          
 
             content.Add(new StringContent(model.ServiceName), "ServiceName");
             content.Add(new StringContent(model.Price.ToString()), "Price");
@@ -183,22 +189,6 @@ namespace PetCenterClient.Services
 
             content.Add(new StringContent(model.ServiceType.ToString()), "ServiceType");
             content.Add(new StringContent(model.Duration.ToString()), "Duration");
-
-
-
-            // gửi ảnh
-            if (model.ImageFiles != null)
-            {
-                foreach (var file in model.ImageFiles)
-                {
-                    var streamContent = new StreamContent(file.OpenReadStream());
-                    streamContent.Headers.ContentType =
-                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-
-                    content.Add(streamContent, "ImageFiles", file.FileName);
-                }
-            }
-
             var response = await _http.PostAsync("api/Services", content);
 
             if (response.StatusCode == HttpStatusCode.BadRequest ||
@@ -225,7 +215,7 @@ namespace PetCenterClient.Services
             }
 
             model.ServiceName = model.ServiceName.Trim();
-
+            var form = new MultipartFormDataContent();
             // Validate ImageFiles
             if (model.ImageFiles != null && model.ImageFiles.Any())
             {
@@ -246,15 +236,21 @@ namespace PetCenterClient.Services
                         throw new InvalidOperationException("Invalid image file.");
                     }
 
-                    // Giới hạn 5MB mỗi ảnh
                     if (file.Length > 5 * 1024 * 1024)
                     {
                         throw new InvalidOperationException(
                             "Each image size cannot exceed 5 MB.");
                     }
+
+                    var stream = file.OpenReadStream();
+                    var streamContent = new StreamContent(stream);
+                    streamContent.Headers.ContentType =
+                        new MediaTypeHeaderValue(file.ContentType);
+
+                    form.Add(streamContent, "ImageFiles", file.FileName);
                 }
             }
-            var form = new MultipartFormDataContent();
+         
 
             form.Add(new StringContent(model.ServiceName), "ServiceName");
             form.Add(new StringContent(model.Price.ToString()), "Price");
@@ -274,22 +270,6 @@ namespace PetCenterClient.Services
                     form.Add(new StringContent(img), "ExistingImages");
                 }
             }
-
-            // Upload images
-            if (model.ImageFiles != null)
-            {
-                foreach (var file in model.ImageFiles)
-                {
-                    var stream = file.OpenReadStream();
-                    var content = new StreamContent(stream);
-                    content.Headers.ContentType =
-                        new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-
-                    form.Add(content, "ImageFiles", file.FileName);
-                }
-            }
-
-
             var response = await _http.PutAsync($"api/Services/{id}", form);
 
             if (response.StatusCode == HttpStatusCode.BadRequest ||

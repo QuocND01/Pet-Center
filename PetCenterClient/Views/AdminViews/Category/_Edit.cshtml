@@ -190,7 +190,7 @@
         $("#logoInput").val("")
     }
 
-    // ===== ATTRIBUTES  =====
+    // ===== Add ATTRIBUTES  =====
 
         let attrIndex = @((Model.Attributes?.Count ?? 0));
 
@@ -238,19 +238,15 @@
         checkDuplicate()
     })
 
-           $(document).off("submit", "form")
+     $(document).off("submit", "form")
            .on("submit", "form", function (e) {
-
         reIndexAttributes()
-
         const isDuplicate = checkDuplicate()
-
         if (isDuplicate) {
             e.preventDefault()
             $(".is-invalid").first().focus()
         }
     })
-
        function reIndexAttributes() {
 
         $("#attributeContainer .attribute-item").each(function (index) {
@@ -264,19 +260,14 @@
             $(this).find("span[data-valmsg-for]")
                    .attr("data-valmsg-for", `Attributes[${index}].AttributeName`)
         })
-
         attrIndex = $("#attributeContainer .attribute-item").length
-
-        checkDuplicate() // ✔ giữ lại
+        checkDuplicate()
     }
 
-               function checkDuplicate() {
-
+         function checkDuplicate() {
         let map = {}
         let isDuplicate = false
-
         $(".duplicate-error").remove()
-
         $("input[name*='AttributeName']").each(function () {
 
             const val = $(this).val().trim().toLowerCase()

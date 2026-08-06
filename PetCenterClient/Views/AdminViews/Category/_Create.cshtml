@@ -179,8 +179,6 @@
             reader.onload = e => $("#logoPreview").attr("src", e.target.result);
             reader.readAsDataURL(file);
         }
-        // previewLogo được gọi từ onchange="previewLogo(this)" trong HTML
-        // -> phải gán ra window vì HTML attribute chỉ tìm hàm ở global scope
         window.previewLogo = previewLogo;
 
         /* ================= ATTRIBUTES ================= */
@@ -221,12 +219,14 @@
             setTimeout(checkDuplicate, 0);
         });
 
+
         function reIndexAttributes() {
             $("#attributeContainer .attribute-item").each(function (index) {
                 $(this).find("input").attr("name", `Attributes[${index}].AttributeName`);
             });
             attrIndex = $("#attributeContainer .attribute-item").length;
         }
+
 
         function checkDuplicate() {
             let map = {};

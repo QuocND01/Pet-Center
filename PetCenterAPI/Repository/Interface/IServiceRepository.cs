@@ -16,8 +16,7 @@ namespace PetCenterAPI.Repository.Interface
         Task UpdateServiceAsync(Models.Service Service);
         Task ChangeServiceStatusAsync(
      Guid id,
-     Status status,
-     bool hardDeleteImages = false);
+     Status status);
         Task<bool> CheckServiceExistAsync(string ServiceName, Guid? excludeId = null);
         Task SaveAsync();
         void DeleteServiceImage(ServiceImage image);

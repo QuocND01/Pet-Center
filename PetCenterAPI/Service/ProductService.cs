@@ -21,14 +21,12 @@ namespace PetCenterAPI.Service
     {
         private readonly IProductRepository _productRepository;
         private readonly ICloudinaryService _cloudinaryService;
-        private readonly HttpClient _orderClient;
         private readonly IMapper _mapper;
-        public ProductService(IProductRepository productRepository, IMapper mapper, ICloudinaryService service, IHttpClientFactory httpClientFactory)
+        public ProductService(IProductRepository productRepository, IMapper mapper, ICloudinaryService service)
         {
             _productRepository = productRepository;
             _mapper = mapper;
             _cloudinaryService = service;
-            _orderClient = httpClientFactory.CreateClient("OrdersAPI");
         }
 
 
@@ -47,11 +45,9 @@ namespace PetCenterAPI.Service
                     {
                         throw new InvalidOperationException("Attribute value is required.");
                     }
-
                     attribute.AttributeValue = attribute.AttributeValue.Trim();
                 }
             }
-            bool productHasExist = false;
             var compareAttributes = createProduct.Attributes
                 .Select(x => new ProductAttributeCompareDTO
                 {
@@ -59,7 +55,8 @@ namespace PetCenterAPI.Service
                     AttributeValue = x.AttributeValue
                 })
                 .ToList();
-            productHasExist = await _productRepository.CheckProductExistAsync(createProduct.ProductName, createProduct.BrandId!.Value, createProduct.CategoryId!.Value, compareAttributes);
+
+            bool productHasExist = await _productRepository.CheckProductExistAsync(createProduct.ProductName, createProduct.BrandId!.Value, createProduct.CategoryId!.Value, compareAttributes);
             if (productHasExist)
             {
                 throw new InvalidOperationException("Product already exists");
@@ -72,8 +69,7 @@ namespace PetCenterAPI.Service
                 product.AddedAt = DateTime.Now;
                 product.ProductImages ??= new List<ProductImage>();
                 var uploadedImages = new List<ImageUploadResult>();
-                if (createProduct.ImageFiles != null &&
-      createProduct.ImageFiles.Count > 10)
+                if (createProduct.ImageFiles != null && createProduct.ImageFiles.Count > 10)
                 {
                     throw new BadHttpRequestException("Maximum 10 images are allowed.");
                 }
@@ -133,13 +129,11 @@ namespace PetCenterAPI.Service
                 }
                 catch
                 {
-                    // Rollback Cloudinary
                     var deleteTasks = uploadedImages
                         .Where(x => x != null && !string.IsNullOrWhiteSpace(x.PublicId))
                         .Select(x => _cloudinaryService.DeleteImageAsync(x.PublicId));
 
                     await Task.WhenAll(deleteTasks);
-
                     throw;
                 }
             }
@@ -154,39 +148,27 @@ namespace PetCenterAPI.Service
             if (product == null)
                 throw new Exception("Product not found");
 
-            switch (status)
+            if (status == Status.Deleted)
             {
-                case Status.Active:
-                case Status.Inactive:
-                    {
-                        await _productRepository.ChangeProductStatusAsync(id, status);
-                        break;
-                    }
+                bool inOrder = await _productRepository.IsProductInOrderAsync(id);
 
-                case Status.Deleted:
-                    {
-                        bool InOrder = await _productRepository.IsProductInOrderAsync(id);
-                        if (!InOrder)
-                        {
-                            await _productRepository.ChangeProductStatusAsync(id, Status.Deleted);
+                if (inOrder)
+                {
+                    throw new BadHttpRequestException(
+                        "Product is being used in an uncomplete order. Complete the order before deleting.");
+                }
+            }
 
-                            // 2️⃣ mark images for cleanup (NO DELETE)
-                            foreach (var image in product.ProductImages)
-                            {
-                                image.IsActive = false;
-                                image.InactiveAt = DateTime.Now;
-                            }
-                            await _productRepository.SaveAsync();
-                        }
-                        else
-                        {
-                            throw new BadHttpRequestException("Product is being used in an uncomplete order need complete order before deleted.");
-                        }
-                        break;
-                    }
+            await _productRepository.ChangeProductStatusAsync(id, status);
+            if (status == Status.Deleted)
+            {
+                foreach (var image in product.ProductImages.Where(x => x.IsActive))
+                {
+                    image.IsActive = false;
+                    image.InactiveAt = DateTime.Now;
+                }
 
-                default:
-                    throw new Exception("Invalid status");
+                await _productRepository.SaveAsync();
             }
         }
 
@@ -276,7 +258,6 @@ namespace PetCenterAPI.Service
 
             product.ProductImages ??= new List<ProductImage>();
             product.ProductAttributes ??= new List<ProductAttribute>();
-
             var uploadedImages = new List<ImageUploadResult>();
             var finalImageCount =
              (updateproduct.ExistingImages?.Count ?? 0) +
@@ -288,7 +269,6 @@ namespace PetCenterAPI.Service
             }
             try
             {
-                // 1️⃣ Xử lý ảnh bị xóa
                 var existingImages = updateproduct.ExistingImages ?? new List<string>();
 
                 var currentImages = product.ProductImages
@@ -358,7 +338,7 @@ namespace PetCenterAPI.Service
                     }
                 }
 
-                // 3️⃣ Update attributes
+                // Update attributes
                 if (updateproduct.Attributes != null)
                 {
                     var existingAttrs = product.ProductAttributes ??= new List<ProductAttribute>();
@@ -380,7 +360,6 @@ namespace PetCenterAPI.Service
             }
             catch
             {
-                // Rollback các ảnh mới upload
                 var deleteTasks = uploadedImages
                     .Where(x => x != null && !string.IsNullOrWhiteSpace(x.PublicId))
                     .Select(x => _cloudinaryService.DeleteImageAsync(x.PublicId));
@@ -399,7 +378,6 @@ namespace PetCenterAPI.Service
 
         public async Task<IEnumerable<ReadProductDTOForCustomer>> GetHotProductsAsync()
         {
-
             var products = await _productRepository.GetHotProduct();
             return _mapper.Map<List<ReadProductDTOForCustomer>>(products);
         }

@@ -7,7 +7,7 @@ namespace PetCenterAPI.Service.Interface
 {
     public interface IServiceService
     {
-        Task<List<ReadServiceDTOForCustomer>> GetAllServiceAsync(ODataQueryOptions<ReadServiceDTOForCustomer> queryOptions);
+        IQueryable<ReadServiceDTOForCustomer> GetAllService();
 
         Task<PagedResult<ReadServiceDTO>> GetAllServiceAdminAsync(
     ServiceSpecification spec);

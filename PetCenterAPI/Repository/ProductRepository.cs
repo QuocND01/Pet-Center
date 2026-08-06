@@ -26,26 +26,6 @@ namespace PetCenterAPI.Repository
 
         public async Task AddProductAsync(Product product)
         {   
-            //Debug
-            Console.WriteLine($"Attributes Count: {product.ProductAttributes?.Count}");
-
-            if (product.ProductAttributes != null)
-            {
-                foreach (var item in product.ProductAttributes)
-                {
-                    Console.WriteLine($"Value = {item.AttributeValue}");
-                }
-            }
-            //Add inventory + gen SKU
-            var brand = await _db.Brands
-        .FirstAsync(x => x.BrandId == product.BrandId);
-
-            var category = await _db.Categories
-                .FirstAsync(x => x.CategoryId == product.CategoryId);
-
-            product.Brand = brand;
-            product.Category = category;
-
             var inventory = new Inventory
             {
                 InventoryId = Guid.NewGuid(),
@@ -61,13 +41,9 @@ namespace PetCenterAPI.Repository
             await _db.SaveChangesAsync();
         }
 
-        public async Task ChangeProductStatusAsync(
-       Guid id,
-       Status status,
-       bool hardDeleteImages = false)
+        public async Task ChangeProductStatusAsync(Guid id, Status status)
         {
             var product = await _db.Products
-                .Include(p => p.ProductImages)
                 .FirstOrDefaultAsync(x => x.ProductId == id);
 
             if (product == null)
@@ -75,24 +51,10 @@ namespace PetCenterAPI.Repository
 
             product.Status = status;
 
-            if (status == Status.Deleted)
-            {
-                var imageIds = product.ProductImages
-                    .Select(i => i.ImageId)
-                    .ToList();
-
-                if (hardDeleteImages && imageIds.Any())
-                {
-                    await _db.ProductImages
-                        .Where(i => imageIds.Contains(i.ImageId))
-                        .ExecuteDeleteAsync();
-                }
-            }
-
             await _db.SaveChangesAsync();
         }
 
-        // Repository
+
         public async Task<List<Product>> GetAllProduct()
         {
             return await _db.Products
@@ -142,12 +104,6 @@ namespace PetCenterAPI.Repository
                             : query.OrderBy(x => x.AddedAt);
                         break;
 
-                    case "updatedat":
-                        query = spec.SortOrder.ToLower() == "desc"
-                            ? query.OrderByDescending(x => x.UpdateAt)
-                            : query.OrderBy(x => x.UpdateAt);
-                        break;
-
                     default:
                         query = query.OrderByDescending(x => x.AddedAt);
                         break;
@@ -184,8 +140,8 @@ namespace PetCenterAPI.Repository
             return await _db.Products
              .Where(p => p.Status == Status.Active)
              .Where(p => p.AddedAt >= threeMonthsAgo)
-             .OrderByDescending(p => p.AddedAt)   // Mới nhất trước
-             .Take(16)                            // Top 20 sản phẩm mới
+             .OrderByDescending(p => p.AddedAt)  
+             .Take(16)                            
              .Include(p => p.Brand)
              .Include(p => p.Category)
              .Include(p => p.ProductImages.Where(i => i.IsActive== true))

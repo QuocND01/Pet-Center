@@ -1286,37 +1286,8 @@
 
     });
 
-    /* ============================================================
-       OPEN CREATE MEDICAL RECORD MODAL
-       Automatically fill Diagnosis & Treatment from AI result.
-    ============================================================ */
-
-    const btnMedical = document.getElementById("btnCreateMedicalRecord");
-
-    if (btnMedical) {
-
-        btnMedical.addEventListener("click", function () {
-
-            document.getElementById("Diagnosis").value =
-                "@Model?.Description";
-
-            document.getElementById("Treatment").value =
-                "@Model?.Recommendation";
-
-            const modal = new bootstrap.Modal(
-                document.getElementById("medicalRecordModal")
-            );
-
-            modal.show();
-
-        });
-
-    }
-
-
-
+    // lấy vị trí form trước khi sudmit
     const form = document.getElementById("aiForm");
-
     if (form) {
         form.addEventListener("submit", function() {
             sessionStorage.setItem(

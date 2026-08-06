@@ -169,9 +169,6 @@ namespace PetCenterAPI.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("===== ERROR =====");
-                Console.WriteLine(ex.ToString());
-
                 return StatusCode(500, new
                 {
                     message = ex.Message,

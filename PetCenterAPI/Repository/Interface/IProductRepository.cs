@@ -19,8 +19,7 @@ namespace PetCenterAPI.Repository.Interface
         Task UpdateProductAsync(Product product);
         Task ChangeProductStatusAsync(
      Guid id,
-     Status status,
-     bool hardDeleteImages = false);
+     Status status);
         Task<bool> CheckProductExistAsync(string productName,Guid brandId,Guid categoryId, List<ProductAttributeCompareDTO> attributes, Guid? excludeId = null);
 
         Task<List<T>> GetActiveProductsAsync<T>(Expression<Func<Product, bool>>? filter = null);
