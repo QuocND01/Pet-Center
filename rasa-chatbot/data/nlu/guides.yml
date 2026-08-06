@@ -1,0 +1,53 @@
+version: "3.1"
+
+# ════════════════════════════════════════════════════════════════════════════
+#  HƯỚNG DẪN MUA HÀNG, THANH TOÁN VÀ ĐỊA CHỈ NGUỜI KHÁC
+# ════════════════════════════════════════════════════════════════════════════
+
+nlu:
+
+- intent: huong_dan_mua_hang
+  examples: |
+    - hướng dẫn mua hàng
+    - làm sao để mua hàng
+    - cách đặt hàng trên web
+    - mua hàng như thế nào
+    - các bước mua sản phẩm
+    - chỉ tôi cách mua hàng với
+    - làm thế nào để đặt mua đồ
+    - hướng dẫn đặt hàng
+    - tôi muốn mua sản phẩm thì làm sao
+    - làm sao để mua được đồ trên web
+    - hướng dẫn các bước mua hàng
+    - chỉ cách mua hàng trên petcenter
+
+- intent: huong_dan_thanh_toan
+  examples: |
+    - hướng dẫn thanh toán
+    - thanh toán như thế nào
+    - có những hình thức thanh toán nào
+    - thanh toán chuyển khoản vnpay cod
+    - thanh toán đơn hàng bằng cách nào
+    - các phương thức thanh toán
+    - làm sao để thanh toán đơn hàng
+    - hướng dẫn chuyển khoản vnpay
+    - trả tiền như thế nào
+    - hỗ trợ thanh toán như thế nào
+
+- intent: xem_dia_chi_nguoi_khac
+  examples: |
+    - cho xem địa chỉ của người khác
+    - xem địa chỉ tài khoản khác
+    - địa chỉ của người dùng khác là gì
+    - tìm địa chỉ của khách hàng khác
+    - cho tôi xem sổ địa chỉ của tài khoản khác
+    - coi địa chỉ của tài khoản người khác
+    - địa chỉ nhà của người khác
+    - xem địa chỉ người lạ
+
+- intent: goto_login_page
+  examples: |
+    - đăng nhập ngay
+    - tới trang đăng nhập
+    - mở trang đăng nhập
+    - sang trang đăng nhập

@@ -418,7 +418,37 @@ class ActionXemChiTietSanPham(Action):
         safe = name.replace('"', "'")
         buttons = [
             {"title": "🛒 Mua ngay",
-             "payload": f'/chon_san_pham{{"product_id_chon": "{product_id}", "product_name_chon": "{safe}"}}'}
+             "payload": f'/chon_san_pham{{"product_id_chon": "{product_id}", "product_name_chon": "{safe}"}}'},
+            {"title": "🌐 Xem hình ảnh & chi tiết trên Web",
+             "payload": f'/goto_product_details{{"product_id_chon": "{product_id}"}}'}
         ]
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
         return [SlotSet("product_id_chon", product_id)]
+
+
+class ActionGotoProductDetails(Action):
+    """Chuyển hướng người dùng sang trang Chi tiết sản phẩm trên Website (để xem hình ảnh & thông tin đầy đủ)."""
+    def name(self) -> Text:
+        return "action_goto_product_details"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        product_id = tracker.get_slot("product_id_chon")
+
+        if not product_id:
+            for e in tracker.latest_message.get("entities", []):
+                if e.get("entity") == "product_id_chon" and e.get("value"):
+                    product_id = str(e.get("value")).strip()
+                    break
+
+        if not product_id:
+            dispatcher.utter_message(
+                text="Dạ có ngay! 🐾 Đang chuyển hướng bạn tới cửa hàng sản phẩm của PetCenter...",
+                json_message={"type": "navigate", "url": "/Products"}
+            )
+            return []
+
+        dispatcher.utter_message(
+            text="Dạ có ngay! 🐾 Đang chuyển hướng bạn tới trang chi tiết sản phẩm trên Web để xem hình ảnh nhé...",
+            json_message={"type": "navigate", "url": f"/Products/DetailsForcustomer/{product_id}"}
+        )
+        return []

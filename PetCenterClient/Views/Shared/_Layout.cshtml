@@ -630,12 +630,13 @@
         // 2. Product List & 3. Product Details (Products, Category, Brand)
         // 4. Service List & 5. Service Details (Service)
         // 6. View Order / History & 7. Order Details (Orders)
-        // 8. Cart (Giỏ hàng)
+        // 8. Cart (Giỏ hàng) & 9. Addresses (Địa chỉ)
         bool isChatbotAllowed = ctrl == "home"
             || ctrl == "products" || ctrl == "category" || ctrl == "brand"
             || ctrl == "service"
             || ctrl == "orders" || ctrl == "order"
-            || ctrl == "cart";
+            || ctrl == "cart"
+            || ctrl == "addresses" || ctrl == "address";
     }
 
     @if (isChatbotAllowed)
