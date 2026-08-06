@@ -1,4 +1,4 @@
-﻿@using PetCenterClient.DTOs
+@using PetCenterClient.DTOs
 @model IEnumerable<ReadOrderListViewModel>
 
 @{
@@ -134,4 +134,17 @@
     // Listen for SignalR events dispatched to window
     window.addEventListener('order:created', function (e) { refreshCustomerHistory(); });
     window.addEventListener('order:updated', function (e) { refreshCustomerHistory(); });
+
+    // Auto-filter table rows if search parameter is present in URL (?search=Royal)
+    document.addEventListener("DOMContentLoaded", function () {
+        var params = new URLSearchParams(window.location.search);
+        var q = (params.get("search") || "").trim().toLowerCase();
+        if (q) {
+            var rows = document.querySelectorAll("#customerOrdersTableBody tr");
+            rows.forEach(function (r) {
+                var txt = r.textContent.toLowerCase();
+                r.style.display = txt.includes(q) ? "" : "none";
+            });
+        }
+    });
 </script>

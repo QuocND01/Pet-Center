@@ -130,11 +130,6 @@ rules:
     - intent: huy_don_hang
     - action: action_huy_don_hang
 
-- rule: Xem voucher
-  steps:
-    - intent: xem_voucher
-    - action: action_xem_voucher
-
 - rule: Hỏi ngày đặt mua đơn hàng
   steps:
     - intent: hoi_ngay_dat_don
@@ -222,21 +217,10 @@ rules:
     - intent: xem_ho_so_y_te
     - action: action_xem_ho_so_y_te
 
-# — Đánh giá —
-- rule: Xem đánh giá
-  steps:
-    - intent: xem_danh_gia
-    - action: action_xem_danh_gia
-
-- rule: Gửi đánh giá
-  steps:
-    - intent: gui_danh_gia
-    - action: action_gui_danh_gia
-
 - rule: Điều hướng trang đơn hàng
   steps:
     - intent: goto_orders_page
-    - action: action_gui_danh_gia
+    - action: action_goto_orders_page
 
 # — Bảo mật: từ chối xem đơn hàng người khác —
 - rule: Từ chối xem đơn hàng của người khác

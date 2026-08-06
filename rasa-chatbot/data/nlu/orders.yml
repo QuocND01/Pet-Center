@@ -28,6 +28,18 @@ nlu:
     - kiểm tra đơn hàng mới đặt
     - tôi có đơn hàng nào đang giao không
     - cho tui xem đơn hàng
+    - tôi muốn tìm đơn hàng có sản phẩm tên là Premium Chicken
+    - tôi đã mua đơn hàng nhưng muốn tìm nó để xem lại đầy đủ đơn hàng, tôi chỉ nhớ sản phẩm trong đơn có tên là Premium Chicken
+    - tôi đã mua đơn hàng có tên là test hãy tìm giúp tôi
+    - tìm đơn hàng có sản phẩm [Premium Chicken](tu_khoa)
+    - tìm đơn có sản phẩm [cát vệ sinh](tu_khoa)
+    - tìm đơn hàng đã mua có chứa [pate](tu_khoa)
+    - tìm lại đơn hàng từng mua
+    - xem lại đơn hàng có mua [hạt cho chó](tu_khoa)
+    - tôi muốn tìm đơn có chứa sản phẩm [Royal Canin](tu_khoa)
+    - đơn hàng có sản phẩm là [Royal Canin](tu_khoa)
+    - đơn hàng có sản phẩm là [Premium Chicken](tu_khoa)
+    - tìm đơn hàng có sản phẩm tên là [Royal Canin](tu_khoa)
     - coi đơn hàng của tui
     - lịch sử đặt hàng
     - cho mình xem các đơn đã đặt
@@ -119,6 +131,10 @@ nlu:
     - thời gian đặt đơn hàng này
     - ngày tạo đơn hàng là bao nhiêu
     - ngày thanh toán mua đơn
+    - ngày đặt
+    - ngày mua
+    - đặt ngày nào
+    - thời gian đặt
 
 - intent: hoi_ngay_giao_don
   examples: |
@@ -139,6 +155,11 @@ nlu:
     - nó được giao khi nào
     - ngày giao hàng của đơn [4581016](order_id) là ngày nào
     - ngày giao hàng của đơn [45810162](order_id) là ngày nào
+    - ngày giao
+    - khi nào giao
+    - mấy ngày nữa tới
+    - ngày nhận hàng
+    - bao giờ giao
 
 - intent: hoi_gia_tong_tien_don
   examples: |
@@ -158,6 +179,11 @@ nlu:
     - đơn này [45810162](order_id) có giá bao nhiêu
     - đơn [4581016](order_id) giá bao nhiêu
     - đơn hàng [4581016](order_id) có giá bao nhiêu
+    - tổng tiền
+    - bao nhiêu tiền
+    - giá đơn
+    - tiền đơn
+    - giá bao nhiêu
 
 - intent: hoi_so_luong_san_pham_don
   examples: |
@@ -184,6 +210,15 @@ nlu:
     - hình thức thanh toán đơn này là gì
     - đơn này thanh toán COD hay chuyển khoản
     - kiểm tra thanh toán đơn hàng
+    - phương thức thanh toán
+    - trạng thái thanh toán
+    - đơn thanh toán chưa
+    - thanh toán như thế nào
+    - phương thức thanh toán của shop
+    - shop chấp nhận thanh toán gì
+    - các hình thức thanh toán
+    - thanh toán COD hay VNPAY
+    - xem thanh toán đơn hàng
 
 - intent: hoi_thong_tin_nguoi_nhan_dia_chi
   examples: |
@@ -205,6 +240,11 @@ nlu:
     - thông tin khách hàng đặt đơn
     - ai mua đơn này
     - số điện thoại người đặt đơn
+    - ai đặt
+    - ai nhận
+    - địa chỉ giao
+    - địa chỉ nhận
+    - sđt người nhận
 
 - intent: huy_don_hang
   examples: |
@@ -229,29 +269,6 @@ nlu:
     - làm thế nào để hủy đơn vừa đặt
     - shop ơi hủy đơn giúp mình nhé
     - hủy đơn gần nhất
-
-- intent: xem_voucher
-  examples: |
-    - có voucher nào không
-    - mã giảm giá
-    - xem khuyến mãi
-    - tôi có mã giảm giá nào
-    - có mã giảm giá nào không
-    - voucher của tôi
-    - khuyến mãi hiện tại
-    - có ưu đãi gì không
-    - cho xin mã giảm giá với
-    - kiểm tra voucher của tôi
-    - shop có mã freeship không
-    - xem các mã giảm giá áp dụng được
-    - tôi có mã discount nào không
-    - tìm mã giảm giá mua hàng
-    - voucher giảm giá hiện có
-    - có mã ưu đãi nào cho đơn hàng không
-    - xem danh sách voucher khả dụng
-    - lấy mã giảm giá ở đâu
-    - mã khuyến mãi hot hôm nay
-    - cho tui xem mấy mã giảm giá
 
 - intent: hoi_thoi_gian_giao_hang
   examples: |

@@ -21,7 +21,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
 
 API_BASE = os.getenv("PETCENTER_API_URL", "https://localhost:7004")
-REQUEST_TIMEOUT = 8
+REQUEST_TIMEOUT = 30
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -172,15 +172,15 @@ ORDER_STATUS = {
     0: "Đã hủy",
     1: "Chờ xác nhận",
     2: "Đã xác nhận",
-    3: "Đang giao",
-    4: "Đã giao",
-    5: "Hoàn thành",
+    3: "Đang giao hàng",
+    4: "Giao hàng thành công",
 }
 
 PAYMENT_STATUS = {
     0: "Chưa thanh toán",
-    1: "Đã thanh toán",
-    2: "Hoàn tiền",
+    1: "Chờ xử lý thanh toán",
+    2: "Đã thanh toán",
+    3: "Đã hoàn tiền",
 }
 
 
@@ -255,7 +255,7 @@ class ActionDefaultFallback(Action):
             buttons = [
                 {"title": "🛍️ Tìm sản phẩm", "payload": "/xem_san_pham_hot"},
                 {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"},
-                {"title": "🎟️ Mã giảm giá", "payload": "/xem_voucher"},
+                {"title": "🩺 Dịch vụ & Đặt lịch", "payload": "/xem_dich_vu"},
                 {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
             ]
         else:

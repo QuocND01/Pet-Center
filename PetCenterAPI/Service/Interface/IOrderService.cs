@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Query;
 using PetCenterAPI.Common;
 using PetCenterAPI.DTOs.Requests.Order;
 using static PetCenterAPI.DTOs.Requests.Order.OrderRequestDTO;
@@ -16,6 +16,9 @@ namespace PetCenterAPI.Service.Interface
         Task<bool> CancelOrderAsync(Guid orderId);
         Task<int> AdvanceOrderStatusAsync(Guid orderId, Guid? staffId = null);
         Task<List<OrderRequestDTO.ReadOrderListDTO>> GetCustomerOrderHistoryAsync(Guid customerId);
-
+        /// <summary>
+        /// Truy xuất lịch sử đơn hàng kèm danh sách chi tiết các sản phẩm (Dành riêng cho Rasa Chatbot).
+        /// </summary>
+        Task<List<OrderRequestDTO.ReadOrderListWithItemsDTO>> GetCustomerOrderHistoryWithItemsAsync(Guid customerId);
     }
 }

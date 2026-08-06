@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PetCenterAPI.Models;
+using PetCenterAPI.Service.Interface;
 using System.Security.Claims;
 
 namespace PetCenterAPI.Controllers
@@ -12,7 +13,13 @@ namespace PetCenterAPI.Controllers
     public class ChatAPIController : ControllerBase
     {
         private readonly PetCenterContext _db;
-        public ChatAPIController(PetCenterContext db) => _db = db;
+        private readonly IOrderService _orderService;
+
+        public ChatAPIController(PetCenterContext db, IOrderService orderService)
+        {
+            _db = db;
+            _orderService = orderService;
+        }
 
         private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -119,6 +126,25 @@ namespace PetCenterAPI.Controllers
                 .ToListAsync();
 
             return Ok(messages);
+        }
+
+        /// <summary>
+        /// 4. Dành riêng cho Rasa Chatbot: Lấy danh sách đơn hàng của khách hàng đang đăng nhập kèm chi tiết các sản phẩm trong đơn.
+        /// Endpoint: GET /api/chat/my-orders-with-items
+        /// </summary>
+        [HttpGet("my-orders-with-items")]
+        public async Task<IActionResult> GetMyOrdersWithItems()
+        {
+            try
+            {
+                var customerId = GetUserId();
+                var orders = await _orderService.GetCustomerOrderHistoryWithItemsAsync(customerId);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
     }
 }

@@ -79,5 +79,20 @@ namespace PetCenterAPI.Repository
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Truy vấn danh sách đơn hàng của khách hàng kèm danh sách sản phẩm (Dành riêng cho Rasa Chatbot).
+        /// </summary>
+        public async Task<List<Order>> GetOrdersWithItemsByCustomerIdAsync(Guid customerId)
+        {
+            return await _db.Orders
+                .AsNoTracking()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                .Where(o => o.CustomerId == customerId)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+        }
     }
 }

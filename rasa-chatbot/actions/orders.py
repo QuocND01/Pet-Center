@@ -34,6 +34,44 @@ def _clean_order_id(raw_id: Any) -> Optional[str]:
     return s if s else None
 
 
+def _normalize_text(s: str) -> str:
+    """Loại bỏ dấu tiếng Việt, ký tự đặc biệt, đưa về chữ thường."""
+    if not s:
+        return ""
+    import unicodedata, re
+    s = unicodedata.normalize('NFD', str(s))
+    s = re.sub(r'[\u0300-\u036f]', '', s)
+    return s.lower().strip()
+
+
+def _match_product_in_orders(orders: list, user_text: str) -> list:
+    """Thuật toán So khớp Mờ (Fuzzy / Substring Matcher) quét tên sản phẩm trong lịch sử đơn hàng."""
+    norm_query = _normalize_text(user_text)
+    if not norm_query or len(norm_query) < 2:
+        return []
+
+    fillers = {
+        "toi", "mua", "don", "hang", "can", "xem", "kiem", "tra", "khong", "nho", 
+        "ma", "gi", "do", "hoi", "luc", "truoc", "voi", "cho", "xin", "la", "co", 
+        "nhu", "the", "nao", "shop", "oi", "mot", "tim", "giup", "san", "pham", "giao", "dat", "hay", "ten",
+        "muon", "nao", "nhung", "cac", "duoc", "tung", "da", "lai", "nay", "ay", "kia", "voi", "em", "admin"
+    }
+    query_words = [w for w in norm_query.split() if w not in fillers and len(w) > 1]
+
+    if not query_words:
+        return []
+
+    matched = []
+    for o in orders:
+        items = extract_list(get_field(o, "orderItems", "OrderItems", "orderDetails", "OrderDetails", default=[]))
+        for it in items:
+            pname = _normalize_text(get_field(it, "productName", "ProductName", default=""))
+            if all(w in pname for w in query_words) or norm_query in pname:
+                matched.append(o)
+                break
+    return matched
+
+
 def _resolve_target_order(
     dispatcher: CollectingDispatcher, 
     tracker: Tracker, 
@@ -70,6 +108,17 @@ def _resolve_target_order(
         # 1. Gọi API với JWT (bắt buộc có auth — không cho phép truy cập khi không có token)
         ok, data = api_get(f"/api/orders/{target_id}", tracker, with_auth=True)
         if ok and data:
+            cid_order = str(get_field(data, "customerId", "CustomerId", default="")).lower().strip()
+            cid_user = str(get_customer_id(tracker) or "").lower().strip()
+
+            # █ Bảo vệ bảo mật: Chặn xem đơn của người khác
+            if cid_order and cid_user and cid_order != cid_user:
+                dispatcher.utter_message(
+                    text=f"🔒 Mã đơn hàng `#{target_id[:8]}` không thuộc sở hữu của tài khoản hiện tại. Vì lý do bảo mật thông tin khách hàng, tôi chỉ có thể hỗ trợ tra cứu các đơn hàng do chính bạn đặt mua thôi ạ! 🐾",
+                    buttons=[{"title": "🔗 Xem tất cả đơn trên Web", "payload": "/goto_orders_page"}]
+                )
+                return None, None, [SlotSet("order_id", None)]
+
             full_id = str(get_field(data, "orderId", "OrderId", default=target_id)).strip().lstrip('#')
             events.append(SlotSet("order_id", full_id))
             return full_id, data, events
@@ -95,7 +144,10 @@ def _resolve_target_order(
             return full_id, matched_order, events
 
         # 3. Hoàn toàn không khớp đơn nào → Báo lịch sự
-        dispatcher.utter_message(text=f"Không tìm thấy đơn hàng nào khớp với mã '#{target_id}'. Bạn kiểm tra lại mã nhé!")
+        dispatcher.utter_message(
+            text=f"Dạ, tôi không tìm thấy đơn hàng nào khớp với mã `#{target_id[:8]}` trong danh sách đơn hàng của bạn ạ. 🐾\n\nBạn có thể kiểm tra lại mã đơn hàng hoặc bấm nút dưới đây để xem toàn bộ danh sách nhé:",
+            buttons=[{"title": "🔗 Xem tất cả đơn trên Web", "payload": "/goto_orders_page"}]
+        )
         return None, None, [SlotSet("order_id", None)]
 
     # Không có order_id — lấy danh sách đơn để cho chọn
@@ -105,16 +157,12 @@ def _resolve_target_order(
     if not my_orders:
         dispatcher.utter_message(text="Bạn chưa có đơn hàng nào để tra cứu.")
         return None, None, events
-    elif len(my_orders) == 1:
-        full_id = str(get_field(my_orders[0], "orderId", "OrderId", default="")).strip().lstrip('#')
-        events.append(SlotSet("order_id", full_id))
-        ok, data = api_get(f"/api/orders/{full_id}", tracker, with_auth=True)
-        if ok and data:
-            return full_id, data, events
-        return full_id, my_orders[0], events
     else:
-        # Nhiều đơn → hỏi người dùng chọn đơn nào (giới hạn 3 đơn gần nhất)
-        lines = [f"❓ Bạn muốn xem **{field_label}** của đơn hàng nào? Bấm chọn đơn dưới đây:"]
+        # Chưa chọn đơn nào -> luôn hỏi người dùng chọn đơn (giới hạn 3 đơn gần nhất)
+        lines = [
+            f"Dạ, bạn muốn kiểm tra **{field_label}** của đơn hàng nào dưới đây ạ? 🐾\n",
+            "Nếu đơn bạn cần tìm ở cũ hơn, bạn có thể **gõ mã đơn hàng (ví dụ: #70000000)** hoặc bấm nút bên dưới nhé:"
+        ]
         buttons = []
         for o in my_orders[:3]:
             oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
@@ -132,10 +180,74 @@ def _resolve_target_order(
         return None, None, events
 
 
+def _render_order_detail_card(dispatcher: CollectingDispatcher, order_id: str, data: dict, custom_prefix: Optional[str] = None) -> List[Dict[Text, Any]]:
+    status_code = get_field(data, "status", "Status", default=0)
+    status = order_status_label(status_code)
+    pay = payment_status_label(get_field(data, "paymentStatus", "PaymentStatus", default=0))
+    total = get_field(data, "totalAmount", "TotalAmount", default=0)
+    items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
+    
+    pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD (Thanh toán khi nhận hàng)")
+    address = get_field(data, "addressSnapshot", "AddressSnapshot", "shippingAddress", "ShippingAddress", default="Chưa cập nhật")
+    phone = get_field(data, "phoneNumber", "PhoneNumber", "receiverPhone", "ReceiverPhone", "phone", "Phone", default="Chưa cập nhật")
+    name = get_field(data, "customerName", "CustomerName", "receiverName", "ReceiverName", "fullName", "FullName", default="Khách hàng")
+    email = get_field(data, "email", "Email", default="")
+    short_id = str(order_id).strip().lstrip('#')[:8]
+
+    header = custom_prefix if custom_prefix else f"📋 **CHI TIẾT ĐƠN HÀNG #{short_id}…**"
+
+    lines = [
+        header,
+        f"• Trạng thái: **{status}**",
+        f"• Trạng thái thanh toán: **{pay}**",
+        f"• Phương thức thanh toán: **{pay_method}**",
+        f"• Tổng tiền: **{format_price(total)}**",
+    ]
+
+    lines.append("\n📍 THÔNG TIN NGƯỜI ĐẶT & GIAO HÀNG:")
+    lines.append(f"  • Người đặt: {name}")
+    lines.append(f"  • Số điện thoại: {phone}" + (f" (Email: {email})" if email else ""))
+    lines.append(f"  • Địa chỉ nhận hàng: {address}")
+
+    buttons = []
+
+    if items:
+        lines.append("\n📦 SẢN PHẨM TRONG ĐƠN:")
+        for it in items[:5]:
+            pid = str(get_field(it, "productId", "ProductId", default=""))
+            nm = get_field(it, "productName", "ProductName", default="Sản phẩm")
+            qty = get_field(it, "quantity", "Quantity", default=1)
+            price = get_field(it, "unitPrice", "UnitPrice", "price", "Price", default=0)
+            lines.append(f"  • {nm} x{qty} ({format_price(price)})")
+
+            if pid:
+                buttons.append({
+                    "title": f"🔍 SP: {nm[:25]}",
+                    "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
+                })
+
+    if int(status_code) in (1, 2):
+        buttons.append({
+            "title": f"❌ Hủy đơn #{short_id}",
+            "payload": f'/huy_don_hang{{"order_id": "{order_id}"}}'
+        })
+    buttons.append({
+        "title": "🚚 Khi nào giao tới?",
+        "payload": f'/hoi_ngay_giao_don{{"order_id": "{order_id}"}}'
+    })
+    buttons.append({
+        "title": "🔗 Xem tất cả đơn trên Web",
+        "payload": "/goto_orders_page"
+    })
+
+    dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+    return [SlotSet("order_id", order_id)]
+
+
 class ActionXemDonHang(Action):
     """
     Hiển thị tối đa 3 đơn hàng gần nhất kèm Nút bấm trực tiếp.
-    Không tự set slot order_id — việc chọn đơn chỉ xảy ra khi user bấm nút hoặc gõ mã.
+    Hỗ trợ TỰ ĐỘNG LỌC THEO TÊN SẢN PHẨM / TỪ KHÓA KÝ ỨC NGƯỜI DÙNG (Fuzzy Matcher).
     """
     def name(self) -> Text:
         return "action_xem_don_hang"
@@ -145,9 +257,13 @@ class ActionXemDonHang(Action):
             dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem đơn hàng của mình nhé!")
             return []
 
-        ok, data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+        # █ Gọi API mới dành riêng cho Rasa Chatbot: Lấy đơn hàng kèm đầy đủ chi tiết sản phẩm OrderItems (1-shot API)
+        ok, data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
         if not ok:
-            dispatcher.utter_message(text="⚠️ Không thể tải đơn hàng lúc này. Vui lòng thử lại sau!")
+            ok, data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+
+        if not ok:
+            dispatcher.utter_message(text="⚠️ Unable to load orders at this time. Please try again later!")
             return []
 
         orders = extract_list(data)
@@ -155,7 +271,85 @@ class ActionXemDonHang(Action):
             dispatcher.utter_message(text="Bạn chưa có đơn hàng nào. Cùng mua sắm nhé! 🛍️")
             return [SlotSet("order_id", None)]
 
-        # Giới hạn hiển thị 3 đơn gần nhất — đủ dễ đọc, không quá tải
+        # █ Kiểm tra nếu câu gõ chứa mã đơn hàng (vd: #CC41F9D5 hay 9d7b3c29) -> Mở trực tiếp Chi tiết Đơn hàng!
+        raw_entity_id = None
+        for e in tracker.latest_message.get("entities", []):
+            if e.get("entity") == "order_id" and e.get("value"):
+                raw_entity_id = e.get("value")
+                break
+
+        if raw_entity_id:
+            return ActionChiTietDon().run(dispatcher, tracker, domain)
+
+        # 🔍 Ưu tiên 100% từ khóa/tin nhắn của LƯỢT CHAT HIỆN TẠI (tránh bị dính slot tu_khoa cũ từ lượt trước)
+        user_text = tracker.latest_message.get("text", "")
+        current_entity_kw = None
+        for e in tracker.latest_message.get("entities", []):
+            if e.get("entity") == "tu_khoa" and e.get("value"):
+                current_entity_kw = e.get("value")
+                break
+
+        search_term = current_entity_kw if current_entity_kw else user_text
+
+        matched_orders = _match_product_in_orders(orders, search_term)
+
+        # NẾU KHỚP THEO TỪ KHÓA SẢN PHẨM KHÁCH GÕ:
+        if matched_orders:
+            match_count = len(matched_orders)
+            if match_count == 1:
+                target_order = matched_orders[0]
+                oid = str(get_field(target_order, "orderId", "OrderId", default="")).strip().lstrip('#')
+                ok_det, det_data = api_get(f"/api/orders/{oid}", tracker, with_auth=True)
+                data_render = det_data if ok_det and det_data else target_order
+                prefix = f"Dạ! 🐾 Tôi tìm thấy 1 đơn hàng bạn từng mua có chứa sản phẩm khớp từ khóa **'{search_term[:30]}'** đây ạ:\n\n📋 **CHI TIẾT ĐƠN HÀNG #{oid[:8]}…**"
+                return _render_order_detail_card(dispatcher, oid, data_render, custom_prefix=prefix) + [SlotSet("tu_khoa", None)]
+
+            display_orders = matched_orders[:3]
+            lines = [f"Dạ! 🐾 Tôi tìm thấy {match_count} đơn hàng bạn từng mua có sản phẩm khớp từ khóa **'{search_term[:30]}'** ạ. Dưới đây là các đơn gần đây nhất:"]
+            buttons = []
+            for o in display_orders:
+                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
+                created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
+                date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
+                short_id = oid[:8] if oid else "đơn"
+                buttons.append({
+                    "title": f"📋 Đơn #{short_id} ({date_str})",
+                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
+                })
+            buttons.append({
+                "title": "🔗 Xem tất cả đơn trên Web",
+                "payload": "/goto_orders_page"
+            })
+            dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+
+        # 🔍 NẾU KHÔNG CÓ ĐƠN NÀO KHỚP TỪ KHÓA SẢN PHẨM KHÁCH TÌM:
+        norm_query = _normalize_text(search_term)
+        fillers = {"toi", "mua", "don", "hang", "can", "xem", "kiem", "tra", "khong", "nho", "ma", "gi", "do", "hoi", "luc", "truoc", "voi", "cho", "xin", "la", "co", "nhu", "the", "nao", "shop", "oi", "mot", "tim", "giup", "san", "pham", "giao", "dat", "hay", "ten", "muon", "nao", "nhung", "cac", "duoc", "tung", "da", "lai", "nay", "ay", "kia", "voi", "em", "admin"}
+        kw_words = [w for w in norm_query.split() if w not in fillers and len(w) > 1]
+
+        if kw_words:
+            display_kw = " ".join(kw_words)
+            lines = [f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có chứa sản phẩm '{display_kw}'** ạ.\n\n📦 Dưới đây là các đơn hàng gần đây nhất của bạn:"]
+            display_orders = orders[:3]
+            buttons = []
+            for o in display_orders:
+                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
+                created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
+                date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
+                short_id = oid[:8] if oid else "đơn"
+                buttons.append({
+                    "title": f"📋 Đơn #{short_id} ({date_str})",
+                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
+                })
+            buttons.append({
+                "title": "🔗 Xem tất cả đơn trên Web",
+                "payload": "/goto_orders_page"
+            })
+            dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+
+        # GIỮ NGUYÊN LUỒNG HIỂN THỊ 3 ĐƠN GẦN NHẤT MẶC ĐỊNH
         display_orders = orders[:3]
         total_count = len(orders)
 
@@ -192,8 +386,6 @@ class ActionXemDonHang(Action):
         })
 
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        # Không set slot order_id — user chưa chọn đơn cụ thể nào
-        # Chỉ set khi user bấm nút chọn hoặc gõ mã đơn
         return [SlotSet("order_id", None)]
 
 
@@ -300,61 +492,7 @@ class ActionChiTietDon(Action):
         if not order_id or not data:
             return events
 
-        status_code = get_field(data, "status", "Status", default=0)
-        status = order_status_label(status_code)
-        pay = payment_status_label(get_field(data, "paymentStatus", "PaymentStatus", default=0))
-        total = get_field(data, "totalAmount", "TotalAmount", default=0)
-        items = extract_list(get_field(data, "orderItems", "OrderItems", default=[]))
-        
-        pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD (Thanh toán khi nhận hàng)")
-        address = get_field(data, "addressSnapshot", "AddressSnapshot", "shippingAddress", "ShippingAddress", default="Chưa cập nhật")
-        phone = get_field(data, "phoneNumber", "PhoneNumber", "receiverPhone", "ReceiverPhone", "phone", "Phone", default="Chưa cập nhật")
-        name = get_field(data, "customerName", "CustomerName", "receiverName", "ReceiverName", "fullName", "FullName", default="Khách hàng")
-        email = get_field(data, "email", "Email", default="")
-        short_id = str(order_id).strip().lstrip('#')[:8]
-
-        lines = [
-            f"📋 **CHI TIẾT ĐƠN HÀNG #{short_id}…**",
-            f"• Trạng thái: **{status}**",
-            f"• Trạng thái thanh toán: **{pay}**",
-            f"• Phương thức thanh toán: **{pay_method}**",
-            f"• Tổng tiền: **{format_price(total)}**",
-        ]
-
-        lines.append("\n📍 THÔNG TIN NGƯỜI ĐẶT & GIAO HÀNG:")
-        lines.append(f"  • Người đặt: {name}")
-        lines.append(f"  • Số điện thoại: {phone}" + (f" (Email: {email})" if email else ""))
-        lines.append(f"  • Địa chỉ nhận hàng: {address}")
-
-        buttons = []
-
-        if items:
-            lines.append("\n📦 SẢN PHẨM TRONG ĐƠN:")
-            for it in items[:5]:
-                pid = str(get_field(it, "productId", "ProductId", default=""))
-                nm = get_field(it, "productName", "ProductName", default="Sản phẩm")
-                qty = get_field(it, "quantity", "Quantity", default=1)
-                price = get_field(it, "unitPrice", "UnitPrice", "price", "Price", default=0)
-                lines.append(f"  • {nm} x{qty} ({format_price(price)})")
-                
-                if pid:
-                    buttons.append({
-                        "title": f"🔍 SP: {nm[:25]}",
-                        "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
-                    })
-
-        if int(status_code) in (1, 2):
-            buttons.append({
-                "title": f"❌ Hủy đơn hàng này",
-                "payload": f'/huy_don_hang{{"order_id": "{order_id}"}}'
-            })
-        buttons.append({
-            "title": "🔗 Quản lý đơn trên Web",
-            "payload": "/goto_orders_page"
-        })
-
-        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        return events + [SlotSet("order_id", order_id)]
+        return events + _render_order_detail_card(dispatcher, order_id, data)
 
 
 class ActionHoiNgayDatDon(Action):
@@ -514,33 +652,70 @@ class ActionHoiSoLuongSanPhamDon(Action):
 
 
 class ActionHoiThanhToanPhuongThucDon(Action):
-    """Hỏi trạng thái & phương thức thanh toán của đơn hàng."""
+    """
+    Xử lý câu hỏi về Thanh toán (Multi-level Context-Aware Hybrid Router):
+    1. Nếu có order_id active trong slot -> Trả về thẻ Thanh toán của đơn đó.
+    2. Nếu mới vào chưa chọn đơn (đã đăng nhập) -> Trả về Thông tin PTTT chung của Shop + Nút chọn 3 đơn gần nhất (nếu có).
+    3. Nếu chưa đăng nhập -> Trả về Thông tin PTTT chung của Shop + Nút Mua sắm.
+    """
     def name(self) -> Text:
         return "action_hoi_thanh_toan_phuong_thuc_don"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_thanh_toan_phuong_thuc_don", "thanh toán & phương thức")
-        if not order_id or not data:
-            return events
+        order_id_slot = tracker.get_slot("order_id")
 
-        pay_status = payment_status_label(get_field(data, "paymentStatus", "PaymentStatus", default=0))
-        pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD (Thanh toán khi nhận hàng)")
-        total = get_field(data, "totalAmount", "TotalAmount", default=0)
-        short_id = str(order_id).strip().lstrip('#')[:8]
+        # ── TRƯỜNG HỢP 1: Có slot order_id active trong phiên chat ──
+        if order_id_slot:
+            order_id, data, events = _resolve_target_order(dispatcher, tracker, "hoi_thanh_toan_phuong_thuc_don", "phương thức thanh toán")
+            if order_id and data:
+                pay_status = payment_status_label(get_field(data, "paymentStatus", "PaymentStatus", default=0))
+                pay_method = get_field(data, "paymentMethod", "PaymentMethod", "paymentType", "PaymentType", default="COD")
+                total = get_field(data, "totalAmount", "TotalAmount", default=0)
+                short_id = str(order_id).strip().lstrip('#')[:8]
 
-        lines = [
-            f"💳 **THANH TOÁN ĐƠN HÀNG #{short_id}…**",
-            f"• Trạng thái thanh toán: **{pay_status}**",
-            f"• Phương thức: **{pay_method}**",
-            f"• Tổng số tiền: **{format_price(total)}**"
+                lines = [
+                    f"💳 **THANH TOÁN ĐƠN HÀNG #{short_id}…**",
+                    f"• Trạng thái thanh toán: **{pay_status}**",
+                    f"• Phương thức: **{pay_method}**",
+                    f"• Tổng số tiền: **{format_price(total)}**"
+                ]
+                buttons = [
+                    {"title": f"📋 Chi tiết #{short_id}", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'}
+                ]
+                dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+                return events + [SlotSet("order_id", order_id)]
+
+        # ── TRƯỜNG HỢP 2 & 3: Chưa chọn đơn nào (hoặc mới vào chat) ──
+        info_lines = [
+            "Dạ, hiện tại PetCenter hỗ trợ các phương thức thanh toán cực kỳ tiện lợi sau đây ạ: 🐾\n",
+            "• **COD**: Thanh toán trực tiếp bằng tiền mặt khi nhận hàng tại nhà.",
+            "• **MOMO**: Thanh toán online qua ví điện tử MoMo nhanh chóng.",
+            "• **VNPAY**: Thanh toán qua cổng VNPAY / Thẻ ATM / Quét mã QR Ngân hàng."
         ]
 
-        buttons = [
-            {"title": f"📋 Chi tiết #{short_id}", "payload": f'/xem_chi_tiet_don{{"order_id": "{order_id}"}}'}
-        ]
+        if is_logged_in(tracker):
+            ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+            orders = extract_list(my_data) if ok_my else []
 
-        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        return events + [SlotSet("order_id", order_id)]
+            if orders:
+                info_lines.append("\nDưới đây là các đơn hàng gần đây của bạn. Bạn có thể bấm chọn đơn để xem thanh toán chi tiết, hoặc bấm nút bên dưới để xem toàn bộ danh sách đơn hàng của bạn nhé:")
+                buttons = []
+                for o in orders[:3]:
+                    oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
+                    short_id = oid[:8] if oid else "đơn"
+                    if oid:
+                        buttons.append({
+                            "title": f"💳 Thanh toán #{short_id}",
+                            "payload": f'/hoi_thanh_toan_phuong_thuc_don{{"order_id": "{oid}"}}'
+                        })
+                buttons.append({"title": "🔗 Xem tất cả đơn trên Web", "payload": "/goto_orders_page"})
+                dispatcher.utter_message(text="\n".join(info_lines), buttons=buttons)
+                return []
+
+        info_lines.append("\nChúc bạn có trải nghiệm mua sắm tuyệt vời tại PetCenter! 🐾")
+        buttons = [{"title": "🛍️ Khám phá sản phẩm", "payload": "/xem_san_pham_hot"}]
+        dispatcher.utter_message(text="\n".join(info_lines), buttons=buttons)
+        return []
 
 
 class ActionHoiThongTinNguoiNhanDiaChi(Action):
@@ -624,37 +799,14 @@ class ActionHuyDonHang(Action):
         return [SlotSet("order_id", None)]
 
 
-class ActionXemVoucher(Action):
-    """Voucher khả dụng — endpoint AllowAnonymous, chỉ cần customer_id."""
+class ActionGotoOrdersPage(Action):
+    """Chuyển hướng thân thiện người dùng tới trang Quản lý đơn hàng trên Web."""
     def name(self) -> Text:
-        return "action_xem_voucher"
+        return "action_goto_orders_page"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        cid = get_customer_id(tracker)
-        if not cid:
-            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem mã giảm giá dành cho mình nhé!")
-            return []
-
-        ok, data = api_get(f"/api/orders/Checkout/vouchers/{cid}", tracker, params={"orderAmount": "0"})
-        if not ok:
-            dispatcher.utter_message(text="⚠️ Không thể tải voucher lúc này. Vui lòng thử lại sau!")
-            return []
-
-        vouchers = extract_list(data)
-        if not vouchers:
-            dispatcher.utter_message(text="Hiện chưa có mã giảm giá nào dành cho bạn.")
-            return []
-
-        lines = ["🎟️ Mã giảm giá bạn có thể dùng:"]
-        for v in vouchers[:5]:
-            code = get_field(v, "code", "Code", "voucherCode", "VoucherCode", default="")
-            desc = get_field(v, "description", "Description", default="")
-            lines.append(f"• {code} {('— ' + desc) if desc else ''}".rstrip())
-
-        buttons = [{
-            "title": "🛍️ Mua sắm ngay",
-            "payload": "/xem_san_pham_hot"
-        }]
-
-        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        dispatcher.utter_message(
+            text="Dạ có ngay! 🐾 Đợi tôi một chút, tôi đưa bạn đến trang Đơn hàng của bạn ngay đây...",
+            json_message={"type": "navigate", "url": "/Orders/History"}
+        )
         return []

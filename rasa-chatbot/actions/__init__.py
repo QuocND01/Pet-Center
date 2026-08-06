@@ -19,4 +19,3 @@ from .cart import *
 from .orders import *
 from .services import *
 from .account import *
-from .feedback import *
