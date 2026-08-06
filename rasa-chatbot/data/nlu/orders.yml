@@ -28,27 +28,13 @@ nlu:
     - kiểm tra đơn hàng mới đặt
     - tôi có đơn hàng nào đang giao không
     - cho tui xem đơn hàng
-    - tôi muốn tìm đơn hàng có sản phẩm tên là Premium Chicken
-    - tôi đã mua đơn hàng nhưng muốn tìm nó để xem lại đầy đủ đơn hàng, tôi chỉ nhớ sản phẩm trong đơn có tên là Premium Chicken
-    - tôi đã mua đơn hàng có tên là test hãy tìm giúp tôi
-    - tìm đơn hàng có sản phẩm [Premium Chicken](tu_khoa)
-    - tìm đơn có sản phẩm [cát vệ sinh](tu_khoa)
-    - tìm đơn hàng đã mua có chứa [pate](tu_khoa)
-    - tìm lại đơn hàng từng mua
-    - xem lại đơn hàng có mua [hạt cho chó](tu_khoa)
-    - tôi muốn tìm đơn có chứa sản phẩm [Royal Canin](tu_khoa)
-    - đơn hàng có sản phẩm là [Royal Canin](tu_khoa)
-    - đơn hàng có sản phẩm là [Premium Chicken](tu_khoa)
-    - tìm đơn hàng có sản phẩm tên là [Royal Canin](tu_khoa)
     - coi đơn hàng của tui
     - lịch sử đặt hàng
     - cho mình xem các đơn đã đặt
-    - check đơn hàng giúp mình
-    - xem danh sách đơn hàng gần đây
-    - tôi muốn kiểm tra các đơn hàng của mình
-    - đơn hàng của tôi đang ở trạng thái nào rồi
-    - danh sách các đơn hàng đã mua
-    - đơn hàng hiện tại
+    - toàn bộ đơn hàng hiện tại của tôi
+    - liệt kê toàn bộ đơn hàng của tôi
+    - tôi đang có bao nhiêu đơn hàng
+    - cho tôi xem toàn bộ đơn hàng của mình
     - các đơn hiện tại
     - xem đơn hàng hiện tại
     - đơn hàng hiện có
@@ -57,6 +43,38 @@ nlu:
     - xem tất cả đơn hàng
     - tất cả đơn hàng của tôi
     - cho xem toàn bộ đơn hàng
+
+- intent: tim_don_hang_theo_san_pham
+  examples: |
+    - tôi muốn tìm đơn hàng có sản phẩm tên là [Premium Chicken](tu_khoa)
+    - tôi đã mua đơn hàng nhưng muốn tìm nó để xem lại đầy đủ đơn hàng, tôi chỉ nhớ sản phẩm trong đơn có tên là [Premium Chicken](tu_khoa)
+    - tôi đã mua đơn hàng có tên là [test](tu_khoa) hãy tìm giúp tôi
+    - tìm đơn hàng có sản phẩm [Premium Chicken](tu_khoa)
+    - tìm đơn có sản phẩm [Cat Litter](tu_khoa)
+    - tìm đơn hàng đã mua có chứa [Whiskas](tu_khoa)
+    - xem lại đơn hàng có mua [Premium Chicken](tu_khoa)
+    - tôi muốn tìm đơn có chứa sản phẩm [Royal Canin](tu_khoa)
+    - đơn hàng có sản phẩm là [Royal Canin](tu_khoa)
+    - đơn hàng có sản phẩm là [Premium Chicken](tu_khoa)
+    - tìm đơn hàng có sản phẩm tên là [Royal Canin](tu_khoa)
+    - tìm giúp tôi đơn hàng có sảm phẩm tên là [Ultra Beef](tu_khoa)
+    - tìm giúp tôi đơn hàng có sản phẩm tên là [Ultra Beef](tu_khoa)
+    - tìm sản phẩm [Ultra Beef](tu_khoa) trong đơn
+    - tìm sản phẩm [Royal Canin](tu_khoa) trong đơn
+    - giúp tôi tìm sản phẩm có tên [Ultra Beef](tu_khoa) trong đơn hàng
+    - giúp tôi tìm sản phẩm [Premium Chicken](tu_khoa) trong đơn
+    - tìm đơn có [Ultra Beef](tu_khoa)
+    - tìm đơn có [Royal Canin](tu_khoa)
+    - tìm đơn có [Cat Litter](tu_khoa)
+    - [Ultra Beef](tu_khoa) trong đơn nào
+    - [Royal Canin](tu_khoa) trong đơn nào
+    - đơn hàng có sản phẩm [Ultra Beef](tu_khoa)
+    - đơn hàng có sản phẩm [Royal Canin](tu_khoa)
+    - [Ultra Beef](tu_khoa)
+    - [Royal Canin](tu_khoa)
+    - [Premium Chicken](tu_khoa)
+    - [Whiskas](tu_khoa)
+    - [Cat Litter](tu_khoa)
     - danh sách toàn bộ đơn hàng
     - tôi muốn xem tất cả đơn hàng
     - cho tôi xem tất cả đơn hàng

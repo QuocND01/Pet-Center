@@ -160,8 +160,11 @@ def _resolve_target_order(
     else:
         # Chưa chọn đơn nào -> luôn hỏi người dùng chọn đơn (giới hạn 3 đơn gần nhất)
         lines = [
-            f"Dạ, bạn muốn kiểm tra **{field_label}** của đơn hàng nào dưới đây ạ? 🐾\n",
-            "Nếu đơn bạn cần tìm ở cũ hơn, bạn có thể **gõ mã đơn hàng (ví dụ: #70000000)** hoặc bấm nút bên dưới nhé:"
+            f"Dạ! 🐾 Bạn muốn tra cứu **{field_label}** của đơn hàng nào dưới đây ạ?\n",
+            "💡 **Mẹo tìm kiếm linh hoạt:**",
+            "• 📋 Bấm chọn nhanh một trong các đơn gần đây bên dưới",
+            "• 🔍 Gõ **tên sản phẩm** bất kỳ trong đơn (Ví dụ: *Ultra Beef*, *Royal Canin*, *Premium Chicken*...)",
+            "• 🔢 Gõ **mã đơn hàng** (Ví dụ: *#473268cd*)"
         ]
         buttons = []
         for o in my_orders[:3]:
@@ -246,8 +249,7 @@ def _render_order_detail_card(dispatcher: CollectingDispatcher, order_id: str, d
 
 class ActionXemDonHang(Action):
     """
-    Hiển thị tối đa 3 đơn hàng gần nhất kèm Nút bấm trực tiếp.
-    Hỗ trợ TỰ ĐỘNG LỌC THEO TÊN SẢN PHẨM / TỪ KHÓA KÝ ỨC NGƯỜI DÙNG (Fuzzy Matcher).
+    [Pattern A] Hiển thị danh sách đơn hàng đã mua của khách hàng (Xem chung).
     """
     def name(self) -> Text:
         return "action_xem_don_hang"
@@ -257,7 +259,7 @@ class ActionXemDonHang(Action):
             dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem đơn hàng của mình nhé!")
             return []
 
-        # █ Gọi API mới dành riêng cho Rasa Chatbot: Lấy đơn hàng kèm đầy đủ chi tiết sản phẩm OrderItems (1-shot API)
+        # █ Gọi API lấy lịch sử đơn hàng của khách hàng
         ok, data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
         if not ok:
             ok, data = api_get("/api/orders/my-orders", tracker, with_auth=True)
@@ -281,19 +283,108 @@ class ActionXemDonHang(Action):
         if raw_entity_id:
             return ActionChiTietDon().run(dispatcher, tracker, domain)
 
-        # 🔍 Ưu tiên 100% từ khóa/tin nhắn của LƯỢT CHAT HIỆN TẠI (tránh bị dính slot tu_khoa cũ từ lượt trước)
-        user_text = tracker.latest_message.get("text", "")
+        # █ HIỂN THỊ DANH SÁCH 3 ĐƠN HÀNG GẦN NHẤT MẶC ĐỊNH (KHÔNG CÓ TÌM KIẾM CẮT CHUỖI):
+        display_orders = orders[:3]
+        total_count = len(orders)
+
+        if total_count > 3:
+            lines = [f"📦 3 đơn hàng gần nhất của bạn (tổng {total_count} đơn):"]
+        else:
+            lines = [f"📦 Bạn có {total_count} đơn hàng gần đây:"]
+
+        buttons = []
+
+        for i, o in enumerate(display_orders, 1):
+            oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
+            total = get_field(o, "totalAmount", "TotalAmount", default=0)
+            status_code = get_field(o, "status", "Status", default=0)
+            status_text = order_status_label(status_code)
+            short_id = oid[:8] if oid else f"#{i}"
+
+            lines.append(f"{i}. Mã #{short_id}… — {format_price(total)} — {status_text}")
+
+            if oid:
+                buttons.append({
+                    "title": f"📋 Chi tiết #{short_id}",
+                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
+                })
+                if int(status_code) in (1, 2):
+                    buttons.append({
+                        "title": f"❌ Hủy đơn #{short_id}",
+                        "payload": f'/huy_don_hang{{"order_id": "{oid}"}}'
+                    })
+
+        buttons.append({
+            "title": "🔗 Xem tất cả đơn trên Web",
+            "payload": "/goto_orders_page"
+        })
+
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+
+
+class ActionTimDonHangTheoSanPham(Action):
+    """
+    [Intent 2] Chuyên trách tìm kiếm đơn hàng chứa sản phẩm cụ thể (Khi Rasa NLU bắt được entity [tu_khoa]).
+    """
+    def name(self) -> Text:
+        return "action_tim_don_hang_theo_san_pham"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        if not is_logged_in(tracker):
+            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để tìm đơn hàng của mình nhé!")
+            return []
+
+        # █ Lấy từ khóa tu_khoa bóc tách trực tiếp từ Rasa NLU (không cắt chuỗi thủ công)
         current_entity_kw = None
         for e in tracker.latest_message.get("entities", []):
             if e.get("entity") == "tu_khoa" and e.get("value"):
-                current_entity_kw = e.get("value")
+                current_entity_kw = str(e.get("value")).strip()
                 break
 
-        search_term = current_entity_kw if current_entity_kw else user_text
+        search_term = current_entity_kw or tracker.get_slot("tu_khoa")
+
+        if not search_term:
+            # █ LƯỚI AN TOÀN TRỌNG YẾU: Nếu NLU trượt entity tu_khoa -> Tự bóc tách từ đứng sau vị trí từ chỉ định
+            user_text = (tracker.latest_message.get("text") or "").strip()
+            user_text_lower = user_text.lower()
+            for trigger in ["tên là", "sảm phẩm tên là", "sản phẩm tên là", "sản phẩm", "có chứa", "tìm"]:
+                if trigger in user_text_lower:
+                    parts = user_text_lower.split(trigger, 1)
+                    if len(parts) > 1 and parts[1].strip():
+                        candidate = parts[1].strip()
+                        for suffix in ["trong đơn hàng", "trong đơn", "của tôi", "giúp tôi"]:
+                            candidate = candidate.replace(suffix, "").strip()
+                        if candidate and candidate not in ["đơn hàng", "đơn"]:
+                            search_term = candidate
+                            break
+            if not search_term and user_text:
+                # Nếu chỉ gõ trần 1-2 từ ngắn (vd: "Ultra Beef", "Royal Canin") -> Dùng trực tiếp user_text
+                search_term = user_text
+
+        # █ Lọc các từ tìm kiếm chung chung (không phải tên sản phẩm cụ thể)
+        norm_st = _normalize_text(search_term or "")
+        if norm_st in ["san pham", "tim san pham", "do", "hang", "mon", "tim do", "tim hang", "san pham trong don", "tim san pham trong don"]:
+            search_term = None
+
+        if not search_term:
+            return _get_order_id_from_tracker_or_ask(dispatcher, tracker, "sản phẩm trong đơn")[2]
+
+        ok, data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
+        if not ok:
+            ok, data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+
+        if not ok:
+            dispatcher.utter_message(text="⚠️ Unable to load orders at this time. Please try again later!")
+            return [SlotSet("tu_khoa", None)]
+
+        orders = extract_list(data)
+        if not orders:
+            dispatcher.utter_message(text="Bạn chưa có đơn hàng nào. Cùng mua sắm nhé! 🛍️")
+            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
 
         matched_orders = _match_product_in_orders(orders, search_term)
 
-        # NẾU KHỚP THEO TỪ KHÓA SẢN PHẨM KHÁCH GÕ:
         if matched_orders:
             match_count = len(matched_orders)
             if match_count == 1:
@@ -322,15 +413,8 @@ class ActionXemDonHang(Action):
             })
             dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
             return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
-
-        # 🔍 NẾU KHÔNG CÓ ĐƠN NÀO KHỚP TỪ KHÓA SẢN PHẨM KHÁCH TÌM:
-        norm_query = _normalize_text(search_term)
-        fillers = {"toi", "mua", "don", "hang", "can", "xem", "kiem", "tra", "khong", "nho", "ma", "gi", "do", "hoi", "luc", "truoc", "voi", "cho", "xin", "la", "co", "nhu", "the", "nao", "shop", "oi", "mot", "tim", "giup", "san", "pham", "giao", "dat", "hay", "ten", "muon", "nao", "nhung", "cac", "duoc", "tung", "da", "lai", "nay", "ay", "kia", "voi", "em", "admin"}
-        kw_words = [w for w in norm_query.split() if w not in fillers and len(w) > 1]
-
-        if kw_words:
-            display_kw = " ".join(kw_words)
-            lines = [f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có chứa sản phẩm '{display_kw}'** ạ.\n\n📦 Dưới đây là các đơn hàng gần đây nhất của bạn:"]
+        else:
+            lines = [f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có chứa sản phẩm '{search_term[:30]}'** ạ.\n\n📦 Dưới đây là các đơn hàng gần đây nhất của bạn:"]
             display_orders = orders[:3]
             buttons = []
             for o in display_orders:
@@ -348,10 +432,6 @@ class ActionXemDonHang(Action):
             })
             dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
             return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
-
-        # GIỮ NGUYÊN LUỒNG HIỂN THỊ 3 ĐƠN GẦN NHẤT MẶC ĐỊNH
-        display_orders = orders[:3]
-        total_count = len(orders)
 
         if total_count > 3:
             lines = [f"📦 3 đơn hàng gần nhất của bạn (tổng {total_count} đơn):"]

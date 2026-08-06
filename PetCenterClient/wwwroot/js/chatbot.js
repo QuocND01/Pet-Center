@@ -521,7 +521,11 @@
     if (open) {
       input.focus();
       scrollBottom();
-      if (!isGreeted()) { setGreeted(); await initGreeting(); }
+      // 🚀 Tự động chào ngay nếu khung chat đang trống hoặc chưa chào
+      if (!msgs.children.length || !isGreeted()) {
+        setGreeted();
+        await initGreeting();
+      }
     }
   });
 
@@ -540,12 +544,25 @@
 
   // ── Khôi phục khi load trang (giữ chat liên tục khi chuyển trang) ─────────
   (function init() {
+    // 🛡️ BẢO MẬT & PHÂN TÁCH TÀI KHOẢN:
+    // Kiểm tra xem CustomerID hiện tại có trùng với CustomerID của phiên chat trước không
+    var currentCustId = (getCustomerId() || 'guest').toString();
+    var savedCustId = sessionStorage.getItem('pc_chat_cust_id');
+
+    if (savedCustId !== null && savedCustId !== currentCustId) {
+      // Người dùng đã đăng xuất hoặc chuyển tài khoản -> Xóa toàn bộ lịch sử chat cũ!
+      sessionStorage.removeItem(HKEY);
+      sessionStorage.removeItem('pc_chat_greeted');
+      sessionStorage.removeItem('pc_chat_sid');
+      sessionStorage.removeItem('pc_chat_open');
+    }
+    sessionStorage.setItem('pc_chat_cust_id', currentCustId);
+
     var hadHistory = restoreHistory();
     if (isOpen()) {
       panel.classList.add('open');
       scrollBottom();
-      // Nếu mở sẵn mà chưa từng chào (vd mở tab mới) thì chào
-      if (!hadHistory && !isGreeted()) { setGreeted(); initGreeting(); }
+      if (!hadHistory) { setGreeted(); initGreeting(); }
     }
   })();
 

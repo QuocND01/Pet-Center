@@ -8,17 +8,17 @@ version: "3.1"
 stories:
 
 # — Sản phẩm —
-- story: tìm sản phẩm rồi thêm giỏ
+- story: xem sản phẩm hot rồi thêm giỏ
   steps:
-    - intent: tim_san_pham
-    - action: action_tim_san_pham
+    - intent: xem_san_pham_hot
+    - action: action_xem_san_pham_hot
     - intent: chon_san_pham
     - action: action_them_vao_gio_hang
 
-- story: tìm sản phẩm rồi thêm giỏ trực tiếp
+- story: xem sản phẩm hot rồi thêm giỏ trực tiếp
   steps:
-    - intent: tim_san_pham
-    - action: action_tim_san_pham
+    - intent: xem_san_pham_hot
+    - action: action_xem_san_pham_hot
     - intent: them_vao_gio_hang
     - action: action_them_vao_gio_hang
 
@@ -29,10 +29,10 @@ stories:
     - intent: tim_san_pham_theo_danh_muc
     - action: action_tim_san_pham_theo_danh_muc
 
-- story: tìm sản phẩm rồi xem chi tiết rồi mua
+- story: xem sản phẩm hot rồi xem chi tiết rồi mua
   steps:
-    - intent: tim_san_pham
-    - action: action_tim_san_pham
+    - intent: xem_san_pham_hot
+    - action: action_xem_san_pham_hot
     - intent: xem_chi_tiet_san_pham
     - action: action_xem_chi_tiet_san_pham
     - intent: chon_san_pham
@@ -85,12 +85,12 @@ stories:
     - action: action_huy_don_hang
 
 # — Chào rồi hỏi —
-- story: chào rồi tìm sản phẩm
+- story: chào rồi xem sản phẩm hot
   steps:
     - intent: greet
     - action: utter_greet
-    - intent: tim_san_pham
-    - action: action_tim_san_pham
+    - intent: xem_san_pham_hot
+    - action: action_xem_san_pham_hot
 
 - story: chào rồi xem đơn
   steps:

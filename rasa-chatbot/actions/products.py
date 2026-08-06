@@ -53,48 +53,7 @@ def _save_results(products: list) -> list:
     ]
 
 
-class ActionTimSanPham(Action):
-    def name(self) -> Text:
-        return "action_tim_san_pham"
 
-    def run(self, dispatcher, tracker, domain):
-        user_text = (tracker.latest_message.get("text") or "").lower()
-        # █ Lưới an toàn: Nếu tin nhắn liên quan tới đơn hàng -> Chuyển hướng sang ActionXemDonHang
-        if any(w in user_text for w in ["đơn hàng", "đã mua", "mã đơn", "tìm đơn", "xem đơn", "xem lại đơn"]):
-            from .orders import ActionXemDonHang
-            return ActionXemDonHang().run(dispatcher, tracker, domain)
-
-        keyword = tracker.get_slot("tu_khoa")
-        if not keyword:
-            dispatcher.utter_message(response="utter_yeu_cau_tu_khoa")
-            return []
-
-        ok, data = api_get("/api/products", tracker,
-                           params={"$filter": f"contains(ProductName, '{keyword}')", "$top": "5"})
-        products = extract_list(data) if ok else []
-
-        # Fallback: thử từng từ trong từ khóa
-        if ok and not products:
-            for token in [t for t in keyword.split() if len(t) > 1]:
-                ok2, data2 = api_get("/api/products", tracker,
-                                     params={"$filter": f"contains(ProductName, '{token}')", "$top": "5"})
-                if ok2:
-                    products = extract_list(data2)
-                    if products:
-                        break
-
-        if not ok:
-            dispatcher.utter_message(text="⚠️ Không thể tìm sản phẩm lúc này. Vui lòng thử lại sau!")
-            return [SlotSet("tu_khoa", None)]
-
-        if not products:
-            dispatcher.utter_message(
-                text=f"Không tìm thấy sản phẩm nào với từ khóa '{keyword}'.\nBạn thử từ khóa khác nhé!")
-            return [SlotSet("tu_khoa", None), SlotSet("ket_qua_tim_kiem", None)]
-
-        text, buttons = _format_products(products, f"Tìm thấy {len(products)} sản phẩm cho '{keyword}':")
-        dispatcher.utter_message(text=text, buttons=buttons)
-        return [SlotSet("ket_qua_tim_kiem", _save_results(products)), SlotSet("tu_khoa", keyword)]
 
 
 class ActionXemSanPhamMoi(Action):
