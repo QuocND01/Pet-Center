@@ -13,6 +13,7 @@ using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
+using PetCenterTestProject;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using static PetCenterAPI.DTOs.Responses.Brand.BrandResposeDTO;
@@ -89,8 +90,7 @@ namespace PetCenterTestProject.BrandTest
 
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            context.Brands.RemoveRange(context.Brands);
-            await context.SaveChangesAsync();
+            await TestDatabaseCleaner.ClearCatalogAsync(context);
         }
 
         //=========================================================

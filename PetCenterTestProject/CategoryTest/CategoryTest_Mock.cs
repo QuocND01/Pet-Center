@@ -1079,7 +1079,7 @@ namespace PetCenterTestProject.CategoryTest
                 _service.AddCategoryAsync(dto));
 
             // Assert
-            Assert.Equal("Duplicate attributes: color", ex.Message);
+            Assert.Equal("Duplicate attributes: Color", ex.Message);
 
             _categoryRepositoryMock.Verify(x =>
                 x.AddCategoryAsync(It.IsAny<Category>()),

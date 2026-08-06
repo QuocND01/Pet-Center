@@ -13,6 +13,7 @@ using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
+using PetCenterTestProject;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -82,11 +83,7 @@ namespace PetCenterTestProject.CategoryTest
 
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            context.CategoryAttributes.RemoveRange(context.CategoryAttributes);
-
-            context.Categories.RemoveRange(context.Categories);
-
-            await context.SaveChangesAsync();
+            await TestDatabaseCleaner.ClearCatalogAsync(context);
         }
 
 

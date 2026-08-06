@@ -46,11 +46,200 @@ namespace PetCenterTestProject.ImportStockTest
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
+                    "Encrypt=False;" +
                     "TrustServerCertificate=True;")
                 .Options;
 
-            return new PetCenterContext(options);
+            var context = new PetCenterContext(options);
+            EnsureSeedData(context);
+            return context;
         }
+
+        private static Staff BuildStaff(string prefix = "import-stock")
+        {
+            var id = Guid.NewGuid();
+            return new Staff
+            {
+                StaffId = id,
+                FullName = "Test Staff",
+                PhoneNumber = "0123456789",
+                BirthDate = DateTime.UtcNow.AddYears(-30),
+                Gender = "Male",
+                HireDate = DateTime.UtcNow,
+                Email = $"{prefix}-{id:N}@test.com",
+                PasswordHash = "hashed-password",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        private static void EnsureSeedData(PetCenterContext context)
+        {
+            var staff = context.Staffs.FirstOrDefault(x => x.IsActive);
+            if (staff == null)
+            {
+                staff = BuildStaff();
+                context.Staffs.Add(staff);
+            }
+
+            var supplier = context.Suppliers.FirstOrDefault(x => x.IsActive);
+            if (supplier == null)
+            {
+                supplier = new Supplier
+                {
+                    SupplierId = Guid.NewGuid(),
+                    SupplierName = "Import Test Supplier",
+                    SupplierEmail = $"supplier-{Guid.NewGuid():N}@test.com",
+                    SupplierPhoneNumber = "0912345678",
+                    SupplierAddress = "Can Tho",
+                    TaxId = Guid.NewGuid().ToString("N")[..10],
+                    IsActive = true
+                };
+                context.Suppliers.Add(supplier);
+            }
+
+            if (!context.Products.Any())
+            {
+                var brand = new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = $"Import Test Brand {Guid.NewGuid():N}",
+                    Status = PetCenterAPI.Common.Status.Active
+                };
+
+                var category = new Category
+                {
+                    CategoryId = Guid.NewGuid(),
+                    CategoryName = $"Import Test Category {Guid.NewGuid():N}",
+                    Status = PetCenterAPI.Common.Status.Active
+                };
+
+                var product = new Product
+                {
+                    ProductId = Guid.NewGuid(),
+                    ProductName = "Import Test Product",
+                    ProductPrice = 100000,
+                    BrandId = brand.BrandId,
+                    CategoryId = category.CategoryId,
+                    Status = PetCenterAPI.Common.Status.Active
+                };
+
+                var secondProduct = new Product
+                {
+                    ProductId = Guid.NewGuid(),
+                    ProductName = "Import Test Product 2",
+                    ProductPrice = 150000,
+                    BrandId = brand.BrandId,
+                    CategoryId = category.CategoryId,
+                    Status = PetCenterAPI.Common.Status.Active
+                };
+
+                context.Brands.Add(brand);
+                context.Categories.Add(category);
+                context.Products.Add(product);
+                context.Products.Add(secondProduct);
+                context.ProductImages.Add(new ProductImage
+                {
+                    ImageId = Guid.NewGuid(),
+                    ProductId = product.ProductId,
+                    ImageUrl = "https://example.com/import-product.jpg",
+                    IsActive = true
+                });
+                context.ProductImages.Add(new ProductImage
+                {
+                    ImageId = Guid.NewGuid(),
+                    ProductId = secondProduct.ProductId,
+                    ImageUrl = "https://example.com/import-product-2.jpg",
+                    IsActive = true
+                });
+            }
+
+            context.SaveChanges();
+
+            if (context.Products.Count() < 2)
+            {
+                var brand = new Brand
+                {
+                    BrandId = Guid.NewGuid(),
+                    BrandName = $"Import Extra Brand {Guid.NewGuid():N}",
+                    Status = PetCenterAPI.Common.Status.Active
+                };
+
+                var category = new Category
+                {
+                    CategoryId = Guid.NewGuid(),
+                    CategoryName = $"Import Extra Category {Guid.NewGuid():N}",
+                    Status = PetCenterAPI.Common.Status.Active
+                };
+
+                var product = new Product
+                {
+                    ProductId = Guid.NewGuid(),
+                    ProductName = "Import Extra Product",
+                    ProductPrice = 150000,
+                    BrandId = brand.BrandId,
+                    CategoryId = category.CategoryId,
+                    Status = PetCenterAPI.Common.Status.Active
+                };
+
+                context.Brands.Add(brand);
+                context.Categories.Add(category);
+                context.Products.Add(product);
+                context.ProductImages.Add(new ProductImage
+                {
+                    ImageId = Guid.NewGuid(),
+                    ProductId = product.ProductId,
+                    ImageUrl = "https://example.com/import-extra-product.jpg",
+                    IsActive = true
+                });
+                context.SaveChanges();
+            }
+
+            if (!context.ImportStocks.Any())
+            {
+                var product = context.Products.First();
+                var pending = new ImportStock
+                {
+                    ImportId = Guid.NewGuid(),
+                    SupplierId = supplier.SupplierId,
+                    StaffId = staff.StaffId,
+                    InvoiceNumber = $"IMP-SEED-{Guid.NewGuid():N}"[..20],
+                    Status = ImportStatus.Pending,
+                    ImportDate = DateTime.UtcNow,
+                    TotalAmount = 100000
+                };
+
+                context.ImportStocks.Add(pending);
+                context.ImportStockDetails.Add(new ImportStockDetail
+                {
+                    ImportStockDetailsId = Guid.NewGuid(),
+                    ImportId = pending.ImportId,
+                    ProductId = product.ProductId,
+                    Quantity = 2,
+                    ImportPrice = 50000,
+                    SKU = $"SKU-{Guid.NewGuid():N}"[..12],
+                    BatchCode = $"BATCH-{Guid.NewGuid():N}"[..16],
+                    StockLeft = 0,
+                    QuantitySold = 0,
+                    BatchStatus = BatchStatus.Active,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                context.ImportStocks.Add(new ImportStock
+                {
+                    ImportId = Guid.NewGuid(),
+                    SupplierId = supplier.SupplierId,
+                    StaffId = staff.StaffId,
+                    InvoiceNumber = $"IMP-CONF-{Guid.NewGuid():N}"[..20],
+                    Status = ImportStatus.Confirmed,
+                    ImportDate = DateTime.UtcNow,
+                    TotalAmount = 50000
+                });
+
+                context.SaveChanges();
+            }
+        }
+
         [Fact]
         public async Task ITCID01_GetAllImportsAsync_ShouldReturnImportList()
         {
@@ -193,7 +382,7 @@ namespace PetCenterTestProject.ImportStockTest
             if (staff == null)
             {
                 // Dự phòng trường hợp DB test chưa có nhân viên nào, ta tạo tạm 1 người
-                staff = new Staff { StaffId = Guid.NewGuid(), FullName = "Test Staff", IsActive = true };
+                staff = BuildStaff("import-create");
                 context.Staffs.Add(staff);
                 await context.SaveChangesAsync();
             }
@@ -290,7 +479,7 @@ namespace PetCenterTestProject.ImportStockTest
             var staff = await context.Staffs.FirstOrDefaultAsync(s => s.IsActive);
             if (staff == null)
             {
-                staff = new Staff { StaffId = Guid.NewGuid(), FullName = "Test Staff", IsActive = true };
+                staff = BuildStaff("import-null-optional");
                 context.Staffs.Add(staff);
                 await context.SaveChangesAsync();
             }
@@ -357,7 +546,7 @@ namespace PetCenterTestProject.ImportStockTest
             var staff = await context.Staffs.FirstOrDefaultAsync(s => s.IsActive);
             if (staff == null)
             {
-                staff = new Staff { StaffId = Guid.NewGuid(), FullName = "Test Staff", IsActive = true };
+                staff = BuildStaff("import-no-image");
                 context.Staffs.Add(staff);
                 await context.SaveChangesAsync();
             }
@@ -426,7 +615,7 @@ namespace PetCenterTestProject.ImportStockTest
             var staff = await context.Staffs.FirstOrDefaultAsync(s => s.IsActive);
             if (staff == null)
             {
-                staff = new Staff { StaffId = Guid.NewGuid(), FullName = "Test Staff", IsActive = true };
+                staff = BuildStaff("import-multiple");
                 context.Staffs.Add(staff);
                 await context.SaveChangesAsync();
             }

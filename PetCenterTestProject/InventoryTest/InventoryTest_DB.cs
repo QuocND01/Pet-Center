@@ -49,6 +49,8 @@ namespace PetCenterTestProject.InventoryTest
                 repository,
                 _mapper,
                 Microsoft.Extensions.Logging.Abstractions.NullLogger<InventoryService>.Instance);
+
+            EnsureSeedData();
         }
 
 
@@ -66,11 +68,59 @@ namespace PetCenterTestProject.InventoryTest
                     "Database=PetCenter_Test;" +
                     "User Id=sa;" +
                     "Password=123456;" +
+                    "Encrypt=False;" +
                     "TrustServerCertificate=True;")
                 .Options;
 
 
             return new PetCenterContext(options);
+        }
+
+        private void EnsureSeedData()
+        {
+            if (_context.Inventories.Any())
+            {
+                return;
+            }
+
+            var brand = new Brand
+            {
+                BrandId = Guid.NewGuid(),
+                BrandName = $"Inventory Test Brand {Guid.NewGuid():N}",
+                Status = PetCenterAPI.Common.Status.Active
+            };
+
+            var category = new Category
+            {
+                CategoryId = Guid.NewGuid(),
+                CategoryName = $"Inventory Test Category {Guid.NewGuid():N}",
+                Status = PetCenterAPI.Common.Status.Active
+            };
+
+            var product = new Product
+            {
+                ProductId = Guid.NewGuid(),
+                ProductName = "Inventory Test Product",
+                ProductPrice = 100000,
+                BrandId = brand.BrandId,
+                CategoryId = category.CategoryId,
+                Status = PetCenterAPI.Common.Status.Active
+            };
+
+            _context.Brands.Add(brand);
+            _context.Categories.Add(category);
+            _context.Products.Add(product);
+            _context.Inventories.Add(new Inventory
+            {
+                InventoryId = Guid.NewGuid(),
+                ProductId = product.ProductId,
+                SKU = $"INV-{Guid.NewGuid():N}"[..12],
+                QuantityAvailable = 25,
+                QuantityReserved = 0,
+                LastUpdated = DateTime.UtcNow
+            });
+
+            _context.SaveChanges();
         }
 
 

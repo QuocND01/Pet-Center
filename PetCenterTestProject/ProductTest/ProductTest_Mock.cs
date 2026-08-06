@@ -55,8 +55,7 @@ namespace PetCenterTestProject.ProductTest
                 _service = new ProductService(
                     _productRepositoryMock.Object,
                     _mapper,
-                    _cloudinaryServiceMock.Object,
-                    _httpClientFactoryMock.Object);
+                    _cloudinaryServiceMock.Object);
             }
 
             private IList<ValidationResult> Validate(object model)
@@ -1559,7 +1558,7 @@ namespace PetCenterTestProject.ProductTest
                 await _service.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active);
 
                 // Assert
-                _productRepositoryMock.Verify(x => x.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active, false), Times.Once);
+                _productRepositoryMock.Verify(x => x.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active), Times.Once);
             }
 
             [Fact]
@@ -1577,7 +1576,7 @@ namespace PetCenterTestProject.ProductTest
                 await _service.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active);
 
                 // Assert
-                _productRepositoryMock.Verify(x => x.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active, false), Times.Once);
+                _productRepositoryMock.Verify(x => x.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active), Times.Once);
             }
 
             [Fact]
@@ -1595,7 +1594,7 @@ namespace PetCenterTestProject.ProductTest
                 await _service.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active);
 
                 // Assert
-                _productRepositoryMock.Verify(x => x.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active, false), Times.Once);
+                _productRepositoryMock.Verify(x => x.ChangeProductStatusAsync(id, PetCenterAPI.Common.Status.Active), Times.Once);
             }
 
             [Fact]

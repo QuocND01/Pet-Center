@@ -14,6 +14,7 @@ using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service;
 using PetCenterAPI.Service.Interface;
+using PetCenterTestProject;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -79,8 +80,7 @@ namespace PetCenterTestProject.ProductTest
             return new ProductService(
                 CreateRepository(context),
                 _mapper,
-                _cloudinaryServiceMock.Object,
-                _httpClientFactoryMock.Object);
+                _cloudinaryServiceMock.Object);
         }
 
         /// <summary>
@@ -91,33 +91,12 @@ namespace PetCenterTestProject.ProductTest
             return new ProductService(
                 repository,
                 _mapper,
-                _cloudinaryServiceMock.Object,
-                _httpClientFactoryMock.Object);
+                _cloudinaryServiceMock.Object);
         }
 
         private async Task ClearDatabaseAsync(PetCenterContext context)
         {
-            // Xóa các bảng con trước
-            context.ProductAttributes.RemoveRange(context.ProductAttributes);
-            context.ProductImages.RemoveRange(context.ProductImages);
-            context.Inventories.RemoveRange(
-                context.Inventories);
-
-            await context.SaveChangesAsync();
-
-            // Xóa Product
-            context.Products.RemoveRange(context.Products);
-            await context.SaveChangesAsync();
-
-            // Xóa CategoryAttribute trước Category
-            context.CategoryAttributes.RemoveRange(context.CategoryAttributes);
-            await context.SaveChangesAsync();
-
-            // Xóa Category và Brand
-            context.Categories.RemoveRange(context.Categories);
-            context.Brands.RemoveRange(context.Brands);
-
-            await context.SaveChangesAsync();
+            await TestDatabaseCleaner.ClearCatalogAsync(context);
         }
 
         private async Task<Brand> CreateBrandAsync(
@@ -2318,8 +2297,7 @@ namespace PetCenterTestProject.ProductTest
             repositoryMock
                 .Setup(x => x.ChangeProductStatusAsync(
                     productId,
-                    Status.Inactive,
-                    false))
+                    Status.Inactive))
                 .ThrowsAsync(
                     new Exception("Service Temporarily Unavailable"));
 
