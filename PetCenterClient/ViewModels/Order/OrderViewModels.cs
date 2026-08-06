@@ -13,6 +13,8 @@ namespace PetCenterClient.ViewModels
         public int Status { get; set; }
         public string PaymentMethod { get; set; } = null!;
         public int PaymentStatus { get; set; }
+        // Optional preview of order items (used in customer list to show thumbnails and enable product-name search)
+        public List<ReadOrderItemViewModel>? OrderItemsPreview { get; set; } = new();
     }
 
     public class ReadOrderDetailViewModel

@@ -7,20 +7,145 @@
     ViewData["Title"] = "My Order History";
 }
 
+<style>
+    /* Unified modern style matching My Pets */
+    :root {
+        --card-radius: 14px;
+        --muted: #6b7280;
+        --surface: #ffffff;
+        --shadow: 0 10px 30px rgba(2,6,23,0.06);
+        --accent: #2ecc71;
+    }
+
+    .card {
+        border: none;
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow);
+        background: var(--surface);
+        overflow: visible;
+    }
+
+    /* Toolbar */
+    #customerOrdersToolbar {
+        background: rgba(255,255,255,0.9);
+        border-bottom: 1px solid #eef2f7;
+        padding: 14px;
+        align-items: center;
+    }
+
+    #customerOrdersToolbar .form-control,
+    #customerOrdersToolbar .form-select {
+        min-height: 46px;
+        border-radius: 12px;
+        box-shadow: none;
+        border: 1px solid #eef2f7;
+        padding: 10px 14px;
+    }
+
+    #customerOrdersToolbar input::placeholder { color: #9ca3af; }
+
+    #customerOrdersToolbar .btn-primary {
+        border-radius: 999px;
+        padding: 10px 20px;
+        background: linear-gradient(90deg,var(--accent),#22c55e);
+        border: none;
+        box-shadow: 0 6px 18px rgba(34,197,94,0.18);
+    }
+
+    /* Table list with card-like rows */
+    table.table {
+        border-collapse: separate;
+        border-spacing: 0 12px; /* vertical gap between rows */
+    }
+
+    table.table thead th {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 12px 18px;
+    }
+
+    table.table tbody tr {
+        background: var(--surface);
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+        display: table-row;
+    }
+
+    table.table tbody td {
+        border: none;
+        padding: 16px 18px;
+        vertical-align: middle;
+    }
+
+    .order-thumb { width:56px; height:56px; object-fit:cover; border-radius:10px; border:1px solid #f1f5f9 }
+
+    .products-preview { display:flex; gap:8px; align-items:center }
+    .products-preview .count-more { color: #6b7280; font-size:0.9rem }
+
+    .badge-status { padding:6px 12px; border-radius:999px; font-weight:700; font-size:0.85rem }
+    .badge-pending { background:#fff7ed; color:#b45309 }
+    .badge-processing { background:#eff6ff; color:#1e3a8a }
+    .badge-delivering { background:#e6f4ff; color:#0ea5e9 }
+    .badge-completed { background:#ecfdf5; color:#065f46 }
+    .badge-cancelled { background:#fff1f2; color:#9f1239 }
+
+    @@media (max-width: 768px) {
+        #customerOrdersToolbar { flex-direction: column; align-items: stretch; }
+        #customerOrdersToolbar .form-select { width: 100% !important; }
+    }
+</style>
+
 <div class="container py-5">
     <div class="row mb-4">
         <div class="col">
             <h2 class="fw-bold" style="font-family: 'Segoe UI', sans-serif;">My Order History</h2>
             <p class="text-muted">Track, manage and view your recent purchases.</p>
         </div>
+        <div class="col-auto text-end">
+            <div class="small text-muted">Total orders</div>
+            <div class="fw-bold">@((ViewBag.TotalOrders ?? 0).ToString())</div>
+        </div>
+        <div class="col-auto text-end ms-3">
+            <div class="small text-muted">Total spent</div>
+            <div class="fw-bold text-success">@((ViewBag.TotalSpent ?? 0m).ToString("N0")) ₫</div>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-body p-0 table-responsive">
+        <div class="card-body p-0">
+            <form id="customerOrdersToolbar" class="p-3 d-flex gap-2 align-items-center">
+                <div class="flex-grow-1">
+                    <input type="text" name="search" class="form-control" placeholder="Search product name or order id" value="@ViewBag.Search" />
+                </div>
+
+                <select name="status" class="form-select" style="width:150px">
+                    <option value="">All Status</option>
+                    <option value="1" selected="@(ViewBag.Status == 1)">Pending</option>
+                    <option value="2" selected="@(ViewBag.Status == 2)">Processing</option>
+                    <option value="3" selected="@(ViewBag.Status == 3)">Delivering</option>
+                    <option value="4" selected="@(ViewBag.Status == 4)">Completed</option>
+                    <option value="0" selected="@(ViewBag.Status == 0)">Cancelled</option>
+                </select>
+
+                <select name="paymentMethod" class="form-select" style="width:140px">
+                    <option value="">All Payments</option>
+                    <option value="COD" selected="@(ViewBag.PaymentMethod == "COD")">COD</option>
+                    <option value="VNPAY" selected="@(ViewBag.PaymentMethod == "VNPAY")">VNPAY</option>
+                    <option value="MOMO" selected="@(ViewBag.PaymentMethod == "MOMO")">MOMO</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </form>
+
+            <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4">Order ID</th>
+                        <th>Products</th>
                         <th>Date</th>
                         <th>Total Amount</th>
                         <th>Payment</th>
@@ -122,7 +247,7 @@
     });
 
     function refreshCustomerHistory() {
-        var url = '@Url.Action("HistoryPartial", "Orders")';
+        var url = '@Url.Action("HistoryPartial", "Orders")' + window.location.search;
         fetch(url)
             .then(r => r.text())
             .then(html => {
@@ -131,20 +256,44 @@
             .catch(() => console.warn('Failed to refresh customer orders'));
     }
 
+    // Handle toolbar submit to fetch filtered partial
+    document.getElementById('customerOrdersToolbar').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var form = e.target;
+        var params = new URLSearchParams();
+        Array.from(form.elements).forEach(function (el) {
+            if (!el.name) return;
+            var val = el.value;
+            if (val) params.append(el.name, val);
+        });
+
+        var url = '@Url.Action("HistoryPartial", "Orders")' + (params.toString() ? ('?' + params.toString()) : '');
+        fetch(url)
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('customerOrdersTableBody').innerHTML = html;
+                // update URL so filters are bookmarkable
+                var newUrl = window.location.pathname + (params.toString() ? ('?' + params.toString()) : '');
+                history.replaceState({}, '', newUrl);
+            })
+            .catch(() => console.warn('Failed to apply filters'));
+    });
+
     // Listen for SignalR events dispatched to window
     window.addEventListener('order:created', function (e) { refreshCustomerHistory(); });
     window.addEventListener('order:updated', function (e) { refreshCustomerHistory(); });
 
-    // Auto-filter table rows if search parameter is present in URL (?search=Royal)
+    // Ensure toolbar reflects URL params on initial load (server also filters on first render)
     document.addEventListener("DOMContentLoaded", function () {
         var params = new URLSearchParams(window.location.search);
-        var q = (params.get("search") || "").trim().toLowerCase();
-        if (q) {
-            var rows = document.querySelectorAll("#customerOrdersTableBody tr");
-            rows.forEach(function (r) {
-                var txt = r.textContent.toLowerCase();
-                r.style.display = txt.includes(q) ? "" : "none";
-            });
+        var form = document.getElementById('customerOrdersToolbar');
+        if (form) {
+            var search = params.get('search') || '';
+            var status = params.get('status') || '';
+            var paymentMethod = params.get('paymentMethod') || '';
+            form.querySelector('[name="search"]').value = search;
+            form.querySelector('[name="status"]').value = status;
+            form.querySelector('[name="paymentMethod"]').value = paymentMethod;
         }
     });
 </script>
