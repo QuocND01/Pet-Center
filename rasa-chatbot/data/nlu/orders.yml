@@ -47,59 +47,74 @@ nlu:
 - intent: tim_don_hang_theo_san_pham
   examples: |
     - tôi muốn tìm đơn hàng có sản phẩm là [Ultra](tu_khoa)
-    - tôi muốn tìm đơn hàng có chứa sản phẩm tên là [Ultra](tu_khoa)
-    - tôi muốn tìm đơn hàng có sản phẩm tên là [Ultra Black Leash](tu_khoa)
+    - tôi muốn tìm đơn hàng có chứa sản phẩm tên là [Premium Care](tu_khoa)
+    - tôi muốn tìm đơn hàng có sản phẩm tên là [Standard Chicken Food 2kg](tu_khoa)
+    - tìm đơn có sản phẩm [BioFresh](tu_khoa)
     - tìm đơn có sản phẩm [Ultra](tu_khoa)
-    - tìm sản phẩm [Ultra](tu_khoa) trong đơn
-    - tim [Ultra](tu_khoa)
-    - tìm [Ultra](tu_khoa)
-    - đơn [Ultra](tu_khoa)
-    - đơn có [Ultra](tu_khoa)
-    - [Ultra](tu_khoa) trong đơn nào
-    - tôi muốn tìm đơn hàng có sản phẩm tên là [Me-O Creamy Cat Treats Chicken 4x15g](tu_khoa)
+    - đơn hàng có sản phẩm [Test](tu_khoa)
+    - đơn có [Nova Pro](tu_khoa)
+    - đơn có [Alpha X2](tu_khoa)
+    - [Ultra Black Leash](tu_khoa) trong đơn nào
+    - [ProductX](tu_khoa) trong đơn nào của tôi
+    - sản phẩm tên là [Standard Rubber Rope Toy](tu_khoa) có trong đơn hàng của tôi không
+    - [Premium Red Pet Bed](tu_khoa) nằm trong đơn nào của tôi
     - đơn hàng [Royal Canin Urinary S/O Vet Diet 1.5kg](tu_khoa)
     - xem đơn [Standard Chicken Cat Food 2kg](tu_khoa)
-    - tìm sản phẩm [Standard Rubber Rope Toy](tu_khoa)
-    - [Premium Red Pet Bed](tu_khoa)
-    - sản phẩm tên là [Me-O Creamy Cat Treats Chicken 4x15g](tu_khoa) có trong đơn hàng của tôi không
-    - [Standard Chicken Cat Food 2kg](tu_khoa) nằm trong đơn nào của tôi
-    - tìm đơn [Me-O](tu_khoa)
-    - xem đơn [Royal Canin](tu_khoa)
+    - tôi muốn tìm sản phẩm có tên là [Test](tu_khoa) trong đơn hàng
+    - tôi muốn tìm sản phẩm có tên là [ABC 100ml](tu_khoa) trong đơn hàng của tôi
+    - tôi muốn tìm sản phẩm có tên là [Ultra](tu_khoa) trong đơn hàng
+    - tôi muốn tìm sản phẩm có tên là [Premium Plus](tu_khoa) trong đơn hàng của tôi
+    - giúp tôi tìm sản phẩm có tên là [XYZ](tu_khoa) trong đơn hàng
+    - giúp tôi tìm sản phẩm có tên là [Standard Bowl](tu_khoa) trong đơn
+    - giúp tôi tìm sản phẩm tên [ProBio 500ml](tu_khoa) trong đơn hàng
+    - giúp tôi tìm sản phẩm tên [Ultra Pro](tu_khoa) trong đơn
+    - tìm sản phẩm [Hydra Boost](tu_khoa) trong đơn hàng
+    - tìm sản phẩm [Standard Rope Toy](tu_khoa) trong đơn hàng của tôi
+    - tìm sản phẩm [BioShield](tu_khoa) trong các đơn hàng của tôi
+    - tìm sản phẩm [AquaCare](tu_khoa) trong đơn hàng
+    - tìm sản phẩm [Premium Cat Bed](tu_khoa) trong đơn hàng
+    - tìm sản phẩm [Item001](tu_khoa) trong đơn hàng của tôi
+    - đơn hàng nào của tôi có sản phẩm tên [ZenCare](tu_khoa)
+    - đơn hàng nào có sản phẩm tên [Ultra Boost](tu_khoa)
+    - đơn nào có chứa sản phẩm [Omega Plus](tu_khoa)
+    - đơn nào có chứa sản phẩm [Standard Food Bowl](tu_khoa)
+    - đơn có tên sản phẩm là [FleaGuard](tu_khoa)
+    - đơn hàng nào chứa [DentaClean](tu_khoa)
+    - đơn hàng nào chứa [Premium Collar](tu_khoa)
+    - cho tôi tìm đơn có sản phẩm tên [VitaBoost](tu_khoa)
+    - có đơn hàng nào chứa [SampleY](tu_khoa) không
+    - có đơn nào có [Ultra Leash](tu_khoa) không
+    - tôi đã mua [Test](tu_khoa) trong đơn nào vậy
+    - tôi đã mua [Ultra Black](tu_khoa) trong đơn nào vậy
+    - tôi có đặt sản phẩm [Flop X5](tu_khoa) trong đơn nào không
+    - tôi có đặt sản phẩm [Premium Bowl](tu_khoa) trong đơn nào không
+    - sản phẩm [Standard Food 1kg](tu_khoa) tôi mua trong đơn nào
+    - tôi mua [ProductX](tu_khoa) rồi đơn đó ở đâu
+    - tôi mua [Standard Chicken Food](tu_khoa) rồi đơn đó ở đâu
+    - tôi có mua [Item001](tu_khoa) không kiểm tra giúp tôi
+    - sản phẩm [Premium Bed](tu_khoa) tôi có mua không
+    - sản phẩm [AnyBrand X](tu_khoa) tôi có mua không
+    - đơn [Ultra](tu_khoa)
     - đơn [Standard](tu_khoa)
-    - sản phẩm [Premium](tu_khoa)
-    - tìm sản phẩm [Royal Canin](tu_khoa) trong đơn
-    - [Me-O](tu_khoa) trong đơn nào
-    - đơn hàng [Cat Treats](tu_khoa)
-    - tìm sản phẩm [Urinary S/O](tu_khoa)
-    - xem đơn [Chicken Cat](tu_khoa)
-    - tìm [Rubber Rope](tu_khoa)
-    - sản phẩm [Red Pet](tu_khoa)
-    - xem đơn có [Chicken 4x15g](tu_khoa)
-    - tìm đơn [Vet Diet 1.5kg](tu_khoa)
-    - đơn [Cat Food 2kg](tu_khoa)
-    - sản phẩm [Rope Toy](tu_khoa)
-    - [Pet Bed](tu_khoa)
-    - ừ vậy giúp tôi tìm [Cat Food 1kg](tu_khoa)
-    - ừ vậy tìm [Royal Canin](tu_khoa) trong đơn của tôi
-    - ừ ừ tìm [Me-O](tu_khoa) trong đơn giúp tôi
-    - à vậy tìm đơn [Cat Food 2kg](tu_khoa) cho tôi
-    - à ok tìm đơn có [Ultra](tu_khoa)
-    - ờ vậy giúp tôi tìm [Premium Pet Bed](tu_khoa)
-    - ờ thì tôi muốn tìm [Standard Rope Toy](tu_khoa) trong đơn
-    - ok vậy tìm đơn có [Chicken Treats](tu_khoa)
-    - ok thì tìm [Royal Canin](tu_khoa) trong đơn nào tôi mua
-    - oke tìm đơn có [Me-O](tu_khoa) giúp tôi
-    - được rồi tìm đơn [Cat Food 2kg](tu_khoa)
-    - ừ thế tìm đơn có [Ultra Black Leash](tu_khoa) không
-    - vậy tìm [Urinary S/O](tu_khoa) trong đơn hàng của tôi
-    - vậy giúp tôi tìm [Standard Chicken Cat Food](tu_khoa)
-    - ừ vậy thì cho tôi xem đơn có [Cat Food 1kg](tu_khoa)
-    - à thì cho xem đơn có [Royal Canin](tu_khoa)
-    - ờ tìm giúp tôi [Me-O Creamy](tu_khoa)
-    - hmm tìm đơn [Premium Cat Bed](tu_khoa) giúp tôi
-    - ừ ok tìm [Standard Rubber Rope](tu_khoa) trong đơn
-    - ừm vậy tìm đơn có [Cat Food](tu_khoa)
-    - ok ok tìm [Royal Canin](tu_khoa) trong đơn hàng
+    - đơn [Premium](tu_khoa)
+    - [Test](tu_khoa) trong đơn
+    - [ProductX](tu_khoa) trong đơn
+    - [Ultra Pro](tu_khoa) trong đơn nào
+    - xem đơn [Ultra Black Leash](tu_khoa)
+    - xem lại đơn có [AquaPlus](tu_khoa)
+    - kiểm tra đơn có [SpeedClean](tu_khoa)
+    - cho xem đơn chứa sản phẩm [NovaCare](tu_khoa)
+    - xem đơn hàng có chứa sản phẩm [EcoWash](tu_khoa)
+    - cho tôi xem đơn có [Standard Cat Food](tu_khoa)
+    - kiểm tra đơn có sản phẩm [Premium Leash](tu_khoa) giúp tôi
+    - ừ vậy giúp tôi tìm sản phẩm [Cat Food 1kg](tu_khoa) trong đơn hàng
+    - ừ vậy tìm sản phẩm [Ultra](tu_khoa) trong đơn của tôi
+    - à vậy tìm sản phẩm có tên [Standard Rope](tu_khoa) trong đơn hàng
+    - ok vậy tìm đơn có sản phẩm [Premium Pet Bed](tu_khoa)
+    - oke tìm đơn có [BioShield](tu_khoa) giúp tôi
+    - vậy giúp tôi tìm sản phẩm [Standard Chicken Food](tu_khoa) trong đơn
+    - ừm vậy tìm sản phẩm có tên là [Test](tu_khoa) trong đơn hàng
+    - ok ok tìm sản phẩm [Ultra Pro](tu_khoa) trong đơn hàng
 
 - intent: xem_don_hang_vua_dat
   examples: |

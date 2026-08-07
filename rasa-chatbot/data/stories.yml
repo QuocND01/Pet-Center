@@ -27,13 +27,6 @@ stories:
     - intent: xem_gio_hang
     - action: action_xem_gio_hang
 
-- story: xóa toàn bộ rồi tìm mới
-  steps:
-    - intent: xoa_toan_bo_gio_hang
-    - action: action_xoa_toan_bo_gio_hang
-    - intent: tim_san_pham
-    - action: action_tim_san_pham
-
 - story: thêm sản phẩm rồi xem giỏ
   steps:
     - intent: them_vao_gio_hang
@@ -68,10 +61,8 @@ stories:
     - intent: xem_gio_hang
     - action: action_xem_gio_hang
 
-- story: full flow tìm thêm xem xóa
+- story: full flow thêm xem xóa
   steps:
-    - intent: tim_san_pham
-    - action: action_tim_san_pham
     - intent: them_vao_gio_hang
     - action: action_them_vao_gio_hang
     - intent: xem_gio_hang

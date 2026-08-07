@@ -187,35 +187,6 @@ class ActionTimSanPhamTheoDanhMuc(Action):
         return [SlotSet("ket_qua_tim_kiem", _save_results(products)), SlotSet("danh_muc", None)]
 
 
-class ActionTimSanPhamTheoThuongHieu(Action):
-    def name(self) -> Text:
-        return "action_tim_san_pham_theo_thuong_hieu"
-
-    def run(self, dispatcher, tracker, domain):
-        user_text = (tracker.latest_message.get("text") or "").lower()
-        if any(w in user_text for w in ["đơn hàng", "đã mua", "mã đơn", "tìm đơn", "xem đơn", "xem lại đơn"]):
-            from .orders import ActionXemDonHang
-            return ActionXemDonHang().run(dispatcher, tracker, domain)
-
-        thuong_hieu = tracker.get_slot("thuong_hieu")
-        if not thuong_hieu:
-            dispatcher.utter_message(text="Bạn muốn xem sản phẩm của thương hiệu nào? Ví dụ: Royal Canin, Whiskas...")
-            return []
-
-        ok, data = api_get("/api/products", tracker,
-                           params={"$filter": f"contains(BrandName, '{_odata_escape(thuong_hieu)}')", "$top": "5"})
-        if not ok:
-            dispatcher.utter_message(text="⚠️ Không thể tìm sản phẩm lúc này. Vui lòng thử lại sau!")
-            return []
-        products = extract_list(data)
-        if not products:
-            dispatcher.utter_message(text=f"Chưa có sản phẩm của thương hiệu '{thuong_hieu}'.")
-            return [SlotSet("thuong_hieu", None)]
-
-        text, buttons = _format_products(products, f"🏷️ Sản phẩm thương hiệu '{thuong_hieu}':")
-        dispatcher.utter_message(text=text, buttons=buttons)
-        return [SlotSet("ket_qua_tim_kiem", _save_results(products)), SlotSet("thuong_hieu", None)]
-
 
 class ActionTimSanPhamTheoGia(Action):
     def name(self) -> Text:
@@ -289,34 +260,6 @@ class ActionXemDanhMuc(Action):
         return []
 
 
-class ActionXemThuongHieu(Action):
-    def name(self) -> Text:
-        return "action_xem_thuong_hieu"
-
-    def run(self, dispatcher, tracker, domain):
-        ok, data = api_get("/api/brands", tracker)
-        if not ok:
-            dispatcher.utter_message(text="⚠️ Không thể tải thương hiệu lúc này. Vui lòng thử lại sau!")
-            return []
-        brands = extract_list(data)
-        if not brands:
-            dispatcher.utter_message(text="Hiện chưa có thương hiệu nào.")
-            return []
-
-        lines = ["🏷️ Các thương hiệu đang bán:"]
-        buttons = []
-        for b in brands:
-            nm = get_field(b, "brandName", "BrandName", default="")
-            if not nm:
-                continue
-            lines.append(f"• {nm}")
-            safe = nm.replace('"', "'")
-            buttons.append({
-                "title": f"🏷️ {nm[:35]}",
-                "payload": f'/tim_san_pham_theo_thuong_hieu{{"thuong_hieu": "{safe}"}}',
-            })
-        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        return []
 
 
 import re
