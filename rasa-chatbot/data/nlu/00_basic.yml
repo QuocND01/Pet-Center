@@ -201,6 +201,45 @@ nlu:
     - Đại Học FPT
     - sinh viên năm mấy
     - bạn có biết lập trình không
+    - tính 5*6
+    - căn bậc 2 của 16
+    - giải phương trình x+2=5
+    - 100 chia 4 bằng bao nhiêu
+    - ngày mai có mưa không
+    - nhiệt độ hôm nay bao nhiêu
+    - dự báo thời tiết cuối tuần
+    - kể chuyện cười cho tôi
+    - đọc thơ đi
+    - chơi game nào vui
+    - hát cho tôi nghe
+    - thủ đô Việt Nam ở đâu
+    - trái đất bao nhiêu tuổi
+    - bạn có yêu tôi không
+    - tâm sự với tôi đi
+    - cách nấu phở
+    - món gì ngon hôm nay
+    - quán ăn gần đây
+    - pizza ở đâu ngon
+    - cách cài Windows
+    - fix lỗi máy tính
+    - dạy tôi code Python
+    - ChatGPT là gì
+    - tỷ giá USD hôm nay
+    - nên đầu tư gì
+    - bitcoin giá bao nhiêu
+    - đi Đà Lạt chơi gì
+    - khách sạn ở Phú Quốc
+    - tôi bị đau đầu
+    - uống thuốc gì
+    - bệnh viện nào tốt
+    - asdfgh
+    - hello hello hello
+    - ???
+    - ...
+    - abc xyz
+    - haha hehe
+    - dịch sang tiếng Anh
+    - how to say hello in English
 
 # — Điều hướng: payload từ nút bấm —
 - intent: goto_service_page

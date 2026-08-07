@@ -184,6 +184,36 @@ responses:
   utter_out_of_scope:
     - text: "Xin lỗi, tôi là trợ lý mua sắm của PetCenter nên chưa hỗ trợ tính toán hoặc các câu hỏi ngoài phạm vi này. Bạn có thể hỏi tôi về sản phẩm chó mèo, đơn hàng hoặc dịch vụ nhé! 🐾"
 
+  utter_gio_hang_trong:
+    - text: "🛒 Giỏ hàng của bạn đang trống!\nHãy tìm kiếm sản phẩm để bắt đầu mua sắm nhé! 🐾"
+
+  utter_da_them_vao_gio:
+    - text: "✅ Đã thêm sản phẩm vào giỏ hàng thành công!\nBạn muốn tiếp tục mua sắm hay xem giỏ hàng?"
+
+  utter_da_cap_nhat_so_luong:
+    - text: "✅ Đã cập nhật số lượng thành công!\nBạn muốn xem lại giỏ hàng không?"
+
+  utter_da_xoa_san_pham:
+    - text: "✅ Đã xóa sản phẩm khỏi giỏ hàng!\nBạn muốn xem lại giỏ hàng không?"
+
+  utter_xac_nhan_xoa_toan_bo:
+    - text: "⚠️ Bạn có chắc chắn muốn xóa TOÀN BỘ sản phẩm trong giỏ hàng không? Hành động này không thể hoàn tác."
+
+  utter_da_xoa_toan_bo:
+    - text: "✅ Đã xóa toàn bộ giỏ hàng!\nBạn có muốn tìm sản phẩm mới không? 🐾"
+
+  utter_loi_gio_hang:
+    - text: "❌ Có lỗi xảy ra khi xử lý giỏ hàng. Vui lòng thử lại sau hoặc liên hệ hỗ trợ!"
+
+  utter_chua_dang_nhap:
+    - text: "🔐 Bạn cần đăng nhập để sử dụng giỏ hàng nhé!\nHãy đăng nhập và quay lại, tôi sẽ hỗ trợ bạn ngay!"
+
+  utter_chua_chon_san_pham:
+    - text: "⚠️ Bạn chưa chọn sản phẩm nào để thao tác. Hãy xem giỏ hàng và chọn sản phẩm trước nhé!"
+
+  utter_so_luong_khong_hop_le:
+    - text: "⚠️ Số lượng phải từ 1 đến 1000. Bạn muốn đặt bao nhiêu?"
+
   utter_yeu_cau_tu_khoa:
     - text: "Bạn muốn tìm sản phẩm gì? Ví dụ: thức ăn chó, đồ chơi mèo, vòng cổ..."
 
