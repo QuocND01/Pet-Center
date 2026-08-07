@@ -33,8 +33,11 @@ namespace PetCenterAPI.Repository
 
         public async Task<Disease?> GetByNameAsync(string name)
         {
+            // Tìm theo tên không phân biệt hoa thường và đang hoạt động
+            var lowered = name?.Trim().ToLower();
             return await _db.Diseases
-                .FirstOrDefaultAsync(x => x.Name == name);
+                .Where(x => x.IsActive == true && x.Name != null)
+                .FirstOrDefaultAsync(x => x.Name.ToLower() == lowered);
         }
     }
 }

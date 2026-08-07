@@ -52,6 +52,10 @@ namespace PetCenterAPI.Service
 
         public async Task<bool> AddDiseaseAsync(MutateDiseaseDTO dto)
         {
+            // Kiểm tra trùng tên (so sánh không phân biệt hoa thường) với các bệnh đang hoạt động
+            var existing = await _diseaseRepo.GetByNameAsync(dto.Name);
+            if (existing != null && existing.IsActive) return false;
+
             var disease = new Disease
             {
                 DiseaseId = Guid.NewGuid(),
@@ -76,6 +80,10 @@ namespace PetCenterAPI.Service
 
             // Optional: Chặn không cho sửa tên bệnh của Hệ thống (IsSystem = true) nếu cần
             // if (disease.IsSystem) return false; 
+
+            // Kiểm tra trùng tên với các bệnh khác (không bao gồm chính nó)
+            var existing = await _diseaseRepo.GetByNameAsync(dto.Name);
+            if (existing != null && existing.IsActive && existing.DiseaseId != id) return false;
 
             disease.Name = dto.Name;
             disease.Description = dto.Description;
