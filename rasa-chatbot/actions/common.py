@@ -167,7 +167,6 @@ def parse_vn_price(text):
 
 
 # Map trạng thái đơn hàng (int -> nhãn tiếng Việt).
-# ⚠️ SETUP: kiểm tra lại đúng enum thực tế trong Models/Order.cs nếu cần.
 ORDER_STATUS = {
     0: "Đã hủy",
     1: "Chờ xác nhận",
