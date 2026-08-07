@@ -1,4 +1,4 @@
-﻿@using PetCenterClient.ViewModels.Inventory
+﻿    @using PetCenterClient.ViewModels.Inventory
 @model InventoryListResponseViewModel
 
 @{
@@ -64,14 +64,14 @@
                         </select>
                     </div>
 
-                    <div class="filter-item">
+                    @* <div class="filter-item">
                         <label>Stock Status</label>
                         <select name="status" class="form-select">
                             <option value="">All</option>
                             <option value="low" selected="@(lowStock == true)">Low Stock</option>
                             <option value="out" selected="@(outOfStock == true)">Out Of Stock</option>
                         </select>
-                    </div>
+                    </div> *@
 
                 </div>
                 
@@ -110,7 +110,6 @@
                     <th>SKU</th>
                     <th>Available</th>
                     <th>Reserved</th>
-                    <th>Damaged</th>
                     <th>Updated</th>
                     <th></th>
                 </tr>
