@@ -66,6 +66,49 @@ nlu:
     - mua [3](so_luong) [hộp pate](tu_khoa)
     - them [thuc an cho meo](tu_khoa) vao gio
     - thêm giúp mình [bát ăn cho chó](tu_khoa)
+    - thêm [3](so_luong) cái này vào giỏ
+    - cho [2](so_luong) cái này vào cart
+    - bỏ [5](so_luong) cái vào giỏ hàng
+    - lấy [1](so_luong) cái này
+    - thêm [4](so_luong) sản phẩm vào giỏ
+    - mua [2](so_luong) gói này
+    - cho tôi [6](so_luong) cái
+    - lấy [3](so_luong) hộp này
+    - đặt [2](so_luong) cái vào giỏ
+    - thêm một món vào cart
+    - cho vào cart đi
+    - lấy cái này đi
+    - bỏ vào giỏ giúp tôi
+    - mua luôn cái này
+    - lấy luôn sản phẩm này
+    - ok thêm vào giỏ đi
+    - ừ thêm đi
+    - được, thêm đi
+    - ok mua món này
+    - cái này hay đấy, mua luôn
+    - sản phẩm này ổn, thêm giỏ
+    - thích cái này, cho vào giỏ
+    - mua cái này cho con chó
+    - thêm vào giỏ cho mèo nhà tôi
+    - lấy [2](so_luong) gói thức ăn này cho bé
+    - thêm [cám chó](tu_khoa) vào giỏ
+    - mua [bình nước mèo](tu_khoa)
+    - cho [dây dắt chó](tu_khoa) vào cart
+    - thêm [2](so_luong) [túi thức ăn](tu_khoa) vào giỏ
+    - mua [3](so_luong) [lon pate](tu_khoa)
+    - thêm [vòng cổ cho chó](tu_khoa) giúp mình
+    - cho [đồ chơi mèo](tu_khoa) vào giỏ
+    - mua [sữa tắm thú cưng](tu_khoa) đi
+    - add [2](so_luong) to cart
+    - put this in cart
+    - buy this product
+    - them vao gio hang
+    - mua cai nay
+    - bo vao gio
+    - them [2](so_luong) cai vao gio
+    - cho toi mua san pham nay
+    - thêm [7](so_luong) sản phẩm này vào giỏ hàng
+    - đặt [4](so_luong) [gói thức ăn cho mèo](tu_khoa)
 
 - intent: xem_gio_hang
   examples: |
@@ -88,6 +131,51 @@ nlu:
     - mở giỏ hàng
     - gio hang cua toi
     - xem gio hang cua toi
+    - cart
+    - xem cart
+    - mở giỏ
+    - show giỏ hàng
+    - tôi đã chọn mua gì
+    - có gì trong giỏ chưa
+    - xem lại mấy món đã thêm
+    - tôi đang mua gì vậy
+    - tổng tiền giỏ hàng bao nhiêu
+    - giỏ hàng bao nhiêu tiền
+    - tính tiền giỏ hàng
+    - hết bao nhiêu tiền
+    - giỏ hàng có mấy món
+    - bao nhiêu sản phẩm trong giỏ
+    - có bao nhiêu item trong cart
+    - giỏ hàng có trống không
+    - giỏ hàng còn gì không
+    - cart có rỗng không
+    - giỏ có đồ chưa
+    - check cart
+    - show my cart
+    - view cart
+    - open cart
+    - my cart please
+    - trong giỏ có thức ăn chó không
+    - giỏ hàng có Royal Canin không
+    - kiểm tra xem có pate mèo trong giỏ không
+    - quay lại xem giỏ
+    - tôi vừa thêm gì nhỉ
+    - cho xem lại giỏ hàng lúc nãy
+    - xem danh sách đã mua
+    - cho tôi kiểm tra các món đang chọn
+    - đơn tạm của tôi có gì
+    - xem số tiền cần thanh toán
+    - xem tổng tiền các món đã chọn
+    - giỏ của tôi hiện có gì
+    - mở cart của mình
+    - kiểm tra cart giúp tôi
+    - gio hang
+    - giỏ hàn
+    - cart cua toi
+    - xem gio
+    - kiem tra gio hang
+    - mo gio hang
+    - danh sach trong gio
 
 - intent: chon_san_pham
   examples: |
@@ -110,6 +198,31 @@ nlu:
     - thay đổi số lượng món hàng
     - doi so luong san pham
     - sua so luong
+    - đổi số lượng món này
+    - sửa cái này
+    - chỉnh sản phẩm này
+    - tôi muốn sửa số lượng
+    - cho tôi đổi số lượng
+    - thay đổi cái này
+    - chọn món để sửa
+    - chỉnh lại món đang chọn
+    - sửa dòng sản phẩm này
+    - đổi số lượng hàng này
+    - tôi cần điều chỉnh món này
+    - chọn sản phẩm để cập nhật
+    - thay đổi số lượng trong cart
+    - sửa item này
+    - đổi món này bao nhiêu cái
+    - chỉnh lại số lượng giúp tôi
+    - muốn thay số lượng sản phẩm
+    - chọn dòng này để sửa
+    - change this item
+    - edit this one
+    - modify quantity
+    - edit cart item
+    - doi so luong
+    - sua cai nay
+    - chinh san pham nay
 
 - intent: cap_nhat_so_luong_gio_hang
   examples: |
@@ -124,6 +237,46 @@ nlu:
     - doi thanh [3](so_luong)
     - thanh [6](so_luong) cai
     - sửa số lượng thành [4](so_luong) cái
+    - tăng lên [5](so_luong)
+    - giảm còn [2](so_luong)
+    - đổi thành [3](so_luong) cái đi
+    - để [4](so_luong) sản phẩm
+    - chỉnh thành [8](so_luong)
+    - thêm [1](so_luong) cái nữa
+    - bớt đi [1](so_luong)
+    - tăng thêm [2](so_luong)
+    - giảm bớt [3](so_luong)
+    - sửa số lượng [4](so_luong)
+    - cập nhật quantity [3](so_luong)
+    - update số lượng thành [6](so_luong)
+    - mua thêm [2](so_luong) cái nữa
+    - lấy thêm [3](so_luong)
+    - cần thêm [1](so_luong) cái
+    - chỉ cần [1](so_luong) thôi
+    - lấy [2](so_luong) cái là đủ
+    - nhiều quá, giảm còn [1](so_luong)
+    - ít quá, thêm lên [5](so_luong)
+    - tôi muốn đổi số lượng sang [7](so_luong)
+    - cho số lượng là [9](so_luong)
+    - giữ lại [2](so_luong) món
+    - điều chỉnh còn [3](so_luong) sản phẩm
+    - tăng số lượng thành [10](so_luong)
+    - hạ xuống [2](so_luong) cái
+    - đặt lại là [4](so_luong)
+    - change quantity to [3](so_luong)
+    - update to [5](so_luong)
+    - set quantity [2](so_luong)
+    - change to [6](so_luong)
+    - doi thanh [3](so_luong) cai
+    - tang len [5](so_luong)
+    - sua so luong [4](so_luong)
+    - giam con [2](so_luong)
+    - cap nhat [6](so_luong) cai
+    - cho them [2](so_luong) cai nua
+    - doi so luong thanh [8](so_luong)
+    - sua thanh [1](so_luong)
+    - lay [3](so_luong) cai la du
+    - quantity [5](so_luong)
 
 - intent: xoa_san_pham_gio_hang
   examples: |
@@ -137,6 +290,38 @@ nlu:
     - gỡ sản phẩm này khỏi giỏ
     - xoa san pham nay
     - bo cai nay ra
+    - xóa cái này
+    - bỏ sản phẩm này
+    - remove item này
+    - xóa dòng này
+    - bỏ mặt hàng này đi
+    - gỡ món này ra
+    - loại cái này khỏi cart
+    - xóa item đang chọn
+    - không mua cái này nữa
+    - thôi không lấy nữa
+    - hủy sản phẩm này
+    - bỏ qua cái này
+    - tôi đổi ý, bỏ cái này
+    - không cần nữa, xóa đi
+    - tôi suy nghĩ lại, bỏ ra
+    - bỏ [Royal Canin](tu_khoa) ra
+    - xóa cái [thức ăn chó](tu_khoa)
+    - bỏ [đồ chơi mèo](tu_khoa) ra khỏi giỏ
+    - xóa [pate cá](tu_khoa) giúp tôi
+    - gỡ [vòng cổ chó](tu_khoa) khỏi cart
+    - bỏ cái vừa thêm
+    - xóa sản phẩm mới thêm
+    - bỏ cái cuối cùng
+    - remove this item
+    - delete from cart
+    - remove product
+    - delete this product
+    - xoa cai nay
+    - bo san pham nay
+    - xoa mon hang nay
+    - huy cai nay
+    - bo mon nay ra khoi gio
 
 - intent: xoa_toan_bo_gio_hang
   examples: |
@@ -151,6 +336,37 @@ nlu:
     - xoa het gio hang
     - lam rong gio hang
     - clear giỏ hàng
+    - clear cart
+    - dọn sạch giỏ
+    - làm trống giỏ hàng
+    - bỏ hết đi
+    - không mua gì nữa
+    - hủy toàn bộ giỏ hàng
+    - bỏ hết sản phẩm
+    - xóa toàn bộ món đã chọn
+    - gỡ tất cả khỏi cart
+    - reset giỏ hàng
+    - làm mới giỏ
+    - bắt đầu lại từ đầu
+    - chọn lại từ đầu
+    - thôi không mua nữa, xóa hết đi
+    - bỏ hết giỏ, tôi chọn lại
+    - tôi muốn chọn lại từ đầu
+    - xóa hết tất cả sản phẩm
+    - hủy mọi món trong giỏ
+    - bỏ toàn bộ đồ đã mua
+    - dọn cart giúp tôi
+    - clear all
+    - empty cart
+    - remove all items
+    - delete all from cart
+    - remove everything from cart
+    - xoa het gio hang di
+    - lam rong gio
+    - bo het do trong gio
+    - huy toan bo gio
+    - reset gio hang
+    - xoa tat ca san pham
 
 - intent: tim_san_pham_theo_danh_muc
   examples: |

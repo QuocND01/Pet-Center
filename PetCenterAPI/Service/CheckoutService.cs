@@ -61,9 +61,9 @@ namespace PetCenterAPI.Service
                     throw new InvalidOperationException("Each order can contain a maximum of 10 items.");
 
                 var existingOrders = await _orderRepo.GetOrdersByCustomerIdAsync(dto.CustomerId);
-                var activeOrderCount = existingOrders.Count(o => o.Status != 0);
+                var activeOrderCount = existingOrders.Count(o => o.Status != 0 && o.Status != 4);
                 if (activeOrderCount >= 5)
-                    throw new InvalidOperationException("A customer can place a maximum of 5 orders.");
+                    throw new InvalidOperationException("A customer can place a maximum of 5 active orders.");
 
                 // ── 1. Validate address ──────────────────────────────────────
                 var address = await _addressRepo.GetAddressByIdAsync(dto.AddressId, dto.CustomerId);
@@ -276,9 +276,9 @@ namespace PetCenterAPI.Service
                     throw new InvalidOperationException("Each order can contain a maximum of 10 items.");
 
                 var existingOrders = await _orderRepo.GetOrdersByCustomerIdAsync(dto.CustomerId);
-                var activeOrderCount = existingOrders.Count(o => o.Status != 0);
+                var activeOrderCount = existingOrders.Count(o => o.Status != 0 && o.Status != 4);
                 if (activeOrderCount >= 5)
-                    throw new InvalidOperationException("A customer can place a maximum of 5 orders.");
+                    throw new InvalidOperationException("A customer can place a maximum of 5 active orders.");
 
                 // ── 1. Validate address ──────────────────────────────────────
                 var address = await _addressRepo.GetAddressByIdAsync(dto.AddressId, dto.CustomerId);

@@ -18,7 +18,7 @@ from rasa_sdk.events import SlotSet
 
 from .common import (
     api_get, get_field, format_price,
-    get_customer_id, is_logged_in,
+    get_customer_id, is_logged_in, require_login,
 )
 
 
@@ -35,7 +35,7 @@ def _enrich_line(detail: dict, tracker) -> dict:
 
     name, price = "(Không rõ tên)", 0
     if product_id:
-        ok, p = api_get(f"/api/products/{product_id}", tracker)
+        ok, p = api_get(f"/api/products/{product_id}", tracker, with_auth=True)
         if ok and p:
             name = get_field(p, "productName", "ProductName", default=name)
             price = get_field(p, "productPrice", "ProductPrice", default=0)
@@ -58,18 +58,20 @@ class ActionXemGioHang(Action):
 
     def run(self, dispatcher, tracker, domain):
         if not is_logged_in(tracker):
-            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để xem giỏ hàng của mình nhé!")
+            require_login(dispatcher, "xem giỏ hàng")
             return []
 
         cid = get_customer_id(tracker) or "00000000-0000-0000-0000-000000000000"
         ok, data = api_get(f"/api/cart/{cid}", tracker, with_auth=True)
         if not ok:
-            dispatcher.utter_message(text="⚠️ Không thể tải giỏ hàng lúc này. Vui lòng thử lại sau!")
+            dispatcher.utter_message(
+                text="❌ Không thể kết nối hoặc tải giỏ hàng lúc này. Vui lòng thử lại sau; nếu phiên đăng nhập đã hết hạn, bạn hãy đăng nhập lại nhé!"
+            )
             return []
 
         details = _get_cart_details(data)
         if not details:
-            dispatcher.utter_message(text="🛒 Giỏ hàng của bạn đang trống. Cùng mua sắm nhé! 🛍️")
+            dispatcher.utter_message(text="🛒 Giỏ hàng của bạn đang trống! Hãy tìm sản phẩm để bắt đầu mua sắm nhé! 🐾")
             return [SlotSet("ket_qua_gio_hang", None)]
 
         lines = ["🛒 Giỏ hàng của bạn:"]
@@ -113,6 +115,10 @@ class ActionChonDongGioHang(Action):
         return "action_chon_dong_gio_hang"
 
     def run(self, dispatcher, tracker, domain):
+        if not is_logged_in(tracker):
+            require_login(dispatcher, "thao tác với giỏ hàng")
+            return []
+
         cart_detail_id = tracker.get_slot("cart_detail_id_chon")
         product_name = tracker.get_slot("product_name_chon")
 
@@ -133,6 +139,10 @@ class ActionCapNhatSoLuongGioHang(Action):
         return "action_cap_nhat_so_luong_gio_hang"
 
     def run(self, dispatcher, tracker, domain):
+        if not is_logged_in(tracker):
+            require_login(dispatcher, "cập nhật số lượng trong giỏ hàng")
+            return []
+
         cart_detail_id = tracker.get_slot("cart_detail_id_chon")
         product_name = tracker.get_slot("product_name_chon")
         quantity = tracker.get_slot("so_luong")
@@ -153,7 +163,15 @@ class ActionCapNhatSoLuongGioHang(Action):
             dispatcher.utter_message(text=f"Bạn muốn đổi số lượng '{ten}' thành bao nhiêu?")
             return []
 
-        qty = int(quantity)
+        try:
+            qty = int(quantity)
+        except (TypeError, ValueError):
+            dispatcher.utter_message(text="⚠️ Số lượng phải là một số nguyên từ 1 đến 1000. Bạn muốn đặt bao nhiêu?")
+            return []
+
+        if not 1 <= qty <= 1000:
+            dispatcher.utter_message(text="⚠️ Số lượng phải từ 1 đến 1000. Bạn muốn đặt bao nhiêu?")
+            return []
         dispatcher.utter_message(json_message={
             "type": "update_cart_quantity",
             "cartDetailId": cart_detail_id,
@@ -175,6 +193,10 @@ class ActionXoaSanPhamGioHang(Action):
         return "action_xoa_san_pham_gio_hang"
 
     def run(self, dispatcher, tracker, domain):
+        if not is_logged_in(tracker):
+            require_login(dispatcher, "xóa sản phẩm khỏi giỏ hàng")
+            return []
+
         cart_detail_id = tracker.get_slot("cart_detail_id_chon")
         product_name = tracker.get_slot("product_name_chon")
 
@@ -206,7 +228,7 @@ class ActionXoaToanBoGioHang(Action):
 
     def run(self, dispatcher, tracker, domain):
         if not is_logged_in(tracker):
-            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để thao tác với giỏ hàng nhé!")
+            require_login(dispatcher, "thao tác với giỏ hàng")
             return []
 
         dispatcher.utter_message(json_message={"type": "clear_cart"})

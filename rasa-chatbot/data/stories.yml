@@ -7,6 +7,78 @@ version: "3.1"
 
 stories:
 
+- story: xem giỏ cập nhật rồi xem lại
+  steps:
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+    - intent: chon_dong_gio_hang
+    - action: action_chon_dong_gio_hang
+    - intent: cap_nhat_so_luong_gio_hang
+    - action: action_cap_nhat_so_luong_gio_hang
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+
+- story: xem giỏ xóa sản phẩm rồi xem lại
+  steps:
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+    - intent: xoa_san_pham_gio_hang
+    - action: action_xoa_san_pham_gio_hang
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+
+- story: xóa toàn bộ rồi tìm mới
+  steps:
+    - intent: xoa_toan_bo_gio_hang
+    - action: action_xoa_toan_bo_gio_hang
+    - intent: tim_san_pham
+    - action: action_tim_san_pham
+
+- story: thêm sản phẩm rồi xem giỏ
+  steps:
+    - intent: them_vao_gio_hang
+    - action: action_them_vao_gio_hang
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+
+- story: chào rồi xem giỏ
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+
+- story: hỏi ngoài phạm vi rồi xem giỏ
+  steps:
+    - intent: out_of_scope
+    - action: utter_out_of_scope
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+
+- story: sửa rồi xóa rồi xem lại
+  steps:
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+    - intent: chon_dong_gio_hang
+    - action: action_chon_dong_gio_hang
+    - intent: cap_nhat_so_luong_gio_hang
+    - action: action_cap_nhat_so_luong_gio_hang
+    - intent: xoa_san_pham_gio_hang
+    - action: action_xoa_san_pham_gio_hang
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+
+- story: full flow tìm thêm xem xóa
+  steps:
+    - intent: tim_san_pham
+    - action: action_tim_san_pham
+    - intent: them_vao_gio_hang
+    - action: action_them_vao_gio_hang
+    - intent: xem_gio_hang
+    - action: action_xem_gio_hang
+    - intent: xoa_toan_bo_gio_hang
+    - action: action_xoa_toan_bo_gio_hang
+
 # — Sản phẩm —
 - story: xem sản phẩm hot rồi thêm giỏ
   steps:
