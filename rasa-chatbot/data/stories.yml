@@ -149,12 +149,6 @@ stories:
     - intent: xem_chi_tiet_don
     - action: action_chi_tiet_don
 
-- story: xem đơn rồi hủy
-  steps:
-    - intent: xem_don_hang_cua_toi
-    - action: action_xem_don_hang
-    - intent: huy_don_hang
-    - action: action_huy_don_hang
 
 # — Chào rồi hỏi —
 - story: chào rồi xem sản phẩm hot

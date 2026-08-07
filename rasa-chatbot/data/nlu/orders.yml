@@ -46,38 +46,60 @@ nlu:
 
 - intent: tim_don_hang_theo_san_pham
   examples: |
-    - tôi muốn tìm đơn hàng có sản phẩm tên là [Premium Chicken](tu_khoa)
-    - tôi đã mua đơn hàng nhưng muốn tìm nó để xem lại đầy đủ đơn hàng, tôi chỉ nhớ sản phẩm trong đơn có tên là [Premium Chicken](tu_khoa)
-    - tôi đã mua đơn hàng có tên là [test](tu_khoa) hãy tìm giúp tôi
-    - tìm đơn hàng có sản phẩm [Premium Chicken](tu_khoa)
-    - tìm đơn có sản phẩm [Cat Litter](tu_khoa)
-    - tìm đơn hàng đã mua có chứa [Whiskas](tu_khoa)
-    - xem lại đơn hàng có mua [Premium Chicken](tu_khoa)
-    - tôi muốn tìm đơn có chứa sản phẩm [Royal Canin](tu_khoa)
-    - đơn hàng có sản phẩm là [Royal Canin](tu_khoa)
-    - đơn hàng có sản phẩm là [Premium Chicken](tu_khoa)
-    - tìm đơn hàng có sản phẩm tên là [Royal Canin](tu_khoa)
-    - tìm giúp tôi đơn hàng có sảm phẩm tên là [Ultra Beef](tu_khoa)
-    - tìm giúp tôi đơn hàng có sản phẩm tên là [Ultra Beef](tu_khoa)
-    - tìm sản phẩm [Ultra Beef](tu_khoa) trong đơn
+    - tôi muốn tìm đơn hàng có sản phẩm là [Ultra](tu_khoa)
+    - tôi muốn tìm đơn hàng có chứa sản phẩm tên là [Ultra](tu_khoa)
+    - tôi muốn tìm đơn hàng có sản phẩm tên là [Ultra Black Leash](tu_khoa)
+    - tìm đơn có sản phẩm [Ultra](tu_khoa)
+    - tìm sản phẩm [Ultra](tu_khoa) trong đơn
+    - tim [Ultra](tu_khoa)
+    - tìm [Ultra](tu_khoa)
+    - đơn [Ultra](tu_khoa)
+    - đơn có [Ultra](tu_khoa)
+    - [Ultra](tu_khoa) trong đơn nào
+    - tôi muốn tìm đơn hàng có sản phẩm tên là [Me-O Creamy Cat Treats Chicken 4x15g](tu_khoa)
+    - đơn hàng [Royal Canin Urinary S/O Vet Diet 1.5kg](tu_khoa)
+    - xem đơn [Standard Chicken Cat Food 2kg](tu_khoa)
+    - tìm sản phẩm [Standard Rubber Rope Toy](tu_khoa)
+    - [Premium Red Pet Bed](tu_khoa)
+    - sản phẩm tên là [Me-O Creamy Cat Treats Chicken 4x15g](tu_khoa) có trong đơn hàng của tôi không
+    - [Standard Chicken Cat Food 2kg](tu_khoa) nằm trong đơn nào của tôi
+    - tìm đơn [Me-O](tu_khoa)
+    - xem đơn [Royal Canin](tu_khoa)
+    - đơn [Standard](tu_khoa)
+    - sản phẩm [Premium](tu_khoa)
     - tìm sản phẩm [Royal Canin](tu_khoa) trong đơn
-    - giúp tôi tìm sản phẩm có tên [Ultra Beef](tu_khoa) trong đơn hàng
-    - giúp tôi tìm sản phẩm [Premium Chicken](tu_khoa) trong đơn
-    - tìm đơn có [Ultra Beef](tu_khoa)
-    - tìm đơn có [Royal Canin](tu_khoa)
-    - tìm đơn có [Cat Litter](tu_khoa)
-    - [Ultra Beef](tu_khoa) trong đơn nào
-    - [Royal Canin](tu_khoa) trong đơn nào
-    - đơn hàng có sản phẩm [Ultra Beef](tu_khoa)
-    - đơn hàng có sản phẩm [Royal Canin](tu_khoa)
-    - [Ultra Beef](tu_khoa)
-    - [Royal Canin](tu_khoa)
-    - [Premium Chicken](tu_khoa)
-    - [Whiskas](tu_khoa)
-    - [Cat Litter](tu_khoa)
-    - danh sách toàn bộ đơn hàng
-    - tôi muốn xem tất cả đơn hàng
-    - cho tôi xem tất cả đơn hàng
+    - [Me-O](tu_khoa) trong đơn nào
+    - đơn hàng [Cat Treats](tu_khoa)
+    - tìm sản phẩm [Urinary S/O](tu_khoa)
+    - xem đơn [Chicken Cat](tu_khoa)
+    - tìm [Rubber Rope](tu_khoa)
+    - sản phẩm [Red Pet](tu_khoa)
+    - xem đơn có [Chicken 4x15g](tu_khoa)
+    - tìm đơn [Vet Diet 1.5kg](tu_khoa)
+    - đơn [Cat Food 2kg](tu_khoa)
+    - sản phẩm [Rope Toy](tu_khoa)
+    - [Pet Bed](tu_khoa)
+    - ừ vậy giúp tôi tìm [Cat Food 1kg](tu_khoa)
+    - ừ vậy tìm [Royal Canin](tu_khoa) trong đơn của tôi
+    - ừ ừ tìm [Me-O](tu_khoa) trong đơn giúp tôi
+    - à vậy tìm đơn [Cat Food 2kg](tu_khoa) cho tôi
+    - à ok tìm đơn có [Ultra](tu_khoa)
+    - ờ vậy giúp tôi tìm [Premium Pet Bed](tu_khoa)
+    - ờ thì tôi muốn tìm [Standard Rope Toy](tu_khoa) trong đơn
+    - ok vậy tìm đơn có [Chicken Treats](tu_khoa)
+    - ok thì tìm [Royal Canin](tu_khoa) trong đơn nào tôi mua
+    - oke tìm đơn có [Me-O](tu_khoa) giúp tôi
+    - được rồi tìm đơn [Cat Food 2kg](tu_khoa)
+    - ừ thế tìm đơn có [Ultra Black Leash](tu_khoa) không
+    - vậy tìm [Urinary S/O](tu_khoa) trong đơn hàng của tôi
+    - vậy giúp tôi tìm [Standard Chicken Cat Food](tu_khoa)
+    - ừ vậy thì cho tôi xem đơn có [Cat Food 1kg](tu_khoa)
+    - à thì cho xem đơn có [Royal Canin](tu_khoa)
+    - ờ tìm giúp tôi [Me-O Creamy](tu_khoa)
+    - hmm tìm đơn [Premium Cat Bed](tu_khoa) giúp tôi
+    - ừ ok tìm [Standard Rubber Rope](tu_khoa) trong đơn
+    - ừm vậy tìm đơn có [Cat Food](tu_khoa)
+    - ok ok tìm [Royal Canin](tu_khoa) trong đơn hàng
 
 - intent: xem_don_hang_vua_dat
   examples: |
@@ -231,7 +253,6 @@ nlu:
     - phương thức thanh toán
     - trạng thái thanh toán
     - đơn thanh toán chưa
-    - thanh toán như thế nào
     - phương thức thanh toán của shop
     - shop chấp nhận thanh toán gì
     - các hình thức thanh toán
@@ -264,29 +285,6 @@ nlu:
     - địa chỉ nhận
     - sđt người nhận
 
-- intent: huy_don_hang
-  examples: |
-    - hủy đơn hàng
-    - tôi muốn hủy đơn
-    - hủy đơn [a1b2c3d4](order_id)
-    - cancel đơn hàng
-    - không muốn mua nữa hủy đơn
-    - hủy giúp tôi đơn này
-    - tôi muốn hủy đơn [f47ac10b](order_id)
-    - cho mình hủy đơn hàng [88776655](order_id)
-    - lỡ đặt nhầm cho mình hủy đơn với
-    - hủy đơn [df83210a](order_id) giúp tôi
-    - tôi đổi ý không mua nữa hủy đơn nhé
-    - hủy đơn vừa đặt giúp tui
-    - cancel giúp em đơn [abc12345](order_id)
-    - shop hủy giúp tôi đơn này với
-    - tôi muốn đăng ký hủy đơn hàng [99887766](order_id)
-    - lỡ tay bấm đặt nhầm cho tôi hủy
-    - cho tôi cancel đơn hàng này
-    - muốn hủy đơn hàng thì làm sao
-    - làm thế nào để hủy đơn vừa đặt
-    - shop ơi hủy đơn giúp mình nhé
-    - hủy đơn gần nhất
 
 - intent: hoi_thoi_gian_giao_hang
   examples: |

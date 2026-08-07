@@ -17,5 +17,4 @@ from .common import ActionDefaultFallback
 from .products import *
 from .cart import *
 from .orders import *
-from .services import *
 from .account import *

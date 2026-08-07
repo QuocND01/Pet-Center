@@ -68,6 +68,25 @@ nlu:
     - chắc chắn rồi
     - duyệt
     - đồng ý nha
+    - ừa
+    - ừm
+    - ờ
+    - à
+    - oki
+    - okey
+    - okk
+    - ok ok
+    - ok đi
+    - oke vậy
+    - thôi được
+    - cũng được
+    - à hiểu rồi
+    - ừ hiểu rồi
+    - oke hiểu rồi
+    - ờ được rồi
+    - à đúng rồi
+    - ừ rồi
+    - ừ nhỉ
 
 - intent: deny
   examples: |
@@ -242,11 +261,6 @@ nlu:
     - how to say hello in English
 
 # — Điều hướng: payload từ nút bấm —
-- intent: goto_service_page
-  examples: |
-    - mở trang dịch vụ
-    - đến trang dịch vụ
-
 - intent: goto_address_page
   examples: |
     - mở trang địa chỉ

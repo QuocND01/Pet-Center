@@ -38,6 +38,11 @@ rules:
     - intent: out_of_scope
     - action: utter_out_of_scope
 
+- rule: Phản hồi khi affirm mà không có context form
+  steps:
+    - intent: affirm
+    - action: utter_phan_hoi_linh_tinh
+
 - rule: Fallback khi không hiểu
   steps:
     - intent: nlu_fallback
@@ -135,11 +140,6 @@ rules:
     - intent: xem_don_hang_vua_dat
     - action: action_xem_don_hang_vua_dat
 
-- rule: Hủy đơn hàng
-  steps:
-    - intent: huy_don_hang
-    - action: action_huy_don_hang
-
 - rule: Hỏi ngày đặt mua đơn hàng
   steps:
     - intent: hoi_ngay_dat_don
@@ -184,22 +184,6 @@ rules:
   steps:
     - intent: hoi_chinh_sach_doi_tra
     - action: utter_hoi_chinh_sach_doi_tra
-
-# — Dịch vụ —
-- rule: Xem dịch vụ
-  steps:
-    - intent: xem_dich_vu
-    - action: action_xem_dich_vu
-
-- rule: Đặt lịch dịch vụ
-  steps:
-    - intent: dat_lich_dich_vu
-    - action: action_dat_lich
-
-- rule: Điều hướng trang dịch vụ
-  steps:
-    - intent: goto_service_page
-    - action: action_dat_lich
 
 # — Tài khoản —
 - rule: Xem hồ sơ

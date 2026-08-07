@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PetCenterClient.Services.Interface;
 using PetCenterClient.ViewModels;
 
@@ -112,7 +112,6 @@ namespace PetCenterClient.Controllers
 
             var list = historyList == null ? new List<ReadOrderListViewModel>() : historyList;
 
-            // Enrich each order with small preview items so we can display thumbnails and search by product name
             foreach (var o in list)
             {
                 try
@@ -129,7 +128,6 @@ namespace PetCenterClient.Controllers
                 }
             }
 
-            // Apply filters (search includes product name now)
             if (!string.IsNullOrEmpty(search))
             {
                 var q = search.Trim();

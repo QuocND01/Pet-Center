@@ -45,6 +45,19 @@ nlu:
     - địa chỉ nhà của người khác
     - xem địa chỉ người lạ
 
+- intent: xem_dia_chi
+  examples: |
+    - tôi muốn xem địa chỉ của tôi
+    - cho tôi xem địa chỉ của mình
+    - tôi muốn chỉnh sửa địa chỉ
+    - xem địa chỉ ở đâu vậy
+    - xem địa chỉ cá nhân ở đâu
+    - cách xem địa chỉ nhận hàng
+    - chỗ nào để xem địa chỉ
+    - tôi muốn xem lại địa chỉ giao hàng
+    - địa chỉ của tôi
+    - sửa địa chỉ giao hàng
+
 - intent: goto_login_page
   examples: |
     - đăng nhập ngay

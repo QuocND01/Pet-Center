@@ -199,31 +199,30 @@ def payment_status_label(n) -> str:
 
 
 class ActionDefaultFallback(Action):
-    """Fallback động thông minh: phân biệt guest và đă đăng nhập, hiển thị nút phù hợp."""
+    """Fallback động thông minh: phân biệt guest và đã đăng nhập, tập trung vào Đơn hàng & Hỗ trợ."""
     def name(self) -> str:
         return "action_default_fallback"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict) -> list:
-        user_text = (tracker.latest_message.get("text") or "").strip().lower()
+        user_text = (tracker.latest_message.get("text") or "").strip()
+        user_text_lower = user_text.lower()
         logged_in = is_logged_in(tracker)
 
-        # 1. Bắt ngữ cảnh Sản phẩm / Mua sắm
-        if any(w in user_text for w in ["sản phẩm", "mua", "bán", "giá", "thức ăn", "đồ chơi", "cát", "xem đồ"]):
-            buttons = [
-                {"title": "🛍️ Sản phẩm HOT", "payload": "/xem_san_pham_hot"},
-                {"title": "🐶 Đồ cho Chó", "payload": '/tim_san_pham{"tu_khoa": "chó"}'},
-                {"title": "🐱 Đồ cho Mèo", "payload": '/tim_san_pham{"tu_khoa": "mèo"}'},
-            ]
+        # 1. Bắt từ khóa tìm kiếm trong đơn (vd: "Kong", "Zebra", "Ultra")
+        if user_text and len(user_text.split()) <= 3 and not any(w in user_text_lower for w in ["chào", "hi", "hello", "giúp", "dịch vụ", "địa chỉ", "xin chào"]):
             if logged_in:
-                buttons.append({"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"})
-            dispatcher.utter_message(
-                text="Có phải bạn đang muốn tìm kiếm sản phẩm cho thú cưng? Bấm chọn nhanh nhé: 🐾",
-                buttons=buttons
-            )
-            return []
+                buttons = [
+                    {"title": f"📦 Tìm '{user_text}' trong Đơn hàng", "payload": f'/tim_don_hang_theo_san_pham{{"tu_khoa": "{user_text}"}}'},
+                    {"title": "📋 Tất cả đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"},
+                ]
+                dispatcher.utter_message(
+                    text=f"Dạ! 🐾 Bạn đang muốn tìm kiếm từ khóa **'{user_text}'** trong đơn hàng đúng không ạ?",
+                    buttons=buttons
+                )
+                return []
 
-        # 2. Bắt ngữ cảnh Đơn hàng / Giao hàng — chỉ cho user đă đăng nhập
-        if any(w in user_text for w in ["đơn", "giao", "ship", "hàng", "tiền", "thanh toán", "nhận"]):
+        # 2. Bắt ngữ cảnh Đơn hàng / Giao hàng — chỉ cho user đã đăng nhập
+        if any(w in user_text_lower for w in ["đơn", "giao", "ship", "hàng", "tiền", "thanh toán", "nhận"]):
             if not logged_in:
                 # Guest hỏi về đơn hàng → hướng dẫn đăng nhập, không hiển thị data
                 dispatcher.utter_message(
@@ -232,7 +231,6 @@ class ActionDefaultFallback(Action):
                         "Sau khi đăng nhập, tôi sẽ hiển thị đầy đủ đơn hàng của bạn ngay. 🐾"
                     ),
                     buttons=[
-                        {"title": "🛍️ Xem sản phẩm mới", "payload": "/xem_san_pham_moi"},
                         {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
                     ]
                 )
@@ -249,19 +247,17 @@ class ActionDefaultFallback(Action):
             )
             return []
 
-        # 3. Fallback tổng quát — Nút bấm khác nhau theo trạng thái đăng nhập
+        # 3. Fallback tổng quát
         if logged_in:
-            # Đã đăng nhập: hiển thị đầy đủ các tiện ích
             buttons = [
-                {"title": "🛍️ Tìm sản phẩm", "payload": "/xem_san_pham_hot"},
                 {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"},
-                {"title": "🩺 Dịch vụ & Đặt lịch", "payload": "/xem_dich_vu"},
+                {"title": "💳 Hướng dẫn thanh toán", "payload": "/huong_dan_thanh_toan"},
                 {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
             ]
         else:
             # Guest: không hiển thị nút cần đăng nhập, định hướng sang sản phẩm và tư vấn
             buttons = [
-                {"title": "🛍️ Tìm sản phẩm", "payload": "/xem_san_pham_hot"},
+                {"title": "🔥 Sản phẩm bán chạy", "payload": "/xem_san_pham_hot"},
                 {"title": "🆕 Hàng mới về", "payload": "/xem_san_pham_moi"},
                 {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
             ]
