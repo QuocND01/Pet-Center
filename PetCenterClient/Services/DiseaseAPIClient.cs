@@ -45,9 +45,21 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
             var res = await _http.PostAsJsonAsync("api/Diseases", dto);
             if (res.IsSuccessStatusCode) return (true, "");
-
-            // Đọc thẳng lỗi từ API trả về
-            return (false, await res.Content.ReadAsStringAsync());
+            // Cố gắng đọc message từ JSON trả về { success=false, message="..." }
+            var content = await res.Content.ReadAsStringAsync();
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(content);
+                if (doc.RootElement.TryGetProperty("message", out var msgEl))
+                {
+                    return (false, msgEl.GetString() ?? content);
+                }
+            }
+            catch
+            {
+                // ignore parse errors
+            }
+            return (false, content);
         }
 
         public async Task<(bool success, string message)> UpdateDiseaseAsync(Guid id, MutateDiseaseViewModel dto)
@@ -55,7 +67,19 @@ namespace PetCenterClient.Services
             AddAuthorizationHeader();
             var res = await _http.PutAsJsonAsync($"api/Diseases/{id}", dto);
             if (res.IsSuccessStatusCode) return (true, "");
-            return (false, await res.Content.ReadAsStringAsync());
+            var content = await res.Content.ReadAsStringAsync();
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(content);
+                if (doc.RootElement.TryGetProperty("message", out var msgEl))
+                {
+                    return (false, msgEl.GetString() ?? content);
+                }
+            }
+            catch
+            {
+            }
+            return (false, content);
         }
 
         public async Task<(bool success, string message)> DeleteDiseaseAsync(Guid id)

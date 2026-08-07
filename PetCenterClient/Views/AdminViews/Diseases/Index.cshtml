@@ -240,6 +240,7 @@
                         <div class="col-8">
                             <label class="form-label fw-bold" style="font-size: 0.85rem; color: #6b7280;">DISEASE NAME</label>
                             <input type="text" id="mutName" class="form-control">
+                            <div id="mutNameError" class="form-text text-danger d-none" style="margin-top:6px;"></div>
                         </div>
                         <div class="col-4">
                             <label class="form-label fw-bold" style="font-size: 0.85rem; color: #6b7280;">TARGET SPECIES</label>
@@ -348,7 +349,16 @@
                 recommendation: document.getElementById('mutRecommendation').value
             };
 
-            if(!data.name) return alert("Disease Name is required!");
+            var nameErrorEl = document.getElementById('mutNameError');
+            // Reset previous error
+            nameErrorEl.classList.add('d-none');
+            nameErrorEl.innerText = '';
+
+            if(!data.name) {
+                nameErrorEl.innerText = 'Disease Name is required!';
+                nameErrorEl.classList.remove('d-none');
+                return;
+            }
 
             var url = id ? '/Diseases/Update/' + id : '/Diseases/Add';
 
@@ -361,7 +371,12 @@
             .then(r => r.json())
             .then(d => {
                 if (d.success) location.reload();
-                else alert("Lỗi từ Backend API:\n\n" + (d.message || "Failed to save."));
+                else {
+                    // Hiển thị message trả về từ backend ngay dưới ô tên (nếu có)
+                    var msg = d.message || "Failed to save.";
+                    nameErrorEl.innerText = msg;
+                    nameErrorEl.classList.remove('d-none');
+                }
             });
         }
     </script>

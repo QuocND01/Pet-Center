@@ -42,6 +42,15 @@ namespace PetCenterAPI.Controllers
         public async Task<IActionResult> AddDisease([FromBody] MutateDiseaseDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            // Kiểm tra trùng tên trước khi gọi service để trả message rõ ràng
+            var name = dto.Name?.Trim();
+            if (!string.IsNullOrEmpty(name))
+            {
+                var exists = _diseaseService.GetAllDiseasesQuery()
+                    .Any(d => d.Name.ToLower() == name.ToLower());
+                if (exists) return BadRequest(new { success = false, message = "Disease name already exists." });
+            }
+
             var success = await _diseaseService.AddDiseaseAsync(dto);
             return success ? Ok(new { success = true, message = "Disease added successfully." }) : BadRequest(new { success = false, message = "Failed to add disease." });
         }
