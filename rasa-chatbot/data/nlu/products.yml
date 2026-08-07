@@ -382,20 +382,6 @@ nlu:
     - tim danh muc [do choi](danh_muc)
     - loại [phụ kiện](danh_muc)
 
-- intent: tim_san_pham_theo_thuong_hieu
-  examples: |
-    - thương hiệu [Royal Canin](thuong_hieu)
-    - sản phẩm của [Whiskas](thuong_hieu)
-    - shop có [Pedigree](thuong_hieu) không
-    - tìm hãng [Royal Canin](thuong_hieu)
-    - xem sản phẩm [Whiskas](thuong_hieu)
-    - brand [Pedigree](thuong_hieu) có gì
-    - cho xem hàng [Royal Canin](thuong_hieu)
-    - đồ của hãng [Whiskas](thuong_hieu)
-    - thuong hieu [Royal Canin](thuong_hieu)
-    - san pham [Pedigree](thuong_hieu)
-    - hãng [Me-O](thuong_hieu)
-
 - intent: tim_san_pham_theo_gia
   examples: |
     - sản phẩm dưới [300k](gia_den)
@@ -425,19 +411,6 @@ nlu:
     - danh muc san pham
     - co loai nao khong
 
-- intent: xem_thuong_hieu
-  examples: |
-    - shop bán thương hiệu nào
-    - có hãng nào
-    - brand nào đang bán
-    - các thương hiệu
-    - liệt kê thương hiệu
-    - shop có những hãng gì
-    - xem các nhãn hàng
-    - thương hiệu nào có sẵn
-    - có những brand nào
-    - thuong hieu nao
-    - cac hang dang ban
 
 - intent: xem_chi_tiet_san_pham
   examples: |
