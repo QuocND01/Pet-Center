@@ -15,7 +15,7 @@ nlu:
     - thông tin cá nhân
     - tài khoản của tôi
     - xem thông tin của tôi
-    # 👤 TRAINING: thêm ví dụ ở đây...
+
 
 - intent: xem_dia_chi
   examples: |
@@ -24,7 +24,7 @@ nlu:
     - địa chỉ giao hàng
     - tôi đã lưu địa chỉ nào
     - danh sách địa chỉ
-    # 👤 TRAINING: thêm ví dụ ở đây...
+
 
 - intent: them_dia_chi
   examples: |
@@ -33,7 +33,7 @@ nlu:
     - tôi muốn thêm địa chỉ giao hàng
     - lưu địa chỉ mới
     - tạo địa chỉ
-    # 👤 TRAINING: thêm ví dụ ở đây...
+
 
 - intent: xem_ho_so_y_te
   examples: |
@@ -43,4 +43,4 @@ nlu:
     - thú cưng của tôi khám gì rồi
     - bệnh án thú cưng
     - lịch sử tiêm phòng
-    # 👤 TRAINING: thêm ví dụ ở đây...
+

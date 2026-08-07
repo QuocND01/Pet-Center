@@ -36,7 +36,6 @@ intents:
   - xem_don_hang_cua_toi
   - tim_don_hang_theo_san_pham
   - xem_chi_tiet_don
-  - huy_don_hang
   - hoi_thoi_gian_giao_hang
   - hoi_phi_van_chuyen
   - hoi_chinh_sach_doi_tra
@@ -47,9 +46,6 @@ intents:
   - hoi_so_luong_san_pham_don
   - hoi_thanh_toan_phuong_thuc_don
   - hoi_thong_tin_nguoi_nhan_dia_chi
-  # — Dịch vụ —
-  - xem_dich_vu
-  - dat_lich_dich_vu
   # — Tài khoản —
   - xem_ho_so
   - xem_dia_chi
@@ -62,13 +58,13 @@ intents:
   # — Bảo mật đơn hàng —
   - xem_don_hang_nguoi_khac
   # — Điều hướng (từ nút bấm) —
-  - goto_service_page
   - goto_address_page
   - goto_orders_page
   - goto_login_page
 
 entities:
   - tu_khoa
+  - search_query
   - so_luong
   - product_id_chon
   - product_name_chon
@@ -164,16 +160,16 @@ slots:
 
 responses:
   utter_greet:
-    - text: "Xin chào! 🐾 Tôi là trợ lý ảo PetCenter.\nTôi có thể hỗ trợ bạn:\n• 📦 Tra cứu lịch sử & tìm kiếm sản phẩm trong đơn hàng\n• 🛍️ Khám phá sản phẩm hot, hàng mới & danh mục\n• 🩺 Tư vấn dịch vụ & đặt lịch hẹn chăm sóc thú cưng\n\nBạn cần tôi hỗ trợ thông tin gì hôm nay ạ?"
+    - text: "Xin chào! 🐾 Tôi là trợ lý ảo PetCenter.\nTôi có thể hỗ trợ bạn:\n• 📦 Tra cứu lịch sử & tìm kiếm sản phẩm trong đơn hàng\n• 🛍️ Khám phá sản phẩm hot, hàng mới & danh mục\n• 💳 Hướng dẫn mua hàng, thanh toán & quản lý địa chỉ\n\nBạn cần tôi hỗ trợ thông tin gì hôm nay ạ?"
 
   utter_goodbye:
     - text: "Tạm biệt! Hẹn gặp lại bạn tại PetCenter 🐾 Cần hỗ trợ gì thêm cứ gọi tôi nhé!"
 
   utter_bot_challenge:
-    - text: "Tôi là PetCenter Bot 🐾 - trợ lý AI thông minh của PetCenter, luôn sẵn sàng hỗ trợ bạn tra cứu đơn hàng, tư vấn sản phẩm và dịch vụ thú cưng 24/7!"
+    - text: "Tôi là PetCenter Bot 🐾 - trợ lý AI thông minh của PetCenter, luôn sẵn sàng hỗ trợ bạn tra cứu đơn hàng và tư vấn sản phẩm 24/7!"
 
   utter_ask_bot_capabilities:
-    - text: "Tôi là trợ lý AI của PetCenter! 🐾 Tôi có thể hỗ trợ bạn:\n• 📦 Tra cứu chi tiết & tìm kiếm sản phẩm trong đơn hàng đã mua\n• 🛍️ Xem sản phẩm bán chạy, hàng mới về & danh mục sản phẩm\n• 🛒 Quản lý giỏ hàng & áp dụng voucher ưu đãi\n• 🩺 Đặt lịch dịch vụ chăm sóc & xem sổ y tế thú cưng\n\nLưu ý: Tôi hỗ trợ thông tin và tra cứu dữ liệu 24/7, công đoạn giao hàng thực tế sẽ do shipper của PetCenter phụ trách bạn nhé! 🚚"
+    - text: "Tôi là trợ lý AI của PetCenter! 🐾 Tôi có thể hỗ trợ bạn:\n• 📦 Tra cứu chi tiết & tìm kiếm sản phẩm trong đơn hàng đã mua\n• 🛍️ Xem sản phẩm bán chạy, hàng mới về & danh mục sản phẩm\n• 🛒 Quản lý giỏ hàng & áp dụng voucher ưu đãi\n• 📍 Hướng dẫn mua hàng, thanh toán & xem địa chỉ\n\nLưu ý: Tôi hỗ trợ thông tin và tra cứu dữ liệu 24/7, công đoạn giao hàng thực tế sẽ do shipper của PetCenter phụ trách bạn nhé! 🚚"
 
   utter_ask_human:
     - text: "Bạn có thể liên hệ trực tiếp với bộ phận chăm sóc khách hàng của PetCenter qua:\n📞 Hotline: +84 123 456 789\n✉ Email: support@petcenter.com\n\n💬 Ngoài ra, bạn có thể nhắn tin trực tiếp với staff hoặc admin ngay trên trang web — bấm vào nút Chat 💬 (khác với chat AI này) ở góc màn hình để được tư vấn trực tiếp bởi nhân viên PetCenter nhé!"
@@ -182,7 +178,25 @@ responses:
     - text: "Xin lỗi, tôi chưa hiểu ý bạn. Bạn thử hỏi: 'tìm thức ăn cho chó', 'đơn hàng của tôi', 'có voucher nào', 'dịch vụ spa'..."
 
   utter_out_of_scope:
-    - text: "Xin lỗi, tôi là trợ lý mua sắm của PetCenter nên chưa hỗ trợ tính toán hoặc các câu hỏi ngoài phạm vi này. Bạn có thể hỏi tôi về sản phẩm chó mèo, đơn hàng hoặc dịch vụ nhé! 🐾"
+    - text: "Xin lỗi, tôi chưa được hỗ trợ chủ đề này nhé. Tôi có thể giúp bạn về thú cưng và các sản phẩm của PetCenter! 🐾"
+
+  utter_phan_hoi_linh_tinh:
+    - text: "Tôi đang lắng nghe! Bạn muốn tôi hỗ trợ gì không? Bấm chọn nhanh nhé 🐾"
+      buttons:
+      - title: "🔥 Sản phẩm bán chạy nhất"
+        payload: /xem_san_pham_hot
+      - title: "📦 Đơn hàng của tôi"
+        payload: /xem_don_hang_cua_toi
+      - title: "📞 Gặp tư vấn viên"
+        payload: /ask_human
+    - text: "Hmm, tôi chưa hiểu lắm! Bạn có thể cho tôi biết bạn cần hỗ trợ gì không? 🐾"
+      buttons:
+      - title: "🔥 Sản phẩm bán chạy nhất"
+        payload: /xem_san_pham_hot
+      - title: "📦 Đơn hàng của tôi"
+        payload: /xem_don_hang_cua_toi
+      - title: "📞 Gặp tư vấn viên"
+        payload: /ask_human
 
   utter_yeu_cau_tu_khoa:
     - text: "Bạn muốn tìm sản phẩm gì? Ví dụ: thức ăn chó, đồ chơi mèo, vòng cổ..."
@@ -230,16 +244,12 @@ actions:
   - action_tim_don_hang_theo_san_pham
   - action_xem_don_hang_vua_dat
   - action_chi_tiet_don
-  - action_huy_don_hang
   - action_hoi_ngay_dat_don
   - action_hoi_ngay_giao_don
   - action_hoi_gia_tong_tien_don
   - action_hoi_so_luong_san_pham_don
   - action_hoi_thanh_toan_phuong_thuc_don
   - action_hoi_thong_tin_nguoi_nhan_dia_chi
-  # Dịch vụ
-  - action_xem_dich_vu
-  - action_dat_lich
   # Tài khoản
   - action_xem_ho_so
   - action_xem_dia_chi

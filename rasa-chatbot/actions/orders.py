@@ -44,9 +44,59 @@ def _normalize_text(s: str) -> str:
     return s.lower().strip()
 
 
+# █ Danh sách prefix giao tiếp cần cắt bỏ khi tìm kiếm đơn theo sản phẩm
+_SEARCH_PREFIXES = [
+    "tôi muốn tìm đơn hàng có sản phẩm tên là",
+    "tôi muốn tìm đơn hàng có chứa sản phẩm tên là",
+    "tôi muốn tìm đơn hàng có sản phẩm là",
+    "tôi muốn tìm đơn hàng có chứa sản phẩm",
+    "tìm đơn hàng có sản phẩm là",
+    "tìm đơn hàng có chứa sản phẩm",
+    "tìm đơn hàng có sản phẩm",
+    "tìm đơn có sản phẩm",
+    "tìm sản phẩm trong đơn",
+    "tìm sản phẩm",
+    "sản phẩm tên là",
+    "xem đơn có",
+    "xem đơn hàng có",
+    "đơn hàng có sản phẩm",
+    "tôi muốn tìm",
+    "tìm giúp tôi",
+    "tìm giúp mình",
+    "giúp tôi tìm",
+    "giúp mình tìm",
+    "tìm đơn",
+    "tìm",
+]
+
+
+def _strip_search_prefix(text: str) -> str:
+    """
+    Loại bỏ prefix giao tiếp để chỉ lấy tên sản phẩm thực sự.
+    Ví dụ:
+      'Tôi muốn tìm Cat Food 1kg' -> 'Cat Food 1kg'
+      'Tìm giúp tôi Cat Food 1kg' -> 'Cat Food 1kg'
+      'Premium Chicken Cat Food 1kg' -> 'Premium Chicken Cat Food 1kg' (giữ nguyên)
+    """
+    t = text.lower().strip()
+    for prefix in sorted(_SEARCH_PREFIXES, key=len, reverse=True):  # Dài hơn mất trước
+        p_norm = _normalize_text(prefix)
+        t_norm = _normalize_text(t)
+        if t_norm.startswith(p_norm):
+            result = text[len(prefix):].strip(" ,:-")
+            if result:
+                return result
+    return text
+
+
 def _match_product_in_orders(orders: list, user_text: str) -> list:
-    """Thuật toán So khớp Mờ (Fuzzy / Substring Matcher) quét tên sản phẩm trong lịch sử đơn hàng."""
-    norm_query = _normalize_text(user_text)
+    """
+    Thuật toán Chấm điểm Trọng số (Relevance Weighted Scoring Algorithm):
+    - Khớp 1 từ: Hoạt động 100% nguyên bản như trước (không bị ảnh hưởng).
+    - Khớp nhiều từ: Tự động tính điểm match_score. 
+      Đơn hàng có sản phẩm khớp nhiều từ hơn sẽ có điểm cao hơn và tự động loại bỏ các đơn khớp ngẫu nhiên 1 từ.
+    """
+    norm_query = _normalize_text(user_text or "")
     if not norm_query or len(norm_query) < 2:
         return []
 
@@ -57,19 +107,43 @@ def _match_product_in_orders(orders: list, user_text: str) -> list:
         "muon", "nao", "nhung", "cac", "duoc", "tung", "da", "lai", "nay", "ay", "kia", "voi", "em", "admin"
     }
     query_words = [w for w in norm_query.split() if w not in fillers and len(w) > 1]
-
     if not query_words:
         return []
 
-    matched = []
+    scored_orders = []
+
     for o in orders:
         items = extract_list(get_field(o, "orderItems", "OrderItems", "orderDetails", "OrderDetails", default=[]))
+        best_item_score = 0
+
         for it in items:
             pname = _normalize_text(get_field(it, "productName", "ProductName", default=""))
-            if all(w in pname for w in query_words) or norm_query in pname:
-                matched.append(o)
-                break
-    return matched
+            if not pname:
+                continue
+
+            matched_words = [w for w in query_words if w in pname]
+            word_score = len(matched_words)
+            bonus = 5 if norm_query in pname else 0
+            total_score = word_score + bonus
+
+            if total_score > best_item_score and word_score > 0:
+                best_item_score = total_score
+
+        if best_item_score > 0:
+            scored_orders.append((o, best_item_score))
+
+    if not scored_orders:
+        return []
+
+    max_score = max(score for _, score in scored_orders)
+
+    # Nếu người dùng tìm kiếm cụm từ từ 2 từ trở lên và có đơn đạt điểm cao vượt trội:
+    # Chỉ giữ lại các đơn có điểm cao nhất (loại bỏ hoàn toàn các đơn bị trùng lặp 1 từ ngẫu nhiên)
+    if len(query_words) > 1 and max_score >= 2:
+        return [o for o, score in scored_orders if score == max_score]
+
+    # Người dùng tìm 1 từ ngắn (như "Ultra" hoặc "Royal") -> Trả về tất cả các đơn có chứa từ đó
+    return [o for o, score in scored_orders]
 
 
 def _resolve_target_order(
@@ -229,18 +303,10 @@ def _render_order_detail_card(dispatcher: CollectingDispatcher, order_id: str, d
                     "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
                 })
 
-    if int(status_code) in (1, 2):
-        buttons.append({
-            "title": f"❌ Hủy đơn #{short_id}",
-            "payload": f'/huy_don_hang{{"order_id": "{order_id}"}}'
-        })
+
     buttons.append({
-        "title": "🚚 Khi nào giao tới?",
-        "payload": f'/hoi_ngay_giao_don{{"order_id": "{order_id}"}}'
-    })
-    buttons.append({
-        "title": "🔗 Xem tất cả đơn trên Web",
-        "payload": "/goto_orders_page"
+        "title": f"📋 Xem đơn hàng #{short_id} trên Web",
+        "payload": f'/goto_orders_page{{"search_query": "{short_id}"}}'
     })
 
     dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
@@ -308,11 +374,7 @@ class ActionXemDonHang(Action):
                     "title": f"📋 Chi tiết #{short_id}",
                     "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
                 })
-                if int(status_code) in (1, 2):
-                    buttons.append({
-                        "title": f"❌ Hủy đơn #{short_id}",
-                        "payload": f'/huy_don_hang{{"order_id": "{oid}"}}'
-                    })
+
 
         buttons.append({
             "title": "🔗 Xem tất cả đơn trên Web",
@@ -335,34 +397,22 @@ class ActionTimDonHangTheoSanPham(Action):
             dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để tìm đơn hàng của mình nhé!")
             return []
 
-        # █ Lấy từ khóa tu_khoa bóc tách trực tiếp từ Rasa NLU (không cắt chuỗi thủ công)
+        # █ Trích xuất từ khóa: ưu tiên entity NLU, sau đó mới strip prefix từ user_text
         current_entity_kw = None
         for e in tracker.latest_message.get("entities", []):
-            if e.get("entity") == "tu_khoa" and e.get("value"):
+            if e.get("entity") in ("tu_khoa", "search_query") and e.get("value"):
                 current_entity_kw = str(e.get("value")).strip()
                 break
 
-        search_term = current_entity_kw or tracker.get_slot("tu_khoa")
-
-        if not search_term:
-            # █ LƯỚI AN TOÀN TRỌNG YẾU: Nếu NLU trượt entity tu_khoa -> Tự bóc tách từ đứng sau vị trí từ chỉ định
+        if current_entity_kw:
+            # NLU đã tách được entity chính xác → dùng luôn
+            search_term = current_entity_kw
+        else:
+            # Không có entity → strip prefix giao tiếp khỏi user_text
             user_text = (tracker.latest_message.get("text") or "").strip()
-            user_text_lower = user_text.lower()
-            for trigger in ["tên là", "sảm phẩm tên là", "sản phẩm tên là", "sản phẩm", "có chứa", "tìm"]:
-                if trigger in user_text_lower:
-                    parts = user_text_lower.split(trigger, 1)
-                    if len(parts) > 1 and parts[1].strip():
-                        candidate = parts[1].strip()
-                        for suffix in ["trong đơn hàng", "trong đơn", "của tôi", "giúp tôi"]:
-                            candidate = candidate.replace(suffix, "").strip()
-                        if candidate and candidate not in ["đơn hàng", "đơn"]:
-                            search_term = candidate
-                            break
-            if not search_term and user_text:
-                # Nếu chỉ gõ trần 1-2 từ ngắn (vd: "Ultra Beef", "Royal Canin") -> Dùng trực tiếp user_text
-                search_term = user_text
+            search_term = _strip_search_prefix(user_text)
 
-        # █ Lọc các từ tìm kiếm chung chung (không phải tên sản phẩm cụ thể)
+        # █ Lọc các từ tìm kiếm chung chung
         norm_st = _normalize_text(search_term or "")
         if norm_st in ["san pham", "tim san pham", "do", "hang", "mon", "tim do", "tim hang", "san pham trong don", "tim san pham trong don"]:
             search_term = None
@@ -387,16 +437,18 @@ class ActionTimDonHangTheoSanPham(Action):
 
         if matched_orders:
             match_count = len(matched_orders)
+            safe_st = str(search_term or '').strip().replace('"', "'")
+
             if match_count == 1:
                 target_order = matched_orders[0]
                 oid = str(get_field(target_order, "orderId", "OrderId", default="")).strip().lstrip('#')
                 ok_det, det_data = api_get(f"/api/orders/{oid}", tracker, with_auth=True)
                 data_render = det_data if ok_det and det_data else target_order
-                prefix = f"Dạ! 🐾 Tôi tìm thấy 1 đơn hàng bạn từng mua có chứa sản phẩm khớp từ khóa **'{search_term[:30]}'** đây ạ:\n\n📋 **CHI TIẾT ĐƠN HÀNG #{oid[:8]}…**"
+                prefix = f"Dạ! 🐾 Tôi tìm thấy 1 đơn hàng bạn từng mua có chứa sản phẩm khớp với tìm kiếm đây ạ:\n\n📋 **CHI TIẾT ĐƠN HÀNG #{oid[:8]}…**"
                 return _render_order_detail_card(dispatcher, oid, data_render, custom_prefix=prefix) + [SlotSet("tu_khoa", None)]
 
             display_orders = matched_orders[:3]
-            lines = [f"Dạ! 🐾 Tôi tìm thấy {match_count} đơn hàng bạn từng mua có sản phẩm khớp từ khóa **'{search_term[:30]}'** ạ. Dưới đây là các đơn gần đây nhất:"]
+            lines = [f"Dạ! 🐾 Tôi tìm thấy {match_count} đơn hàng bạn từng mua có chứa sản phẩm khớp với tìm kiếm ạ. Dưới đây là các đơn gần đây nhất:"]
             buttons = []
             for o in display_orders:
                 oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
@@ -408,13 +460,13 @@ class ActionTimDonHangTheoSanPham(Action):
                     "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
                 })
             buttons.append({
-                "title": "🔗 Xem tất cả đơn trên Web",
-                "payload": "/goto_orders_page"
+                "title": "🔗 Xem các đơn hàng đã lọc trên Web",
+                "payload": f'/goto_orders_page{{"search_query": "{safe_st}"}}'
             })
             dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
             return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
         else:
-            lines = [f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có chứa sản phẩm '{search_term[:30]}'** ạ.\n\n📦 Dưới đây là các đơn hàng gần đây nhất của bạn:"]
+            lines = [f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có chứa sản phẩm này** ạ.\n\n📦 Dưới đây là các đơn hàng gần đây nhất của bạn:"]
             display_orders = orders[:3]
             buttons = []
             for o in display_orders:
@@ -454,11 +506,7 @@ class ActionTimDonHangTheoSanPham(Action):
                     "title": f"📋 Chi tiết #{short_id}",
                     "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
                 })
-                if int(status_code) in (1, 2):
-                    buttons.append({
-                        "title": f"❌ Hủy đơn #{short_id}",
-                        "payload": f'/huy_don_hang{{"order_id": "{oid}"}}'
-                    })
+
 
         buttons.append({
             "title": "🔗 Xem tất cả đơn trên Web",
@@ -544,11 +592,7 @@ class ActionXemDonHangVuaDat(Action):
                         "payload": f'/xem_chi_tiet_san_pham{{"product_id_chon": "{pid}"}}'
                     })
 
-        if int(status_code) in (1, 2):
-            buttons.append({
-                "title": f"❌ Hủy đơn hàng vừa đặt",
-                "payload": f'/huy_don_hang{{"order_id": "{latest_id}"}}'
-            })
+
         buttons.append({
             "title": "🚚 Khi nào giao tới?",
             "payload": f'/hoi_ngay_giao_don{{"order_id": "{latest_id}"}}'
@@ -829,64 +873,50 @@ class ActionHoiThongTinNguoiNhanDiaChi(Action):
         return events + [SlotSet("order_id", order_id)]
 
 
-class ActionHuyDonHang(Action):
-    """Pattern B — gửi tín hiệu cho chatbot.js gọi PATCH /api/orders/{id}/cancel."""
-    def name(self) -> Text:
-        return "action_huy_don_hang"
 
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        order_id = tracker.get_slot("order_id")
 
-        if not order_id:
-            if not is_logged_in(tracker):
-                dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để thực hiện hủy đơn hàng!")
-                return []
 
-            ok_my, my_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
-            my_orders = extract_list(my_data) if ok_my else []
-
-            cancellable_orders = [
-                o for o in my_orders 
-                if int(get_field(o, "status", "Status", default=0)) in (1, 2)
-            ]
-
-            if not cancellable_orders:
-                dispatcher.utter_message(
-                    text="Bạn không có đơn hàng nào ở trạng thái có thể hủy (Đơn đã giao hoặc đã hủy không thể thao tác)."
-                )
-                return []
-            elif len(cancellable_orders) == 1:
-                order_id = str(get_field(cancellable_orders[0], "orderId", "OrderId", default="")).strip().lstrip('#')
-            else:
-                lines = ["Bạn muốn hủy đơn hàng nào dưới đây?"]
-                buttons = []
-                for o in cancellable_orders[:5]:
-                    oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
-                    total = get_field(o, "totalAmount", "TotalAmount", default=0)
-                    short_id = oid[:8] if oid else "đơn hàng"
-                    buttons.append({
-                        "title": f"❌ Hủy đơn #{short_id} ({format_price(total)})",
-                        "payload": f'/huy_don_hang{{"order_id": "{oid}"}}'
-                    })
-                dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-                return []
-
-        if not order_id:
-            dispatcher.utter_message(text="Không xác định được đơn hàng cần hủy. Bạn thử lại nhé!")
-            return []
-
-        dispatcher.utter_message(json_message={"type": "cancel_order", "orderId": str(order_id).strip().lstrip('#')})
-        return [SlotSet("order_id", None)]
+import urllib.parse
 
 
 class ActionGotoOrdersPage(Action):
-    """Chuyển hướng thân thiện người dùng tới trang Quản lý đơn hàng trên Web."""
+    """Chuyển hướng người dùng tới trang Quản lý đơn hàng trên Web (Hỗ trợ lọc theo từ khóa/mã đơn nếu có)."""
     def name(self) -> Text:
         return "action_goto_orders_page"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        search_query = None
+
+        # 1. Ưu tiên tuyệt đối entity search_query (payload từ đúng nút bấm vừa click)
+        for e in tracker.latest_message.get("entities", []):
+            if e.get("entity") == "search_query" and e.get("value"):
+                search_query = str(e.get("value")).strip()
+                break
+
+        # 2. Nếu không có -> Mới xét các entity khác
+        if not search_query:
+            for e in tracker.latest_message.get("entities", []):
+                if e.get("entity") in ("tu_khoa", "order_id", "product_name_chon") and e.get("value"):
+                    val = str(e.get("value") or "").strip()
+                    if val:
+                        search_query = val
+                        break
+
+        # 3. Cuối cùng mới xét đến slot
+        if not search_query:
+            search_query = tracker.get_slot("tu_khoa") or tracker.get_slot("order_id")
+
+        if search_query:
+            sq_clean = str(search_query).strip().lstrip('#')
+            encoded = urllib.parse.quote(sq_clean)
+            target_url = f"/Orders/History?search={encoded}"
+            text_msg = f"Dạ có ngay! 🐾 Đang đưa bạn đến trang Đơn hàng trên Web được lọc theo từ khóa **'{sq_clean}'**..."
+        else:
+            target_url = "/Orders/History"
+            text_msg = "Dạ có ngay! 🐾 Đợi tôi một chút, tôi đưa bạn đến trang Đơn hàng của bạn ngay đây..."
+
         dispatcher.utter_message(
-            text="Dạ có ngay! 🐾 Đợi tôi một chút, tôi đưa bạn đến trang Đơn hàng của bạn ngay đây...",
-            json_message={"type": "navigate", "url": "/Orders/History"}
+            text=text_msg,
+            json_message={"type": "navigate", "url": target_url}
         )
-        return []
+        return [SlotSet("tu_khoa", None)]
