@@ -127,9 +127,9 @@ namespace PetCenterAPI.Repository
         public async Task<IEnumerable<Disease>> GetActiveDiseasesAsync(int? species)
         {
             var query = _db.Diseases.Where(d => d.IsActive);
-            if (species.HasValue)
+            if (species.HasValue && species.Value > 0)
             {
-                query = query.Where(d => d.Species == species.Value);
+                query = query.Where(d => d.Species == species.Value || d.Species == 3);
             }
             return await query.OrderBy(d => d.Name).ToListAsync();
         }

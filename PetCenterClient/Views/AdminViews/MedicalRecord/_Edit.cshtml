@@ -82,7 +82,7 @@ $(document).ready(function() {
             var $opt = $(this);
             var optSpecies = $opt.data('species');
             
-            if (!optSpecies || !species || optSpecies == species) {
+            if (!optSpecies || !species || optSpecies == species || optSpecies == 3) {
                 $opt.show();
             } else {
                 $opt.hide();
