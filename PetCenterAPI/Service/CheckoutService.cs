@@ -120,7 +120,7 @@ namespace PetCenterAPI.Service
                     if (inv == null)
                         throw new InvalidOperationException("Inventory information for the product was not found.");
 
-                    var available = inv.QuantityAvailable - inv.QuantityReserved;
+                    var available = inv.QuantityAvailable;
                     if (available < item.Quantity)
                         throw new InvalidOperationException(
                             $"Product '{inv.Product.ProductName}' does not have enough stock. " +

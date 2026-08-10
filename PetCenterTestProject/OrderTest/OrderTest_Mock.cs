@@ -1165,7 +1165,7 @@ namespace PetCenterTestProject.OrderTest
 
             var customer = await EnsureCustomerInMemoryAsync(context, Guid.NewGuid());
             var address = await EnsureAddressInMemoryAsync(context, customer.CustomerId);
-            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 5, 4); // available = 5 - 4 = 1
+            var (productId, _, _) = await SeedProductAndInventoryInMemoryAsync(context, "Product 1", 1, 4); // available = 1
 
             var request = new PlaceCodOrderDTO
             {
