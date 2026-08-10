@@ -57,8 +57,10 @@ namespace PetCenterAPI.Repository
 
         public async Task<List<TopProductDTO>> GetTopProductsAsync(int topCount)
         {
+            // Count only products from orders that are either Paid (PaymentStatus == 2) or Completed (Status == 4)
             return await _db.OrderDetails
                 .Include(od => od.Product)
+                .Where(od => od.Order.PaymentStatus == 2 || od.Order.Status == 4)
                 .GroupBy(od => od.ProductId)
                 .Select(g => new TopProductDTO
                 {
@@ -112,9 +114,11 @@ namespace PetCenterAPI.Repository
                 .Select(g => new ChartItemDTO { Label = g.Key, Value = g.Sum(od => od.Quantity * od.UnitPrice) })
                 .ToListAsync();
 
-            // 4. Top Sản phẩm
+            // 4. Top Sản phẩm - chỉ tính các sản phẩm trong đơn hàng đã được thanh toán (PaymentStatus == 2)
+            // hoặc đơn hàng đã hoàn thành (Status == 4)
             metrics.TopProducts = await _db.OrderDetails
-                .Where(od => od.Order.OrderDate >= fromDate && od.Order.OrderDate <= toDate)
+                .Where(od => od.Order.OrderDate >= fromDate && od.Order.OrderDate <= toDate
+                             && (od.Order.PaymentStatus == 2 || od.Order.Status == 4))
                 .GroupBy(od => od.Product.ProductName)
                 .Select(g => new ChartItemDTO { Label = g.Key, Value = g.Sum(od => od.Quantity) })
                 .OrderByDescending(x => x.Value).Take(5).ToListAsync();
