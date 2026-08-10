@@ -215,8 +215,21 @@ namespace PetCenterAPI.Service
                     }
                 }
 
-                // ── 9. Clear cart ────────────────────────────────────────────
-                await _cartRepo.ClearCartByCustomerIdAsync(dto.CustomerId);
+                // ── 9. Clear cart (only selected items) ──────────────────────
+                var cart = await _cartRepo.GetCartWithDetailsAsync(dto.CustomerId);
+                if (cart != null)
+                {
+                    var cartDetailIds = dto.Items.Select(i => i.CartDetailId).Where(id => id != Guid.Empty).ToList();
+
+                    var toRemove = cart.CartDetails
+                        .Where(cd => cartDetailIds.Contains(cd.CartDetailsId) || productIds.Contains(cd.ProductId))
+                        .ToList();
+
+                    if (toRemove.Any())
+                    {
+                        _cartRepo.RemoveDetails(toRemove);
+                    }
+                }
 
                 await _orderRepo.SaveChangesAsync();
                 await tx.CommitAsync();
@@ -436,8 +449,21 @@ namespace PetCenterAPI.Service
                     }
                 }
 
-                // ── 10. Clear cart ───────────────────────────────────────────
-                await _cartRepo.ClearCartByCustomerIdAsync(dto.CustomerId);
+                // ── 10. Clear cart (only selected items) ─────────────────────
+                var cart = await _cartRepo.GetCartWithDetailsAsync(dto.CustomerId);
+                if (cart != null)
+                {
+                    var cartDetailIds = dto.Items.Select(i => i.CartDetailId).Where(id => id != Guid.Empty).ToList();
+
+                    var toRemove = cart.CartDetails
+                        .Where(cd => cartDetailIds.Contains(cd.CartDetailsId) || productIds.Contains(cd.ProductId))
+                        .ToList();
+
+                    if (toRemove.Any())
+                    {
+                        _cartRepo.RemoveDetails(toRemove);
+                    }
+                }
 
                 await _orderRepo.SaveChangesAsync();
                 await tx.CommitAsync();
