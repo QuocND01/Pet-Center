@@ -11,9 +11,9 @@ namespace PetCenterClient.Services.Interface
 
         Task<ReadPetDetailViewModel?> GetPetDetailsAsync(Guid id);
 
-        Task<bool> AddPetAsync(MutatePetViewModel dto);
+        Task<System.Net.Http.HttpResponseMessage> AddPetAsync(MutatePetViewModel dto);
 
-        Task<bool> UpdatePetAsync(Guid id, MutatePetViewModel dto);
+        Task<System.Net.Http.HttpResponseMessage> UpdatePetAsync(Guid id, MutatePetViewModel dto);
 
         Task<bool> DeletePetAsync(Guid id);
 
@@ -25,8 +25,8 @@ namespace PetCenterClient.Services.Interface
 
         Task<ReadVetPetDetailViewModel?> GetPetDetailsForVetAsync(Guid id);
 
-        Task<bool> AddPetForVetAsync(Guid customerId, MutatePetViewModel dto);
-        Task<bool> UpdatePetForVetAsync(Guid id, MutatePetViewModel dto);
+        Task<System.Net.Http.HttpResponseMessage> AddPetForVetAsync(Guid customerId, MutatePetViewModel dto);
+        Task<System.Net.Http.HttpResponseMessage> UpdatePetForVetAsync(Guid id, MutatePetViewModel dto);
         Task<bool> DeletePetForVetAsync(Guid id);
     }
 }

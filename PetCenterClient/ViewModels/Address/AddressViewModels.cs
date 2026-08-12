@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterClient.ViewModels
 {
-    // Dùng ? client ð? hi?n th? ð?a ch?
+    // Models used to display and mutate address data
     public class ReadAddressViewModel
     {
         public Guid AddressId { get; set; }
@@ -18,17 +19,29 @@ namespace PetCenterClient.ViewModels
         public string FullAddress => string.Join(", ", new[] { AddressDetails, Ward, District, Province }.Where(s => !string.IsNullOrEmpty(s)));
     }
 
-    // Dùng ð? g?i d? li?u t? form (thêm / s?a)
+    // Model used to receive data from the form (create/edit)
     public class MutateAddressViewModel
     {
+        [Required(ErrorMessage = "Province / City is required.")]
+        [StringLength(200, ErrorMessage = "Province / City is too long.")]
         public string? Province { get; set; }
+
+        [Required(ErrorMessage = "District is required.")]
+        [StringLength(200, ErrorMessage = "District is too long.")]
         public string? District { get; set; }
+
+        [Required(ErrorMessage = "Ward is required.")]
+        [StringLength(200, ErrorMessage = "Ward is too long.")]
         public string? Ward { get; set; }
+
+        [Required(ErrorMessage = "Street & house number is required.")]
+        [StringLength(500, ErrorMessage = "Address details is too long.")]
         public string? AddressDetails { get; set; }
+
         public bool IsDefault { get; set; }
     }
 
-    // Các lo?i model trý?c ðây có h?u t? DTO — gi? tên ð? gi?m thay ð?i phía client
+    // DTOs used by API client
     public class AddressResponseDTO
     {
         public Guid AddressId { get; set; }

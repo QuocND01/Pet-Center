@@ -39,6 +39,14 @@
         box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
         color: #ffffff;
     }
+    /* Ensure long address text doesn't break card layout */
+    .addr-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 100%;
+    }
 </style>
 
 <div class="container py-5" style="min-height: 65vh;">
@@ -67,7 +75,7 @@
                             }
                         </div>
 
-                        <p class="text-secondary small mb-3" style="line-height: 1.6; font-size: 14px;">
+                        <p class="text-secondary small mb-3 addr-text" style="line-height: 1.6; font-size: 14px;">
                             @addr.FullAddress
                         </p>
 
@@ -104,24 +112,29 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="addrId" value="" />
+                <div id="addressFormError" class="alert alert-danger d-none" role="alert"></div>
 
                 <div class="mb-3">
                     <label class="form-label small text-muted">Street & House Number</label>
                     <input type="text" id="addrDetails" class="form-control dark-input" placeholder="e.g. 123 Nguyen Van Cu" />
+                    <div class="text-danger small mt-1" id="error-addrDetails"></div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label small text-muted">Ward</label>
                         <input type="text" id="addrWard" class="form-control dark-input" placeholder="e.g. An Hoa" />
+                        <div class="text-danger small mt-1" id="error-addrWard"></div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label small text-muted">District</label>
                         <input type="text" id="addrDistrict" class="form-control dark-input" placeholder="e.g. Ninh Kieu" />
+                        <div class="text-danger small mt-1" id="error-addrDistrict"></div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label small text-muted">Province / City</label>
                         <input type="text" id="addrProvince" class="form-control dark-input" placeholder="e.g. Can Tho" />
+                        <div class="text-danger small mt-1" id="error-addrProvince"></div>
                     </div>
                 </div>
 
@@ -160,23 +173,84 @@
         currentModal.show();
     }
 
+    // Clear previous field errors
+    function clearAddressErrors() {
+        document.getElementById('addressFormError').classList.add('d-none');
+        ['addrDetails', 'addrWard', 'addrDistrict', 'addrProvince'].forEach(id => {
+            var el = document.getElementById(id);
+            if (el) el.classList.remove('is-invalid');
+            var err = document.getElementById('error-' + id);
+            if (err) err.innerText = '';
+        });
+    }
+
+    function showFieldErrors(errors) {
+        // errors: { "FieldName": ["msg1","msg2"] }
+        // map server field names to input ids
+        var map = {
+            'AddressDetails': 'addrDetails', 'addressDetails': 'addrDetails',
+            'Ward': 'addrWard', 'ward': 'addrWard',
+            'District': 'addrDistrict', 'district': 'addrDistrict',
+            'Province': 'addrProvince', 'province': 'addrProvince'
+        };
+
+        Object.keys(errors).forEach(key => {
+            var msgs = errors[key];
+            var inputId = map[key] || map[key.split('.').pop()];
+            if (inputId) {
+                var el = document.getElementById(inputId);
+                var err = document.getElementById('error-' + inputId);
+                if (el) el.classList.add('is-invalid');
+                if (err) err.innerText = Array.isArray(msgs) ? msgs.join(' ') : msgs;
+            } else {
+                // unknown field -> show form-level error
+                var formErr = document.getElementById('addressFormError');
+                if (formErr) {
+                    formErr.classList.remove('d-none');
+                    formErr.innerText = Array.isArray(msgs) ? msgs.join(' ') : msgs;
+                }
+            }
+        });
+    }
+
     // Hàm gửi dữ liệu đi lưu
     function saveAddress() {
+        clearAddressErrors();
+
         var id = document.getElementById('addrId').value;
 
         // Gói dữ liệu lại theo đúng hình dáng của MutateAddressViewModel
         var dto = {
-            addressDetails: document.getElementById('addrDetails').value,
-            ward: document.getElementById('addrWard').value,
-            district: document.getElementById('addrDistrict').value,
-            province: document.getElementById('addrProvince').value,
+            addressDetails: document.getElementById('addrDetails').value.trim(),
+            ward: document.getElementById('addrWard').value.trim(),
+            district: document.getElementById('addrDistrict').value.trim(),
+            province: document.getElementById('addrProvince').value.trim(),
             isDefault: document.getElementById('addrDefault').checked
         };
 
-        if (!dto.addressDetails || !dto.province) {
-            alert("Street details and Province are required.");
-            return;
+        // Client-side basic validation: show inline errors instead of alert
+        var hasError = false;
+        if (!dto.addressDetails) {
+            document.getElementById('error-addrDetails').innerText = 'Street & house number required.';
+            document.getElementById('addrDetails').classList.add('is-invalid');
+            hasError = true;
         }
+        if (!dto.province) {
+            document.getElementById('error-addrProvince').innerText = 'Province / City required.';
+            document.getElementById('addrProvince').classList.add('is-invalid');
+            hasError = true;
+        }
+        if (!dto.district) {
+            document.getElementById('error-addrDistrict').innerText = 'District required.';
+            document.getElementById('addrDistrict').classList.add('is-invalid');
+            hasError = true;
+        }
+        if (!dto.ward) {
+            document.getElementById('error-addrWard').innerText = 'Ward required.';
+            document.getElementById('addrWard').classList.add('is-invalid');
+            hasError = true;
+        }
+        if (hasError) return;
 
         // Nếu có ID thì gọi Edit, không có ID thì gọi Create
         var url = id ? '/Addresses/Edit/' + id : '/Addresses/Create';
@@ -191,7 +265,28 @@
             if (data.success) {
                 location.reload(); // F5 lại trang nếu lưu thành công
             } else {
-                alert("Action failed. Please try again.");
+                // If server returned field errors
+                if (data.errors) {
+                    showFieldErrors(data.errors);
+                } else if (data.message) {
+                    var formErr = document.getElementById('addressFormError');
+                    if (formErr) {
+                        formErr.classList.remove('d-none');
+                        formErr.innerText = data.message;
+                    }
+                } else {
+                    var formErr = document.getElementById('addressFormError');
+                    if (formErr) {
+                        formErr.classList.remove('d-none');
+                        formErr.innerText = 'Action failed. Please try again.';
+                    }
+                }
+            }
+        }).catch(err => {
+            var formErr = document.getElementById('addressFormError');
+            if (formErr) {
+                formErr.classList.remove('d-none');
+                formErr.innerText = 'Network or server error.';
             }
         });
     }

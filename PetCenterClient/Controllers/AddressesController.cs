@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 using PetCenterClient.Services.Interface;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using PetCenterClient.ViewModels;
 
@@ -60,10 +61,24 @@ namespace PetCenterClient.Controllers
         [HttpPost("Create")]
         public async Task<IActionResult> Create([FromBody] MutateAddressViewModel dto)
         {
+            // Trim incoming values to avoid whitespace-only values
+            dto.AddressDetails = dto.AddressDetails?.Trim();
+            dto.Province = dto.Province?.Trim();
+            dto.District = dto.District?.Trim();
+            dto.Ward = dto.Ward?.Trim();
+
+            // Re-validate after trimming
+            ModelState.Clear();
+            TryValidateModel(dto);
+
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Dữ liệu đầu vào không hợp lệ khi tạo địa chỉ mới.");
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
+                var errors = ModelState
+                    .Where(kv => kv.Value.Errors.Count > 0)
+                    .ToDictionary(kv => kv.Key, kv => kv.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return Json(new { success = false, errors });
             }
 
             try
@@ -98,9 +113,23 @@ namespace PetCenterClient.Controllers
                 return Json(new { success = false, message = "ID không hợp lệ" });
             }
 
+            // Trim incoming values to avoid whitespace-only values
+            dto.AddressDetails = dto.AddressDetails?.Trim();
+            dto.Province = dto.Province?.Trim();
+            dto.District = dto.District?.Trim();
+            dto.Ward = dto.Ward?.Trim();
+
+            // Re-validate after trimming
+            ModelState.Clear();
+            TryValidateModel(dto);
+
             if (!ModelState.IsValid)
             {
-                return Json(new { success = false, message = "Dữ liệu cập nhật không hợp lệ" });
+                var errors = ModelState
+                    .Where(kv => kv.Value.Errors.Count > 0)
+                    .ToDictionary(kv => kv.Key, kv => kv.Value.Errors.Select(e => e.ErrorMessage).ToArray());
+
+                return Json(new { success = false, errors });
             }
 
             try
