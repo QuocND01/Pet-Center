@@ -7,6 +7,7 @@ namespace PetCenterAPI.Repository.Interface
         Task AddAsync(ImportStock entity);
         Task<ImportStock?> GetByIdAsync(Guid id);
         Task<ImportStock?> GetWithDetailsAsync(Guid id);
+        Task<ImportStock?> GetWithActiveDetailsAsync(Guid id);
         Task<List<ImportStock>> GetAllAsync();
         Task SaveChangesAsync();
         Task<(List<ImportStock>, List<ImportStockDetail>)> GetExportData(DateTime? fromDate, DateTime? toDate);

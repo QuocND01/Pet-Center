@@ -39,7 +39,16 @@ namespace PetCenterAPI.Repository
                     .ThenInclude(d => d.ImportProductSnapshot)
                 .FirstOrDefaultAsync(x => x.ImportId == id);
         }
-
+        public async Task<ImportStock?> GetWithActiveDetailsAsync(Guid id)
+        {
+            return await _context.ImportStocks
+                .Include(x => x.Supplier)
+                .Include(x => x.Staff)
+                .Include(x => x.ImportStockDetails
+                    .Where(d => d.BatchStatus == BatchStatus.Active))
+                    .ThenInclude(d => d.ImportProductSnapshot)
+                .FirstOrDefaultAsync(x => x.ImportId == id);
+        }
         public async Task<List<ImportStock>> GetAllAsync()
         {
             return await _context.ImportStocks
