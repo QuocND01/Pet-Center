@@ -41,9 +41,14 @@ namespace PetCenterAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> AddDisease([FromBody] MutateDiseaseDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            // Sanitize inputs: trim and collapse consecutive spaces before validation
+            SanitizeDiseaseDto(dto);
+
+            // Re-validate model after sanitization
+            if (!TryValidateModel(dto)) return BadRequest(ModelState);
+
             // Kiểm tra trùng tên trước khi gọi service để trả message rõ ràng
-            var name = dto.Name?.Trim();
+            var name = dto.Name;
             if (!string.IsNullOrEmpty(name))
             {
                 var exists = _diseaseService.GetAllDiseasesQuery()
@@ -59,9 +64,36 @@ namespace PetCenterAPI.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> UpdateDisease(Guid id, [FromBody] MutateDiseaseDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var success = await _diseaseService.UpdateDiseaseAsync(id, dto);
+            // Sanitize inputs before validation
+            SanitizeDiseaseDto(dto);
+
+            if (!TryValidateModel(dto)) return BadRequest(ModelState);
+
+            var success = await _disease_service_stub(id, dto);
             return success ? Ok(new { success = true, message = "Disease updated successfully." }) : BadRequest(new { success = false, message = "Disease not found." });
+        }
+
+        // wrapper to call service (kept for clearer DI in unit tests if needed)
+        private Task<bool> _disease_service_stub(Guid id, MutateDiseaseDTO dto)
+        {
+            return _diseaseService.UpdateDiseaseAsync(id, dto);
+        }
+
+        // Helper: trim and collapse multiple consecutive spaces inside strings
+        private static void SanitizeDiseaseDto(MutateDiseaseDTO dto)
+        {
+            if (dto == null) return;
+            dto.Name = CollapseSpaces(dto.Name);
+            dto.Description = CollapseSpaces(dto.Description);
+            dto.Recommendation = CollapseSpaces(dto.Recommendation);
+        }
+
+        private static string? CollapseSpaces(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input?.Trim();
+            // Replace multiple whitespace characters with a single space, then trim
+            var collapsed = System.Text.RegularExpressions.Regex.Replace(input, "\\s+", " ");
+            return collapsed.Trim();
         }
 
         // DELETE: api/Diseases/{id}

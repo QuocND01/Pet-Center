@@ -52,6 +52,11 @@ namespace PetCenterAPI.Service
 
         public async Task<bool> AddDiseaseAsync(MutateDiseaseDTO dto)
         {
+            // Sanitize input again (defensive)
+            dto.Name = CollapseSpaces(dto.Name);
+            dto.Description = CollapseSpaces(dto.Description);
+            dto.Recommendation = CollapseSpaces(dto.Recommendation);
+
             // Kiểm tra trùng tên (so sánh không phân biệt hoa thường) với các bệnh đang hoạt động
             var existing = await _diseaseRepo.GetByNameAsync(dto.Name);
             if (existing != null && existing.IsActive) return false;
@@ -82,9 +87,13 @@ namespace PetCenterAPI.Service
             // if (disease.IsSystem) return false; 
 
             // Kiểm tra trùng tên với các bệnh khác (không bao gồm chính nó)
+            // Sanitize input again (defensive)
+            dto.Name = CollapseSpaces(dto.Name);
+            dto.Description = CollapseSpaces(dto.Description);
+            dto.Recommendation = CollapseSpaces(dto.Recommendation);
+
             var existing = await _diseaseRepo.GetByNameAsync(dto.Name);
             if (existing != null && existing.IsActive && existing.DiseaseId != id) return false;
-
             disease.Name = dto.Name;
             disease.Description = dto.Description;
             disease.Recommendation = dto.Recommendation;
@@ -110,6 +119,13 @@ namespace PetCenterAPI.Service
             await _diseaseRepo.UpdateDiseaseAsync(disease);
             await _diseaseRepo.SaveAsync();
             return true;
+        }
+
+        private static string? CollapseSpaces(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input?.Trim();
+            var collapsed = System.Text.RegularExpressions.Regex.Replace(input, "\\s+", " ");
+            return collapsed.Trim();
         }
     }
 }
