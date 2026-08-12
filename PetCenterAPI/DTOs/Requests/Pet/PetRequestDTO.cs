@@ -44,10 +44,10 @@ namespace PetCenterAPI.DTOs.Requests.Pet
             [StringLength(50, ErrorMessage = "Gender cannot exceed 50 characters")]
             public string Gender { get; set; } = null!;
 
-            [Range(0, 10000, ErrorMessage = "Weight must be between 0 and 10000")]
+            [Range(0, 999.99, ErrorMessage = "Weight must be between 0 and 999.99")]
             public decimal? Weight { get; set; }
 
-            [StringLength(1000, ErrorMessage = "Note cannot exceed 1000 characters")]
+            [StringLength(255, ErrorMessage = "Note cannot exceed 255 characters")]
             public string? Note { get; set; }
 
             public DateOnly? DateOfBirth { get; set; }

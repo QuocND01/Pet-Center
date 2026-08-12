@@ -46,6 +46,23 @@
         padding: 20px;
     }
 
+    /* Truncate long text to prevent layout break */
+    .pet-info .title-truncate {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+
+    .pet-info .muted-truncate {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #6b7280;
+    }
+
     .pet-tag {
         background: #dcfce7;
         color: var(--green-dark);
@@ -123,8 +140,8 @@
                             </button>
                         </div>
                         <div class="pet-info text-center">
-                            <h5 class="fw-bold mb-1">@pet.PetName</h5>
-                            <div class="text-muted mb-1">@pet.Breed</div>
+                            <h5 class="fw-bold mb-1 title-truncate">@pet.PetName</h5>
+                            <div class="text-muted mb-1 muted-truncate">@pet.Breed</div>
                             <div class="d-flex justify-content-center gap-2 mb-3">
                                 <span class="pet-tag">@pet.Gender</span>
                                 <span class="pet-tag" style="background:#f1f5f9; color:#475569;">@pet.Age</span>
@@ -165,6 +182,7 @@
             </div>
             <div class="modal-body p-4">
                 <input type="hidden" id="mutPetId" />
+                <div id="mutErrors" class="alert alert-danger d-none" style="white-space:pre-wrap;"></div>
                 <div class="row g-3">
 
                     <div class="col-12">
@@ -307,16 +325,71 @@
         }
     }
 
-    function savePet() {
+        function clearFieldErrors(prefix) {
+            // remove previous error messages and invalid styles
+            const inputs = ['PetName','Breed','Dob','Weight','Note','Image','Species','Gender'];
+            inputs.forEach(suffix => {
+                const id = prefix + suffix;
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('is-invalid');
+                const err = document.getElementById(id + '_err');
+                if (err) err.remove();
+            });
+            const errDiv = document.getElementById('mutErrors');
+            if (errDiv) { errDiv.classList.add('d-none'); errDiv.innerHTML = ''; }
+        }
+
+        function showFieldErrors(prefix, errors) {
+            const fieldMap = { PetName: 'PetName', Breed: 'Breed', DateOfBirth: 'Dob', Weight: 'Weight', Note: 'Note', ImageFile: 'Image', Species: 'Species', Gender: 'Gender' };
+            let shownAny = false;
+            for (const key in errors) {
+                if (!errors.hasOwnProperty(key)) continue;
+                const suffix = fieldMap[key] || key;
+                const id = prefix + suffix;
+                const el = document.getElementById(id);
+                const arr = errors[key] || [];
+                if (el) {
+                    el.classList.add('is-invalid');
+                    // create feedback
+                    const feed = document.createElement('div');
+                    feed.className = 'invalid-feedback d-block';
+                    feed.id = id + '_err';
+                    feed.innerText = arr.join('\n');
+                    el.parentNode && el.parentNode.insertBefore(feed, el.nextSibling);
+                    shownAny = true;
+                }
+            }
+            return shownAny;
+        }
+
+        function normalizeText(s) {
+            if (s === null || s === undefined) return '';
+            return s.toString().trim().replace(/\s+/g, ' ');
+        }
+
+        function savePet() {
         var id = document.getElementById('mutPetId').value;
-        var petName = document.getElementById('mutPetName').value;
-        if(!petName) return alert("Pet name is required!");
-        if(!document.getElementById('mutBreed').value) return alert("Breed is required!");
+        // normalize inputs (trim and collapse multiple spaces)
+        var petNameEl = document.getElementById('mutPetName');
+        var breedEl = document.getElementById('mutBreed');
+        var noteEl = document.getElementById('mutNote');
+        var petName = normalizeText(petNameEl.value);
+        var breedVal = normalizeText(breedEl.value);
+        var noteVal = normalizeText(noteEl.value);
+        // write back normalized values to inputs (so user sees normalized content)
+        petNameEl.value = petName;
+        breedEl.value = breedVal;
+        noteEl.value = noteVal;
+
+        clearFieldErrors('mut');
+        if(!petName) { showFieldErrors('mut', { PetName: ['Pet name is required'] }); return; }
+        if(!breedVal) { showFieldErrors('mut', { Breed: ['Breed is required'] }); return; }
 
         // Client-side validation: disallow special characters in name, negative weight, and future DOB
         try {
             var nameRegex = new RegExp("^[\\p{L}\\p{N}\\s'\\-]+$","u");
-            if (!nameRegex.test(petName)) return alert('Pet name contains invalid characters');
+            if (!nameRegex.test(petName)) { showFieldErrors('mut', { PetName: ['Pet name contains invalid characters'] }); return; }
         } catch (e) {
             // Fallback for older browsers without unicode property escapes
             var fallback = /^[A-Za-z0-9\s'\-]+$/;
@@ -326,7 +399,7 @@
         var weightVal = document.getElementById('mutWeight').value;
         if (weightVal) {
             var w = parseFloat(weightVal);
-            if (isNaN(w) || w < 0) return alert('Weight must be a non-negative number');
+            if (isNaN(w) || w < 0) { showFieldErrors('mut', { Weight: ['Weight must be a non-negative number'] }); return; }
         }
 
         var dob = document.getElementById('mutDob').value;
@@ -335,14 +408,14 @@
             var today = new Date();
             // zero time portion for comparison
             dt.setHours(0,0,0,0); today.setHours(0,0,0,0);
-            if (dt > today) return alert('Date of birth cannot be in the future');
+            if (dt > today) { showFieldErrors('mut', { DateOfBirth: ['Date of birth cannot be in the future'] }); return; }
         }
 
         // Dùng FormData thay vì JSON
         var formData = new FormData();
         formData.append('Species', document.getElementById('mutSpecies').value);
         formData.append('Gender', document.getElementById('mutGender').value);
-        formData.append('Breed', document.getElementById('mutBreed').value);
+        formData.append('Breed', breedVal);
         formData.append('PetName', petName);
 
         var dob = document.getElementById('mutDob').value;
@@ -351,8 +424,7 @@
         var weight = document.getElementById('mutWeight').value;
         if(weight) formData.append('Weight', weight);
 
-        var note = document.getElementById('mutNote').value;
-        if(note) formData.append('Note', note);
+        if(noteVal) formData.append('Note', noteVal);
 
         // Nạp file ảnh nếu có
         var fileInput = document.getElementById('mutImage');
@@ -368,8 +440,30 @@
         })
         .then(r => r.json())
         .then(d => {
-            if (d.success) location.reload();
-            else alert("Failed to save.");
+            if (d.success) return location.reload();
+            // try show field errors inline
+            if (d.errors && Object.keys(d.errors).length > 0) {
+                const showed = showFieldErrors('mut', d.errors);
+                if (!showed) {
+                    const errDiv = document.getElementById('mutErrors');
+                    let html = '';
+                    for (const key in d.errors) { (d.errors[key]||[]).forEach(msg => html += `<div><strong>${key}:</strong> ${msg}</div>`); }
+                    errDiv.innerHTML = html || (d.message || 'Validation failed.');
+                    errDiv.classList.remove('d-none');
+                }
+                return;
+            }
+            if (d.message) {
+                // show as global error in modal
+                const errDiv = document.getElementById('mutErrors');
+                errDiv.innerText = d.message;
+                errDiv.classList.remove('d-none');
+                return;
+            }
+            // fallback simple global error
+            const errDiv = document.getElementById('mutErrors');
+            errDiv.innerText = 'Failed to save.';
+            errDiv.classList.remove('d-none');
         });
     }
 </script>

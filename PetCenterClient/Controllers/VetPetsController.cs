@@ -71,15 +71,59 @@ namespace PetCenterClient.Controllers
                 Console.WriteLine($"[VetPetsController.Add] Logging error: {ex.Message}");
             }
 
-            var success = await _apiClient.AddPetForVetAsync(customerId, dto);
-            return Json(new { success });
+            var res = await _apiClient.AddPetForVetAsync(customerId, dto);
+            if (res.IsSuccessStatusCode) return Json(new { success = true });
+
+            var raw = await res.Content.ReadAsStringAsync();
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(raw);
+                if (doc.RootElement.TryGetProperty("errors", out var errs))
+                {
+                    var dict = new Dictionary<string, string[]>();
+                    foreach (var prop in errs.EnumerateObject())
+                    {
+                        var arr = prop.Value.EnumerateArray().Select(x => x.GetString() ?? string.Empty).ToArray();
+                        dict[prop.Name] = arr;
+                    }
+                    return Json(new { success = false, errors = dict });
+                }
+                if (doc.RootElement.TryGetProperty("message", out var msg))
+                {
+                    return Json(new { success = false, message = msg.GetString() });
+                }
+            }
+            catch { }
+            return Json(new { success = false, message = raw });
         }
 
         [HttpPost]
         public async Task<IActionResult> Update(Guid id, [FromForm] MutatePetViewModel dto)
         {
-            var success = await _apiClient.UpdatePetForVetAsync(id, dto);
-            return Json(new { success });
+            var res = await _apiClient.UpdatePetForVetAsync(id, dto);
+            if (res.IsSuccessStatusCode) return Json(new { success = true });
+
+            var raw = await res.Content.ReadAsStringAsync();
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(raw);
+                if (doc.RootElement.TryGetProperty("errors", out var errs))
+                {
+                    var dict = new Dictionary<string, string[]>();
+                    foreach (var prop in errs.EnumerateObject())
+                    {
+                        var arr = prop.Value.EnumerateArray().Select(x => x.GetString() ?? string.Empty).ToArray();
+                        dict[prop.Name] = arr;
+                    }
+                    return Json(new { success = false, errors = dict });
+                }
+                if (doc.RootElement.TryGetProperty("message", out var msg))
+                {
+                    return Json(new { success = false, message = msg.GetString() });
+                }
+            }
+            catch { }
+            return Json(new { success = false, message = raw });
         }
 
         [HttpPost]

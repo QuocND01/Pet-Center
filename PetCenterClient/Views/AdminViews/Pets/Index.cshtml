@@ -66,6 +66,15 @@
         vertical-align: middle;
     }
 
+    /* Prevent long text in table cells from breaking layout */
+    .data-table td .truncate {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 220px; /* reasonable default, adjust as needed */
+    }
+
     /* Avatar Pet */
     .pet-avatar-wrap {
         width: 45px;
@@ -157,21 +166,21 @@
                                         }
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark mb-1">@pet.PetName</div>
+                                        <div class="fw-bold text-dark mb-1"><span class="truncate">@pet.PetName</span></div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <div class="fw-bold text-dark">@pet.Species</div>
-                                <small class="text-muted">@pet.Breed</small>
+                                <div class="fw-bold text-dark"><span class="truncate">@pet.Species</span></div>
+                                <small class="text-muted"><span class="truncate">@pet.Breed</span></small>
                             </td>
                             <td>
                                 <div class="mb-1">@pet.Gender</div>
                                 <span class="badge bg-secondary">@pet.Age</span>
                             </td>
                             <td>
-                                <div class="fw-bold text-dark">👤 @pet.OwnerName</div>
-                                <small class="text-muted">📞 @pet.OwnerPhone</small>
+                                <div class="fw-bold text-dark"><span class="truncate">👤 @pet.OwnerName</span></div>
+                                <small class="text-muted"><span class="truncate">📞 @pet.OwnerPhone</span></small>
                             </td>
                             <td>
                                 <div class="action-grid">
@@ -235,6 +244,7 @@
                     </div>
 
                     <input type="hidden" id="vMutPetId" />
+                    <div id="vMutErrors" class="alert alert-danger d-none" style="white-space:pre-wrap;"></div>
 
                     <div class="row g-3">
                         <div class="col-12" id="customerInputGroup">
@@ -398,30 +408,100 @@
             }
         }
 
+        function clearVetFieldErrors(prefix) {
+            const inputs = ['PetName','Breed','Dob','Weight','Note','Image','Species','Gender','CustomerId'];
+            inputs.forEach(suffix => {
+                const id = prefix + suffix;
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('is-invalid');
+                const err = document.getElementById(id + '_err');
+                if (err) err.remove();
+            });
+            const errDiv = document.getElementById('vMutErrors');
+            if (errDiv) { errDiv.classList.add('d-none'); errDiv.innerHTML = ''; }
+        }
+
+        function showVetFieldErrors(prefix, errors) {
+            const fieldMap = { PetName: 'PetName', Breed: 'Breed', DateOfBirth: 'Dob', Weight: 'Weight', Note: 'Note', ImageFile: 'Image', Species: 'Species', Gender: 'Gender', CustomerId: 'CustomerId' };
+            let shownAny = false;
+            for (const key in errors) {
+                if (!errors.hasOwnProperty(key)) continue;
+                const suffix = fieldMap[key] || key;
+                const id = prefix + suffix;
+                const el = document.getElementById(id);
+                const arr = errors[key] || [];
+                if (el) {
+                    el.classList.add('is-invalid');
+                    const feed = document.createElement('div');
+                    feed.className = 'invalid-feedback d-block';
+                    feed.id = id + '_err';
+                    feed.innerText = arr.join('\n');
+                    el.parentNode && el.parentNode.insertBefore(feed, el.nextSibling);
+                    shownAny = true;
+                }
+            }
+            return shownAny;
+        }
+
+        function normalizeText(s) {
+            if (s === null || s === undefined) return '';
+            return s.toString().trim().replace(/\s+/g, ' ');
+        }
+
         function saveVetPet() {
             var id = document.getElementById('vMutPetId').value;
             var customerId = document.getElementById('vMutCustomerId').value;
-            var petName = document.getElementById('vMutPetName').value;
+            // normalize text inputs
+            var petNameEl = document.getElementById('vMutPetName');
+            var breedEl = document.getElementById('vMutBreed');
+            var noteEl = document.getElementById('vMutNote');
+            var petName = normalizeText(petNameEl.value);
+            var breedVal = normalizeText(breedEl.value);
+            var noteVal = normalizeText(noteEl.value);
+            petNameEl.value = petName;
+            breedEl.value = breedVal;
+            noteEl.value = noteVal;
 
-            if(!id && !customerId) return alert("Please select an owner for new pets!");
-            if(!petName) return alert("Pet name is required!");
-            if(!document.getElementById('vMutBreed').value) return alert("Breed is required!");
+            clearVetFieldErrors('vMut');
+            if(!id && !customerId) { showVetFieldErrors('vMut', { CustomerId: ['Please select an owner for new pets'] }); return; }
+            if(!petName) { showVetFieldErrors('vMut', { PetName: ['Pet name is required'] }); return; }
+            if(!breedVal) { showVetFieldErrors('vMut', { Breed: ['Breed is required'] }); return; }
+
+            // Client-side validation for name, weight and DOB
+            try {
+                var nameRegex = new RegExp("^[\\p{L}\\p{N}\\s'\\-]+$","u");
+                if (!nameRegex.test(petName)) { showVetFieldErrors('vMut', { PetName: ['Pet name contains invalid characters'] }); return; }
+            } catch (e) {
+                var fallback = /^[A-Za-z0-9\s'\-]+$/;
+                if (!fallback.test(petName)) { showVetFieldErrors('vMut', { PetName: ['Pet name contains invalid characters'] }); return; }
+            }
+
+            var weightVal = document.getElementById('vMutWeight').value;
+            if (weightVal) {
+                var w = parseFloat(weightVal);
+                if (isNaN(w) || w < 0) { showVetFieldErrors('vMut', { Weight: ['Weight must be a non-negative number'] }); return; }
+            }
+
+            var dob = document.getElementById('vMutDob').value;
+            if (dob) {
+                var dt = new Date(dob);
+                var today = new Date(); dt.setHours(0,0,0,0); today.setHours(0,0,0,0);
+                if (dt > today) { showVetFieldErrors('vMut', { DateOfBirth: ['Date of birth cannot be in the future'] }); return; }
+            }
 
             // Dùng FormData thay vì JSON
             var formData = new FormData();
             formData.append('Species', document.getElementById('vMutSpecies').value);
             formData.append('Gender', document.getElementById('vMutGender').value);
-            formData.append('Breed', document.getElementById('vMutBreed').value);
+            formData.append('Breed', breedVal);
             formData.append('PetName', petName);
 
-            var dob = document.getElementById('vMutDob').value;
             if(dob) formData.append('DateOfBirth', dob);
 
-            var weight = document.getElementById('vMutWeight').value;
-            if(weight) formData.append('Weight', weight);
+            if(weightVal) formData.append('Weight', weightVal);
 
-            var note = document.getElementById('vMutNote').value;
-            if(note) formData.append('Note', note);
+            if(noteVal) formData.append('Note', noteVal);
 
             // Nạp file ảnh nếu có
             var fileInput = document.getElementById('vMutImage');
@@ -437,8 +517,27 @@
             })
             .then(r => r.json())
             .then(d => {
-                if (d.success) location.reload();
-                else alert("Failed to save.");
+                if (d.success) return location.reload();
+                if (d.errors && Object.keys(d.errors).length > 0) {
+                    const showed = showVetFieldErrors('vMut', d.errors);
+                    if (!showed) {
+                        const errDiv = document.getElementById('vMutErrors');
+                        let html = '';
+                        for (const key in d.errors) { (d.errors[key]||[]).forEach(msg => html += `<div><strong>${key}:</strong> ${msg}</div>`); }
+                        errDiv.innerHTML = html || (d.message || 'Validation failed.');
+                        errDiv.classList.remove('d-none');
+                    }
+                    return;
+                }
+                if (d.message) {
+                    const errDiv = document.getElementById('vMutErrors');
+                    errDiv.innerText = d.message;
+                    errDiv.classList.remove('d-none');
+                    return;
+                }
+                const errDiv = document.getElementById('vMutErrors');
+                errDiv.innerText = 'Failed to save.';
+                errDiv.classList.remove('d-none');
             });
         }
     </script>

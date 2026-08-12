@@ -88,20 +88,18 @@ namespace PetCenterClient.Services
             return res.IsSuccessStatusCode ? await res.Content.ReadFromJsonAsync<ReadPetDetailViewModel>() : null;
         }
 
-        public async Task<bool> AddPetAsync(MutatePetViewModel dto)
+        public async Task<System.Net.Http.HttpResponseMessage> AddPetAsync(MutatePetViewModel dto)
         {
             AddAuthorizationHeader();
-            // Đã đổi sang PostAsync kèm FormData
             var res = await _http.PostAsync("api/Pets", CreateMultipartContent(dto));
-            return res.IsSuccessStatusCode;
+            return res;
         }
 
-        public async Task<bool> UpdatePetAsync(Guid id, MutatePetViewModel dto)
+        public async Task<System.Net.Http.HttpResponseMessage> UpdatePetAsync(Guid id, MutatePetViewModel dto)
         {
             AddAuthorizationHeader();
-            // Đã đổi sang PutAsync kèm FormData
             var res = await _http.PutAsync($"api/Pets/{id}", CreateMultipartContent(dto));
-            return res.IsSuccessStatusCode;
+            return res;
         }
 
         public async Task<bool> DeletePetAsync(Guid id)
@@ -141,20 +139,18 @@ namespace PetCenterClient.Services
             return res.IsSuccessStatusCode ? await res.Content.ReadFromJsonAsync<ReadVetPetDetailViewModel>() : null;
         }
 
-        public async Task<bool> AddPetForVetAsync(Guid customerId, MutatePetViewModel dto)
+        public async Task<System.Net.Http.HttpResponseMessage> AddPetForVetAsync(Guid customerId, MutatePetViewModel dto)
         {
             AddAuthorizationHeader();
-            // Đã đổi sang PostAsync kèm FormData
             var res = await _http.PostAsync($"api/vet/pets/add-for-customer/{customerId}", CreateMultipartContent(dto));
-            return res.IsSuccessStatusCode;
+            return res;
         }
 
-        public async Task<bool> UpdatePetForVetAsync(Guid id, MutatePetViewModel dto)
+        public async Task<System.Net.Http.HttpResponseMessage> UpdatePetForVetAsync(Guid id, MutatePetViewModel dto)
         {
             AddAuthorizationHeader();
-            // Đã đổi sang PutAsync kèm FormData
             var res = await _http.PutAsync($"api/vet/pets/{id}", CreateMultipartContent(dto));
-            return res.IsSuccessStatusCode;
+            return res;
         }
 
         public async Task<bool> DeletePetForVetAsync(Guid id)
