@@ -38,5 +38,5 @@ public enum BatchStatus
     Active,
     Exhausted,
     Expired,
-    Quarantine
+    Pending
 }
