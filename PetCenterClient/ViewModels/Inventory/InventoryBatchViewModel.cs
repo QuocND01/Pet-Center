@@ -29,6 +29,6 @@
         Active,
         Exhausted,
         Expired,
-        Quarantine
+        Pending
     }
 }
