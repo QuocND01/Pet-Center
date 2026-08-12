@@ -206,7 +206,7 @@ namespace PetCenterAPI.Service
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var importStock = await _repo.GetByIdAsync(id);
+            var importStock = await _repo.GetWithDetailsAsync(id);
 
             if (importStock == null)
                 throw new Exception("Import not found");
@@ -215,7 +215,10 @@ namespace PetCenterAPI.Service
                 throw new Exception("Only pending import can be cancelled");
 
             importStock.Status = ImportStatus.Cancelled;
-
+            foreach (var detail in importStock.ImportStockDetails)
+            {
+                detail.BatchStatus = BatchStatus.Deleted;
+            }
             await _repo.SaveChangesAsync();
             await transaction.CommitAsync();
         }

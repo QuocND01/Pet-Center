@@ -38,5 +38,6 @@ public enum BatchStatus
     Active,
     Exhausted,
     Expired,
-    Pending
+    Pending,
+    Deleted,
 }

@@ -38,7 +38,7 @@ namespace PetCenterAPI.Profiles
                 .ForMember(d => d.Batches,
                     o => o.MapFrom(s =>
                         s.Product.ImportStockDetails
-                            .Where(x => x.StockLeft > 0)
+                            .Where(x => x.BatchStatus == BatchStatus.Active && x.StockLeft > 0)
                             .OrderBy(x => x.ExpiryDate)
                             .ThenBy(x => x.CreatedAt)))
                 .ForMember(d => d.Transactions,

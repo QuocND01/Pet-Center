@@ -29,6 +29,7 @@
         Active,
         Exhausted,
         Expired,
-        Pending
+        Pending,
+        Deleted
     }
 }
