@@ -15,12 +15,14 @@
     </div>
 
     <h6 class="fw-bold text-uppercase text-secondary mb-2">Description</h6>
-    <div class="p-3 bg-light rounded mb-4" style="border-left: 4px solid #0d6efd;">
-        @Model.Description
+    <div class="p-3 bg-light rounded mb-4" style="border-left: 4px solid #0d6efd; max-height:360px; overflow:auto;">
+        @{ var desc = Model.Description ?? string.Empty; var descDisplay = desc.Length > 600 ? desc.Substring(0, 600) + "..." : desc; }
+        @descDisplay
     </div>
 
     <h6 class="fw-bold text-uppercase text-secondary mb-2">Recommendation / Treatment</h6>
-    <div class="p-3 rounded" style="background-color: #f0fdf4; border-left: 4px solid #22c55e;">
-        @Model.Recommendation
+    <div class="p-3 rounded" style="background-color: #f0fdf4; border-left: 4px solid #22c55e; max-height:360px; overflow:auto;">
+        @{ var rec = Model.Recommendation ?? string.Empty; var recDisplay = rec.Length > 600 ? rec.Substring(0, 600) + "..." : rec; }
+        @recDisplay
     </div>
 </div>
