@@ -6,8 +6,8 @@ function setupChat(token, isStaff) {
         .withAutomaticReconnect()
         .build();
 
-    // Lắng nghe tin nhắn mới
-    chatConnection.on("ReceiveMessage", function (senderId, message, timestamp) {
+    // Lắng nghe tin nhắn mới (ReceiveMessage now includes senderAccount/email as second parameter)
+    chatConnection.on("ReceiveMessage", function (senderId, senderAccount, message, timestamp) {
         appendMessage(senderId, message, timestamp);
     });
 
@@ -27,10 +27,14 @@ function appendMessage(senderId, message, timestamp) {
     const myId = document.getElementById("myId").value;
     const isMe = senderId.toLowerCase() === myId.toLowerCase();
 
+    // Ensure long text wraps and preserves whitespace
+    const bubbleClass = `p-2 rounded ${isMe ? 'bg-success text-white' : 'bg-light'}`;
+    const safeMessage = String(message);
+
     chatBox.innerHTML += `
         <div class="d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-3">
-            <div class="p-2 rounded ${isMe ? 'bg-success text-white' : 'bg-light'}">
-                ${message}
+            <div class="${bubbleClass}" style="max-width:85%; word-break:break-word; white-space:pre-wrap; overflow-wrap:anywhere;">
+                ${safeMessage}
             </div>
         </div>`;
     chatBox.scrollTop = chatBox.scrollHeight;

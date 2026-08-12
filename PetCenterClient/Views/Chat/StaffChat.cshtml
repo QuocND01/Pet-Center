@@ -31,22 +31,34 @@
         }
 
     .msg-bubble {
-        padding: 12px 18px;
+        max-width: 82%;
+        padding: 4px 8px; /* tighter vertical padding */
         border-radius: 12px;
-        max-width: 75%;
+        line-height: 1;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        display: inline-flex; /* center text vertically */
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        box-sizing: border-box;
         width: fit-content;
+        min-width: 36px; /* keep tiny bubbles readable */
+        min-height: 28px; /* ensure comfortable tap target */
     }
 
     .msg-me {
         background: #2ecc71;
         color: #fff;
-        border-bottom-right-radius: 2px;
+        border-radius: 14px 14px 3px 14px;
     }
 
     .msg-them {
         background: #2b2b3c;
         color: #fff;
-        border-bottom-left-radius: 2px;
+        border: 1px solid rgba(255,255,255,0.03);
+        border-radius: 14px 14px 14px 3px;
     }
 
     .chat-input {
@@ -76,12 +88,13 @@
             <div class="flex-grow-1 overflow-auto" id="customerList">
                 @if (Model != null && Model.Any())
                 {
-                    foreach (var c in Model)
+                foreach (var c in Model)
                     {
                         var isUnread = c.UnreadCount > 0;
                         <div class="customer-item" id="user-@c.CustomerId" onclick="loadChat('@c.CustomerId', this)">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="fw-bold @(isUnread ? "text-white" : "")" id="name-@c.CustomerId">@c.FullName</div>
+                                <!-- Display customer's account (email) instead of showing their GUID -->
+                                <div class="fw-bold @(isUnread ? "text-white" : "")" id="name-@c.CustomerId">@c.Email</div>
                                 <small class="text-muted" id="time-@c.CustomerId" style="font-size: 11px;">@(c.LastMessageTime?.ToString("HH:mm") ?? "")</small>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-1">
@@ -110,7 +123,7 @@
 
             <div class="p-3 border-top mt-auto" style="border-color: #2b2b3c !important;">
                 <div class="input-group">
-                    <input type="text" id="txtMsg" class="form-control chat-input rounded-start" placeholder="Type response..." onkeypress="handleEnter(event)" disabled>
+                    <input type="text" id="txtMsg" class="form-control chat-input rounded-start" placeholder="Type response..." onkeypress="handleEnter(event)" maxlength="1000" oninput="if(this.value.length>1000)this.value=this.value.slice(0,1000)" disabled>
                     <button class="btn btn-success px-4" id="btnSend" onclick="sendMsg()" disabled><i class="bi bi-send"></i></button>
                 </div>
             </div>
@@ -126,7 +139,7 @@
     .withAutomaticReconnect()
     .build();
 
-    connection.on("ReceiveMessage", (senderId, msg, time) => {
+    connection.on("ReceiveMessage", (senderId, senderAccount, msg, time) => {
     const currentChat = String(document.getElementById("currentCustomerId").value).toLowerCase();
     const myId = String(document.getElementById("myId").value).toLowerCase();
     const sId = String(senderId).toLowerCase();
@@ -135,7 +148,7 @@
     const targetId = isMe ? currentChat : sId;
     const isUnread = (!isMe && targetId !== currentChat);
 
-    updateSidebarDOM(targetId, msg, time, isUnread, isMe);
+    updateSidebarDOM(targetId, msg, time, isUnread, isMe, senderAccount);
 
     if (sId === currentChat || isMe) {
     appendMessage(senderId, msg, time);
@@ -152,7 +165,7 @@
 
     connection.start();
 
-    function updateSidebarDOM(customerId, msg, time, isUnread, isMe) {
+    function updateSidebarDOM(customerId, msg, time, isUnread, isMe, account) {
     const item = document.getElementById("user-" + customerId);
     if(item) {
     const prefix = isMe ? "Bạn: " : "";
@@ -162,6 +175,10 @@
     document.getElementById("time-" + customerId).innerText = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     if(isUnread) {
+    // If server sent account/email, update visible name to the account so staff see account instead of GUID
+    if (account && account.length > 0) {
+    document.getElementById("name-" + customerId).innerText = account;
+    }
     document.getElementById("name-" + customerId).classList.add("text-white");
     document.getElementById("snippet-" + customerId).classList.add("text-white", "fw-bold");
     document.getElementById("snippet-" + customerId).classList.remove("text-muted");
@@ -194,7 +211,9 @@
 
     document.getElementById("txtMsg").disabled = false;
     document.getElementById("btnSend").disabled = false;
-    document.getElementById("chatHeader").innerText = "Chatting with Customer ID: " + customerId;
+    // Show customer's account/email in header when available
+    var visibleName = document.getElementById("name-" + customerId)?.innerText || customerId;
+    document.getElementById("chatHeader").innerText = "Chatting with: " + visibleName;
 
     const chatBox = document.getElementById("chatBox");
     chatBox.innerHTML = "<div class='text-center text-muted'>Loading history...</div>";
@@ -213,26 +232,52 @@
     const chatBox = document.getElementById("chatBox");
     const myId = document.getElementById("myId").value;
     const isMe = String(senderId).toLowerCase() === String(myId).toLowerCase();
-
     const dateObj = timestampString ? new Date(timestampString) : new Date();
     const timeText = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    chatBox.innerHTML += `
-    <div class="d-flex flex-column mb-3 ${isMe ? 'align-items-end' : 'align-items-start'}">
-    <div class="msg-bubble ${isMe ? 'msg-me' : 'msg-them'} shadow-sm mb-1">
-    ${message}
-    </div>
-    <small class="text-muted" style="font-size: 11px; padding: 0 4px;">${timeText}</small>
-    </div>`;
+    // trim message to avoid leading/trailing whitespace affecting layout
+    var cleanMsg = String(message || '').trim();
+
+    // Create message row
+    const row = document.createElement('div');
+    row.style.width = '100%';
+    row.style.display = 'flex';
+    row.style.justifyContent = isMe ? 'flex-end' : 'flex-start';
+    row.style.marginBottom = '6px';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble ' + (isMe ? 'msg-me' : 'msg-them');
+    bubble.textContent = cleanMsg;
+    row.appendChild(bubble);
+    chatBox.appendChild(row);
+
+    // Timestamp row
+    const timeRow = document.createElement('div');
+    timeRow.style.width = '100%';
+    timeRow.style.display = 'flex';
+    timeRow.style.justifyContent = isMe ? 'flex-end' : 'flex-start';
+    timeRow.style.marginBottom = '12px';
+    const small = document.createElement('small');
+    small.className = 'text-muted';
+    small.style.fontSize = '11px';
+    small.style.padding = '0 4px';
+    small.textContent = timeText;
+    timeRow.appendChild(small);
+    chatBox.appendChild(timeRow);
+
     chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function sendMsg() {
     const input = document.getElementById("txtMsg");
     const customerId = document.getElementById("currentCustomerId").value;
-    if (!input.value.trim() || !customerId) return;
+    if (!input || !customerId) return;
 
-    connection.invoke("SendMessageToCustomer", customerId, input.value.trim());
+    var text = String(input.value || '').trim();
+    if (!text) return;
+    if (text.length > 1000) text = text.slice(0, 1000);
+
+    connection.invoke("SendMessageToCustomer", customerId, text);
     input.value = '';
     }
 
