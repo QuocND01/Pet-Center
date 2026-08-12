@@ -77,6 +77,14 @@ namespace PetCenterAPI.Hubs
             var customerId = Guid.Parse(GetUserId());
             Guid assignedStaffId = Guid.Empty;
 
+            // Limit message length to avoid UI overflow and abuse
+            const int MaxMessageLength = 1000;
+            content = (content ?? string.Empty).Trim();
+            if (content.Length > MaxMessageLength)
+            {
+                content = content.Substring(0, MaxMessageLength);
+            }
+
             // 1. TÌM NHÂN VIÊN GẦN NHẤT TRONG DATABASE
             // Quét xem trước đây khách này đã từng chat với ai chưa (Chống mất data khi Server khởi động lại)
             var lastChat = _db.ChatMessages
@@ -132,9 +140,12 @@ namespace PetCenterAPI.Hubs
                 _db.ChatMessages.Add(chatMsg);
                 await _db.SaveChangesAsync();
 
-                // 6. Bắn Real-time
-                await Clients.User(assignedStaffId.ToString()).SendAsync("ReceiveMessage", customerId, content, chatMsg.CreatedAt);
-                await Clients.Caller.SendAsync("ReceiveMessage", customerId, content, chatMsg.CreatedAt);
+                // 6. Bắn Real-time (kèm theo tài khoản/email để UI hiển thị)
+                var customer = _db.Customers.Find(customerId);
+                var customerAccount = customer?.Email ?? string.Empty;
+
+                await Clients.User(assignedStaffId.ToString()).SendAsync("ReceiveMessage", customerId, customerAccount, content, chatMsg.CreatedAt);
+                await Clients.Caller.SendAsync("ReceiveMessage", customerId, customerAccount, content, chatMsg.CreatedAt);
             }
         }
 
@@ -144,6 +155,14 @@ namespace PetCenterAPI.Hubs
         public async Task SendMessageToCustomer(Guid customerId, string content)
         {
             var staffId = Guid.Parse(GetUserId());
+
+            // Limit message length to avoid UI overflow
+            const int MaxMessageLength = 1000;
+            content = (content ?? string.Empty).Trim();
+            if (content.Length > MaxMessageLength)
+            {
+                content = content.Substring(0, MaxMessageLength);
+            }
 
             var chatMsg = new ChatMessage
             {
@@ -157,8 +176,12 @@ namespace PetCenterAPI.Hubs
             _db.ChatMessages.Add(chatMsg);
             await _db.SaveChangesAsync();
 
-            await Clients.User(customerId.ToString()).SendAsync("ReceiveMessage", staffId, content, chatMsg.CreatedAt);
-            await Clients.Caller.SendAsync("ReceiveMessage", staffId, content, chatMsg.CreatedAt);
+            // Attach staff account/email for client UI
+            var staff = _db.Staffs.Find(staffId);
+            var staffAccount = staff?.Email ?? string.Empty;
+
+            await Clients.User(customerId.ToString()).SendAsync("ReceiveMessage", staffId, staffAccount, content, chatMsg.CreatedAt);
+            await Clients.Caller.SendAsync("ReceiveMessage", staffId, staffAccount, content, chatMsg.CreatedAt);
         }
     }
 }

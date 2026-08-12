@@ -169,7 +169,7 @@
       </div>
       <div class="pc-msgs" id="pc-msgs"></div>
       <div class="pc-foot">
-        <input class="pc-input" id="pc-input" type="text" placeholder="Nhập tin nhắn..." autocomplete="off" />
+        <input class="pc-input" id="pc-input" type="text" placeholder="Nhập tin nhắn..." autocomplete="off" maxlength="1000" oninput="if(this.value.length>1000)this.value=this.value.slice(0,1000)" />
         <button class="pc-send" id="pc-send">➤</button>
       </div>
     </div>
@@ -415,6 +415,9 @@
   async function sendMsg(payload, displayText) {
     var text = (payload || '').trim();
     if (!text) return;
+
+    // Enforce max length 1000 and do not append ellipsis
+    if (text.length > 1000) text = text.slice(0, 1000);
 
     addMsg(displayText || text, 'pc-user');
     input.value = '';

@@ -910,7 +910,7 @@
 
             <div class="bg-white border-top p-2">
                 <div class="input-group">
-                    <input type="text" id="staffTxtMsg" class="form-control rounded-pill bg-light border-0 px-3" placeholder="Nhập tin nhắn..." onkeypress="handleStaffEnter(event)">
+                    <input type="text" id="staffTxtMsg" class="form-control rounded-pill bg-light border-0 px-3" placeholder="Nhập tin nhắn..." onkeypress="handleStaffEnter(event)" maxlength="1000" oninput="if(this.value.length>1000)this.value=this.value.slice(0,1000)">
                     <button class="btn btn-success rounded-pill ms-2 px-3" onclick="sendStaffMsg()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
@@ -948,7 +948,8 @@
             .withAutomaticReconnect()
             .build();
 
-            staffConn.on("ReceiveMessage", (senderId, msg, time) => appendStaffMessage(senderId, msg, time));
+            // ReceiveMessage now includes sender account/email as second parameter
+            staffConn.on("ReceiveMessage", (senderId, senderAccount, msg, time) => appendStaffMessage(senderId, msg, time, senderAccount));
             staffConn.on("ReceiveSystemMessage", (msg) => {
             document.getElementById("staffChatBox").innerHTML += `<div class="text-center text-warning small my-2 fw-bold">${msg}</div>`;
             });
@@ -968,7 +969,7 @@
             .catch(err => console.error("Lỗi load lịch sử:", err));
             }
 
-            function appendStaffMessage(senderId, message, timestampString = null) {
+            function appendStaffMessage(senderId, message, timestampString = null, senderAccount = '') {
             const chatBox = document.getElementById("staffChatBox");
             document.getElementById("staffChatIntro").style.display = "none";
 
@@ -981,23 +982,64 @@
             const textColor = isMe ? "#ffffff" : "#333333";
             const shadow = isMe ? "0 4px 10px rgba(46, 204, 113, 0.2)" : "0 2px 8px rgba(0,0,0,0.08)";
 
-            chatBox.innerHTML += `
-            <div class="d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'} mb-3">
-            <div style="max-width: 85%;">
-            <div class="p-2 px-3" style="background: ${bgColor}; color: ${textColor}; border-radius: ${borderRadius}; box-shadow: ${shadow}; display: inline-block;">
-            <span style="font-size: 13.5px; line-height: 1.4;">${message}</span>
-            </div>
-            <div class="text-muted mt-1 ${isMe ? 'text-end' : 'text-start'}" style="font-size: 10px;">${timeText}</div>
-            </div>
-            </div>`;
+            // Trim message to avoid leading spaces causing visual offset
+            var cleanMsg = String(message || '').trim();
+
+            // Create message row
+            var row = document.createElement('div');
+            row.style.width = '100%';
+            row.style.display = 'flex';
+            row.style.justifyContent = isMe ? 'flex-end' : 'flex-start';
+            row.style.marginBottom = '6px';
+
+            var bubbleEl = document.createElement('div');
+            bubbleEl.style.background = bgColor;
+            bubbleEl.style.color = textColor;
+            bubbleEl.style.borderRadius = borderRadius;
+            bubbleEl.style.boxShadow = shadow;
+            bubbleEl.style.display = 'inline-flex';
+            bubbleEl.style.alignItems = 'center';
+            bubbleEl.style.justifyContent = 'center';
+            bubbleEl.style.width = 'fit-content';
+            bubbleEl.style.maxWidth = '85%';
+            bubbleEl.style.wordBreak = 'break-word';
+            bubbleEl.style.whiteSpace = 'pre-wrap';
+            bubbleEl.style.overflowWrap = 'anywhere';
+            bubbleEl.style.padding = '4px 8px';
+            bubbleEl.style.fontSize = '13px';
+            bubbleEl.style.lineHeight = '1';
+            bubbleEl.style.boxSizing = 'border-box';
+            bubbleEl.style.minWidth = '0';
+            bubbleEl.style.minHeight = '28px';
+            bubbleEl.textContent = cleanMsg;
+
+            row.appendChild(bubbleEl);
+            chatBox.appendChild(row);
+
+            // Timestamp row
+            var trow = document.createElement('div');
+            trow.style.width = '100%';
+            trow.style.display = 'flex';
+            trow.style.justifyContent = isMe ? 'flex-end' : 'flex-start';
+            trow.style.marginBottom = '12px';
+            var tdiv = document.createElement('div');
+            tdiv.className = 'text-muted';
+            tdiv.style.fontSize = '10px';
+            tdiv.textContent = timeText;
+            trow.appendChild(tdiv);
+            chatBox.appendChild(trow);
+
             chatBox.scrollTop = chatBox.scrollHeight;
             }
 
             function sendStaffMsg() {
             const input = document.getElementById("staffTxtMsg");
-            if (!input.value.trim() || !staffConn) return;
+            if (!input || !staffConn) return;
+            var text = String(input.value || '').trim();
+            if (!text) return;
+            if (text.length > 1000) text = text.slice(0, 1000);
 
-            staffConn.invoke("SendMessageToSupport", input.value.trim());
+            staffConn.invoke("SendMessageToSupport", text);
             input.value = '';
             }
 
