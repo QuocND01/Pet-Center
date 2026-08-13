@@ -48,5 +48,7 @@ namespace PetCenterAPI.DTOs.Requests.Order
         public List<CodOrderItemDTO> Items { get; set; } = new();
 
         public string ClientIpAddress { get; set; } = string.Empty;
+
+        public string? CustomReturnUrl { get; set; }
     }
 }

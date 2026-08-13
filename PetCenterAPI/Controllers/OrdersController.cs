@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -72,8 +72,10 @@ namespace PetCenterAPI.Controllers
             }
         }
 
-        // PATCH: api/Orders/{id}/cancel
+        // PATCH/POST/PUT: api/Orders/{id}/cancel
         [HttpPatch("{id:guid}/cancel")]
+        [HttpPost("{id:guid}/cancel")]
+        [HttpPut("{id:guid}/cancel")]
         [AllowAnonymous]
         public async Task<IActionResult> CancelOrder(Guid id)
         {

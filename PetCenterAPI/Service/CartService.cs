@@ -33,7 +33,11 @@ namespace PetCenterAPI.Service
                         CartDetailId = d.CartDetailsId,
                         CartId = d.CartId,
                         ProductId = d.ProductId,
-                        Quantity = d.Quantity ?? 0
+                        Quantity = d.Quantity ?? 0,
+                        ProductName = d.Product?.ProductName ?? "N/A",
+                        ProductPrice = d.Product?.ProductPrice ?? 0m,
+                        StockQuantity = d.Product?.Inventory?.QuantityAvailable ?? 0,
+                        Images = d.Product?.ProductImages?.Select(img => img.ImageUrl).ToList() ?? new List<string>()
                     })
                     .ToList()
             };

@@ -22,13 +22,13 @@ namespace PetCenterAPI.Service
             _logger = logger;
         }
 
-        public async Task<string?> CreatePaymentUrlAsync(Guid orderId, decimal amount, string transactionRef, string orderInfo)
+        public async Task<string?> CreatePaymentUrlAsync(Guid orderId, decimal amount, string transactionRef, string orderInfo, string? customReturnUrl = null)
         {
             var partnerCode = _configuration["MoMo:PartnerCode"];
             var accessKey = _configuration["MoMo:AccessKey"];
             var secretKey = _configuration["MoMo:SecretKey"];
             var endpoint = _configuration["MoMo:Endpoint"];
-            var returnUrl = _configuration["MoMo:ReturnUrl"];
+            var returnUrl = !string.IsNullOrWhiteSpace(customReturnUrl) ? customReturnUrl : _configuration["MoMo:ReturnUrl"];
             var ipnUrl = _configuration["MoMo:IpnUrl"];
             var requestType = _configuration["MoMo:RequestType"];
 

@@ -5,7 +5,7 @@ namespace PetCenterAPI.Service.Interface
 {
     public interface IMoMoService
     {
-        Task<string?> CreatePaymentUrlAsync(Guid orderId, decimal amount, string transactionRef, string orderInfo);
+        Task<string?> CreatePaymentUrlAsync(Guid orderId, decimal amount, string transactionRef, string orderInfo, string? customReturnUrl = null);
         bool ValidateCallback(string rawBody, string signature);
         MoMoCallbackResult ParseCallback(JsonElement body, string rawBody);
     }

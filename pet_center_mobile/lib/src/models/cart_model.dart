@@ -39,16 +39,26 @@ class CartDetailModel {
     required this.cartId,
     required this.productId,
     required this.quantity,
-    this.isSelected = true,
+    this.isSelected = false,
     this.product,
   });
 
   factory CartDetailModel.fromJson(Map<String, dynamic> json) {
+    ProductModel? parsedProduct;
+    if (json['product'] is Map<String, dynamic>) {
+      parsedProduct = ProductModel.fromJson(json['product']);
+    } else if (json['Product'] is Map<String, dynamic>) {
+      parsedProduct = ProductModel.fromJson(json['Product']);
+    } else if (json['productName'] != null || json['ProductName'] != null) {
+      parsedProduct = ProductModel.fromJson(json);
+    }
+
     return CartDetailModel(
       cartDetailId: json['cartDetailId'] ?? json['CartDetailId'] ?? '',
       cartId: json['cartId'] ?? json['CartId'] ?? '',
       productId: json['productId'] ?? json['ProductId'] ?? '',
       quantity: json['quantity'] ?? json['Quantity'] ?? 0,
+      product: parsedProduct,
     );
   }
 }

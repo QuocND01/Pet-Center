@@ -9,14 +9,18 @@ class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  CartScreenState createState() => CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class CartScreenState extends State<CartScreen> {
   final ApiService _apiService = ApiService();
   late Future<CartResponseModel> _cartFuture;
   CartResponseModel? _currentCart;
   bool _isUpdating = false;
+
+  void refreshCart() {
+    _loadCart();
+  }
 
   @override
   void initState() {
@@ -211,6 +215,7 @@ class _CartScreenState extends State<CartScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('My Shopping Cart'),
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -294,8 +299,10 @@ class _CartScreenState extends State<CartScreen> {
 
                     if (product == null) {
                       return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
                         child: ListTile(
-                          title: const Text('Loading product details...'),
+                          leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                          title: const Text('Product unavailable'),
                           subtitle: Text('ID: ${detail.productId}'),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete_outline, color: Colors.red),

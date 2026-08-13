@@ -69,9 +69,13 @@ class ApiService {
         );
         return true;
       } catch (e) {
-        // Token expired or invalid
-        await clearAuthData();
-        return false;
+        final errStr = e.toString().toLowerCase();
+        if (errStr.contains('401') || errStr.contains('unauthorized') || errStr.contains('invalid session')) {
+          await clearAuthData();
+          return false;
+        }
+        // Preserve saved token on temporary network errors / server glitches so user is not logged out
+        return true;
       }
     }
     return false;
@@ -788,14 +792,19 @@ class ApiService {
     final data = _handleResponse(response);
     final cart = CartResponseModel.fromJson(data);
 
-    for (var detail in cart.cartDetails) {
-      try {
-        final product = await getProductDetails(detail.productId);
-        detail.product = product;
-      } catch (e) {
-        // Skip product details load error
-      }
+    // Fetch details in parallel only for items missing embedded product data
+    final missingDetails = cart.cartDetails.where((d) => d.product == null).toList();
+    if (missingDetails.isNotEmpty) {
+      await Future.wait(
+        missingDetails.map((detail) async {
+          try {
+            final product = await getProductDetails(detail.productId);
+            detail.product = product;
+          } catch (_) {}
+        }),
+      );
     }
+
     return cart;
   }
 
@@ -1067,10 +1076,10 @@ class ApiService {
 
   // Cancel order
   Future<bool> cancelOrder(String orderId) async {
-    final response = await _client.patch(
+    final response = await _sendRequest(() => _client.patch(
       Uri.parse('$baseUrl/Orders/$orderId/cancel'),
       headers: _getHeaders(),
-    );
+    ));
 
     return response.statusCode == 200;
   }
@@ -1340,6 +1349,9 @@ class ApiService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) return null;
       return json.decode(response.body);
+    } else if (response.statusCode == 401) {
+      clearAuthData();
+      throw Exception('Session expired (401 Unauthorized). Please login again.');
     } else {
       throw Exception(
           'Request failed: ${response.statusCode} - ${response.body}');
