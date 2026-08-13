@@ -3,16 +3,17 @@
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Create Import Stocks";
 }
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <link rel="stylesheet" href="~/css/AdminViews/ManageImport/create_import.css" asp-append-version="true" />
 
 <style>
-    /* Style cho Floating Error Box */
+    /* 1. FLOATING ERROR BOX */
     .floating-error-box {
         position: fixed;
-        bottom: 24px;
+        bottom: 85px;
         right: 24px;
         z-index: 1090;
         max-width: 420px;
@@ -22,7 +23,7 @@
         border-left: 5px solid #e53e3e;
         border-radius: 8px;
         padding: 16px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
     }
 
@@ -55,11 +56,132 @@
             font-size: 16px;
             cursor: pointer;
             padding: 0;
-            line-height: 1;
         }
+
+    /* 2. SUPPLIER INFORMATION ON 1 ROW */
+    .info-card-compact {
+        padding: 16px 20px !important;
+    }
+
+    .supplier-info-grid {
+        display: grid;
+        grid-template-columns: 2fr 1.2fr 1.8fr;
+        gap: 16px;
+    }
+
+    @@media (max-width: 992px) {
+        .supplier-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group-compact {
+        margin-bottom: 0;
+        min-width: 0;
+    }
+
+        .form-group-compact label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+            display: block;
+            white-space: nowrap;
+        }
+
+    .input-ellipsis {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        font-size: 14px;
+        box-sizing: border-box;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    /* 3. NGĂN CÁCH GIỮA CÁC LÔ VÀ HOVER HIỆU ỨNG */
+    #detailTable tbody tr.main-row td {
+        border-top: 2px solid #94a3b8 !important; /* Viền xám đậm ngăn giữa các lô */
+        border-bottom: none !important;
+        padding-top: 10px !important;
+    }
+
+    #detailTable tbody tr.sub-row-dates {
+        background-color: #f8fafc;
+    }
+
+        #detailTable tbody tr.sub-row-dates td {
+            border-top: none !important;
+            padding-bottom: 12px !important;
+        }
+
+    #detailTable tbody tr.main-row:hover,
+    #detailTable tbody tr.main-row:hover + tr.sub-row-dates {
+        background-color: #f1f5f9 !important; /* Highlight cùng lúc 2 dòng khi hover */
+    }
+
+    .date-fields-wrapper {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        padding: 4px 12px;
+    }
+
+    .date-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .date-item label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+    .batch-badge {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    /* 4. STICKY FOOTER BAR (DÁN DÍNH TỔNG TIỀN + NÚT SAVE) */
+    .footer-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 1000;
+        background: #ffffff;
+        border-top: 2px solid #e2e8f0;
+        padding: 12px 24px;
+        margin: 20px -24px -24px -24px;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .total-display .label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #64748b;
+        display: block;
+    }
+
+    .total-display .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2563eb;
+    }
 </style>
 
-<div class="page-wrapper">
+<div class="page-wrapper" style="padding-bottom: 20px;">
     <!-- Floating Error Box -->
     <div id="floatingErrorBox" class="floating-error-box" style="display: none;">
         <div class="error-header">
@@ -90,28 +212,35 @@
     </div>
 
     <form asp-action="Create" method="post" id="importForm" class="form-container">
-        <div class="info-card mb-4">
-            <div class="card-header">
-                <h3><i class="bi bi-truck"></i> Supplier Information</h3>
+        <!-- SUPPLIER INFO -->
+        <div class="info-card info-card-compact mb-4">
+            <div class="card-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+                <h3 style="font-size: 16px;"><i class="bi bi-truck"></i> Supplier Information</h3>
             </div>
-            <div class="form-group mb-0">
-                <label class="form-label">Select Supplier <span class="text-danger">*</span></label>
-                <select asp-for="SupplierId" asp-items="ViewBag.SupplierList" class="search-input" style="padding-left: 14px;" required>
-                    <option value="">-- Choose a supplier --</option>
-                </select>
-            </div>
-            <div class="form-group mb-3">
-                <label class="form-label-custom" asp-for="InvoiceNumber">Invoice Number</label>
-                <input asp-for="InvoiceNumber" class="form-input-custom search-input" type="text" placeholder="Import invoice number" />
-                <span asp-validation-for="InvoiceNumber" class="validation-message"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label class="form-label-custom" asp-for="Note">Note</label>
-                <input asp-for="Note" class="form-input-custom search-input" type="text" placeholder="Note" />
-                <span asp-validation-for="Note" class="validation-message"></span>
+
+            <div class="supplier-info-grid">
+                <div class="form-group-compact">
+                    <label class="form-label">Select Supplier <span class="text-danger">*</span></label>
+                    <select asp-for="SupplierId" asp-items="ViewBag.SupplierList" class="search-input input-ellipsis" required onchange="this.title = this.options[this.selectedIndex].text">
+                        <option value="">-- Choose a supplier --</option>
+                    </select>
+                </div>
+
+                <div class="form-group-compact">
+                    <label class="form-label-custom" asp-for="InvoiceNumber">Invoice Number</label>
+                    <input asp-for="InvoiceNumber" class="form-input-custom search-input input-ellipsis" type="text" minlength="3" maxlength="100" placeholder="e.g. INV-2026-001" oninput="this.title = this.value" />
+                    
+                </div>
+
+                <div class="form-group-compact">
+                    <label class="form-label-custom" asp-for="Note">Note</label>
+                    <input asp-for="Note" class="form-input-custom search-input input-ellipsis" type="text" maxlength="255" placeholder="Additional notes..." oninput="this.title = this.value" />
+                    <span asp-validation-for="Note" class="validation-message"></span>
+                </div>
             </div>
         </div>
 
+        <!-- PRODUCT LIST TABLE -->
         <div class="table-card mb-4">
             <div class="table-header">
                 <h3><i class="bi bi-box-seam"></i> Product List</h3>
@@ -121,47 +250,56 @@
             </div>
 
             <div style="overflow-x: auto;">
-                <table class="data-table" id="detailTable" style="min-width: 1000px;">
+                <table class="data-table" id="detailTable" style="min-width: 900px;">
                     <thead>
                         <tr>
-                            <th style="width: 20%">Product <span class="text-danger">*</span></th>
-                            <th style="width: 12%">SKU</th>
-                            <th style="width: 12%">Batch <span class="text-danger">*</span></th>
-                            <th style="width: 13%">Mfg Date</th>
-                            <th style="width: 13%">Exp Date</th>
-                            <th style="width: 10%">Quantity <span class="text-danger">*</span></th>
-                            <th style="width: 15%">Import Price (₫) <span class="text-danger">*</span></th>
-                            <th style="width: 5%; text-align: center;">Action</th>
+                            <th style="width: 25%">Product <span class="text-danger">*</span></th>
+                            <th style="width: 15%">SKU</th>
+                            <th style="width: 18%">Batch Code <span class="text-danger">*</span></th>
+                            <th style="width: 12%">Quantity <span class="text-danger">*</span></th>
+                            <th style="width: 20%">Import Price (₫) <span class="text-danger">*</span></th>
+                            <th style="width: 10%; text-align: center;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr class="main-row">
                             <td>
                                 <input type="hidden" name="Details[0].ProductId" class="productIdInput" required />
-                                <input type="text" class="search-input productPicker" placeholder="Click to select product" readonly style="padding-left:14px;cursor:pointer;" />
+                                <input type="text" class="search-input productPicker input-ellipsis" placeholder="Click to select product" readonly style="padding-left:14px;cursor:pointer;" />
                             </td>
                             <td>
-                                <input name="Details[0].SKU" class="search-input sku" type="text" readonly required />
+                                <input name="Details[0].SKU" class="search-input sku input-ellipsis" type="text" readonly required />
                             </td>
                             <td>
-                                <input name="Details[0].BatchCode" class="search-input batch" type="text" placeholder="Batch" required />
+                                <input name="Details[0].BatchCode" class="search-input batch input-ellipsis" type="text" minlength="2" maxlength="100" placeholder="e.g. BATCH-001" required oninput="this.title = this.value" />
                             </td>
                             <td>
-                                <input name="Details[0].ManufacturingDate" class="search-input mfg-date" type="date" />
+                                <input name="Details[0].Quantity" class="search-input quantity" type="number" min="1" max="100000" placeholder="0" required />
                             </td>
                             <td>
-                                <input name="Details[0].ExpiryDate" class="search-input exp-date" type="date" />
+                                <input name="Details[0].ImportPrice" class="search-input price" type="number" min="0" max="1000000000" step="any" placeholder="0.00" required />
                             </td>
-                            <td>
-                                <input name="Details[0].Quantity" class="search-input quantity" type="number" min="1" placeholder="0" required />
-                            </td>
-                            <td>
-                                <input name="Details[0].ImportPrice" class="search-input price" type="number" min="0" step="any" placeholder="0.00" required />
-                            </td>
-                            <td style="text-align: center;">
-                                <button type="button" class="btn-action-danger removeRow">
+                            <td style="text-align: center;" rowspan="2">
+                                <button type="button" class="btn-action-danger removeRow" style="margin-top: 8px;">
                                     <i class="bi bi-trash"></i>
                                 </button>
+                            </td>
+                        </tr>
+                        <tr class="sub-row-dates">
+                            <td colspan="5">
+                                <div class="date-fields-wrapper">
+                                    <span class="batch-badge">Batch #1</span>
+                                    <div class="date-item">
+                                        <!-- Thêm dấu * đỏ cảnh báo -->
+                                        <label><i class="bi bi-calendar-event me-1"></i> Mfg Date <span class="text-danger">*</span>:</label>
+                                        <!-- Thêm thuộc tính required -->
+                                        <input name="Details[0].ManufacturingDate" class="search-input mfg-date" type="date" style="width: 160px;" required />
+                                    </div>
+                                    <div class="date-item">
+                                        <label><i class="bi bi-calendar-x me-1"></i> Exp Date:</label>
+                                        <input name="Details[0].ExpiryDate" class="search-input exp-date" type="date" style="width: 160px;" />
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -169,10 +307,11 @@
             </div>
         </div>
 
+        <!-- STICKY FOOTER BAR -->
         <div class="footer-actions">
             <div class="total-display">
                 <span class="label">Estimated Total Amount</span>
-                <span class="value"><span id="totalAmount">0</span> ₫</span>
+                <span class="value" id="totalAmountWrapper" title="0 ₫"><span id="totalAmount">0</span> ₫</span>
             </div>
             <button type="submit" class="btn-create" style="padding: 12px 32px; font-size: 15px;">
                 <i class="bi bi-cloud-arrow-up"></i> Save Import Order
@@ -180,6 +319,7 @@
         </div>
     </form>
 
+    <!-- MODAL CHỌN SẢN PHẨM -->
     <div class="modal fade" id="productModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -212,12 +352,14 @@
 
 <script>
     const API_BASE = "https://localhost:7004";
+    const MAX_QTY = 100000;
+    const MAX_PRICE = 1000000000;
+
     let rowIndex = 1;
     let currentRow = null;
 
     const productModal = new bootstrap.Modal(document.getElementById("productModal"));
 
-    // --- FLOATING ERROR BOX LOGIC ---
     function showErrorBox(messages) {
         const box = document.getElementById("floatingErrorBox");
         const ul = document.getElementById("errorList");
@@ -235,67 +377,69 @@
             ul.appendChild(li);
         }
 
-        if (ul.children.length > 0) {
-            box.style.display = "block";
-        }
+        if (ul.children.length > 0) box.style.display = "block";
     }
 
     function hideErrorBox() {
         document.getElementById("floatingErrorBox").style.display = "none";
     }
 
-    // Tự động gom lỗi từ Server/ModelState khi load trang
     window.addEventListener("DOMContentLoaded", () => {
         const errors = [];
         const serverSummary = document.getElementById("serverValidationSummary");
         if (serverSummary) {
-            const items = serverSummary.querySelectorAll("li");
-            items.forEach(item => {
-                if (item.innerText && item.innerText !== "HEADER_KEY") {
-                    errors.push(item.innerText);
-                }
+            serverSummary.querySelectorAll("li").forEach(item => {
+                if (item.innerText && item.innerText !== "HEADER_KEY") errors.push(item.innerText);
             });
         }
 
-        // Kiểm tra xem đã có sẵn TempData hay ViewBag error trong list chưa
-        const existingErrors = document.querySelectorAll("#errorList li");
-        existingErrors.forEach(li => errors.push(li.innerText));
+        document.querySelectorAll("#errorList li").forEach(li => errors.push(li.innerText));
+        if (errors.length > 0) showErrorBox([...new Set(errors)]);
 
-        if (errors.length > 0) {
-            showErrorBox([...new Set(errors)]); // Loại bỏ trùng lặp
+        const selSupplier = document.querySelector("[name='SupplierId']");
+        if (selSupplier && selSupplier.selectedIndex >= 0) {
+            selSupplier.title = selSupplier.options[selSupplier.selectedIndex].text;
         }
     });
 
-    // --- ROW MANAGEMENT ---
     function createRow(index) {
         return `
-                <tr>
+                <tr class="main-row">
                     <td>
                         <input type="hidden" name="Details[${index}].ProductId" class="productIdInput" required />
-                        <input type="text" class="search-input productPicker" placeholder="Click to select product" readonly style="padding-left:14px;cursor:pointer;" />
+                        <input type="text" class="search-input productPicker input-ellipsis" placeholder="Click to select product" readonly style="padding-left:14px;cursor:pointer;" />
                     </td>
                     <td>
-                        <input name="Details[${index}].SKU" class="search-input sku" type="text" readonly required />
+                        <input name="Details[${index}].SKU" class="search-input sku input-ellipsis" type="text" readonly required />
                     </td>
                     <td>
-                        <input name="Details[${index}].BatchCode" class="search-input batch" type="text" placeholder="Batch" required />
+                        <input name="Details[${index}].BatchCode" class="search-input batch input-ellipsis" type="text" minlength="2" maxlength="100" placeholder="e.g. BATCH-001" required oninput="this.title = this.value" />
                     </td>
                     <td>
-                        <input name="Details[${index}].ManufacturingDate" class="search-input mfg-date" type="date" />
+                        <input name="Details[${index}].Quantity" class="search-input quantity" type="number" min="1" max="${MAX_QTY}" placeholder="0" required />
                     </td>
                     <td>
-                        <input name="Details[${index}].ExpiryDate" class="search-input exp-date" type="date" />
+                        <input name="Details[${index}].ImportPrice" class="search-input price" type="number" min="0" max="${MAX_PRICE}" step="any" placeholder="0.00" required />
                     </td>
-                    <td>
-                        <input name="Details[${index}].Quantity" class="search-input quantity" type="number" min="1" placeholder="0" required />
-                    </td>
-                    <td>
-                        <input name="Details[${index}].ImportPrice" class="search-input price" type="number" min="0" step="any" placeholder="0.00" required />
-                    </td>
-                    <td style="text-align:center;">
-                        <button type="button" class="btn-action-danger removeRow">
+                    <td style="text-align:center;" rowspan="2">
+                        <button type="button" class="btn-action-danger removeRow" style="margin-top: 8px;">
                             <i class="bi bi-trash"></i>
                         </button>
+                    </td>
+                </tr>
+                <tr class="sub-row-dates">
+                    <td colspan="5">
+                        <div class="date-fields-wrapper">
+                            <span class="batch-badge">Batch #${index + 1}</span>
+                            <div class="date-item">
+                                <label><i class="bi bi-calendar-event me-1"></i> Mfg Date:</label>
+                                <input name="Details[${index}].ManufacturingDate" class="search-input mfg-date" type="date" style="width: 160px;" />
+                            </div>
+                            <div class="date-item">
+                                <label><i class="bi bi-calendar-x me-1"></i> Exp Date:</label>
+                                <input name="Details[${index}].ExpiryDate" class="search-input exp-date" type="date" style="width: 160px;" />
+                            </div>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -310,49 +454,69 @@
         const removeBtn = e.target.closest(".removeRow");
         if (!removeBtn) return;
 
-        const rows = document.querySelectorAll("#detailTable tbody tr");
-        if (rows.length <= 1) {
+        const mainRows = document.querySelectorAll("#detailTable tbody tr.main-row");
+        if (mainRows.length <= 1) {
             showErrorBox("At least one product detail row is required.");
             return;
         }
 
-        removeBtn.closest("tr").remove();
+        const mainRow = removeBtn.closest("tr");
+        const subRow = mainRow.nextElementSibling;
+
+        mainRow.remove();
+        if (subRow && subRow.classList.contains("sub-row-dates")) subRow.remove();
+
         reIndexRows();
         calculateTotal();
     });
 
     function reIndexRows() {
-        const rows = document.querySelectorAll("#detailTable tbody tr");
-        rows.forEach((row, index) => {
+        const mainRows = document.querySelectorAll("#detailTable tbody tr.main-row");
+        mainRows.forEach((row, index) => {
+            const subRow = row.nextElementSibling;
+
             row.querySelector(".productIdInput").name = `Details[${index}].ProductId`;
             row.querySelector(".sku").name = `Details[${index}].SKU`;
             row.querySelector(".batch").name = `Details[${index}].BatchCode`;
-            row.querySelector(".mfg-date").name = `Details[${index}].ManufacturingDate`;
-            row.querySelector(".exp-date").name = `Details[${index}].ExpiryDate`;
             row.querySelector(".quantity").name = `Details[${index}].Quantity`;
             row.querySelector(".price").name = `Details[${index}].ImportPrice`;
+
+            if (subRow && subRow.classList.contains("sub-row-dates")) {
+                subRow.querySelector(".mfg-date").name = `Details[${index}].ManufacturingDate`;
+                subRow.querySelector(".exp-date").name = `Details[${index}].ExpiryDate`;
+
+                const badge = subRow.querySelector(".batch-badge");
+                if (badge) badge.innerText = `Batch #${index + 1}`;
+            }
         });
-        rowIndex = rows.length;
+        rowIndex = mainRows.length;
     }
 
-    // --- CALCULATIONS ---
     document.addEventListener("input", function(e) {
-        if (e.target.classList.contains("quantity") || e.target.classList.contains("price")) {
+        if (e.target.classList.contains("quantity")) {
+            if (parseFloat(e.target.value) > MAX_QTY) e.target.value = MAX_QTY;
+            calculateTotal();
+        }
+        if (e.target.classList.contains("price")) {
+            if (parseFloat(e.target.value) > MAX_PRICE) e.target.value = MAX_PRICE;
             calculateTotal();
         }
     });
 
     function calculateTotal() {
         let total = 0;
-        document.querySelectorAll("#detailTable tbody tr").forEach(row => {
+        document.querySelectorAll("#detailTable tbody tr.main-row").forEach(row => {
             const qty = parseFloat(row.querySelector(".quantity").value) || 0;
             const price = parseFloat(row.querySelector(".price").value) || 0;
             total += qty * price;
         });
-        document.getElementById("totalAmount").innerText = total.toLocaleString("vi-VN");
+
+        const formatted = total.toLocaleString("vi-VN");
+        document.getElementById("totalAmount").innerText = formatted;
+        const wrapper = document.getElementById("totalAmountWrapper");
+        if (wrapper) wrapper.setAttribute("title", `${formatted} ₫`);
     }
 
-    // --- PRODUCT PICKER & MODAL ---
     document.addEventListener("click", function(e) {
         const picker = e.target.closest(".productPicker");
         if (!picker) return;
@@ -396,73 +560,68 @@
     let searchTimer;
     document.getElementById("productKeyword").addEventListener("input", function() {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
-            loadProducts(this.value);
-        }, 300);
+        searchTimer = setTimeout(() => loadProducts(this.value), 300);
     });
 
-    // Chọn sản phẩm (CHO PHÉP TRÙNG SẢN PHẨM)
     document.addEventListener("click", function(e) {
         const btn = e.target.closest(".btnSelectProduct");
         if (!btn) return;
 
-        const productId = btn.dataset.id;
-        const productName = btn.dataset.name;
-        const sku = btn.dataset.sku;
+        if (currentRow) {
+            currentRow.querySelector(".productIdInput").value = btn.dataset.id;
 
-        currentRow.querySelector(".productIdInput").value = productId;
-        currentRow.querySelector(".productPicker").value = productName;
-        currentRow.querySelector(".sku").value = sku;
+            const pickerInput = currentRow.querySelector(".productPicker");
+            pickerInput.value = btn.dataset.name;
+            pickerInput.title = btn.dataset.name;
+
+            const skuInput = currentRow.querySelector(".sku");
+            skuInput.value = btn.dataset.sku;
+            skuInput.title = btn.dataset.sku;
+        }
 
         productModal.hide();
     });
 
-    // --- CLIENT-SIDE VALIDATIONS BEFORE SUBMIT ---
     document.getElementById("importForm").addEventListener("submit", function(e) {
         const errors = [];
         const today = new Date().toISOString().split("T")[0];
 
         const supplierId = document.querySelector("[name='SupplierId']").value;
-        if (!supplierId) {
-            errors.push("Please select a Supplier.");
-        }
+        if (!supplierId) errors.push("Please select a Supplier.");
 
-        const rows = document.querySelectorAll("#detailTable tbody tr");
-        if (rows.length === 0) {
-            errors.push("At least one product item is required.");
-        }
+        const invoiceNum = document.querySelector("[name='InvoiceNumber']").value.trim();
+        if (invoiceNum && invoiceNum.length < 3) errors.push("Invoice Number must be at least 3 characters if provided.");
 
-        rows.forEach((row, i) => {
+        const note = document.querySelector("[name='Note']").value.trim();
+        if (note && note.length > 255) errors.push("Note cannot exceed 255 characters.");
+
+        const mainRows = document.querySelectorAll("#detailTable tbody tr.main-row");
+        if (mainRows.length === 0) errors.push("At least one product item is required.");
+
+        mainRows.forEach((row, i) => {
             const rowNum = i + 1;
+            const subRow = row.nextElementSibling;
+
             const productId = row.querySelector(".productIdInput").value;
             const batch = row.querySelector(".batch").value.trim();
             const qty = parseFloat(row.querySelector(".quantity").value);
             const price = parseFloat(row.querySelector(".price").value);
-            const mfgDate = row.querySelector(".mfg-date").value;
-            const expDate = row.querySelector(".exp-date").value;
 
-            if (!productId) {
-                errors.push(`Row ${rowNum}: Product is not selected.`);
-            }
-            if (!batch) {
-                errors.push(`Row ${rowNum}: Batch code is required.`);
-            }
-            if (isNaN(qty) || qty <= 0) {
-                errors.push(`Row ${rowNum}: Quantity must be greater than 0.`);
-            }
-            if (isNaN(price) || price < 0) {
-                errors.push(`Row ${rowNum}: Import price cannot be negative.`);
-            }
+            let mfgDate = subRow?.querySelector(".mfg-date")?.value || "";
+            let expDate = subRow?.querySelector(".exp-date")?.value || "";
 
-            // Validate ngày sản xuất không được vượt quá hôm nay
-            if (mfgDate && mfgDate > today) {
-                errors.push(`Row ${rowNum}: Manufacturing Date cannot be in the future.`);
-            }
+            if (!productId) errors.push(`Row ${rowNum}: Product is not selected.`);
+            if (!batch) errors.push(`Row ${rowNum}: Batch code is required.`);
+            else if (batch.length < 2) errors.push(`Row ${rowNum}: Batch code must be at least 2 characters.`);
 
-            // Validate Hạn sử dụng phải sau Ngày sản xuất
-            if (mfgDate && expDate && expDate <= mfgDate) {
-                errors.push(`Row ${rowNum}: Expiry Date must be later than Manufacturing Date.`);
-            }
+            if (isNaN(qty) || qty <= 0) errors.push(`Row ${rowNum}: Quantity must be greater than 0.`);
+            else if (qty > MAX_QTY) errors.push(`Row ${rowNum}: Quantity cannot exceed ${MAX_QTY.toLocaleString('vi-VN')}.`);
+
+            if (isNaN(price) || price < 0) errors.push(`Row ${rowNum}: Import price cannot be negative.`);
+            else if (price > MAX_PRICE) errors.push(`Row ${rowNum}: Import price cannot exceed ${MAX_PRICE.toLocaleString('vi-VN')} ₫.`);
+
+            if (mfgDate && mfgDate > today) errors.push(`Row ${rowNum}: Manufacturing Date cannot be in the future.`);
+            if (mfgDate && expDate && expDate <= mfgDate) errors.push(`Row ${rowNum}: Expiry Date must be later than Manufacturing Date.`);
         });
 
         if (errors.length > 0) {

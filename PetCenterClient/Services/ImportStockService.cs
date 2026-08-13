@@ -95,58 +95,8 @@ namespace PetCenterClient.Services
             var res = await _httpClient.PutAsync($"/api/importstocks/{id}/cancel", null);
             res.EnsureSuccessStatusCode();
         }
-        public async Task<List<ImportStockViewModel>> GetAllByTimeAsync()
-        {
-            AddAuthorizationHeader();
-
-            var res = await _httpClient.GetAsync("/api/importstocks/export");
-
-            if (!res.IsSuccessStatusCode)
-                return new List<ImportStockViewModel>();
-
-            var json = await res.Content.ReadAsStringAsync();
-            Console.WriteLine(json);
-
-            var data = JsonSerializer.Deserialize<ImportStockResponseDto>(
-                json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            if (data == null) return new List<ImportStockViewModel>();
-
-            // 🔥 GÁN DETAILS VÀO IMPORT
-            foreach (var import in data.Imports)
-            {
-                import.Details = data.Details
-                    .Where(d => d.ImportId == import.ImportId)
-                    .ToList();
-            }
-
-            return data.Imports;
-        }
-        // 🔥 GỌI API TRỪ KHO
-        //public async Task<string?> DeductFIFO(Guid productId, int quantity)
-        //{
-        //    AddAuthorizationHeader();
-        //    var res = await _httpClient.PostAsJsonAsync($"/api/importstocks/deduct", new { productId, quantity });
-        //    if (!res.IsSuccessStatusCode) return null;
-
-        //    // Đọc JSON và chỉ lấy giá trị của trường "mapping"
-        //    var result = await res.Content.ReadFromJsonAsync<DeductStockResponse>();
-        //    return result?.Mapping; // Trả về "id:qty,id:qty" (chuỗi sạch)
-        //}
-
-        // 🔥 GỌI API HOÀN KHO
-        public async Task<bool> ReturnStock(string mapping)
-        {
-            AddAuthorizationHeader();
-            var res = await _httpClient.PostAsJsonAsync($"/api/importstocks/return", new
-            {
-                mapping
-            });
-
-            return res.IsSuccessStatusCode;
-        }
+        
+        
     }
 }
 

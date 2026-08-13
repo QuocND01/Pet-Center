@@ -6,64 +6,130 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="~/css/AdminViews/ManageSupplier/edit_supplier.css" asp-append-version="true" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-<form id="createForm" class="custom-form-modal">
+
+<style>
+    /* CSS GRID 3 CỘT CHO FORM MODAL */
+    .form-grid-3cols {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    /* Kéo dài các trường nội dung rộng ra trọn 3 cột */
+    .col-span-2 {
+        grid-column: span 2;
+    }
+
+    .col-span-3 {
+        grid-column: span 3;
+    }
+
+    /* Đảm bảo ô input/textarea co giãn tốt và cắt chữ nếu quá dài */
+    .form-group-grid {
+        min-width: 0;
+        margin-bottom: 0;
+    }
+
+        .form-group-grid input,
+        .form-group-grid textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+    /* Cấu hình responsive: Tự thu về 1 cột trên màn hình nhỏ */
+    @@media (max-width: 768px) {
+        .form-grid-3cols {
+            grid-template-columns: 1fr;
+        }
+
+        .col-span-2, .col-span-3 {
+            grid-column: span 1;
+        }
+    }
+</style>
+
+<form id="createForm" class="custom-form-modal" autocomplete="off" novalidate>
     @Html.AntiForgeryToken()
 
     @* Vùng hiển thị lỗi tổng quát *@
     <div asp-validation-summary="All" class="alert alert-danger-custom" style="display:none;"></div>
 
-    <div class="form-grid">
-        <div class="form-group mb-3">
+    <div class="form-grid-3cols">
+        <!-- DÒNG 1: Tax ID - Supplier Name (chiếm 2 cột) -->
+        <div class="form-group-grid">
             <label class="form-label-custom" asp-for="TaxId">Tax ID</label>
-            <input class="form-input-custom" asp-for="TaxId" placeholder="e.g. TAX-999-888" />
+            <input class="form-input-custom" asp-for="TaxId"
+                   maxlength="13"
+                   inputmode="numeric"
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                   placeholder="e.g. 0123456789" />
             <span asp-validation-for="TaxId" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
+        <div class="form-group-grid col-span-2">
             <label class="form-label-custom" asp-for="SupplierName">Supplier Name</label>
-            <input class="form-input-custom" asp-for="SupplierName" placeholder="Enter business name..." />
+            <input class="form-input-custom" asp-for="SupplierName"
+                   maxlength="50"
+                   placeholder="Enter business name..." />
             <span asp-validation-for="SupplierName" class="validation-message"></span>
         </div>
 
-        <div class="form-row">
-            <div class="form-group mb-3 flex-1">
-                <label class="form-label-custom" asp-for="SupplierEmail">Email Address</label>
-                <input class="form-input-custom" asp-for="SupplierEmail" type="email" placeholder="contact@supplier.com" />
-                <span asp-validation-for="SupplierEmail" class="validation-message"></span>
-            </div>
-            <div class="form-group mb-3 flex-1">
-                <label class="form-label-custom" asp-for="SupplierPhoneNumber">Phone Number</label>
-                <input class="form-input-custom" asp-for="SupplierPhoneNumber" placeholder="09xxxxxxxx" />
-                <span asp-validation-for="SupplierPhoneNumber" class="validation-message"></span>
-            </div>
+        <!-- DÒNG 2: Email - Phone Number - Contact Person (Chia đều 3 cột) -->
+        <div class="form-group-grid">
+            <label class="form-label-custom" asp-for="SupplierEmail">Email Address</label>
+            <input class="form-input-custom" asp-for="SupplierEmail"
+                   type="email"
+                   maxlength="255"
+                   placeholder="contact@supplier.com" />
+            <span asp-validation-for="SupplierEmail" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
-            <label class="form-label-custom" asp-for="SupplierAddress">Headquarters Address</label>
-            <input class="form-input-custom" asp-for="SupplierAddress" placeholder="Full address..." />
-            <span asp-validation-for="SupplierAddress" class="validation-message"></span>
+        <div class="form-group-grid">
+            <label class="form-label-custom" asp-for="SupplierPhoneNumber">Phone Number</label>
+            <input class="form-input-custom" asp-for="SupplierPhoneNumber"
+                   maxlength="11"
+                   inputmode="tel"
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                   placeholder="09xxxxxxxx" />
+            <span asp-validation-for="SupplierPhoneNumber" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
+        <div class="form-group-grid">
             <label class="form-label-custom" asp-for="ContactPerson">Contact Person</label>
-            <input class="form-input-custom" asp-for="ContactPerson" placeholder="Name of person in charge" />
+            <input class="form-input-custom" asp-for="ContactPerson"
+                   maxlength="200"
+                   placeholder="Name of person in charge" />
             <span asp-validation-for="ContactPerson" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
+        <!-- DÒNG 3: Headquarters Address (Phủ toàn bộ 3 cột) -->
+        <div class="form-group-grid col-span-3">
+            <label class="form-label-custom" asp-for="SupplierAddress">Headquarters Address</label>
+            <input class="form-input-custom" asp-for="SupplierAddress"
+                   maxlength="200"
+                   placeholder="Full address..." />
+            <span asp-validation-for="SupplierAddress" class="validation-message"></span>
+        </div>
+
+        <!-- DÒNG 4: Description (Phủ toàn bộ 3 cột) -->
+        <div class="form-group-grid col-span-3">
             <label class="form-label-custom" asp-for="SupplierDescription">Description</label>
-            <textarea class="form-input-custom" asp-for="SupplierDescription" rows="3" placeholder="Notes about this supplier..."></textarea>
+            <textarea class="form-input-custom" asp-for="SupplierDescription"
+                      rows="3"
+                      maxlength="200"
+                      placeholder="Notes about this supplier..."></textarea>
             <span asp-validation-for="SupplierDescription" class="validation-message"></span>
         </div>
     </div>
 
-    <div class="modal-actions-footer">
+    <div class="modal-actions-footer" style="margin-top: 20px;">
         <button type="button" class="btn-cancel-modal" data-bs-dismiss="modal">Discard</button>
         <button type="submit" class="btn-submit-modal">
             <i class="bi bi-plus-circle"></i> Create Supplier
         </button>
     </div>
 </form>
+
 <script>
     toastr.options = {
         closeButton: true,
@@ -71,4 +137,11 @@
         positionClass: "toast-top-right",
         timeOut: "3000"
     };
+
+    // Tự động trim khoảng trắng thừa khi blur khỏi ô input
+    document.querySelectorAll('#createForm input, #createForm textarea').forEach(element => {
+        element.addEventListener('blur', function() {
+            this.value = this.value.trim().replace(/\s+/g, ' ');
+        });
+    });
 </script>

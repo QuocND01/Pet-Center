@@ -3,6 +3,7 @@
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Import Stocks Detail";
     var productList = ViewBag.ProductList as SelectList;
     var staffDict = ViewBag.StaffDict as Dictionary<Guid, string>;
     string statusText = Model.Status switch
@@ -24,9 +25,57 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <link rel="stylesheet" href="~/css/AdminViews/ManageImport/import_detail.css" asp-append-version="true" />
+
+<style>
+    /* 1. CHỐNG TRÀN CHỮ VÀ RÚT GỌN BẰNG DẤU (...) BẰNG CSS */
+    .text-ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+        max-width: 100%;
+    }
+
+    /* Đảm bảo bảng chia cột cố định để cắt chữ chính xác */
+    .data-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    /* Bắt buộc các ô thông tin không bị tràn khung */
+    .info-item .value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+        max-width: 100%;
+    }
+
+    .product-info, .product-name {
+        min-width: 0; /* Bắt buộc để flexbox cho phép con nó cắt chữ */
+        overflow: hidden;
+    }
+
+    .product-link {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        max-width: calc(100% - 25px);
+        vertical-align: bottom;
+    }
+
+    .product-meta span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        max-width: 100%;
+    }
+</style>
+
 <div class="page-wrapper">
     <div class="page-header">
-
         <div class="page-title-group">
             <h1>Import Detail</h1>
             <p>View detailed information of this stock import</p>
@@ -40,27 +89,28 @@
         </div>
     </div>
 
-    
-
     <div class="info-card">
         <div class="info-grid">
             <div class="info-item">
                 <span class="label">Supplier</span>
-                <span class="value">@Model.SupplierName</span>
+                <span class="value" title="@Model.SupplierName">@Model.SupplierName</span>
             </div>
 
             <div class="info-item">
                 <span class="label">Staff in charge</span>
-                <span class="value">
+                <span class="value" title="@Model.StaffName">
                     @Model.StaffName
                 </span>
             </div>
+
             <div class="info-item">
                 <span class="label">Invoice Number</span>
-                <span class="value">@Model.InvoiceNumber</span>
-            </div><div class="info-item">
+                <span class="value" title="@Model.InvoiceNumber">@Model.InvoiceNumber</span>
+            </div>
+
+            <div class="info-item">
                 <span class="label">Note</span>
-                <span class="value">@Model.Note</span>
+                <span class="value" title="@Model.Note">@Model.Note</span>
             </div>
 
             <div class="info-item">
@@ -80,7 +130,7 @@
 
             <div class="info-item total-box">
                 <span class="label">Total Amount</span>
-                <span class="value">@Model.TotalAmount.ToString("N0") ₫</span>
+                <span class="value" title="@Model.TotalAmount.ToString("N0") ₫">@Model.TotalAmount.ToString("N0") ₫</span>
             </div>
         </div>
     </div>
@@ -92,40 +142,40 @@
 
         <table class="data-table">
             <thead>
-                <tr >
-                    <th>Product Info</th>
-                    <th>Inventory</th>
-                    <th>Date Info</th>
-                    <th>Amount</th>
+                <tr>
+                    <th style="width: 35%;">Product Info</th>
+                    <th style="width: 20%;">Inventory</th>
+                    <th style="width: 20%;">Date Info</th>
+                    <th style="width: 25%;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var d in Model.Details)
                 {
-                    
                     var subtotal = d.Quantity * d.ImportPrice;
 
-                <tr class="detail-row">
+                    <tr class="detail-row">
                         <td>
                             <div class="product-info">
-                            <div class="product-name">
-                                <i class="bi bi-box"></i>
+                                <div class="product-name">
+                                    <i class="bi bi-box"></i>
 
-                                <a href="javascript:void(0)"
-                                   class="product-link"
-                                   data-bs-toggle="modal"
-                                   data-bs-target="#productSnapshotModal"
-                                   data-name="@d.ImportProductSnapshot?.ProductName"
-                                   data-category="@d.ImportProductSnapshot?.ProductCategory"
-                                   data-brand="@d.ImportProductSnapshot?.ProductBrand"
-                                   data-image="@d.ImportProductSnapshot?.ProductImage">
-                                    @d.ImportProductSnapshot?.ProductName
-                                </a>
-                            </div>
+                                    <a href="javascript:void(0)"
+                                       class="product-link"
+                                       title="@d.ImportProductSnapshot?.ProductName"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#productSnapshotModal"
+                                       data-name="@d.ImportProductSnapshot?.ProductName"
+                                       data-category="@d.ImportProductSnapshot?.ProductCategory"
+                                       data-brand="@d.ImportProductSnapshot?.ProductBrand"
+                                       data-image="@d.ImportProductSnapshot?.ProductImage">
+                                        @d.ImportProductSnapshot?.ProductName
+                                    </a>
+                                </div>
 
                                 <div class="product-meta">
-                                    <span>SKU: @d.SKU</span>
-                                    <span>Batch: @d.BatchCode</span>
+                                    <span title="SKU: @d.SKU">SKU: @d.SKU</span>
+                                    <span title="Batch: @d.BatchCode">Batch: @d.BatchCode</span>
                                 </div>
                             </div>
                         </td>
@@ -167,7 +217,7 @@
 
                                 <div class="subtotal">
                                     <span class="label">Subtotal</span>
-                                    @subtotal.ToString("N0") ₫
+                                    <span title="@subtotal.ToString("N0") ₫">@subtotal.ToString("N0") ₫</span>
                                 </div>
                             </div>
                         </td>
@@ -175,44 +225,43 @@
                 }
             </tbody>
         </table>
-    <div class="table-pagination">
-        <div class="pagination-info">
-            Showing
-            <span id="startItem">1</span> -
-            <span id="endItem">1</span>
-            of
-            <span id="totalItems">@Model.Details.Count</span>
-            products
+
+        <div class="table-pagination">
+            <div class="pagination-info">
+                Showing
+                <span id="startItem">1</span> -
+                <span id="endItem">1</span>
+                of
+                <span id="totalItems">@Model.Details.Count</span>
+                products
+            </div>
+
+            <div class="pagination-controls">
+                <button type="button" id="prevPage" class="page-btn">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <span id="pageInfo"></span>
+
+                <button type="button" id="nextPage" class="page-btn">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
         </div>
-
-        <div class="pagination-controls">
-            <button type="button" id="prevPage" class="page-btn">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-
-            <span id="pageInfo"></span>
-
-            <button type="button" id="nextPage" class="page-btn">
-                <i class="bi bi-chevron-right"></i>
-            </button>
-        </div>
-    </div>
     </div>
 </div>
-@* Model product *@
+
+@* Modal Product Snapshot *@
 <div class="modal fade" id="productSnapshotModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
             <div class="modal-header">
                 <h5 class="modal-title">Product Snapshot</h5>
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-
                 <div class="text-center mb-3">
                     <img id="snapshotImage"
                          src=""
@@ -220,36 +269,34 @@
                          style="max-height:220px;" />
                 </div>
 
-                <table class="table table-borderless">
+                <table class="table table-borderless" style="table-layout: fixed;">
                     <tr>
-                        <th>Name</th>
-                        <td id="snapshotName"></td>
+                        <th style="width: 30%;">Name</th>
+                        <td id="snapshotName" style="word-break: break-word;"></td>
                     </tr>
 
                     <tr>
                         <th>Category</th>
-                        <td id="snapshotCategory"></td>
+                        <td id="snapshotCategory" style="word-break: break-word;"></td>
                     </tr>
 
                     <tr>
                         <th>Brand</th>
-                        <td id="snapshotBrand"></td>
+                        <td id="snapshotBrand" style="word-break: break-word;"></td>
                     </tr>
                 </table>
-
             </div>
 
         </div>
     </div>
 </div>
+
 @* Script *@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-
         const modal = document.getElementById("productSnapshotModal");
 
         modal.addEventListener("show.bs.modal", function (event) {
-
             const button = event.relatedTarget;
 
             document.getElementById("snapshotName").textContent =
@@ -264,30 +311,22 @@
             document.getElementById("snapshotImage").src =
                 button.dataset.image;
         });
-
     });
 
-    //Pagging    
+    // Pagination
     document.addEventListener("DOMContentLoaded", function () {
-
         const rows = [...document.querySelectorAll(".detail-row")];
-
         const pageSize = 5;
-
         let currentPage = 1;
-
         const totalPages = Math.ceil(rows.length / pageSize);
 
         function render() {
-
             rows.forEach((row, index) => {
-
                 row.style.display =
                     (index >= (currentPage - 1) * pageSize &&
                      index < currentPage * pageSize)
                     ? ""
                     : "none";
-
             });
 
             const start = rows.length === 0
@@ -298,45 +337,26 @@
 
             document.getElementById("startItem").textContent = start;
             document.getElementById("endItem").textContent = end;
+            document.getElementById("pageInfo").textContent = `${currentPage} / ${totalPages}`;
 
-            document.getElementById("pageInfo").textContent =
-                `${currentPage} / ${totalPages}`;
-
-            document.getElementById("prevPage").disabled =
-                currentPage === 1;
-
-            document.getElementById("nextPage").disabled =
-                currentPage === totalPages;
+            document.getElementById("prevPage").disabled = currentPage === 1;
+            document.getElementById("nextPage").disabled = currentPage === totalPages || totalPages === 0;
         }
 
-        document.getElementById("prevPage")
-            .addEventListener("click", function () {
+        document.getElementById("prevPage").addEventListener("click", function () {
+            if (currentPage > 1) {
+                currentPage--;
+                render();
+            }
+        });
 
-                if (currentPage > 1) {
-
-                    currentPage--;
-
-                    render();
-
-                }
-
-            });
-
-        document.getElementById("nextPage")
-            .addEventListener("click", function () {
-
-                if (currentPage < totalPages) {
-
-                    currentPage++;
-
-                    render();
-
-                }
-
-            });
+        document.getElementById("nextPage").addEventListener("click", function () {
+            if (currentPage < totalPages) {
+                currentPage++;
+                render();
+            }
+        });
 
         render();
-
     });
-
 </script>
