@@ -20,6 +20,7 @@ namespace PetCenterAPI.Controllers
         private readonly ILogger<PaymentsController> _logger;
         private readonly IAppointmentService _appointmentService;
         private readonly PetCenterContext _petCenterContext;
+        private readonly IConfiguration _configuration;
 
         public PaymentsController(
             ICheckoutService checkoutService,
@@ -27,7 +28,8 @@ namespace PetCenterAPI.Controllers
             IMoMoService moMoService,
             ILogger<PaymentsController> logger,
             IAppointmentService appointmentService,
-            PetCenterContext petCenterContext)
+            PetCenterContext petCenterContext,
+            IConfiguration configuration)
         {
             _checkoutService = checkoutService;
             _vnPayService = vnPayService;
@@ -35,6 +37,7 @@ namespace PetCenterAPI.Controllers
             _logger = logger;
             _appointmentService = appointmentService;
             _petCenterContext = petCenterContext;
+            _configuration = configuration;
         }
 
         // POST api/Payments/vnpay/create
@@ -70,12 +73,13 @@ namespace PetCenterAPI.Controllers
         public async Task<IActionResult> VnPayReturn()
         {
             _logger.LogInformation("[VNPay] Return URL hit with query: {Query}", Request.QueryString);
+            var clientBaseUrl = _configuration["ClientBaseUrl"] ?? "https://localhost:7010";
             try
             {
                 if (!_vnPayService.ValidateCallback(Request.Query))
                 {
                     _logger.LogWarning("[VNPay] Invalid checksum on Return URL");
-                    return BuildPaymentResultHtml(false, "", "Invalid checksum");
+                    return Redirect($"{clientBaseUrl}/Checkout/PaymentReturn?success=false&message={Uri.EscapeDataString("Invalid checksum")}");
                 }
 
                 var cbResult = _vnPayService.ParseCallback(Request.Query);
@@ -93,12 +97,17 @@ namespace PetCenterAPI.Controllers
                     cbResult.RawData,
                     cbResult.IsSuccess);
 
-                return BuildPaymentResultHtml(processResult.Success, processResult.OrderId?.ToString() ?? "", processResult.Message ?? "");
+                bool isAppointment = payment != null && payment.AppointmentId.HasValue && payment.AppointmentId.Value != Guid.Empty;
+                var targetPath = isAppointment ? "/Appointment/PaymentReturn" : "/Checkout/PaymentReturn";
+                var paramName = isAppointment ? "appointmentId" : "orderId";
+
+                var redirectUrl = $"{clientBaseUrl}{targetPath}?success={processResult.Success.ToString().ToLower()}&{paramName}={processResult.OrderId}&message={Uri.EscapeDataString(processResult.Message ?? "")}";
+                return Redirect(redirectUrl);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[VNPay] Error processing Return URL");
-                return BuildPaymentResultHtml(false, "", ex.Message);
+                return Redirect($"{clientBaseUrl}/Checkout/PaymentReturn?success=false&message={Uri.EscapeDataString(ex.Message)}");
             }
         }
 
@@ -174,6 +183,7 @@ namespace PetCenterAPI.Controllers
         public async Task<IActionResult> MoMoReturn()
         {
             _logger.LogInformation("[MoMo] Return URL hit with query: {Query}", Request.QueryString);
+            var clientBaseUrl = _configuration["ClientBaseUrl"] ?? "https://localhost:7010";
             try
             {
                 var resultCode = Request.Query["resultCode"].FirstOrDefault();
@@ -198,12 +208,17 @@ namespace PetCenterAPI.Controllers
                     Request.QueryString.ToString(),
                     success);
 
-                return BuildPaymentResultHtml(processResult.Success, processResult.OrderId?.ToString() ?? "", processResult.Message ?? "");
+                bool isAppointment = payment != null && payment.AppointmentId.HasValue && payment.AppointmentId.Value != Guid.Empty;
+                var targetPath = isAppointment ? "/Appointment/PaymentReturn" : "/Checkout/PaymentReturn";
+                var paramName = isAppointment ? "appointmentId" : "orderId";
+
+                var redirectUrl = $"{clientBaseUrl}{targetPath}?success={processResult.Success.ToString().ToLower()}&{paramName}={processResult.OrderId}&message={Uri.EscapeDataString(processResult.Message ?? "")}";
+                return Redirect(redirectUrl);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[MoMo] Error processing Return URL");
-                return BuildPaymentResultHtml(false, "", ex.Message);
+                return Redirect($"{clientBaseUrl}/Checkout/PaymentReturn?success=false&message={Uri.EscapeDataString(ex.Message)}");
             }
         }
 
