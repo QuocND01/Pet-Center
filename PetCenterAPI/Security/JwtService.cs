@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -40,12 +40,13 @@ namespace PetCenterAPI.Security
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var expireMinutes = double.TryParse(_config["Jwt:ExpireMinutes"], out var mins) ? mins : 10080;
+
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(
-                    double.Parse(_config["Jwt:ExpireMinutes"]!)),
+                expires: DateTime.UtcNow.AddMinutes(expireMinutes),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

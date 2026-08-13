@@ -69,6 +69,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

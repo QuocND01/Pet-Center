@@ -20,6 +20,11 @@ namespace PetCenterAPI.Repository
         {
             return await _context.Carts
                 .Include(c => c.CartDetails)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.Inventory)
+                .Include(c => c.CartDetails)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.ProductImages)
                 .FirstOrDefaultAsync(c => c.CustomerId == customerId);
         }
 
@@ -27,6 +32,11 @@ namespace PetCenterAPI.Repository
         {
             var cart = await _context.Carts
                 .Include(c => c.CartDetails)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.Inventory)
+                .Include(c => c.CartDetails)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.ProductImages)
                 .FirstOrDefaultAsync(c => c.CustomerId == customerId);
 
             if (cart != null) return cart;

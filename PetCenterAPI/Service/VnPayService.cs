@@ -18,12 +18,12 @@ namespace PetCenterAPI.Service
             _configuration = configuration;
         }
 
-        public string CreatePaymentUrl(Guid orderId, decimal amount, string transactionRef, string clientIp, string orderInfo)
+        public string CreatePaymentUrl(Guid orderId, decimal amount, string transactionRef, string clientIp, string orderInfo, string? customReturnUrl = null)
         {
             var tmnCode = _configuration["VnPay:TmnCode"];
             var hashSecret = _configuration["VnPay:HashSecret"];
             var baseUrl = _configuration["VnPay:BaseUrl"];
-            var returnUrl = _configuration["VnPay:ReturnUrl"];
+            var returnUrl = !string.IsNullOrWhiteSpace(customReturnUrl) ? customReturnUrl : _configuration["VnPay:ReturnUrl"];
             var version = _configuration["VnPay:Version"];
             var command = _configuration["VnPay:Command"];
             var currCode = _configuration["VnPay:CurrCode"];

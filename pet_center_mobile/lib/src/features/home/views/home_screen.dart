@@ -6,7 +6,6 @@ import '../../customer/views/profile_screen.dart';
 import '../../services/views/service_list_screen.dart';
 import '../../orders/views/order_list_screen.dart';
 import '../../appointment/views/booking_screen.dart';
-import '../../appointment/views/appointment_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -22,6 +21,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late int _currentIndex;
+  final GlobalKey<CartScreenState> _cartKey = GlobalKey<CartScreenState>();
 
   @override
   void initState() {
@@ -29,12 +29,21 @@ class _HomeScreenState extends State<HomeScreen> {
     _currentIndex = widget.initialIndex;
   }
 
-  final List<Widget> _screens = const [
-    HomeDashboard(),
-    ProductPage(),
-    OrderListScreen(),
-    CartScreen(),
-    CustomerProfileScreen(),
+  void _switchTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    if (index == 3) {
+      _cartKey.currentState?.refreshCart();
+    }
+  }
+
+  late final List<Widget> _screens = [
+    HomeDashboard(onSelectTab: _switchTab),
+    const ProductPage(),
+    const OrderListScreen(),
+    CartScreen(key: _cartKey),
+    const CustomerProfileScreen(),
   ];
 
   @override
@@ -64,11 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           elevation: 0,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+          onTap: _switchTab,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
@@ -103,7 +108,12 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class HomeDashboard extends StatelessWidget {
-  const HomeDashboard({super.key});
+  final Function(int)? onSelectTab;
+
+  const HomeDashboard({
+    super.key,
+    this.onSelectTab,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,14 +130,7 @@ class HomeDashboard extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HomeScreen(initialIndex: 3), // Switch to Cart tab
-                ),
-              );
-            },
+            onPressed: () => onSelectTab?.call(3),
           ),
         ],
       ),
@@ -214,14 +217,7 @@ class HomeDashboard extends StatelessWidget {
                   subtitle: 'Explore products',
                   color: Colors.amber.shade100,
                   iconColor: Colors.amber.shade800,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(initialIndex: 1), // Switch to Shop tab
-                      ),
-                    );
-                  },
+                  onTap: () => onSelectTab?.call(1),
                 ),
                 _buildMenuCard(
                   icon: Icons.medical_services_outlined,
@@ -242,14 +238,7 @@ class HomeDashboard extends StatelessWidget {
                   subtitle: 'Track your orders',
                   color: Colors.purple.shade100,
                   iconColor: Colors.purple.shade700,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(initialIndex: 2), // Switch to Orders tab
-                      ),
-                    );
-                  },
+                  onTap: () => onSelectTab?.call(2),
                 ),
               ],
             ),

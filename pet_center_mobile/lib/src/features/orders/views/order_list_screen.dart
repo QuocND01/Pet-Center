@@ -681,6 +681,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
       appBar: AppBar(
         title: const Text('My Orders',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,

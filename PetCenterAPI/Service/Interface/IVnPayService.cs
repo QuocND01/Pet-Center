@@ -5,7 +5,7 @@ namespace PetCenterAPI.Service.Interface
 {
     public interface IVnPayService
     {
-        string CreatePaymentUrl(Guid orderId, decimal amount, string transactionRef, string clientIp, string orderInfo);
+        string CreatePaymentUrl(Guid orderId, decimal amount, string transactionRef, string clientIp, string orderInfo, string? customReturnUrl = null);
         bool ValidateCallback(IQueryCollection query);
         VnPayCallbackResult ParseCallback(IQueryCollection query);
     }

@@ -7,6 +7,7 @@ import '../../../models/voucher_model.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/custom_button.dart';
 import 'order_success_screen.dart';
+import 'order_pending_payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartDetailModel> selectedItems;
@@ -329,28 +330,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final String orderId = (result['orderId'] ?? result['OrderId'] ?? '').toString();
 
       if (isSuccess || (paymentUrl != null && paymentUrl.isNotEmpty)) {
-        if (_selectedPaymentMethod != 'COD' && paymentUrl != null && paymentUrl.isNotEmpty) {
-          // Open VNPAY / MOMO payment URL
-          final Uri uri = Uri.parse(paymentUrl);
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-          }
-        }
-
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OrderSuccessScreen(
-              orderId: orderId,
-              paymentMethod: _selectedPaymentMethod,
-              totalAmount: _subtotal,
-              discountAmount: _discountAmount,
-              finalAmount: _finalAmount,
-              addressSnapshot: _selectedAddress!.fullAddress,
+        if (_selectedPaymentMethod == 'COD') {
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderSuccessScreen(
+                orderId: orderId,
+                paymentMethod: _selectedPaymentMethod,
+                totalAmount: _subtotal,
+                discountAmount: _discountAmount,
+                finalAmount: _finalAmount,
+                addressSnapshot: _selectedAddress!.fullAddress,
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          // Online Payment (VNPAY / MOMO)
+          if (paymentUrl != null && paymentUrl.isNotEmpty) {
+            final Uri uri = Uri.parse(paymentUrl);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          }
+
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderPendingPaymentScreen(
+                orderId: orderId,
+                paymentMethod: _selectedPaymentMethod,
+                paymentUrl: paymentUrl,
+                totalAmount: _finalAmount,
+                addressSnapshot: _selectedAddress!.fullAddress,
+              ),
+            ),
+          );
+        }
       } else {
         _showError(result['message'] ?? result['Message'] ?? 'Order placement failed.');
       }

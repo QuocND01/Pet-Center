@@ -46,6 +46,10 @@ namespace PetCenterAPI.Controllers
             try
             {
                 dto.PaymentMethod = "VNPAY";
+                if (string.IsNullOrWhiteSpace(dto.CustomReturnUrl))
+                {
+                    dto.CustomReturnUrl = $"{Request.Scheme}://{Request.Host}/api/Payments/vnpay/return";
+                }
                 var ip = HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "127.0.0.1";
                 dto.ClientIpAddress = ip == "0.0.0.1" ? "127.0.0.1" : ip;
                 var result = await _checkoutService.PlaceOnlineOrderAsync(dto);
@@ -71,17 +75,15 @@ namespace PetCenterAPI.Controllers
                 if (!_vnPayService.ValidateCallback(Request.Query))
                 {
                     _logger.LogWarning("[VNPay] Invalid checksum on Return URL");
-                    return Redirect("https://localhost:7010/Checkout/PaymentReturn?success=false&message=Invalid+checksum");
+                    return BuildPaymentResultHtml(false, "", "Invalid checksum");
                 }
 
                 var cbResult = _vnPayService.ParseCallback(Request.Query);
 
-                // 1. Tìm bản ghi Payment để kiểm tra loại giao dịch (Appointment hay Order)
                 var payment = await _petCenterContext.Payments
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.TransactionRef == cbResult.TransactionRef);
 
-                // 2. Xử lý logic cập nhật DB (ProcessPaymentCallbackAsync đã phân nhánh ở bước trước)
                 var processResult = await _checkoutService.ProcessPaymentCallbackAsync(
                     cbResult.TransactionRef,
                     cbResult.GatewayTransactionNo,
@@ -91,32 +93,12 @@ namespace PetCenterAPI.Controllers
                     cbResult.RawData,
                     cbResult.IsSuccess);
 
-                // 3. Phân nhánh Redirect dựa vào Payment Entity
-                if (payment != null && payment.AppointmentId.HasValue && payment.AppointmentId.Value != Guid.Empty)
-                {
-                    // Direct sang Client Action: /Appointment/PaymentReturn
-                    var appointmentRedirectUrl = $"https://localhost:7010/Appointment/PaymentReturn" +
-                        $"?success={processResult.Success}" +
-                        $"&appointmentId={payment.AppointmentId}" +
-                        $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
-
-                    return Redirect(appointmentRedirectUrl);
-                }
-                else
-                {
-                    // Direct sang Client Action: /Checkout/PaymentReturn (Order)
-                    var orderRedirectUrl = $"https://localhost:7010/Checkout/PaymentReturn" +
-                        $"?success={processResult.Success}" +
-                        $"&orderId={processResult.OrderId}" +
-                        $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
-
-                    return Redirect(orderRedirectUrl);
-                }
+                return BuildPaymentResultHtml(processResult.Success, processResult.OrderId?.ToString() ?? "", processResult.Message ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[VNPay] Error processing Return URL");
-                return Redirect($"https://localhost:7010/Checkout/PaymentReturn?success=false&message={Uri.EscapeDataString(ex.Message)}");
+                return BuildPaymentResultHtml(false, "", ex.Message);
             }
         }
 
@@ -147,7 +129,6 @@ namespace PetCenterAPI.Controllers
                 if (processResult.Success)
                     return Ok(new { RspCode = "00", Message = "Confirm Success" });
 
-                // If the order was already processed (idempotency), still return success to VNPay
                 if (processResult.Message != null && processResult.Message.Contains("already been processed"))
                     return Ok(new { RspCode = "00", Message = "Confirm Success" });
 
@@ -169,6 +150,10 @@ namespace PetCenterAPI.Controllers
             try
             {
                 dto.PaymentMethod = "MOMO";
+                if (string.IsNullOrWhiteSpace(dto.CustomReturnUrl))
+                {
+                    dto.CustomReturnUrl = $"{Request.Scheme}://{Request.Host}/api/Payments/momo/return";
+                }
                 var ip = HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "127.0.0.1";
                 dto.ClientIpAddress = ip == "0.0.0.1" ? "127.0.0.1" : ip;
                 var result = await _checkoutService.PlaceOnlineOrderAsync(dto);
@@ -191,9 +176,8 @@ namespace PetCenterAPI.Controllers
             _logger.LogInformation("[MoMo] Return URL hit with query: {Query}", Request.QueryString);
             try
             {
-                // MoMo sends parameters in query string for redirect
                 var resultCode = Request.Query["resultCode"].FirstOrDefault();
-                var transactionRef = Request.Query["orderId"].FirstOrDefault() ?? string.Empty; // MoMo's orderId is our TransactionRef
+                var transactionRef = Request.Query["orderId"].FirstOrDefault() ?? string.Empty;
                 var message = Request.Query["message"].FirstOrDefault() ?? "";
                 var transId = Request.Query["transId"].FirstOrDefault() ?? "";
                 var amountStr = Request.Query["amount"].FirstOrDefault();
@@ -201,47 +185,73 @@ namespace PetCenterAPI.Controllers
                 var success = resultCode == "0";
                 decimal.TryParse(amountStr, out var amount);
 
-                // 1. Kiểm tra bản ghi Payment trong DB để xác định loại giao dịch
                 var payment = await _petCenterContext.Payments
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.TransactionRef == transactionRef);
 
-                // 2. Xử lý cập nhật trạng thái thanh toán & đặt lịch/đơn hàng
                 var processResult = await _checkoutService.ProcessPaymentCallbackAsync(
                     transactionRef,
                     transId,
                     resultCode ?? "99",
-                    string.Empty, // MoMo doesn't provide BankCode
+                    string.Empty,
                     amount,
                     Request.QueryString.ToString(),
                     success);
 
-                // 3. Phân nhánh Redirect dựa trên Payment Entity
-                if (payment != null && payment.AppointmentId.HasValue && payment.AppointmentId.Value != Guid.Empty)
-                {
-                    // Redirect về Client Appointment Result
-                    var appointmentRedirectUrl = $"https://localhost:7010/Appointment/PaymentReturn" +
-                        $"?success={processResult.Success}" +
-                        $"&appointmentId={payment.AppointmentId}" +
-                        $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
-
-                    return Redirect(appointmentRedirectUrl);
-                }
-
-                // Redirect về Client Order Result (mặc định cho Order)
-                var orderRedirectUrl = $"https://localhost:7010/Checkout/PaymentReturn" +
-                    $"?success={processResult.Success}" +
-                    $"&orderId={processResult.OrderId}" +
-                    $"&message={Uri.EscapeDataString(processResult.Message ?? "")}";
-
-                return Redirect(orderRedirectUrl);
+                return BuildPaymentResultHtml(processResult.Success, processResult.OrderId?.ToString() ?? "", processResult.Message ?? "");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[MoMo] Error processing Return URL");
-                // Khi xảy ra Exception, ưu tiên fallback về Appointment/PaymentReturn nếu thất bại
-                return Redirect($"https://localhost:7010/Appointment/PaymentReturn?success=false&message={Uri.EscapeDataString(ex.Message)}");
+                return BuildPaymentResultHtml(false, "", ex.Message);
             }
+        }
+
+        private ContentResult BuildPaymentResultHtml(bool isSuccess, string orderId, string message)
+        {
+            var statusColor = isSuccess ? "#0d9488" : "#ef4444";
+            var iconBg = isSuccess ? "#e6fffa" : "#fef2f2";
+            var iconSymbol = isSuccess ? "✓" : "✕";
+            var title = isSuccess ? "Thanh toán thành công!" : "Thanh toán không thành công";
+            var desc = isSuccess
+                ? $"Giao dịch cho đơn hàng #{orderId} đã được xác nhận thành công trên hệ thống Pet Center."
+                : $"Rất tiếc, giao dịch chưa hoàn tất: {message}";
+
+            var html = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1"">
+    <title>Xác nhận thanh toán - Pet Center</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc; text-align: center; }}
+        .card {{ background: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 400px; width: 90%; }}
+        .icon {{ width: 72px; height: 72px; background: {iconBg}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: {statusColor}; font-size: 36px; font-weight: bold; line-height: 1; }}
+        h2 {{ margin: 0 0 10px; color: #0f172a; font-size: 22px; }}
+        p {{ color: #64748b; font-size: 14px; line-height: 1.5; margin: 0 0 20px; }}
+        .order-tag {{ display: inline-block; background: #f1f5f9; color: #334155; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }}
+        .btn {{ display: block; width: 100%; box-sizing: border-box; background: #0d9488; color: white; padding: 14px 20px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 15px; margin-bottom: 10px; border: none; cursor: pointer; }}
+        .btn-secondary {{ background: #f1f5f9; color: #334155; }}
+    </style>
+</head>
+<body>
+    <div class=""card"">
+        <div class=""icon"">{iconSymbol}</div>
+        <h2>{title}</h2>
+        {(string.IsNullOrEmpty(orderId) ? "" : $"<div class=\"order-tag\">Mã đơn hàng: #{orderId}</div>")}
+        <p>{desc}</p>
+        <p style=""font-size:12px; color:#94a3b8;"">Bạn có thể đóng cửa sổ này và quay lại ứng dụng Pet Center Mobile.</p>
+        <a href=""https://localhost:7010/Checkout/PaymentReturn?success={isSuccess.ToString().ToLower()}&orderId={orderId}&message={Uri.EscapeDataString(message)}"" class=""btn btn-secondary"">Chuyển sang trang Web Pet Center</a>
+    </div>
+</body>
+</html>";
+
+            return new ContentResult
+            {
+                ContentType = "text/html",
+                StatusCode = 200,
+                Content = html
+            };
         }
 
         // POST api/Payments/momo/ipn — server-to-server from MoMo

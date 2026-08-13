@@ -13,5 +13,12 @@ namespace PetCenterAPI.DTOs.Responses.Cart
         public Guid CartId { get; set; }
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
+
+        // Embedded Product Details
+        public string? ProductName { get; set; }
+        public decimal ProductPrice { get; set; }
+        public int StockQuantity { get; set; }
+        public List<string>? Images { get; set; }
     }
 }
+

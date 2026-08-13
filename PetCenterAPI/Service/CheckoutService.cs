@@ -476,12 +476,12 @@ namespace PetCenterAPI.Service
                 {
                     paymentUrl = _vnPayService.CreatePaymentUrl(
                         order.OrderId, finalAmount, transactionRef,
-                        dto.ClientIpAddress, orderInfo);
+                        dto.ClientIpAddress, orderInfo, dto.CustomReturnUrl);
                 }
                 else if (dto.PaymentMethod.Equals("MOMO", StringComparison.OrdinalIgnoreCase))
                 {
                     paymentUrl = await _moMoService.CreatePaymentUrlAsync(
-                        order.OrderId, finalAmount, transactionRef, orderInfo);
+                        order.OrderId, finalAmount, transactionRef, orderInfo, dto.CustomReturnUrl);
                 }
 
                 if (string.IsNullOrEmpty(paymentUrl))
