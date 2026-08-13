@@ -3,82 +3,106 @@
 @{
     Layout = null;
 
-    // Xử lý định dạng TaxId trước khi render lên input
-    string formattedTaxId = string.Empty;
+    // Lấy chuỗi chỉ gồm chữ số (tối đa 13 số)
+    string rawTaxId = string.Empty;
     if (!string.IsNullOrWhiteSpace(Model?.TaxId))
     {
-        // 1. Loại bỏ các ký tự không phải số
-        string rawDigits = new string(Model.TaxId.Where(char.IsDigit).ToArray());
+        rawTaxId = new string(Model.TaxId.Where(char.IsDigit).ToArray());
+        if (rawTaxId.Length > 13) rawTaxId = rawTaxId.Substring(0, 13);
+    }
 
-        // 2. Nếu đủ 13 số -> Định dạng lại thành 10 số - 3 số
-        if (rawDigits.Length == 13)
-        {
-            formattedTaxId = $"{rawDigits.Substring(0, 10)}-{rawDigits.Substring(10, 3)}";
-        }
-        // 3. Nếu là 10 số hoặc các trường hợp khác -> Lấy nguyên chuỗi số (tối đa 10 số nếu lớn hơn)
-        else if (rawDigits.Length >= 10)
-        {
-            formattedTaxId = rawDigits.Substring(0, Math.Min(rawDigits.Length, 10));
-        }
-        else
-        {
-            formattedTaxId = rawDigits;
-        }
+    // Tạo định dạng hiển thị cho người dùng
+    string formattedTaxId = rawTaxId;
+    if (rawTaxId.Length == 13)
+    {
+        formattedTaxId = $"{rawTaxId.Substring(0, 10)}-{rawTaxId.Substring(10, 3)}";
     }
 }
-
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600" rel="stylesheet" />
 <link rel="stylesheet" href="~/css/AdminViews/ManageSupplier/edit_supplier.css" asp-append-version="true" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-<form id="editForm" class="custom-form-modal">
+<form id="editForm" class="custom-form-modal" autocomplete="off" novalidate>
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="SupplierId" />
 
+    @* INPUT ẨN: Gửi giá trị thuần chỉ có SỐ về backend *@
+    <input type="hidden" asp-for="TaxId" id="realTaxId" value="@rawTaxId" />
+
     <div asp-validation-summary="All" class="alert alert-danger-custom" style="display:none;"></div>
 
-    <div class="form-grid">
-        <div class="form-group mb-3">
-            <label class="form-label-custom" asp-for="TaxId">Tax ID</label>
-            <!-- Sử dụng value="@formattedTaxId" để gán giá trị đã được định dạng -->
-            <input class="form-input-custom" asp-for="TaxId" value="@formattedTaxId" placeholder="e.g. 0101234567 or 0101234567-001" maxlength="14" />
+    <div class="form-grid-3cols">
+        <!-- DÒNG 1: Tax ID (1 cột) & Supplier Name (2 cột) -->
+        <div class="form-group-grid">
+            <label class="form-label-custom" for="TaxId_Display">Tax ID</label>
+            @* INPUT HIỂN THỊ: Chỉ dùng cho tương tác người dùng *@
+            <input class="form-input-custom"
+                   id="TaxId_Display"
+                   value="@formattedTaxId"
+                   placeholder="e.g. 0101234567 or 0101234567-001"
+                   maxlength="14"
+                   inputmode="numeric" />
             <span asp-validation-for="TaxId" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
+        <div class="form-group-grid col-span-2">
             <label class="form-label-custom" asp-for="SupplierName">Supplier Name</label>
-            <input class="form-input-custom" asp-for="SupplierName" placeholder="Enter name..." />
+            <input class="form-input-custom" 
+                   asp-for="SupplierName" 
+                   maxlength="50"
+                   placeholder="Enter business name..." />
             <span asp-validation-for="SupplierName" class="validation-message"></span>
         </div>
 
-        <div class="form-row">
-            <div class="form-group mb-3 flex-1">
-                <label class="form-label-custom" asp-for="SupplierEmail">Email Address</label>
-                <input class="form-input-custom" asp-for="SupplierEmail" type="email" placeholder="example@gmail.com" />
-                <span asp-validation-for="SupplierEmail" class="validation-message"></span>
-            </div>
-            <div class="form-group mb-3 flex-1">
-                <label class="form-label-custom" asp-for="SupplierPhoneNumber">Phone Number</label>
-                <input class="form-input-custom" asp-for="SupplierPhoneNumber" placeholder="090..." />
-                <span asp-validation-for="SupplierPhoneNumber" class="validation-message"></span>
-            </div>
+        <!-- DÒNG 2: Email (1 cột), Phone (1 cột), Contact Person (1 cột) -->
+        <div class="form-group-grid">
+            <label class="form-label-custom" asp-for="SupplierEmail">Email Address</label>
+            <input class="form-input-custom" 
+                   asp-for="SupplierEmail" 
+                   type="email" 
+                   maxlength="255"
+                   placeholder="contact@supplier.com" />
+            <span asp-validation-for="SupplierEmail" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
-            <label class="form-label-custom" asp-for="SupplierAddress">Office Address</label>
-            <input class="form-input-custom" asp-for="SupplierAddress" placeholder="Street, City..." />
-            <span asp-validation-for="SupplierAddress" class="validation-message"></span>
+        <div class="form-group-grid">
+            <label class="form-label-custom" asp-for="SupplierPhoneNumber">Phone Number</label>
+            <input class="form-input-custom" 
+                   asp-for="SupplierPhoneNumber" 
+                   maxlength="11"
+                   inputmode="tel"
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                   placeholder="09xxxxxxxx" />
+            <span asp-validation-for="SupplierPhoneNumber" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
+        <div class="form-group-grid">
             <label class="form-label-custom" asp-for="ContactPerson">Contact Person</label>
-            <input class="form-input-custom" asp-for="ContactPerson" placeholder="Full name of representative" />
+            <input class="form-input-custom" 
+                   asp-for="ContactPerson" 
+                   maxlength="200"
+                   placeholder="Name of person in charge" />
             <span asp-validation-for="ContactPerson" class="validation-message"></span>
         </div>
 
-        <div class="form-group mb-3">
+        <!-- DÒNG 3: Headquarters Address (Phủ toàn bộ 3 cột) -->
+        <div class="form-group-grid col-span-3">
+            <label class="form-label-custom" asp-for="SupplierAddress">Headquarters Address</label>
+            <input class="form-input-custom" 
+                   asp-for="SupplierAddress" 
+                   maxlength="200"
+                   placeholder="Full address..." />
+            <span asp-validation-for="SupplierAddress" class="validation-message"></span>
+        </div>
+
+        <!-- DÒNG 4: Description (Phủ toàn bộ 3 cột) -->
+        <div class="form-group-grid col-span-3">
             <label class="form-label-custom" asp-for="SupplierDescription">Description</label>
-            <textarea class="form-input-custom" asp-for="SupplierDescription" rows="3" placeholder="Additional notes..."></textarea>
+            <textarea class="form-input-custom" 
+                      asp-for="SupplierDescription" 
+                      rows="3" 
+                      maxlength="200"
+                      placeholder="Notes about this supplier..."></textarea>
             <span asp-validation-for="SupplierDescription" class="validation-message"></span>
         </div>
     </div>
@@ -98,4 +122,53 @@
         positionClass: "toast-top-right",
         timeOut: "3000"
     };
+
+    (function() {
+        const displayInput = document.getElementById('TaxId_Display');
+        const realInput = document.getElementById('realTaxId');
+
+        function updateTaxIdValue(value) {
+            // Loại bỏ toàn bộ ký tự không phải số
+            let digits = value.replace(/\D/g, '');
+            if (digits.length > 13) digits = digits.substring(0, 13);
+
+            // Gán giá trị chỉ có số vào input ẩn để gửi Form
+            realInput.value = digits;
+
+            // Định dạng hiển thị kèm dấu - nếu đủ 13 số
+            if (digits.length === 13) {
+                displayInput.value = digits.substring(0, 10) + '-' + digits.substring(10, 13);
+            } else {
+                displayInput.value = digits;
+            }
+        }
+
+        // 1. Xử lý khi người dùng nhập/xóa/paste Tax ID
+        displayInput.addEventListener('input', function(e) {
+            updateTaxIdValue(this.value);
+        });
+
+        // 2. Chống copy dấu `-`: Khi bôi đen + Copy, chỉ copy chuỗi số nguyên bản
+        displayInput.addEventListener('copy', function(e) {
+            e.preventDefault();
+
+            let selectedText = window.getSelection().toString();
+            let digitsOnly = selectedText.replace(/\D/g, '');
+
+            if (e.clipboardData) {
+                e.clipboardData.setData('text/plain', digitsOnly);
+            } else if (window.clipboardData) {
+                window.clipboardData.setData('Text', digitsOnly);
+            }
+        });
+
+        // 3. Tự động trim khoảng trắng thừa cho tất cả input khi blur
+        document.querySelectorAll('#editForm input, #editForm textarea').forEach(element => {
+            element.addEventListener('blur', function() {
+                if (this.id !== 'TaxId_Display') {
+                    this.value = this.value.trim().replace(/\s+/g, ' ');
+                }
+            });
+        });
+    })();
 </script>

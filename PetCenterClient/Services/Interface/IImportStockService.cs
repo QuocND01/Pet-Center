@@ -10,8 +10,6 @@ namespace PetCenterClient.Services.Interface
         Task ConfirmAsync(Guid id);
         Task CancelAsync(Guid id);
 
-        Task<List<ImportStockViewModel>> GetAllByTimeAsync();
-        //Task<string?> DeductFIFO(Guid productId, int quantity);
-        Task<bool> ReturnStock(string mapping);
+        
     }
 }

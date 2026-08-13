@@ -49,32 +49,4 @@ namespace PetCenterClient.ViewModels
         public List<ImportStockViewModel> Imports { get; set; } = null!;
         public List<ImportDetailViewModel> Details { get; set; } = null!;
     }
-
-    //Export
-    public class ImportStockExcelDto
-    {
-        public string Code { get; set; }
-
-        public string SupplierName { get; set; }
-
-        public string StaffName { get; set; }
-
-        public decimal TotalAmount { get; set; }
-
-        public DateTime ImportDate { get; set; }
-
-        public string Status { get; set; }
-
-        public List<ImportStockDetailExcelDto> Details { get; set; } = new();
-    }
-    public class ImportStockDetailExcelDto
-    {
-        public string ProductName { get; set; }
-
-        public int Quantity { get; set; }
-
-        public decimal ImportPrice { get; set; }
-
-        public int StockLeft { get; set; }
-    }
 }

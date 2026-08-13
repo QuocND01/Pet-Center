@@ -6,7 +6,12 @@ namespace PetCenterAPI.Repository.Interface
     {
         Task<IEnumerable<Supplier>> GetAllAsync();
         Task<Supplier?> GetByIdAsync(Guid id);
-        Task<bool> GetByTaxIdAsync(string taxId);
+        Task<Supplier?> FindDuplicateAsync(
+    string taxId,
+    string supplierName,
+    string email,
+    string phoneNumber,
+    Guid? excludeSupplierId = null);
         Task AddAsync(Supplier supplier);
         void Update(Supplier supplier);
         Task SaveChangesAsync();

@@ -33,18 +33,18 @@ namespace PetCenterAPI.DTOs.Requests.Supplier
 
         [Required(ErrorMessage = "Address is required")]
         [StringLength(
-            200,
-            ErrorMessage = "Address cannot exceed 200 characters")]
+            255,
+            ErrorMessage = "Address cannot exceed 255 characters")]
         public string SupplierAddress { get; set; } = null!;
 
         [StringLength(
-            200,
-            ErrorMessage = "Contact person cannot exceed 200 characters")]
+            50,
+            ErrorMessage = "Contact person cannot exceed 50 characters")]
         public string? ContactPerson { get; set; }
 
         [StringLength(
-            200,
-            ErrorMessage = "Supplier description cannot exceed 200 characters")]
+            255,
+            ErrorMessage = "Supplier description cannot exceed 255 characters")]
         public string? SupplierDescription { get; set; }
     }
     public class UpdateSupplierRequestDTO
@@ -78,18 +78,18 @@ namespace PetCenterAPI.DTOs.Requests.Supplier
 
         [Required(ErrorMessage = "Address is required")]
         [StringLength(
-            200,
-            ErrorMessage = "Address cannot exceed 200 characters")]
+            255,
+            ErrorMessage = "Address cannot exceed 255 characters")]
         public string SupplierAddress { get; set; } = null!;
 
         [StringLength(
-            200,
-            ErrorMessage = "Contact person cannot exceed 200 characters")]
+            50,
+            ErrorMessage = "Contact person cannot exceed 50 characters")]
         public string? ContactPerson { get; set; }
 
         [StringLength(
-            200,
-            ErrorMessage = "Supplier description cannot exceed 200 characters")]
+            255,
+            ErrorMessage = "Supplier description cannot exceed 255 characters")]
         public string? SupplierDescription { get; set; }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Azure.Core;
+using PetCenterAPI.DTOs;
+using PetCenterAPI.DTOs.Requests.Supplier;
+using PetCenterAPI.DTOs.Responses.Supplier;
+using PetCenterAPI.Models;
+using PetCenterAPI.Repository;
 using PetCenterAPI.Repository.Interface;
 using PetCenterAPI.Service.Interface;
-using PetCenterAPI.Models;
-using PetCenterAPI.DTOs;
-using PetCenterAPI.DTOs.Responses.Supplier;
-using PetCenterAPI.DTOs.Requests.Supplier;
 
 
 namespace PetCenterAPI.Service
@@ -37,21 +39,46 @@ namespace PetCenterAPI.Service
 
         public async Task<ReadSupplierResponseDTO> CreateAsync(CreateSupplierRequestDTO dto)
         {
-            // 1. Kiểm tra trùng TaxId (chỉ check khi TaxId không rỗng/null)
-            if (!string.IsNullOrWhiteSpace(dto.TaxId))
+            // 1. Kiểm tra trùng thông tin Supplier
+            var duplicate = await _repository.FindDuplicateAsync(
+                dto.TaxId,
+                dto.SupplierName,
+                dto.SupplierEmail,
+                dto.SupplierPhoneNumber,
+                null);
+
+            if (duplicate != null)
             {
-                bool isTaxIdExist = await _repository.GetByTaxIdAsync(dto.TaxId);
-                if (isTaxIdExist)
+                if (!string.IsNullOrWhiteSpace(dto.TaxId) &&
+                    duplicate.TaxId == dto.TaxId)
                 {
-                    // Nên ném Custom Exception hoặc InvalidOperationException để API trả về StatusCode 409/400 phù hợp
-                    throw new InvalidOperationException("TaxId is conflict with other supplier, please try again!");
+                    throw new InvalidOperationException(
+                        "TaxId is conflict with other supplier, please try again!");
+                }
+
+                if (duplicate.SupplierName == dto.SupplierName)
+                {
+                    throw new InvalidOperationException(
+                        "Supplier name is conflict with other supplier, please try again!");
+                }
+
+                if (duplicate.SupplierEmail == dto.SupplierEmail)
+                {
+                    throw new InvalidOperationException(
+                        "Supplier email is conflict with other supplier, please try again!");
+                }
+
+                if (duplicate.SupplierPhoneNumber == dto.SupplierPhoneNumber)
+                {
+                    throw new InvalidOperationException(
+                        "Supplier phone number is conflict with other supplier, please try again!");
                 }
             }
 
             // 2. Map DTO sang Entity
             var supplier = _mapper.Map<Supplier>(dto);
 
-            // 3. Gán các giá trị mặc định
+            // 3. Gán giá trị mặc định
             supplier.SupplierId = Guid.NewGuid();
             supplier.IsActive = true;
 
@@ -66,17 +93,47 @@ namespace PetCenterAPI.Service
         public async Task<bool> UpdateAsync(Guid id, UpdateSupplierRequestDTO dto)
         {
             var supplier = await _repository.GetByIdAsync(id);
-            if (!string.IsNullOrWhiteSpace(dto.TaxId))
+
+            if (supplier == null)
             {
-                bool isTaxIdExist = await _repository.GetByTaxIdAsync(dto.TaxId);
-                if (isTaxIdExist)
-                {
-                    // Nên ném Custom Exception hoặc InvalidOperationException để API trả về StatusCode 409/400 phù hợp
-                    throw new InvalidOperationException("TaxId is conflict with other supplier, please try again!");
-                }
+                return false;
             }
 
-            if (supplier == null) return false;
+            // Check duplicate supplier information
+            var duplicate = await _repository.FindDuplicateAsync(
+                dto.TaxId,
+                dto.SupplierName,
+                dto.SupplierEmail,
+                dto.SupplierPhoneNumber,
+                id);
+
+            if (duplicate != null)
+            {
+                if (!string.IsNullOrWhiteSpace(dto.TaxId) &&
+                    duplicate.TaxId == dto.TaxId)
+                {
+                    throw new InvalidOperationException(
+                        "TaxId is conflict with other supplier, please try again!");
+                }
+
+                if (duplicate.SupplierName == dto.SupplierName)
+                {
+                    throw new InvalidOperationException(
+                        "Supplier name is conflict with other supplier, please try again!");
+                }
+
+                if (duplicate.SupplierEmail == dto.SupplierEmail)
+                {
+                    throw new InvalidOperationException(
+                        "Supplier email is conflict with other supplier, please try again!");
+                }
+
+                if (duplicate.SupplierPhoneNumber == dto.SupplierPhoneNumber)
+                {
+                    throw new InvalidOperationException(
+                        "Supplier phone number is conflict with other supplier, please try again!");
+                }
+            }
 
             _mapper.Map(dto, supplier);
 
@@ -98,5 +155,7 @@ namespace PetCenterAPI.Service
 
             return true;
         }
+
+
     }
 }

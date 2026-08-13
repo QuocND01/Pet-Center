@@ -27,12 +27,25 @@ namespace PetCenterAPI.Repository
             return await _context.Suppliers
                 .FirstOrDefaultAsync(x => x.SupplierId == id && x.IsActive);
         }
-        public async Task<bool> GetByTaxIdAsync(string taxId)
+        public async Task<Supplier?> FindDuplicateAsync(
+    string? taxId,
+    string supplierName,
+    string supplierEmail,
+    string supplierPhoneNumber,
+    Guid? excludeSupplierId = null)
         {
             return await _context.Suppliers
-                .AnyAsync(x => x.TaxId == taxId && x.IsActive);
+                .FirstOrDefaultAsync(x =>
+                    (!excludeSupplierId.HasValue ||
+                     x.SupplierId != excludeSupplierId.Value)
+                    &&
+                    (
+                        (!string.IsNullOrWhiteSpace(taxId) && x.TaxId == taxId) ||
+                        x.SupplierName == supplierName ||
+                        x.SupplierEmail == supplierEmail ||
+                        x.SupplierPhoneNumber == supplierPhoneNumber
+                    ));
         }
-
         public async Task AddAsync(Supplier supplier)
         {
             await _context.Suppliers.AddAsync(supplier);

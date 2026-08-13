@@ -1,8 +1,43 @@
-﻿/* Form Layout in Modal */
+﻿/* ==========================================================================
+   Form Layout in Modal & Grid Configuration
+   ========================================================================== */
+/* Mở rộng Form & Container Modal ra 120% (tăng 20% chiều ngang) */
 .custom-form-modal {
-    padding: 10px 5px;
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 15px;
+    box-sizing: border-box;
 }
 
+/* Can thiệp nâng độ rộng của Modal Dialog Bootstrap khi form nằm trong Modal */
+.modal-dialog:has(.custom-form-modal) {
+    max-width: 840px !important; /* Tăng 20% so với độ rộng chuẩn 700px */
+    width: 90%;
+}
+
+/* Grid Layout 3 Cột */
+.form-grid-3cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+/* Cột Spans cho các trường cần độ rộng lớn hơn */
+.col-span-2 {
+    grid-column: span 2;
+}
+
+.col-span-3 {
+    grid-column: span 3;
+}
+
+/* Container từng ô input trong Grid */
+.form-group-grid {
+    min-width: 0; /* Bắt buộc để CSS Grid cho phép ô con rút gọn chữ (...) */
+    margin-bottom: 0;
+}
+
+/* Hỗ trợ Legacy Flexbox Row (nếu còn dùng ở đâu đó) */
 .form-row {
     display: flex;
     gap: 15px;
@@ -10,72 +45,99 @@
 
 .flex-1 {
     flex: 1;
+    min-width: 0;
 }
 
-/* Label Styling */
+/* ==========================================================================
+   Label Styling
+   ========================================================================== */
 .form-label-custom {
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-secondary, #475569);
     margin-bottom: 6px;
     font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
 }
 
-/* Input Styling */
+/* ==========================================================================
+   Input & Textarea Styling (Chống tràn chữ & Co giãn)
+   ========================================================================== */
 .form-input-custom {
     width: 100%;
     padding: 10px 14px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border, #cbd5e1);
     border-radius: 8px;
     font-size: 14px;
-    color: var(--text-primary);
-    background-color: var(--surface-2);
+    color: var(--text-primary, #0f172a);
+    background-color: var(--surface-2, #f8fafc);
     transition: all 0.2s ease;
     outline: none;
+    box-sizing: border-box;
+    font-family: 'DM Sans', sans-serif;
+    /* Chống tràn chữ bằng dấu ba chấm (...) cho Input */
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
-    .form-input-custom:focus {
-        border-color: var(--accent);
-        background-color: #fff;
-        box-shadow: 0 0 0 4px var(--accent-light);
-    }
+/* Riêng Textarea cho phép xuống dòng và đổi kích thước đứng */
+textarea.form-input-custom {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    resize: vertical;
+    min-height: 80px;
+}
 
-/* Validation Message */
+.form-input-custom:focus {
+    border-color: var(--accent, #6366f1);
+    background-color: #fff;
+    box-shadow: 0 0 0 4px var(--accent-light, rgba(99, 102, 241, 0.15));
+}
+
+/* ==========================================================================
+   Validation Message
+   ========================================================================== */
 .validation-message {
     font-size: 11px;
-    color: var(--danger);
+    color: var(--danger, #dc2626);
     margin-top: 4px;
     display: block;
+    word-break: break-word;
 }
 
-/* Footer Actions */
+/* ==========================================================================
+   Footer Actions
+   ========================================================================== */
 .modal-actions-footer {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     margin-top: 25px;
     padding-top: 20px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border, #e2e8f0);
 }
 
 .btn-cancel-modal {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--text-secondary, #64748b);
     font-weight: 500;
     padding: 10px 20px;
     cursor: pointer;
     border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
     .btn-cancel-modal:hover {
-        background: var(--surface-2);
-        color: var(--text-primary);
+        background: var(--surface-2, #f1f5f9);
+        color: var(--text-primary, #0f172a);
     }
 
 .btn-submit-modal {
-    background: var(--accent);
+    background: var(--accent, #6366f1);
     color: white;
     border: none;
     padding: 10px 24px;
@@ -85,22 +147,54 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
     .btn-submit-modal:hover {
         background: #4f46e5;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
     }
 
-/* Alert box */
+/* ==========================================================================
+   Alert Box
+   ========================================================================== */
 .alert-danger-custom {
-    background-color: var(--danger-bg);
-    color: var(--danger);
+    background-color: var(--danger-bg, #fef2f2);
+    color: var(--danger, #dc2626);
     border-radius: 8px;
     padding: 12px;
     font-size: 13px;
     margin-bottom: 20px;
     border: 1px solid #fecaca;
+    word-break: break-word;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints (Tablet & Mobile)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .modal-dialog:has(.custom-form-modal) {
+        max-width: 95% !important;
+    }
+
+    .form-grid-3cols {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .col-span-2,
+    .col-span-3 {
+        grid-column: span 1;
+    }
+
+    .modal-actions-footer {
+        flex-direction: column-reverse;
+    }
+
+    .btn-cancel-modal,
+    .btn-submit-modal {
+        width: 100%;
+        justify-content: center;
+    }
 }
