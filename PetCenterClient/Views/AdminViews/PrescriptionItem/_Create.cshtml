@@ -39,7 +39,7 @@
                 <label asp-for="Quantity" class="form-label fw-semibold">
                     Quantity <span class="text-danger">*</span>
                 </label>
-                <input asp-for="Quantity" type="number" min="1" class="form-control" />
+                <input asp-for="Quantity" type="number" min="1" max="100" class="form-control" />
                 <span asp-validation-for="Quantity" class="text-danger"></span>
             </div>
             <div class="col-md-8 mb-3">

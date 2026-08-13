@@ -22,7 +22,7 @@ namespace PetCenterAPI.DTOs.Requests.PrescriptionItem
             public string Duration { get; set; } = null!;
 
             [Required]
-            [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
+            [Range(1, 100, ErrorMessage = "Quantity must be between 1 and 100")]
             public int Quantity { get; set; }
 
             [MaxLength(255)]
@@ -44,7 +44,7 @@ namespace PetCenterAPI.DTOs.Requests.PrescriptionItem
             public string Duration { get; set; } = null!;
 
             [Required]
-            [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
+            [Range(1, 100, ErrorMessage = "Quantity must be between 1 and 100")]
             public int Quantity { get; set; }
 
             [MaxLength(255)]

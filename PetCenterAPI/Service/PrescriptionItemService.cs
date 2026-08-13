@@ -30,6 +30,9 @@ namespace PetCenterAPI.Service
 
         public async Task CreateAsync(CreatePrescriptionItemDTO dto)
         {
+            if (dto.Quantity < 1 || dto.Quantity > 100)
+                throw new ArgumentException("Quantity must be between 1 and 100");
+
             await EnsureRecordEditableAsync(dto.RecordId);
 
             var item = new PrescriptionItem
@@ -48,6 +51,9 @@ namespace PetCenterAPI.Service
 
         public async Task UpdateAsync(Guid id, UpdatePrescriptionItemDTO dto)
         {
+            if (dto.Quantity < 1 || dto.Quantity > 100)
+                throw new ArgumentException("Quantity must be between 1 and 100");
+
             var item = await _repo.GetByIdAsync(id)
                 ?? throw new Exception("Prescription item not found");
 
