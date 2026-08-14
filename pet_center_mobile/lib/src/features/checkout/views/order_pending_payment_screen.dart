@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import '../../../constants/app_colors.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/custom_button.dart';
 import 'order_success_screen.dart';
+import 'payment_webview_screen.dart';
+
 
 class OrderPendingPaymentScreen extends StatefulWidget {
   final String orderId;
@@ -95,11 +97,19 @@ class _OrderPendingPaymentScreenState extends State<OrderPendingPaymentScreen> {
 
   void _openPaymentGateway() async {
     if (widget.paymentUrl != null && widget.paymentUrl!.isNotEmpty) {
-      final Uri uri = Uri.parse(widget.paymentUrl!);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        _showSnackBar('Cannot launch payment URL.', isError: true);
+      final result = await Navigator.push<PaymentResult>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentWebViewScreen(
+            paymentUrl: widget.paymentUrl!,
+            title: 'Pay via ${widget.paymentMethod}',
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+      if (result != null && result.isSuccess) {
+        _checkPaymentStatus();
       }
     } else {
       _showSnackBar('Payment URL is unavailable for this order.', isError: true);

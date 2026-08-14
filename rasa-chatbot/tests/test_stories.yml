@@ -1,0 +1,90 @@
+version: "3.1"
+
+stories:
+  - story: Customer greets chatbot and asks capabilities
+    steps:
+      - user: |
+          Xin chào bot
+        intent: greet
+      - action: utter_greet
+      - user: |
+          Bạn có thể giúp gì cho tôi?
+        intent: ask_bot_capabilities
+      - action: utter_ask_bot_capabilities
+
+  - story: Customer searches for hot products
+    steps:
+      - user: |
+          Cho tôi xem sản phẩm hot nhất
+        intent: xem_san_pham_hot
+      - action: action_xem_san_pham_hot
+
+  - story: Customer views new products
+    steps:
+      - user: |
+          Có mặt hàng nào mới về không?
+        intent: xem_san_pham_moi
+      - action: action_xem_san_pham_moi
+
+  - story: Customer asks for my orders
+    steps:
+      - user: |
+          Cho tôi xem danh sách đơn hàng của tôi
+        intent: xem_don_hang_cua_toi
+      - action: action_xem_don_hang
+
+  - story: Customer asks delivery time policy
+    steps:
+      - user: |
+          Bao lâu thì nhận được hàng?
+        intent: hoi_thoi_gian_giao_hang
+      - action: utter_hoi_thoi_gian_giao_hang
+
+  - story: Customer asks shipping fee policy
+    steps:
+      - user: |
+          Phí vận chuyển bao nhiêu?
+        intent: hoi_phi_van_chuyen
+      - action: utter_hoi_phi_van_chuyen
+
+  - story: Customer asks return policy
+    steps:
+      - user: |
+          Chính sách đổi trả như thế nào?
+        intent: hoi_chinh_sach_doi_tra
+      - action: utter_hoi_chinh_sach_doi_tra
+
+  - story: Security check - customer asks to view another person order
+    steps:
+      - user: |
+          Xem đơn hàng của bạn tôi
+        intent: xem_don_hang_nguoi_khac
+      - action: utter_tu_choi_xem_don_nguoi_khac
+
+  - story: Customer asks shopping guide
+    steps:
+      - user: |
+          Hướng dẫn tôi cách mua hàng với
+        intent: huong_dan_mua_hang
+      - action: utter_huong_dan_mua_hang
+
+  - story: Customer asks payment guide
+    steps:
+      - user: |
+          Cho tôi xin hướng dẫn thanh toán
+        intent: huong_dan_thanh_toan
+      - action: utter_huong_dan_thanh_toan
+
+  - story: Customer requests human support
+    steps:
+      - user: |
+          Tôi muốn gặp nhân viên tư vấn
+        intent: ask_human
+      - action: utter_ask_human
+
+  - story: Out of scope handling
+    steps:
+      - user: |
+          Thời tiết hôm nay thế nào?
+        intent: out_of_scope
+      - action: utter_out_of_scope
