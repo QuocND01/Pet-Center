@@ -167,22 +167,33 @@ namespace PetCenterAPI.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteSupplier(Guid id)
         {
-            var success = await _service.DeleteAsync(id);
-
-            if (!success)
+            try
             {
-                return NotFound(new
+                var success = await _service.DeleteAsync(id);
+
+                if (!success)
                 {
-                    status = false, // Thất bại -> false
-                    message = "Supplier not found"
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Supplier not found"
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    message = "Delete supplier successfully"
                 });
             }
-
-            return Ok(new
+            catch (InvalidOperationException ex)
             {
-                status = true, // Thành công -> true
-                message = "Delete supplier successfully"
-            });
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
+            }
         }
     }
 }

@@ -12,6 +12,7 @@ namespace PetCenterAPI.Repository.Interface
     string email,
     string phoneNumber,
     Guid? excludeSupplierId = null);
+        Task<bool> IsUsedInImportStockAsync(Guid supplierId);
         Task AddAsync(Supplier supplier);
         void Update(Supplier supplier);
         Task SaveChangesAsync();

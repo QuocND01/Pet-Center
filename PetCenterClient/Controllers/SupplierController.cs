@@ -151,12 +151,19 @@ namespace PetCenterClient.Controllers
             {
                 var result = await _supplierService.DeleteAsync(id);
 
+                if (result != null && result.Status)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = result.Message ?? "Supplier deleted successfully."
+                    });
+                }
+
                 return Json(new
                 {
-                    success = result,
-                    message = result
-                        ? "Supplier deleted successfully."
-                        : "Failed to delete supplier."
+                    success = false,
+                    message = result?.Message ?? "Failed to delete supplier."
                 });
             }
             catch (Exception ex)
@@ -164,7 +171,7 @@ namespace PetCenterClient.Controllers
                 return Json(new
                 {
                     success = false,
-                    message = ex.Message
+                    message = "An error occurred: " + ex.Message
                 });
             }
         }
