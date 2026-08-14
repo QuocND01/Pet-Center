@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import '../../../constants/app_colors.dart';
 import '../../../models/cart_model.dart';
 import '../../../models/address_model.dart';
@@ -8,6 +8,7 @@ import '../../../services/api_service.dart';
 import '../../../widgets/custom_button.dart';
 import 'order_success_screen.dart';
 import 'order_pending_payment_screen.dart';
+import 'payment_webview_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartDetailModel> selectedItems;
@@ -346,27 +347,52 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           );
         } else {
-          // Online Payment (VNPAY / MOMO)
+          // Online Payment (VNPAY / MOMO) via In-App WebView
+          PaymentResult? paymentResult;
           if (paymentUrl != null && paymentUrl.isNotEmpty) {
-            final Uri uri = Uri.parse(paymentUrl);
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
+            if (!mounted) return;
+            paymentResult = await Navigator.push<PaymentResult>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PaymentWebViewScreen(
+                  paymentUrl: paymentUrl,
+                  title: 'Pay via $_selectedPaymentMethod',
+                ),
+              ),
+            );
           }
 
           if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OrderPendingPaymentScreen(
-                orderId: orderId,
-                paymentMethod: _selectedPaymentMethod,
-                paymentUrl: paymentUrl,
-                totalAmount: _finalAmount,
-                addressSnapshot: _selectedAddress!.fullAddress,
+
+          if (paymentResult != null && paymentResult.isSuccess) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderSuccessScreen(
+                  orderId: orderId,
+                  paymentMethod: _selectedPaymentMethod,
+                  totalAmount: _subtotal,
+                  discountAmount: _discountAmount,
+                  finalAmount: _finalAmount,
+                  addressSnapshot: _selectedAddress!.fullAddress,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            // Payment failed or cancelled: Go to pending screen for user options
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderPendingPaymentScreen(
+                  orderId: orderId,
+                  paymentMethod: _selectedPaymentMethod,
+                  paymentUrl: paymentUrl,
+                  totalAmount: _finalAmount,
+                  addressSnapshot: _selectedAddress!.fullAddress,
+                ),
+              ),
+            );
+          }
         }
       } else {
         _showError(result['message'] ?? result['Message'] ?? 'Order placement failed.');

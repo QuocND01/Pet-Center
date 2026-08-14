@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import '../../../constants/app_colors.dart';
 import '../../../models/appointment_model.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/custom_button.dart';
 import 'appointment_update_screen.dart';
+import '../../checkout/views/payment_webview_screen.dart';
+
 
 class AppointmentDetailScreen extends StatefulWidget {
   final String appointmentId;
@@ -155,9 +157,19 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                           paymentMethod: selectedMethod,
                         );
                         if (url != null && url.isNotEmpty) {
-                          final uri = Uri.parse(url);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          if (!mounted) return;
+                          final result = await Navigator.push<PaymentResult>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PaymentWebViewScreen(
+                                paymentUrl: url,
+                                title: 'Pay Appointment via $selectedMethod',
+                              ),
+                            ),
+                          );
+
+                          if (result != null && result.isSuccess) {
+                            _loadDetail();
                           }
                         } else {
                           _showError('Could not generate payment URL.');
