@@ -379,7 +379,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const BookingScreen(),
+                  builder: (context) => BookingScreen(
+                    initialServiceId: widget.serviceId,
+                  ),
                 ),
               );
             },
