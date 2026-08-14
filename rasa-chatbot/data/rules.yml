@@ -84,23 +84,6 @@ rules:
     - intent: xoa_toan_bo_gio_hang
     - action: action_xoa_toan_bo_gio_hang
 
-- rule: Tìm sản phẩm theo danh mục
-  steps:
-    - intent: tim_san_pham_theo_danh_muc
-    - action: action_tim_san_pham_theo_danh_muc
-
-
-- rule: Tìm sản phẩm theo giá
-  steps:
-    - intent: tim_san_pham_theo_gia
-    - action: action_tim_san_pham_theo_gia
-
-- rule: Xem danh mục sản phẩm
-  steps:
-    - intent: xem_danh_muc_san_pham
-    - action: action_xem_danh_muc
-
-
 - rule: Xem chi tiết sản phẩm
   steps:
     - intent: xem_chi_tiet_san_pham
@@ -121,6 +104,11 @@ rules:
   steps:
     - intent: tim_don_hang_theo_san_pham
     - action: action_tim_don_hang_theo_san_pham
+
+- rule: Xác nhận tìm đơn hàng theo sản phẩm
+  steps:
+    - intent: xac_nhan_tim_don
+    - action: action_xac_nhan_tim_don
 
 - rule: Xem chi tiết đơn
   steps:
@@ -167,22 +155,7 @@ rules:
     - intent: hoi_thoi_gian_giao_hang
     - action: utter_hoi_thoi_gian_giao_hang
 
-- rule: Hỏi phí vận chuyển
-  steps:
-    - intent: hoi_phi_van_chuyen
-    - action: utter_hoi_phi_van_chuyen
-
-- rule: Hỏi chính sách đổi trả
-  steps:
-    - intent: hoi_chinh_sach_doi_tra
-    - action: utter_hoi_chinh_sach_doi_tra
-
 # — Tài khoản —
-- rule: Xem hồ sơ
-  steps:
-    - intent: xem_ho_so
-    - action: action_xem_ho_so
-
 - rule: Hướng dẫn mua hàng
   steps:
     - intent: huong_dan_mua_hang
@@ -203,11 +176,6 @@ rules:
     - intent: xem_dia_chi_nguoi_khac
     - action: action_xem_dia_chi
 
-- rule: Thêm địa chỉ
-  steps:
-    - intent: them_dia_chi
-    - action: action_them_dia_chi
-
 - rule: Điều hướng trang địa chỉ
   steps:
     - intent: goto_address_page
@@ -218,15 +186,11 @@ rules:
     - intent: goto_login_page
     - action: action_goto_login_page
 
-- rule: Xem hồ sơ y tế
-  steps:
-    - intent: xem_ho_so_y_te
-    - action: action_xem_ho_so_y_te
-
 - rule: Điều hướng trang đơn hàng
   steps:
     - intent: goto_orders_page
     - action: action_goto_orders_page
+
 
 # — Bảo mật: từ chối xem đơn hàng người khác —
 - rule: Từ chối xem đơn hàng của người khác

@@ -400,6 +400,7 @@ class ActionTimDonHangTheoSanPham(Action):
         # █ Trích xuất từ khóa: ưu tiên entity NLU, sau đó mới strip prefix từ user_text
         current_entity_kw = None
         for e in tracker.latest_message.get("entities", []):
+            # NLU có nhận ra entity tên là "tu_khoa" (hoặc "search_query") VÀ giá trị (value) không bị rỗng hay không?
             if e.get("entity") in ("tu_khoa", "search_query") and e.get("value"):
                 current_entity_kw = str(e.get("value")).strip()
                 break
@@ -419,6 +420,35 @@ class ActionTimDonHangTheoSanPham(Action):
 
         if not search_term:
             return _get_order_id_from_tracker_or_ask(dispatcher, tracker, "sản phẩm trong đơn")[2]
+
+        # █ Kiểm tra ngữ cảnh đơn hàng trong tin nhắn gốc của user
+        # Nếu user gửi ngắn + không có từ đơn hàng → hỏi xác nhận trước khi tìm
+        user_text_raw = (tracker.latest_message.get("text") or "").strip()
+        is_button_payload = user_text_raw.startswith('/')  # Button payload → bỏ qua context check
+        order_context_words = [
+            "đơn", "đơn hàng", "đã mua", "trong đơn", "mua trong",
+            "tôi mua", "tôi đặt", "lịch sử", "trong đơn hàng"
+        ]
+        has_order_context = any(w in user_text_raw.lower() for w in order_context_words)
+        is_short_message = len(user_text_raw.split()) <= 5
+
+        if not is_button_payload and not has_order_context and is_short_message:
+            # Hỏi xác nhận — không tìm tự động khi thiếu ngữ cảnh
+            safe_kw = (search_term or user_text_raw).replace('"', "'")
+            dispatcher.utter_message(
+                text=f'Bạn muốn tôi tìm sản phẩm **"{safe_kw}"** trong đơn hàng của bạn không? 🔍',
+                buttons=[
+                    {
+                        "title": "✅ Đúng, tìm cho tôi",
+                        "payload": f'/xac_nhan_tim_don{{"tu_khoa": "{safe_kw}"}}'
+                    },
+                    {
+                        "title": "❌ Không phải",
+                        "payload": "/deny"
+                    },
+                ]
+            )
+            return [SlotSet("tu_khoa", search_term)]
 
         ok, data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
         if not ok:
@@ -515,6 +545,92 @@ class ActionTimDonHangTheoSanPham(Action):
 
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
         return [SlotSet("order_id", None)]
+
+
+
+class ActionXacNhanTimDon(Action):
+    """
+    Xử lý khi user xác nhận muốn tìm đơn hàng (sau bước hỏi lại ngữ cảnh).
+    Intent: xac_nhan_tim_don — được trigger khi user bấm nút 'Đúng, tìm cho tôi'
+    hoặc gõ xác nhận sau câu hỏi context-check của ActionTimDonHangTheoSanPham.
+    """
+    def name(self) -> Text:
+        return "action_xac_nhan_tim_don"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        if not is_logged_in(tracker):
+            dispatcher.utter_message(text="🔒 Bạn cần đăng nhập để tìm đơn hàng của mình nhé!")
+            return []
+
+        # Lấy tu_khoa từ entity trong payload button (ưu tiên) hoặc slot
+        search_term = None
+        for e in tracker.latest_message.get("entities", []):
+            if e.get("entity") in ("tu_khoa", "search_query") and e.get("value"):
+                search_term = str(e.get("value")).strip()
+                break
+        if not search_term:
+            search_term = (tracker.get_slot("tu_khoa") or "").strip()
+
+        if not search_term:
+            dispatcher.utter_message(
+                text="Bạn muốn tìm sản phẩm nào trong đơn hàng? Nhắn tên sản phẩm cho tôi nhé! 🔍"
+            )
+            return [SlotSet("tu_khoa", None)]
+
+        ok, data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
+        if not ok:
+            ok, data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+
+        if not ok:
+            dispatcher.utter_message(text="⚠️ Hiện không tải được đơn hàng. Vui lòng thử lại sau nhé!")
+            return [SlotSet("tu_khoa", None)]
+
+        orders = extract_list(data)
+        if not orders:
+            dispatcher.utter_message(text="Bạn chưa có đơn hàng nào. Cùng mua sắm nhé! 🛍️")
+            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+
+        matched_orders = _match_product_in_orders(orders, search_term)
+
+        if matched_orders:
+            match_count = len(matched_orders)
+            safe_st = str(search_term).replace('"', "'")
+
+            if match_count == 1:
+                target_order = matched_orders[0]
+                oid = str(get_field(target_order, "orderId", "OrderId", default="")).strip().lstrip('#')
+                ok_det, det_data = api_get(f"/api/orders/{oid}", tracker, with_auth=True)
+                data_render = det_data if ok_det and det_data else target_order
+                prefix = f"✅ Tìm thấy rồi! 🐾 Đơn hàng có chứa sản phẩm khớp với **\"{search_term}\"**:\n\n📋 **CHI TIẾT ĐƠN HÀNG #{oid[:8]}…**"
+                return _render_order_detail_card(dispatcher, oid, data_render, custom_prefix=prefix) + [SlotSet("tu_khoa", None)]
+
+            display_orders = matched_orders[:3]
+            lines = [f"✅ Tìm thấy {match_count} đơn hàng có sản phẩm khớp với **\"{search_term}\"**:"]
+            buttons = []
+            for o in display_orders:
+                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
+                created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
+                date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
+                short_id = oid[:8] if oid else "đơn"
+                buttons.append({
+                    "title": f"📋 Đơn #{short_id} ({date_str})",
+                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
+                })
+            buttons.append({
+                "title": "🔗 Xem kết quả trên Web",
+                "payload": f'/goto_orders_page{{"search_query": "{safe_st}"}}'
+            })
+            dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+
+        else:
+            dispatcher.utter_message(
+                text=f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có sản phẩm \"{search_term}\"** ạ.\n\nBạn có muốn xem toàn bộ đơn hàng không?",
+                buttons=[
+                    {"title": "📦 Xem tất cả đơn hàng", "payload": "/xem_don_hang_cua_toi"},
+                ]
+            )
+            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
 
 
 class ActionXemDonHangVuaDat(Action):
