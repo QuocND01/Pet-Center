@@ -683,7 +683,8 @@ namespace PetCenterAPI.Service
                     remainingAmount,
                     transactionRef,
                     request.ClientIpAddress ?? "127.0.0.1",
-                    orderInfo
+                    orderInfo,
+                    request.CustomReturnUrl
                 );
             }
             else if (string.Equals(request.PaymentMethod, "MOMO", StringComparison.OrdinalIgnoreCase))
@@ -692,7 +693,8 @@ namespace PetCenterAPI.Service
                     appointment.AppointmentId,
                     remainingAmount,
                     transactionRef,
-                    orderInfo
+                    orderInfo,
+                    request.CustomReturnUrl
                 );
 
                 if (string.IsNullOrEmpty(momoUrl))
