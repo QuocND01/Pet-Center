@@ -146,7 +146,16 @@ namespace PetCenterAPI.Service
         public async Task<bool> DeleteAsync(Guid id)
         {
             var supplier = await _repository.GetByIdAsync(id);
-            if (supplier == null) return false;
+
+            if (supplier == null)
+                return false;
+
+            bool isUsed = await _repository.IsUsedInImportStockAsync(id);
+            if (isUsed)
+            {
+                throw new InvalidOperationException(
+                    "This supplier cannot be deleted because it is being used in an import stock!");
+            }
 
             supplier.IsActive = false;
 

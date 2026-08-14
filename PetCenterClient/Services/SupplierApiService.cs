@@ -86,7 +86,7 @@ namespace PetCenterClient.Services
             return result ?? new ApiResponseViewModel<ViewSupplierViewModel>
             {
                 Status = false,
-                Message = "Có lỗi xảy ra trong quá trình xử lý yêu cầu."
+                Message = "An error occurred while processing the request."
             };
         }
 
@@ -113,22 +113,31 @@ namespace PetCenterClient.Services
             return result ?? new ApiResponseViewModel<bool>
             {
                 Status = false,
-                Message = "Có lỗi xảy ra trong quá trình cập nhật nhà cung cấp."
+                Message = "An error occurred while updating the supplier."
             };
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<ApiResponseViewModel<bool>?> DeleteAsync(Guid id)
         {
             AddAuthorizationHeader();
 
             var response = await _httpClient.DeleteAsync(
                 $"/api/suppliers/{id}");
 
-            return response.IsSuccessStatusCode;
+            var result = await response.Content
+                .ReadFromJsonAsync<ApiResponseViewModel<bool>>();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return result;
+            }
+
+            return result ?? new ApiResponseViewModel<bool>
+            {
+                Status = false,
+                Message = "An error occurred while deleting the supplier."
+            };
         }
-        public Task? GetSupplierSelectAsync()
-        {
-            return null;
-        }
+        
     }
 }

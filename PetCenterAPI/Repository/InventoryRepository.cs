@@ -1,5 +1,6 @@
 using DocumentFormat.OpenXml.InkML;
 using Microsoft.EntityFrameworkCore;
+using PetCenterAPI.Common;
 using PetCenterAPI.DTOs.Requests.Inventory;
 using PetCenterAPI.DTOs.Responses.Inventory;
 using PetCenterAPI.Models;
@@ -36,6 +37,7 @@ namespace PetCenterAPI.Repository
 
                 .Include(i => i.Product)
                     .ThenInclude(p => p.ProductImages)
+                .Where(i => i.Product != null && i.Product.Status != Status.Deleted) // Lọc bỏ product đã bị xóa
 
                 .AsNoTracking()
                 .AsQueryable();

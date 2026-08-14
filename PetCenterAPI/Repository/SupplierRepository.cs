@@ -36,6 +36,8 @@ namespace PetCenterAPI.Repository
         {
             return await _context.Suppliers
                 .FirstOrDefaultAsync(x =>
+                x.IsActive == true
+                &&
                     (!excludeSupplierId.HasValue ||
                      x.SupplierId != excludeSupplierId.Value)
                     &&
@@ -45,6 +47,11 @@ namespace PetCenterAPI.Repository
                         x.SupplierEmail == supplierEmail ||
                         x.SupplierPhoneNumber == supplierPhoneNumber
                     ));
+        }
+        public async Task<bool> IsUsedInImportStockAsync(Guid supplierId)
+        {
+            return await _context.ImportStocks
+                .AnyAsync(x => x.SupplierId == supplierId);
         }
         public async Task AddAsync(Supplier supplier)
         {

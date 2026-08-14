@@ -15,8 +15,7 @@ namespace PetCenterClient.Services.Interface
             Guid id,
             CreateSupplierViewModel model);
 
-        Task<bool> DeleteAsync(Guid id);
+        Task<ApiResponseViewModel<bool>?> DeleteAsync(Guid id);
 
-        Task? GetSupplierSelectAsync();
     }
 }
