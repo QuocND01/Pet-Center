@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../constants/app_colors.dart';
 
@@ -33,46 +35,75 @@ class PaymentWebViewScreen extends StatefulWidget {
 }
 
 class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   bool _isLoading = true;
   bool _isHandled = false;
+  bool _isNativeAvailable = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.white)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (String url) {
-            if (mounted) {
-              setState(() {
-                _isLoading = true;
-              });
-            }
-            _checkUrlForPaymentResult(url);
-          },
-          onPageFinished: (String url) {
-            if (mounted) {
-              setState(() {
-                _isLoading = false;
-              });
-            }
-            _checkUrlForPaymentResult(url);
-          },
-          onNavigationRequest: (NavigationRequest request) {
-            if (_checkUrlForPaymentResult(request.url)) {
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-          onWebResourceError: (WebResourceError error) {
-            debugPrint('WebView Resource Error: ${error.description}');
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.paymentUrl));
+    _initWebView();
+  }
+
+  void _initWebView() {
+    if (!kIsWeb && WebViewPlatform.instance != null) {
+      try {
+        final controller = WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setBackgroundColor(Colors.white)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onPageStarted: (String url) {
+                if (mounted) {
+                  setState(() {
+                    _isLoading = true;
+                  });
+                }
+                _checkUrlForPaymentResult(url);
+              },
+              onPageFinished: (String url) {
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+                _checkUrlForPaymentResult(url);
+              },
+              onNavigationRequest: (NavigationRequest request) {
+                if (_checkUrlForPaymentResult(request.url)) {
+                  return NavigationDecision.prevent;
+                }
+                return NavigationDecision.navigate;
+              },
+              onWebResourceError: (WebResourceError error) {
+                debugPrint('WebView Resource Error: ${error.description}');
+              },
+            ),
+          )
+          ..loadRequest(Uri.parse(widget.paymentUrl));
+
+        _controller = controller;
+        _isNativeAvailable = true;
+        return;
+      } catch (e) {
+        debugPrint('WebView Init Exception: $e');
+      }
+    }
+
+    // Fallback for Windows Desktop app or unsupported platform:
+    setState(() {
+      _isNativeAvailable = false;
+      _isLoading = false;
+    });
+    _launchExternalBrowser();
+  }
+
+  void _launchExternalBrowser() async {
+    final uri = Uri.parse(widget.paymentUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   bool _checkUrlForPaymentResult(String url) {
@@ -177,29 +208,84 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
             },
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                _controller.reload();
-              },
-            ),
-          ],
-        ),
-        body: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (_isLoading)
-              const Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: LinearProgressIndicator(
-                  color: AppColors.primary,
-                  backgroundColor: Colors.white,
-                ),
+            if (_isNativeAvailable && _controller != null)
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  _controller?.reload();
+                },
               ),
           ],
         ),
+        body: _isNativeAvailable && _controller != null
+            ? Stack(
+                children: [
+                  WebViewWidget(controller: _controller!),
+                  if (_isLoading)
+                    const Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: LinearProgressIndicator(
+                        color: AppColors.primary,
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                ],
+              )
+            : Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.desktop_windows, size: 64, color: AppColors.primary),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Cổng thanh toán Online (Windows Desktop)',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Trang thanh toán VNPay / MoMo đã được mở trên trình duyệt. Bạn hãy hoàn tất thanh toán rồi bấm nút bên dưới.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.open_in_browser),
+                        label: const Text('Mở lại trang thanh toán'),
+                        onPressed: _launchExternalBrowser,
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('Tôi đã hoàn tất thanh toán'),
+                        onPressed: () {
+                          Navigator.pop(
+                            context,
+                            PaymentResult(
+                              isSuccess: true,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }

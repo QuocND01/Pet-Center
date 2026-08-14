@@ -21,6 +21,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
 
 API_BASE = os.getenv("PETCENTER_API_URL", "https://localhost:7004")
+API_BASE_CANDIDATES = [
+    API_BASE,
+    "http://localhost:5163",
+    "http://localhost:7004",
+    "https://localhost:7004",
+]
 REQUEST_TIMEOUT = 30
 
 
@@ -83,25 +89,39 @@ def require_login(
 # ─────────────────────────────────────────────────────────────────────────────
 def api_get(path: str, tracker=None, params=None, with_auth=False):
     """GET tới PetCenterAPI. Trả (ok, json_or_None)."""
+    global API_BASE
     headers = auth_headers(tracker) if (with_auth and tracker) else {}
-    try:
-        resp = requests.get(
-            f"{API_BASE}{path}",
-            params=params,
-            headers=headers,
-            verify=False,
-            timeout=REQUEST_TIMEOUT,
-        )
-        if resp.ok:
-            try:
-                return True, resp.json()
-            except ValueError:
-                return True, None
-        logger.warning("GET %s -> %s", path, resp.status_code)
-        return False, None
-    except requests.RequestException as e:
-        logger.error("GET %s failed: %s", path, e)
-        return False, None
+
+    # Thử API_BASE hiện tại, nếu lỗi kết nối sẽ thử tiếp các cổng HTTP/HTTPS dự phòng
+    candidates = []
+    for c in [API_BASE] + API_BASE_CANDIDATES:
+        if c not in candidates:
+            candidates.append(c)
+
+    for base_url in candidates:
+        try:
+            resp = requests.get(
+                f"{base_url}{path}",
+                params=params,
+                headers=headers,
+                verify=False,
+                timeout=REQUEST_TIMEOUT,
+            )
+            if resp.ok:
+                API_BASE = base_url  # Cập nhật API_BASE đang hoạt động tốt
+                try:
+                    return True, resp.json()
+                except ValueError:
+                    return True, None
+            logger.warning("GET %s%s -> %s", base_url, path, resp.status_code)
+            return False, None
+        except requests.RequestException as e:
+            logger.warning("GET %s%s failed (%s), trying next candidate...", base_url, path, e)
+            continue
+
+    logger.error("GET %s failed on all candidate ports", path)
+    return False, None
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

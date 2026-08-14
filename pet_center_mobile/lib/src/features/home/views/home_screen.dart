@@ -6,6 +6,8 @@ import '../../customer/views/profile_screen.dart';
 import '../../services/views/service_list_screen.dart';
 import '../../orders/views/order_list_screen.dart';
 import '../../appointment/views/booking_screen.dart';
+import '../../chatbot/views/rasa_chat_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -53,6 +55,21 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _currentIndex,
         children: _screens,
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF22C55E),
+        elevation: 4,
+        tooltip: 'PetCenter Chatbot Assistant',
+        child: const Text('🐾', style: TextStyle(fontSize: 24)),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const RasaChatScreen(),
+          );
+        },
+      ),
+
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,

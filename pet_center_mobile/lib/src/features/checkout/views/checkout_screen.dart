@@ -450,26 +450,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       ),
                                     ],
                                   )
-                                : Column(
+                                : Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            _selectedAddress!.fullAddress,
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              _showSelectAddressModal();
-                                            },
-                                            child: const Text('Change'),
-                                          ),
-                                        ],
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            if (_selectedAddress!.isDefault)
+                                              Padding(
+                                                padding: const EdgeInsets.only(bottom: 4.0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  child: const Text(
+                                                    'Default',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: AppColors.primary,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            Text(
+                                              _selectedAddress!.fullAddress,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                                color: AppColors.textPrimary,
+                                                height: 1.4,
+                                              ),
+                                              softWrap: true,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      TextButton(
+                                        onPressed: () {
+                                          _showSelectAddressModal();
+                                        },
+                                        child: const Text('Change'),
                                       ),
                                     ],
                                   ),
+
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -682,8 +711,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   itemBuilder: (context, index) {
                     final addr = _addresses[index];
                     return RadioListTile<AddressModel>(
-                      title: Text(addr.fullAddress),
+                      title: Text(
+                        addr.fullAddress,
+                        style: const TextStyle(fontSize: 14, height: 1.3),
+                        softWrap: true,
+                      ),
                       value: addr,
+
                       groupValue: _selectedAddress,
                       onChanged: (val) {
                         setState(() {
