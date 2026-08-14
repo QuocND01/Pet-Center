@@ -7,7 +7,14 @@ import '../../../models/book_appointment_request.dart';
 import 'appointment_detail_screen.dart';
 
 class BookingScreen extends StatefulWidget {
-  const BookingScreen({Key? key}) : super(key: key);
+  final String? initialServiceId;
+  final String? initialPetId;
+
+  const BookingScreen({
+    Key? key,
+    this.initialServiceId,
+    this.initialPetId,
+  }) : super(key: key);
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -59,8 +66,30 @@ class _BookingScreenState extends State<BookingScreen> {
 
     try {
       final data = await _apiService.getBookingData();
+      
+      BookingPetModel? preSelectedPet;
+      if (widget.initialPetId != null && data.pets.isNotEmpty) {
+        try {
+          preSelectedPet = data.pets.firstWhere((p) => p.petId == widget.initialPetId);
+        } catch (_) {}
+      }
+
+      List<BookingServiceModel> preSelectedServices = [];
+      if (widget.initialServiceId != null && data.services.isNotEmpty) {
+        try {
+          final s = data.services.firstWhere((srv) => srv.serviceId == widget.initialServiceId);
+          preSelectedServices.add(s);
+        } catch (_) {}
+      }
+
       setState(() {
         _bookingData = data;
+        if (preSelectedPet != null) {
+          _selectedPet = preSelectedPet;
+        }
+        if (preSelectedServices.isNotEmpty) {
+          _selectedServices = preSelectedServices;
+        }
         _isLoading = false;
       });
     } catch (e) {

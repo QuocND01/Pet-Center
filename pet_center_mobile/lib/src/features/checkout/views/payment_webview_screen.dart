@@ -91,18 +91,30 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       }
     }
 
-    // Fallback for Windows Desktop app or unsupported platform:
-    setState(() {
-      _isNativeAvailable = false;
-      _isLoading = false;
+    // Fallback for Web / Desktop / unsupported platform:
+    _isNativeAvailable = false;
+    _isLoading = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _launchExternalBrowser();
+      }
     });
-    _launchExternalBrowser();
   }
 
   void _launchExternalBrowser() async {
-    final uri = Uri.parse(widget.paymentUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final uri = Uri.parse(widget.paymentUrl);
+      if (kIsWeb) {
+        await launchUrl(uri, webOnlyWindowName: '_blank');
+      } else {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          await launchUrl(uri);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error launching payment URL: $e');
     }
   }
 

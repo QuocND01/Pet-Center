@@ -6,6 +6,7 @@ import '../../../models/appointment_model.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/custom_button.dart';
 import 'appointment_update_screen.dart';
+import 'appointment_success_screen.dart';
 import '../../checkout/views/payment_webview_screen.dart';
 
 
@@ -169,13 +170,23 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                           );
 
                           if (result != null && result.isSuccess) {
-                            _loadDetail();
+                            if (!mounted) return;
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AppointmentSuccessScreen(
+                                  appointmentId: widget.appointmentId,
+                                  paymentMethod: selectedMethod,
+                                  totalAmount: _detail?.total ?? 0.0,
+                                ),
+                              ),
+                            );
                           }
                         } else {
                           _showError('Could not generate payment URL.');
                         }
                       } catch (e) {
-                        _showError('Payment error: $e');
+                        _showError('Payment error: ${e.toString().replaceAll('Exception: ', '')}');
                       } finally {
                         setState(() {
                           _isActionLoading = false;

@@ -1492,14 +1492,29 @@ class ApiService {
           }),
         ));
 
-    final Map<String, dynamic> body = jsonDecode(response.body);
+    if (response.body.isEmpty) {
+      throw Exception('Server returned an empty response.');
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Invalid response format from server.');
+    }
+
+    final body = decoded;
     if (body['status'] == true || body['success'] == true) {
       final data = body['data'];
-      if (data != null) {
-        return data['paymentUrl'] ?? data['PaymentUrl'];
+      if (data != null && data is Map) {
+        final url = (data['paymentUrl'] ?? data['PaymentUrl'])?.toString();
+        if (url != null && url.isNotEmpty) {
+          return url;
+        }
       }
+      throw Exception('Payment URL was not provided by server.');
+    } else {
+      final msg = body['message'] ?? body['detail'] ?? body['error'] ?? 'Failed to create payment URL (${response.statusCode}).';
+      throw Exception(msg.toString());
     }
-    return null;
   }
 
   // 9. Cập nhật lịch hẹn giữ chỗ (Pending)

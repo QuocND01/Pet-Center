@@ -4,7 +4,7 @@ import '../../../constants/app_colors.dart';
 import '../../../models/appointment_model.dart';
 import '../../../services/api_service.dart';
 import 'appointment_detail_screen.dart';
-import '../booking_screen.dart';
+import 'booking_screen.dart';
 
 class AppointmentListScreen extends StatefulWidget {
   const AppointmentListScreen({super.key});

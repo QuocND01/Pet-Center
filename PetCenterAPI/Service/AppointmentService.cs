@@ -222,6 +222,7 @@ namespace PetCenterAPI.Service
             appointment.AppointmentEnd = appointmentEnd;
 
             appointment.Total = totalPrice;
+            appointment.PaidAmount = 0;
             appointment.ReservedUntil = DateTime.Today.AddDays(1).AddTicks(-1);
 
             appointment.Status = 1;
@@ -685,7 +686,7 @@ namespace PetCenterAPI.Service
                     orderInfo
                 );
             }
-            else if (request.PaymentMethod.Equals("MOMO", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(request.PaymentMethod, "MOMO", StringComparison.OrdinalIgnoreCase))
             {
                 var momoUrl = await _moMoService.CreatePaymentUrlAsync(
                     appointment.AppointmentId,
