@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace PetCenterAPI.DTOs.Requests.Appointment
 {
@@ -10,5 +10,6 @@ namespace PetCenterAPI.DTOs.Requests.Appointment
         [Required]
         public string PaymentMethod { get; set; } = null!;
         public string ClientIpAddress { get; set; } = string.Empty;
+        public string? CustomReturnUrl { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PetCenterAPI.DTOs.Requests.Appointment;
@@ -205,7 +205,12 @@ namespace PetCenterAPI.Controllers
         {
             if (string.IsNullOrEmpty(request.ClientIpAddress))
             {
-                request.ClientIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+                var ip = HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "127.0.0.1";
+                request.ClientIpAddress = ip == "0.0.0.1" ? "127.0.0.1" : ip;
+            }
+            if (string.IsNullOrWhiteSpace(request.CustomReturnUrl))
+            {
+                request.CustomReturnUrl = $"{Request.Scheme}://{Request.Host}/api/Payments/vnpay/return";
             }
 
             try

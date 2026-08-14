@@ -111,7 +111,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
       ),
       builder: (ctx) {
         return StatefulBuilder(
-          builder: (context, setModalState) {
+          builder: (modalCtx, setModalState) {
             return Container(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -127,9 +127,11 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                     value: 'VNPAY',
                     groupValue: selectedMethod,
                     onChanged: (val) {
-                      setModalState(() {
-                        selectedMethod = val!;
-                      });
+                      if (val != null) {
+                        setModalState(() {
+                          selectedMethod = val;
+                        });
+                      }
                     },
                   ),
                   RadioListTile<String>(
@@ -139,59 +141,19 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                     value: 'MOMO',
                     groupValue: selectedMethod,
                     onChanged: (val) {
-                      setModalState(() {
-                        selectedMethod = val!;
-                      });
+                      if (val != null) {
+                        setModalState(() {
+                          selectedMethod = val;
+                        });
+                      }
                     },
                   ),
                   const SizedBox(height: 16),
                   CustomButton(
                     text: 'Proceed to Pay',
-                    onPressed: () async {
+                    onPressed: () {
                       Navigator.pop(ctx);
-                      setState(() {
-                        _isActionLoading = true;
-                      });
-                      try {
-                        final url = await _apiService.createAppointmentPaymentUrl(
-                          appointmentId: widget.appointmentId,
-                          paymentMethod: selectedMethod,
-                        );
-                        if (url != null && url.isNotEmpty) {
-                          if (!mounted) return;
-                          final result = await Navigator.push<PaymentResult>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PaymentWebViewScreen(
-                                paymentUrl: url,
-                                title: 'Pay Appointment via $selectedMethod',
-                              ),
-                            ),
-                          );
-
-                          if (result != null && result.isSuccess) {
-                            if (!mounted) return;
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AppointmentSuccessScreen(
-                                  appointmentId: widget.appointmentId,
-                                  paymentMethod: selectedMethod,
-                                  totalAmount: _detail?.total ?? 0.0,
-                                ),
-                              ),
-                            );
-                          }
-                        } else {
-                          _showError('Could not generate payment URL.');
-                        }
-                      } catch (e) {
-                        _showError('Payment error: ${e.toString().replaceAll('Exception: ', '')}');
-                      } finally {
-                        setState(() {
-                          _isActionLoading = false;
-                        });
-                      }
+                      _processOnlinePayment(selectedMethod);
                     },
                   ),
                 ],
@@ -201,6 +163,73 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         );
       },
     );
+  }
+
+  Future<void> _processOnlinePayment(String paymentMethod) async {
+    setState(() {
+      _isActionLoading = true;
+    });
+
+    try {
+      final url = await _apiService.createAppointmentPaymentUrl(
+        appointmentId: widget.appointmentId,
+        paymentMethod: paymentMethod,
+      );
+
+      if (!mounted) return;
+
+      if (url != null && url.isNotEmpty) {
+        final result = await Navigator.push<PaymentResult>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentWebViewScreen(
+              paymentUrl: url,
+              title: 'Pay Appointment via $paymentMethod',
+            ),
+          ),
+        );
+
+        if (!mounted) return;
+
+        if (result != null && result.isSuccess) {
+          // Re-fetch appointment detail to verify payment status in DB
+          final updatedDetail = await _apiService.getAppointmentDetail(widget.appointmentId);
+          if (!mounted) return;
+
+          if (updatedDetail.status == 2 || updatedDetail.status == 3) {
+            // Payment verified and saved in DB!
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AppointmentSuccessScreen(
+                  appointmentId: widget.appointmentId,
+                  paymentMethod: paymentMethod,
+                  totalAmount: updatedDetail.total,
+                ),
+              ),
+            );
+          } else {
+            // Payment not yet updated in DB
+            _loadDetail();
+            _showError('Hệ thống chưa ghi nhận thanh toán thành công. Vui lòng hoàn tất thanh toán trên cổng VNPay / MoMo và thử lại.');
+          }
+        }
+      } else {
+        if (mounted) {
+          _showError('Could not generate payment URL.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Payment error: ${e.toString().replaceAll('Exception: ', '')}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isActionLoading = false;
+        });
+      }
+    }
   }
 
   void _showReviewDialog() {
