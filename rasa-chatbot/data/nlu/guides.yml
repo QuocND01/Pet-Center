@@ -1,7 +1,8 @@
 version: "3.1"
 
 # ════════════════════════════════════════════════════════════════════════════
-#  HƯỚNG DẪN MUA HÀNG, THANH TOÁN VÀ ĐỊA CHỈ NGUỜI KHÁC
+#  HƯỚNG DẪN MUA HÀNG, THANH TOÁN VÀ ĐỊA CHỈ (TRAINING PHONG PHÚ)
+#  ⚠️ xem_dia_chi CHỈ khai báo 1 nơi (ở đây) — đã xóa khỏi account.yml
 # ════════════════════════════════════════════════════════════════════════════
 
 nlu:
@@ -45,18 +46,45 @@ nlu:
     - địa chỉ nhà của người khác
     - xem địa chỉ người lạ
 
+# ════════════════════════════════════════════════════════════════════════════
+#  XEM ĐỊA CHỈ — TẬP TRUNG XEM & HƯỚNG DẪN XEM ĐỊA CHỈ ĐÃ LƯU
+# ════════════════════════════════════════════════════════════════════════════
 - intent: xem_dia_chi
   examples: |
+    - địa chỉ của tôi
+    - xem địa chỉ đã lưu
+    - địa chỉ giao hàng của tôi
+    - tôi đã lưu địa chỉ nào
+    - danh sách địa chỉ đã lưu
     - tôi muốn xem địa chỉ của tôi
     - cho tôi xem địa chỉ của mình
-    - tôi muốn chỉnh sửa địa chỉ
     - xem địa chỉ ở đâu vậy
     - xem địa chỉ cá nhân ở đâu
     - cách xem địa chỉ nhận hàng
     - chỗ nào để xem địa chỉ
     - tôi muốn xem lại địa chỉ giao hàng
-    - địa chỉ của tôi
-    - sửa địa chỉ giao hàng
+    - địa chỉ nhận hàng của tôi
+    - xem sổ địa chỉ của tôi
+    - xem sổ địa chỉ
+    - kiểm tra địa chỉ giao hàng
+    - địa chỉ ship hàng của tôi
+    - trang địa chỉ của tôi
+    - trang sổ địa chỉ
+    - xem địa chỉ giao hàng
+    - my addresses ở đâu
+    - xem danh sách địa chỉ giao hàng
+    - có mấy địa chỉ đã lưu
+    - tôi đang có bao nhiêu địa chỉ
+    - danh sách địa chỉ giao hàng đã lưu
+    - địa chỉ nào đang được lưu
+    - cho tôi xem địa chỉ
+    - coi địa chỉ giao hàng
+    - hướng dẫn xem địa chỉ
+    - xem địa chỉ nhận hàng ở đâu
+    - làm sao để xem địa chỉ của mình
+    - coi danh sách địa chỉ
+    - cho xem địa chỉ nhận hàng
+    - địa chỉ đã lưu của tôi là gì
 
 - intent: goto_login_page
   examples: |
@@ -64,3 +92,176 @@ nlu:
     - tới trang đăng nhập
     - mở trang đăng nhập
     - sang trang đăng nhập
+
+# ════════════════════════════════════════════════════════════════════════════
+#  DỊCH VỤ VÀ ĐẶT LỊCH HẸN (SOLUTION 1 - UNIFIED INTENT)
+# ════════════════════════════════════════════════════════════════════════════
+
+- intent: hoi_dich_vu
+  examples: |
+    - xem dịch vụ
+    - danh sách dịch vụ
+    - shop có những dịch vụ gì
+    - các dịch vụ tại petcenter
+    - dịch vụ thú cưng
+    - xem danh sách dịch vụ
+    - shop cung cấp những dịch vụ nào
+    - cho xem các dịch vụ
+    - danh sách dịch vụ thú cưng
+    - dịch vụ ở đây gồm những gì
+    - các dịch vụ hiện có
+    - có những dịch vụ nào
+    - petcenter có dịch vụ gì
+    - dịch vụ khám bệnh và spa
+    - thông tin các dịch vụ
+    - cho tôi xem dịch vụ
+    - coi dịch vụ thú cưng
+    - dịch vụ bên mình gồm những gì
+    - có mấy loại dịch vụ
+    - phân loại dịch vụ
+    - dịch vụ gồm những nhóm nào
+    - các nhóm dịch vụ của shop
+    - shop có mấy loại dịch vụ
+    - dịch vụ khám bệnh hay spa
+    - dịch vụ y tế và làm đẹp
+    - các phân loại dịch vụ
+    - hệ thống có những loại dịch vụ nào
+    - nhóm dịch vụ thú cưng
+
+- intent: huong_dan_dat_lich
+  examples: |
+    - hướng dẫn đặt lịch
+    - làm sao để book lịch
+    - cách đặt lịch hẹn
+    - đặt lịch spa như thế nào
+    - đặt lịch khám bệnh làm sao
+    - chỉ tôi cách book lịch với
+    - các bước đặt lịch hẹn
+    - hướng dẫn book lịch hẹn
+    - tôi muốn đặt lịch khám thì làm sao
+    - làm thế nào để book lịch spa
+    - chỉ cách đặt lịch hẹn trên web
+    - hướng dẫn các bước book lịch
+    - đặt lịch hẹn như thế nào
+    - cách đăng ký lịch khám bệnh
+    - đặt lịch chăm sóc thú cưng
+    - làm sao để hẹn lịch bác sĩ
+
+- intent: goto_service_page
+  examples: |
+    - tới trang dịch vụ
+    - mở trang dịch vụ
+    - xem tất cả dịch vụ
+    - dịch vụ y tế
+    - dịch vụ spa
+
+- intent: goto_booking_page
+  examples: |
+    - tới trang đặt lịch
+    - mở trang đặt lịch
+    - sang trang book lịch
+    - đặt lịch hẹn ngay
+
+# ════════════════════════════════════════════════════════════════════════════
+#  QUẢN LÝ VÀ XEM LỊCH HẸN CÁ NHÂN & BẢO MẬT LỊCH HẸN NGƯỜI KHÁC
+# ════════════════════════════════════════════════════════════════════════════
+
+- intent: xem_lich_hen_cua_toi
+  examples: |
+    - xem lịch hẹn của tôi
+    - lịch hẹn của tôi
+    - tôi có lịch hẹn nào không
+    - kiểm tra lịch hẹn của tôi
+    - danh sách lịch hẹn của tôi
+    - các lịch hẹn tôi đã đặt
+    - lịch khám của tôi
+    - lịch spa của tôi
+    - cho xem lịch hẹn đã book
+    - lịch hẹn sắp tới của tôi
+    - kiểm tra lịch khám đã đặt
+    - tôi có lịch hẹn khám nào không
+    - coi lịch hẹn của tui
+    - các lịch hẹn đã đặt của tôi
+    - lịch hẹn cá nhân
+    - sổ lịch hẹn của tôi
+    - xem các lịch hẹn hiện tại của tôi
+    - tôi đã đặt lịch hẹn nào rồi
+    - cho tôi xem lịch hẹn của mình
+
+# ⚠️ BẢO MẬT: Từ chối xem lịch hẹn của người khác / tài khoản khác
+# ⛔ KHÔNG thêm từ "Bác sĩ", "Vet", "Chuyên viên" vào đây để tránh xung đột NLU tương lai!
+- intent: xem_lich_hen_nguoi_khac
+  examples: |
+    - xem lịch hẹn của người khác
+    - cho xem lịch hẹn của tài khoản khác
+    - lịch hẹn của bạn tôi đâu
+    - xem lịch hẹn của người thân
+    - kiểm tra lịch hẹn của người khác
+    - xem lịch hẹn của vợ tôi
+    - lịch hẹn của chồng tôi
+    - xem lịch hẹn của bạn mình
+    - cho xem lịch hẹn của người quen
+    - xem lịch hẹn không phải của tôi
+    - tra cứu lịch hẹn của khách hàng khác
+    - lịch hẹn của em trai mình
+    - cho tôi xem lịch hẹn của người khác
+
+- intent: goto_my_appointments_page
+  examples: |
+    - tới trang lịch hẹn
+    - mở trang lịch hẹn
+    - sổ lịch hẹn của tôi
+    - mở danh sách lịch hẹn
+
+# ════════════════════════════════════════════════════════════════════════════
+#  QUẢN LÝ VÀ XEM HỒ SƠ THÚ CƯNG CÁ NHÂN & BẢO MẬT HỒ SƠ PET NGƯỜI KHÁC
+# ════════════════════════════════════════════════════════════════════════════
+
+- intent: xem_danh_sach_thu_cung
+  examples: |
+    - xem hồ sơ pet của tôi như thế nào
+    - xem hồ sơ thú cưng ở đâu
+    - cách nào để xem danh sách pet
+    - tôi muốn xem danh sách thú cưng của tôi
+    - kiểm tra hồ sơ thú cưng
+    - danh sách pet của tôi
+    - hồ sơ các bé cưng của tôi
+    - xem danh sách thú cưng
+    - tôi đã đăng ký những pet nào
+    - các bé cưng của tôi ở đâu
+    - hướng dẫn xem hồ sơ thú cưng
+    - chỗ nào để xem danh sách pet
+    - làm sao để xem hồ sơ pet của mình
+    - tôi muốn coi danh sách pet
+    - trang quản lý thú cưng ở đâu
+    - xem danh sách pet của tôi
+    - kiểm tra danh sách thú cưng
+    - sổ hồ sơ thú cưng của tôi
+
+# ⚠️ BẢO MẬT: Từ chối xem hồ sơ pet của người khác / tài khoản khác
+# ⛔ KHÔNG thêm tên riêng hay từ chỉ bác sĩ/nhân viên vào đây để tránh xung đột NLU tương lai!
+- intent: xem_pet_nguoi_khac
+  examples: |
+    - cho xem hồ sơ pet của người khác
+    - xem danh sách thú cưng của tài khoản khác
+    - hồ sơ pet của bạn tôi đâu
+    - xem thú cưng của người thân
+    - kiểm tra hồ sơ pet của người khác
+    - xem pet của vợ tôi
+    - hồ sơ thú cưng của chồng tôi
+    - xem danh sách pet của bạn mình
+    - cho xem pet của người quen
+    - xem hồ sơ pet không phải của tôi
+    - tra cứu pet của khách hàng khác
+    - hồ sơ thú cưng của em trai mình
+    - cho tôi xem pet của người khác
+
+- intent: goto_my_pets_page
+  examples: |
+    - tới trang thú cưng
+    - mở trang thú cưng
+    - danh sách pet của tôi
+    - sang trang quản lý thú cưng
+
+
+

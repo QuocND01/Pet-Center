@@ -45,28 +45,51 @@ def _normalize_text(s: str) -> str:
 
 
 # █ Danh sách prefix giao tiếp cần cắt bỏ khi tìm kiếm đơn theo sản phẩm
+# ⚠️ QUAN TRỌNG: Chỉ liệt kê prefix CÓ ngữ cảnh đơn hàng rõ ràng.
+#    KHÔNG đưa vào prefix mơ hồ như "tìm" đơn lẻ — sẽ gây false positive.
 _SEARCH_PREFIXES = [
     "tôi muốn tìm đơn hàng có sản phẩm tên là",
     "tôi muốn tìm đơn hàng có chứa sản phẩm tên là",
     "tôi muốn tìm đơn hàng có sản phẩm là",
     "tôi muốn tìm đơn hàng có chứa sản phẩm",
+    "tôi muốn tìm sản phẩm có tên là",
+    "tôi muốn tìm sản phẩm có tên",
+    "tôi muốn tìm sản phẩm tên",
     "tìm đơn hàng có sản phẩm là",
     "tìm đơn hàng có chứa sản phẩm",
     "tìm đơn hàng có sản phẩm",
-    "tìm đơn có sản phẩm",
+    "tìm sản phẩm trong đơn hàng của tôi",
+    "tìm sản phẩm trong đơn hàng",
     "tìm sản phẩm trong đơn",
-    "tìm sản phẩm",
+    "tìm đơn có sản phẩm",
+    "giúp tôi tìm sản phẩm có tên là",
+    "giúp tôi tìm sản phẩm có tên",
+    "giúp tôi tìm sản phẩm tên",
+    "giúp tôi tìm sản phẩm",
+    "giúp mình tìm sản phẩm",
+    "giúp tôi tìm đơn có sản phẩm",
+    "tìm giúp tôi sản phẩm",
+    "tìm giúp mình sản phẩm",
     "sản phẩm tên là",
-    "xem đơn có",
-    "xem đơn hàng có",
+    "sản phẩm tên",
+    "xem đơn hàng có chứa sản phẩm",
+    "xem đơn hàng có sản phẩm",
+    "xem đơn có sản phẩm",
+    "đơn hàng nào có sản phẩm tên",
+    "đơn hàng nào có sản phẩm",
     "đơn hàng có sản phẩm",
-    "tôi muốn tìm",
-    "tìm giúp tôi",
-    "tìm giúp mình",
-    "giúp tôi tìm",
-    "giúp mình tìm",
+    "đơn nào có chứa sản phẩm",
+    "đơn nào có sản phẩm",
+    "cho tôi tìm đơn có sản phẩm tên",
+    "cho tôi tìm đơn có sản phẩm",
+    "có đơn hàng nào chứa",
+    "có đơn nào có",
+    "tôi đã mua",
+    "tôi có đặt sản phẩm",
+    "tôi có mua",
+    "tôi mua",
     "tìm đơn",
-    "tìm",
+    # ⛔ KHÔNG thêm "tìm" đơn lẻ — quá mơ hồ, gây false positive
 ]
 
 
@@ -91,22 +114,34 @@ def _strip_search_prefix(text: str) -> str:
 
 def _match_product_in_orders(orders: list, user_text: str) -> list:
     """
-    Thuật toán Chấm điểm Trọng số (Relevance Weighted Scoring Algorithm):
-    - Khớp 1 từ: Hoạt động 100% nguyên bản như trước (không bị ảnh hưởng).
-    - Khớp nhiều từ: Tự động tính điểm match_score. 
-      Đơn hàng có sản phẩm khớp nhiều từ hơn sẽ có điểm cao hơn và tự động loại bỏ các đơn khớp ngẫu nhiên 1 từ.
+    Thuật toán Chấm điểm Trọng số & Kiểm duyệt Ngưỡng Khớp Nghiêm ngặt (v3 - Anti False Positive):
+    - 1 từ: 100% khớp (e.g. Kong, Royal, Ultra, Pate).
+    - 2 từ: Yêu cầu cả 2 từ đều khớp (100%) hoặc chuỗi query nằm trong tên SP.
+    - >= 3 từ: Cần match_ratio >= 60% VÀ ít nhất (len-1) từ khớp với cụm 3-4 từ.
+    - Loại bỏ hoàn toàn trường hợp tìm 'Me-O Creamy Cat Treats' mà match nhầm với 'Premium Chicken Cat Food'!
     """
     norm_query = _normalize_text(user_text or "")
     if not norm_query or len(norm_query) < 2:
         return []
 
+    # Fillers mở rộng
     fillers = {
-        "toi", "mua", "don", "hang", "can", "xem", "kiem", "tra", "khong", "nho", 
-        "ma", "gi", "do", "hoi", "luc", "truoc", "voi", "cho", "xin", "la", "co", 
-        "nhu", "the", "nao", "shop", "oi", "mot", "tim", "giup", "san", "pham", "giao", "dat", "hay", "ten",
-        "muon", "nao", "nhung", "cac", "duoc", "tung", "da", "lai", "nay", "ay", "kia", "voi", "em", "admin"
+        "toi", "mua", "don", "hang", "can", "xem", "kiem", "tra", "khong", "nho",
+        "ma", "gi", "do", "hoi", "luc", "truoc", "voi", "cho", "xin", "la", "co",
+        "nhu", "the", "nao", "shop", "oi", "mot", "tim", "giup", "san", "pham",
+        "giao", "dat", "hay", "ten", "muon", "nhung", "cac", "duoc", "tung",
+        "da", "lai", "nay", "ay", "kia", "em", "admin", "dung", "cung", "vay",
+        "ok", "oke", "um", "a", "u", "ve", "tu", "sau", "tren", "duoi", "trong",
+        "s", "o", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+        "n", "p", "q", "r", "t", "u", "v", "w", "x", "y", "z",
+        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+        "kg", "ml", "mg", "gr", "lit", "pack", "goi", "hop",
     }
-    query_words = [w for w in norm_query.split() if w not in fillers and len(w) > 1]
+
+    # Giữ lại token có độ dài >= 2 không nằm trong fillers (ví dụ 'me' trong Me-O)
+    query_words = [w for w in norm_query.split() if w not in fillers and len(w) >= 2]
+    if not query_words:
+        query_words = [w for w in norm_query.split() if w not in fillers]
     if not query_words:
         return []
 
@@ -115,35 +150,61 @@ def _match_product_in_orders(orders: list, user_text: str) -> list:
     for o in orders:
         items = extract_list(get_field(o, "orderItems", "OrderItems", "orderDetails", "OrderDetails", default=[]))
         best_item_score = 0
+        best_matched_count = 0
 
         for it in items:
             pname = _normalize_text(get_field(it, "productName", "ProductName", default=""))
             if not pname:
                 continue
 
-            matched_words = [w for w in query_words if w in pname]
+            pname_words = set(pname.split())
+            # So sánh khớp từ chính xác hoặc khớp chuỗi con giữa các token
+            matched_words = [
+                w for w in query_words 
+                if w in pname_words or any(w in pw or pw in w for pw in pname_words if len(pw) >= 3 and len(w) >= 3)
+            ]
             word_score = len(matched_words)
-            bonus = 5 if norm_query in pname else 0
-            total_score = word_score + bonus
 
-            if total_score > best_item_score and word_score > 0:
+            if word_score == 0:
+                continue
+
+            match_ratio = word_score / len(query_words)
+
+            # █ KIỂM TRA TIÊU CHUẨN KHỚP NGHIÊM NGẶT (Strict Acceptance Threshold)
+            is_valid_match = False
+            if len(query_words) == 1:
+                is_valid_match = (word_score >= 1)
+            elif len(query_words) == 2:
+                # 2 từ: Yêu cầu cả 2 từ cùng khớp (100%), hoặc chuỗi query nằm gọn trong tên SP
+                is_valid_match = (word_score >= 2) or (norm_query in pname)
+            else: # >= 3 từ
+                # 3 từ trở lên: Yêu cầu tỉ lệ khớp >= 60% VÀ khớp đủ số lượng từ cốt lõi
+                min_required_words = max(2, len(query_words) - 1) if len(query_words) <= 4 else int(len(query_words) * 0.6)
+                is_valid_match = (word_score >= min_required_words) and (match_ratio >= 0.60 or norm_query in pname)
+
+            if not is_valid_match:
+                continue
+
+            # Bonus 1: Exact phrase match — toàn bộ query nằm trong tên sản phẩm
+            bonus_exact = 10 if norm_query in pname else 0
+
+            # Bonus 2: Tỉ lệ từ khớp cao
+            bonus_ratio = 5 if match_ratio >= 0.80 else (3 if match_ratio >= 0.60 else 0)
+
+            total_score = word_score + bonus_exact + bonus_ratio
+
+            if total_score > best_item_score:
                 best_item_score = total_score
+                best_matched_count = word_score
 
         if best_item_score > 0:
-            scored_orders.append((o, best_item_score))
+            scored_orders.append((o, best_item_score, best_matched_count))
 
     if not scored_orders:
         return []
 
-    max_score = max(score for _, score in scored_orders)
-
-    # Nếu người dùng tìm kiếm cụm từ từ 2 từ trở lên và có đơn đạt điểm cao vượt trội:
-    # Chỉ giữ lại các đơn có điểm cao nhất (loại bỏ hoàn toàn các đơn bị trùng lặp 1 từ ngẫu nhiên)
-    if len(query_words) > 1 and max_score >= 2:
-        return [o for o, score in scored_orders if score == max_score]
-
-    # Người dùng tìm 1 từ ngắn (như "Ultra" hoặc "Royal") -> Trả về tất cả các đơn có chứa từ đó
-    return [o for o, score in scored_orders]
+    max_score = max(score for _, score, _ in scored_orders)
+    return [o for o, score, _ in scored_orders if score == max_score]
 
 
 def _resolve_target_order(
@@ -419,133 +480,115 @@ class ActionTimDonHangTheoSanPham(Action):
             search_term = None
 
         if not search_term:
-            return _get_order_id_from_tracker_or_ask(dispatcher, tracker, "sản phẩm trong đơn")[2]
+            # Không có từ khóa rõ ràng → hỏi user muốn tìm gì
+            dispatcher.utter_message(
+                text="Bạn muốn tìm sản phẩm nào trong đơn hàng? Nhắn tên sản phẩm cho tôi nhé! 🔍\nVí dụ: *Royal Canin*, *pate mèo*, *Kong*..."
+            )
+            return [SlotSet("tu_khoa", None)]
 
         # █ Kiểm tra ngữ cảnh đơn hàng trong tin nhắn gốc của user
-        # Nếu user gửi ngắn + không có từ đơn hàng → hỏi xác nhận trước khi tìm
+        # Nếu không có từ liên quan đến đơn hàng → hỏi xác nhận trước khi tìm
+        # (Bỏ điều kiện is_short_message — bất kể câu dài hay ngắn, thiếu context là hỏi lại)
         user_text_raw = (tracker.latest_message.get("text") or "").strip()
         is_button_payload = user_text_raw.startswith('/')  # Button payload → bỏ qua context check
         order_context_words = [
             "đơn", "đơn hàng", "đã mua", "trong đơn", "mua trong",
-            "tôi mua", "tôi đặt", "lịch sử", "trong đơn hàng"
+            "tôi mua", "tôi đặt", "lịch sử", "trong đơn hàng",
+            "mua rồi", "đã đặt", "kiểm tra đơn", "tìm đơn", "tra đơn",
+            "lịch sử mua", "đơn nào", "đơn hàng nào",
         ]
         has_order_context = any(w in user_text_raw.lower() for w in order_context_words)
-        is_short_message = len(user_text_raw.split()) <= 5
 
-        if not is_button_payload and not has_order_context and is_short_message:
-            # Hỏi xác nhận — không tìm tự động khi thiếu ngữ cảnh
-            safe_kw = (search_term or user_text_raw).replace('"', "'")
+        if not is_button_payload and not has_order_context:
+            # Hỏi xác nhận thân thiện — không lộ ra "cần đầy đủ context"
+            # Dẫn dắt user hiểu 2 hướng: tìm trong đơn đã mua VS xem sản phẩm đang bán
+            safe_kw = (search_term or user_text_raw).replace('"', "'").replace('{', '').replace('}', '')
             dispatcher.utter_message(
-                text=f'Bạn muốn tôi tìm sản phẩm **"{safe_kw}"** trong đơn hàng của bạn không? 🔍',
+                text=(
+                    f'Tôi thấy bạn đang nhắc đến **"{safe_kw}"** 🐾\n\n'
+                    f'Tôi có thể giúp bạn theo 2 hướng sau, bạn bấm chọn hoặc cho tôi biết thêm nhé!'
+                ),
                 buttons=[
                     {
-                        "title": "✅ Đúng, tìm cho tôi",
+                        "title": f"📦 Tìm trong đơn hàng đã mua",
                         "payload": f'/xac_nhan_tim_don{{"tu_khoa": "{safe_kw}"}}'
                     },
                     {
-                        "title": "❌ Không phải",
-                        "payload": "/deny"
+                        "title": "🛍️ Xem sản phẩm đang bán",
+                        "payload": "/xem_san_pham_hot"
                     },
                 ]
             )
             return [SlotSet("tu_khoa", search_term)]
 
-        ok, data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
-        if not ok:
-            ok, data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+        # Gọi trực tiếp API Backend tìm kiếm theo tên sản phẩm (ProductName)
+        return _execute_product_search(dispatcher, tracker, search_term, is_confirm=False)
 
-        if not ok:
-            dispatcher.utter_message(text="⚠️ Unable to load orders at this time. Please try again later!")
-            return [SlotSet("tu_khoa", None)]
 
-        orders = extract_list(data)
-        if not orders:
-            dispatcher.utter_message(text="Bạn chưa có đơn hàng nào. Cùng mua sắm nhé! 🛍️")
-            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+def _execute_product_search(dispatcher: CollectingDispatcher, tracker: Tracker, search_term: str, is_confirm: bool = False) -> List[Dict[Text, Any]]:
+    """
+    Hàm dùng chung gọi API Backend /api/chat/my-orders-search để tìm kiếm đơn hàng theo tên sản phẩm (ProductName).
+    """
+    ok_search, search_data = api_get("/api/chat/my-orders-search", tracker, params={"keyword": search_term}, with_auth=True)
+    matched_orders = extract_list(search_data) if ok_search else []
 
-        matched_orders = _match_product_in_orders(orders, search_term)
+    # Lấy danh sách đơn hàng gần đây của khách để hiển thị fallback nếu không tìm thấy
+    ok_all, all_data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
+    if not ok_all:
+        ok_all, all_data = api_get("/api/orders/my-orders", tracker, with_auth=True)
+    all_orders = extract_list(all_data) if ok_all else []
 
-        if matched_orders:
-            match_count = len(matched_orders)
-            safe_st = str(search_term or '').strip().replace('"', "'")
+    safe_st = str(search_term or '').strip().replace('"', "'")
 
-            if match_count == 1:
-                target_order = matched_orders[0]
-                oid = str(get_field(target_order, "orderId", "OrderId", default="")).strip().lstrip('#')
-                ok_det, det_data = api_get(f"/api/orders/{oid}", tracker, with_auth=True)
-                data_render = det_data if ok_det and det_data else target_order
-                prefix = f"Dạ! 🐾 Tôi tìm thấy 1 đơn hàng bạn từng mua có chứa sản phẩm khớp với tìm kiếm đây ạ:\n\n📋 **CHI TIẾT ĐƠN HÀNG #{oid[:8]}…**"
-                return _render_order_detail_card(dispatcher, oid, data_render, custom_prefix=prefix) + [SlotSet("tu_khoa", None)]
+    if matched_orders:
+        match_count = len(matched_orders)
+        if match_count == 1:
+            target_order = matched_orders[0]
+            oid = str(get_field(target_order, "orderId", "OrderId", default="")).strip().lstrip('#')
+            ok_det, det_data = api_get(f"/api/orders/{oid}", tracker, with_auth=True)
+            data_render = det_data if ok_det and det_data else target_order
+            prefix_title = "✅ Tìm thấy rồi! 🐾" if is_confirm else "Dạ! 🐾 Tôi tìm thấy 1 đơn hàng bạn từng mua có chứa sản phẩm khớp với tìm kiếm đây ạ:"
+            prefix = f"{prefix_title}\n\n📋 **CHI TIẾT ĐƠN HÀNG #{oid[:8]}…**"
+            return _render_order_detail_card(dispatcher, oid, data_render, custom_prefix=prefix) + [SlotSet("tu_khoa", None)]
 
-            display_orders = matched_orders[:3]
-            lines = [f"Dạ! 🐾 Tôi tìm thấy {match_count} đơn hàng bạn từng mua có chứa sản phẩm khớp với tìm kiếm ạ. Dưới đây là các đơn gần đây nhất:"]
-            buttons = []
-            for o in display_orders:
-                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
-                created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
-                date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
-                short_id = oid[:8] if oid else "đơn"
-                buttons.append({
-                    "title": f"📋 Đơn #{short_id} ({date_str})",
-                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
-                })
-            buttons.append({
-                "title": "🔗 Xem các đơn hàng đã lọc trên Web",
-                "payload": f'/goto_orders_page{{"search_query": "{safe_st}"}}'
-            })
-            dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
-        else:
-            lines = [f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có chứa sản phẩm này** ạ.\n\n📦 Dưới đây là các đơn hàng gần đây nhất của bạn:"]
-            display_orders = orders[:3]
-            buttons = []
-            for o in display_orders:
-                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
-                created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
-                date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
-                short_id = oid[:8] if oid else "đơn"
-                buttons.append({
-                    "title": f"📋 Đơn #{short_id} ({date_str})",
-                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
-                })
-            buttons.append({
-                "title": "🔗 Xem tất cả đơn trên Web",
-                "payload": "/goto_orders_page"
-            })
-            dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
-
-        if total_count > 3:
-            lines = [f"📦 3 đơn hàng gần nhất của bạn (tổng {total_count} đơn):"]
-        else:
-            lines = [f"📦 Bạn có {total_count} đơn hàng gần đây:"]
-
+        display_orders = matched_orders[:3]
+        msg_header = f"✅ Tìm thấy {match_count} đơn hàng có sản phẩm khớp với **\"{safe_st}\"**:" if is_confirm else f"Dạ! 🐾 Tôi tìm thấy {match_count} đơn hàng bạn từng mua có chứa sản phẩm khớp với tìm kiếm ạ. Dưới đây là các đơn gần đây nhất:"
+        lines = [msg_header]
         buttons = []
-
-        for i, o in enumerate(display_orders, 1):
+        for o in display_orders:
             oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
-            total = get_field(o, "totalAmount", "TotalAmount", default=0)
-            status_code = get_field(o, "status", "Status", default=0)
-            status_text = order_status_label(status_code)
-            short_id = oid[:8] if oid else f"#{i}"
-
-            lines.append(f"{i}. Mã #{short_id}… — {format_price(total)} — {status_text}")
-
-            if oid:
-                buttons.append({
-                    "title": f"📋 Chi tiết #{short_id}",
-                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
-                })
-
-
+            created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
+            date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
+            short_id = oid[:8] if oid else "đơn"
+            buttons.append({
+                "title": f"📋 Đơn #{short_id} ({date_str})",
+                "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
+            })
+        buttons.append({
+            "title": "🔗 Xem các đơn hàng đã lọc trên Web",
+            "payload": f'/goto_orders_page{{"search_query": "{safe_st}"}}'
+        })
+        dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+        return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+    else:
+        lines = [f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có chứa sản phẩm '{safe_st}'** ạ.\n\n📦 Dưới đây là các đơn hàng gần đây nhất của bạn:"]
+        display_orders = all_orders[:3]
+        buttons = []
+        for o in display_orders:
+            oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
+            created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
+            date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
+            short_id = oid[:8] if oid else "đơn"
+            buttons.append({
+                "title": f"📋 Đơn #{short_id} ({date_str})",
+                "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
+            })
         buttons.append({
             "title": "🔗 Xem tất cả đơn trên Web",
             "payload": "/goto_orders_page"
         })
-
         dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-        return [SlotSet("order_id", None)]
-
+        return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
 
 
 class ActionXacNhanTimDon(Action):
@@ -577,60 +620,7 @@ class ActionXacNhanTimDon(Action):
             )
             return [SlotSet("tu_khoa", None)]
 
-        ok, data = api_get("/api/chat/my-orders-with-items", tracker, with_auth=True)
-        if not ok:
-            ok, data = api_get("/api/orders/my-orders", tracker, with_auth=True)
-
-        if not ok:
-            dispatcher.utter_message(text="⚠️ Hiện không tải được đơn hàng. Vui lòng thử lại sau nhé!")
-            return [SlotSet("tu_khoa", None)]
-
-        orders = extract_list(data)
-        if not orders:
-            dispatcher.utter_message(text="Bạn chưa có đơn hàng nào. Cùng mua sắm nhé! 🛍️")
-            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
-
-        matched_orders = _match_product_in_orders(orders, search_term)
-
-        if matched_orders:
-            match_count = len(matched_orders)
-            safe_st = str(search_term).replace('"', "'")
-
-            if match_count == 1:
-                target_order = matched_orders[0]
-                oid = str(get_field(target_order, "orderId", "OrderId", default="")).strip().lstrip('#')
-                ok_det, det_data = api_get(f"/api/orders/{oid}", tracker, with_auth=True)
-                data_render = det_data if ok_det and det_data else target_order
-                prefix = f"✅ Tìm thấy rồi! 🐾 Đơn hàng có chứa sản phẩm khớp với **\"{search_term}\"**:\n\n📋 **CHI TIẾT ĐƠN HÀNG #{oid[:8]}…**"
-                return _render_order_detail_card(dispatcher, oid, data_render, custom_prefix=prefix) + [SlotSet("tu_khoa", None)]
-
-            display_orders = matched_orders[:3]
-            lines = [f"✅ Tìm thấy {match_count} đơn hàng có sản phẩm khớp với **\"{search_term}\"**:"]
-            buttons = []
-            for o in display_orders:
-                oid = str(get_field(o, "orderId", "OrderId", default="")).strip().lstrip('#')
-                created = get_field(o, "orderDate", "OrderDate", "createdAt", "CreatedAt", default="")
-                date_str = str(created).split("T")[0] if "T" in str(created) else str(created)[:10]
-                short_id = oid[:8] if oid else "đơn"
-                buttons.append({
-                    "title": f"📋 Đơn #{short_id} ({date_str})",
-                    "payload": f'/xem_chi_tiet_don{{"order_id": "{oid}"}}'
-                })
-            buttons.append({
-                "title": "🔗 Xem kết quả trên Web",
-                "payload": f'/goto_orders_page{{"search_query": "{safe_st}"}}'
-            })
-            dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
-            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
-
-        else:
-            dispatcher.utter_message(
-                text=f"Dạ! 🐾 Tôi đã kiểm tra toàn bộ lịch sử mua hàng nhưng **không tìm thấy đơn hàng nào có sản phẩm \"{search_term}\"** ạ.\n\nBạn có muốn xem toàn bộ đơn hàng không?",
-                buttons=[
-                    {"title": "📦 Xem tất cả đơn hàng", "payload": "/xem_don_hang_cua_toi"},
-                ]
-            )
-            return [SlotSet("order_id", None), SlotSet("tu_khoa", None)]
+        return _execute_product_search(dispatcher, tracker, search_term, is_confirm=True)
 
 
 class ActionXemDonHangVuaDat(Action):

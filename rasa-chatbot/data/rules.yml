@@ -43,6 +43,13 @@ rules:
     - intent: affirm
     - action: utter_phan_hoi_linh_tinh
 
+# Fix lỗi: deny sau khi bot hỏi xác nhận (tiêu biểu: sau context check của tim_don_hang_theo_san_pham)
+# Không có rule này → TEDPolicy predict sai action → bot trả lời lùng (xoa_san_pham...)
+- rule: Phản hồi khi deny mà không có context form
+  steps:
+    - intent: deny
+    - action: utter_phan_hoi_linh_tinh
+
 - rule: Fallback khi không hiểu
   steps:
     - intent: nlu_fallback
@@ -191,6 +198,56 @@ rules:
     - intent: goto_orders_page
     - action: action_goto_orders_page
 
+
+- rule: Hỏi thông tin và phân loại dịch vụ
+  steps:
+    - intent: hoi_dich_vu
+    - action: action_hoi_dich_vu
+
+- rule: Hướng dẫn đặt lịch hẹn
+  steps:
+    - intent: huong_dan_dat_lich
+    - action: action_huong_dan_dat_lich
+
+- rule: Điều hướng trang dịch vụ
+  steps:
+    - intent: goto_service_page
+    - action: action_goto_service_page
+
+- rule: Điều hướng trang đặt lịch
+  steps:
+    - intent: goto_booking_page
+    - action: action_goto_booking_page
+
+- rule: Xem lịch hẹn của tôi
+  steps:
+    - intent: xem_lich_hen_cua_toi
+    - action: action_xem_lich_hen_cua_toi
+
+- rule: Từ chối xem lịch hẹn người khác
+  steps:
+    - intent: xem_lich_hen_nguoi_khac
+    - action: action_xem_lich_hen_cua_toi
+
+- rule: Điều hướng trang lịch hẹn cá nhân
+  steps:
+    - intent: goto_my_appointments_page
+    - action: action_goto_my_appointments_page
+
+- rule: Xem danh sách hồ sơ thú cưng của tôi
+  steps:
+    - intent: xem_danh_sach_thu_cung
+    - action: action_xem_danh_sach_thu_cung
+
+- rule: Từ chối xem hồ sơ thú cưng người khác
+  steps:
+    - intent: xem_pet_nguoi_khac
+    - action: action_xem_danh_sach_thu_cung
+
+- rule: Điều hướng trang hồ sơ thú cưng
+  steps:
+    - intent: goto_my_pets_page
+    - action: action_goto_my_pets_page
 
 # — Bảo mật: từ chối xem đơn hàng người khác —
 - rule: Từ chối xem đơn hàng của người khác

@@ -146,5 +146,27 @@ namespace PetCenterAPI.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Rasa Chatbot: Search customer orders strictly by product name (ProductName).
+        /// Endpoint: GET /api/chat/my-orders-search?keyword=...
+        /// </summary>
+        [HttpGet("my-orders-search")]
+        public async Task<IActionResult> SearchMyOrdersByProductName([FromQuery] string keyword)
+        {
+            try
+            {
+                var customerId = GetUserId();
+                if (string.IsNullOrWhiteSpace(keyword))
+                    return BadRequest(new { success = false, message = "Keyword is required." });
+
+                var orders = await _orderService.SearchCustomerOrdersByProductNameAsync(customerId, keyword);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }

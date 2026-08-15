@@ -1,7 +1,10 @@
 version: "3.1"
 
 # ════════════════════════════════════════════════════════════════════════════
-#  NHÓM ĐƠN HÀNG + VOUCHER + THUỘC TÍNH CHI TIẾT ĐƠN HÀNG
+#  NHÓM ĐƠN HÀNG + THUỘC TÍNH CHI TIẾT ĐƠN HÀNG
+#  ⚠️ NGUYÊN TẮC TRAINING tim_don_hang_theo_san_pham:
+#     Mọi ví dụ PHẢI có ngữ cảnh đơn hàng rõ ràng (trong đơn, đã mua, đơn nào...)
+#     KHÔNG thêm ví dụ ngắn kiểu "[Tên SP] trong đơn" — gây false positive nghiêm trọng!
 # ════════════════════════════════════════════════════════════════════════════
 
 nlu:
@@ -44,22 +47,22 @@ nlu:
     - tất cả đơn hàng của tôi
     - cho xem toàn bộ đơn hàng
 
+# ⚠️ LƯU Ý: Mọi ví dụ PHẢI có ngữ cảnh đơn hàng rõ ràng.
+# KHÔNG thêm ví dụ ngắn kiểu "[Tên SP] trong đơn" vì sẽ gây false positive!
 - intent: tim_don_hang_theo_san_pham
   examples: |
     - tôi muốn tìm đơn hàng có sản phẩm là [Ultra](tu_khoa)
     - tôi muốn tìm đơn hàng có chứa sản phẩm tên là [Premium Care](tu_khoa)
     - tôi muốn tìm đơn hàng có sản phẩm tên là [Standard Chicken Food 2kg](tu_khoa)
-    - tìm đơn có sản phẩm [BioFresh](tu_khoa)
-    - tìm đơn có sản phẩm [Ultra](tu_khoa)
+    - tìm đơn hàng có sản phẩm [BioFresh](tu_khoa)
+    - tìm đơn hàng có sản phẩm [Ultra](tu_khoa)
     - đơn hàng có sản phẩm [Test](tu_khoa)
-    - đơn có [Nova Pro](tu_khoa)
-    - đơn có [Alpha X2](tu_khoa)
-    - [Ultra Black Leash](tu_khoa) trong đơn nào
-    - [ProductX](tu_khoa) trong đơn nào của tôi
+    - đơn hàng có sản phẩm [Nova Pro](tu_khoa)
+    - đơn hàng có sản phẩm [Alpha X2](tu_khoa)
     - sản phẩm tên là [Standard Rubber Rope Toy](tu_khoa) có trong đơn hàng của tôi không
-    - [Premium Red Pet Bed](tu_khoa) nằm trong đơn nào của tôi
-    - đơn hàng [Royal Canin Urinary S/O Vet Diet 1.5kg](tu_khoa)
-    - xem đơn [Standard Chicken Cat Food 2kg](tu_khoa)
+    - [Premium Red Pet Bed](tu_khoa) nằm trong đơn hàng nào của tôi
+    - đơn hàng nào có sản phẩm [Royal Canin Urinary S/O Vet Diet 1.5kg](tu_khoa)
+    - xem đơn hàng có sản phẩm [Standard Chicken Cat Food 2kg](tu_khoa)
     - tôi muốn tìm sản phẩm có tên là [Test](tu_khoa) trong đơn hàng
     - tôi muốn tìm sản phẩm có tên là [ABC 100ml](tu_khoa) trong đơn hàng của tôi
     - tôi muốn tìm sản phẩm có tên là [Ultra](tu_khoa) trong đơn hàng
@@ -78,54 +81,70 @@ nlu:
     - đơn hàng nào có sản phẩm tên [Ultra Boost](tu_khoa)
     - đơn nào có chứa sản phẩm [Omega Plus](tu_khoa)
     - đơn nào có chứa sản phẩm [Standard Food Bowl](tu_khoa)
-    - đơn có tên sản phẩm là [FleaGuard](tu_khoa)
-    - đơn hàng nào chứa [DentaClean](tu_khoa)
-    - đơn hàng nào chứa [Premium Collar](tu_khoa)
-    - cho tôi tìm đơn có sản phẩm tên [VitaBoost](tu_khoa)
-    - có đơn hàng nào chứa [SampleY](tu_khoa) không
-    - có đơn nào có [Ultra Leash](tu_khoa) không
-    - tôi đã mua [Test](tu_khoa) trong đơn nào vậy
-    - tôi đã mua [Ultra Black](tu_khoa) trong đơn nào vậy
-    - tôi có đặt sản phẩm [Flop X5](tu_khoa) trong đơn nào không
-    - tôi có đặt sản phẩm [Premium Bowl](tu_khoa) trong đơn nào không
-    - sản phẩm [Standard Food 1kg](tu_khoa) tôi mua trong đơn nào
-    - tôi mua [ProductX](tu_khoa) rồi đơn đó ở đâu
-    - tôi mua [Standard Chicken Food](tu_khoa) rồi đơn đó ở đâu
-    - tôi có mua [Item001](tu_khoa) không kiểm tra giúp tôi
-    - sản phẩm [Premium Bed](tu_khoa) tôi có mua không
-    - sản phẩm [AnyBrand X](tu_khoa) tôi có mua không
-    - [Test](tu_khoa) trong đơn
-    - [ProductX](tu_khoa) trong đơn
-    - [Ultra Pro](tu_khoa) trong đơn nào
-    - xem đơn [Ultra Black Leash](tu_khoa)
-    - xem lại đơn có [AquaPlus](tu_khoa)
-    - kiểm tra đơn có [SpeedClean](tu_khoa)
-    - cho xem đơn chứa sản phẩm [NovaCare](tu_khoa)
+    - đơn hàng nào chứa sản phẩm [DentaClean](tu_khoa)
+    - đơn hàng nào chứa sản phẩm [Premium Collar](tu_khoa)
+    - cho tôi tìm đơn hàng có sản phẩm tên [VitaBoost](tu_khoa)
+    - có đơn hàng nào chứa sản phẩm [SampleY](tu_khoa) không
+    - có đơn hàng nào có sản phẩm [Ultra Leash](tu_khoa) không
+    - tôi đã mua [Test](tu_khoa) trong đơn hàng nào vậy
+    - tôi đã mua [Ultra Black](tu_khoa) trong đơn hàng nào vậy
+    - tôi có đặt sản phẩm [Flop X5](tu_khoa) trong đơn hàng nào không
+    - tôi có đặt sản phẩm [Premium Bowl](tu_khoa) trong đơn hàng nào không
+    - sản phẩm [Standard Food 1kg](tu_khoa) tôi đã mua trong đơn hàng nào
+    - tôi đã mua [Standard Chicken Food](tu_khoa) trong đơn hàng nào vậy
+    - tôi có mua [Item001](tu_khoa) không kiểm tra đơn hàng giúp tôi
+    - sản phẩm [Premium Bed](tu_khoa) tôi có mua trong đơn hàng không
+    - [Ultra Black Leash](tu_khoa) tôi đã mua trong đơn hàng nào
+    - kiểm tra đơn hàng có sản phẩm [SpeedClean](tu_khoa) giúp tôi
+    - cho xem đơn hàng có chứa sản phẩm [NovaCare](tu_khoa)
     - xem đơn hàng có chứa sản phẩm [EcoWash](tu_khoa)
-    - cho tôi xem đơn có [Standard Cat Food](tu_khoa)
-    - kiểm tra đơn có sản phẩm [Premium Leash](tu_khoa) giúp tôi
+    - cho tôi xem đơn hàng có sản phẩm [Standard Cat Food](tu_khoa)
+    - kiểm tra đơn hàng có sản phẩm [Premium Leash](tu_khoa) giúp tôi
     - ừ vậy giúp tôi tìm sản phẩm [Cat Food 1kg](tu_khoa) trong đơn hàng
-    - ừ vậy tìm sản phẩm [Ultra](tu_khoa) trong đơn của tôi
+    - ừ vậy tìm sản phẩm [Ultra](tu_khoa) trong đơn hàng của tôi
     - à vậy tìm sản phẩm có tên [Standard Rope](tu_khoa) trong đơn hàng
-    - ok vậy tìm đơn có sản phẩm [Premium Pet Bed](tu_khoa)
-    - oke tìm đơn có [BioShield](tu_khoa) giúp tôi
-    - vậy giúp tôi tìm sản phẩm [Standard Chicken Food](tu_khoa) trong đơn
+    - ok vậy tìm đơn hàng có sản phẩm [Premium Pet Bed](tu_khoa)
+    - oke tìm đơn hàng có sản phẩm [BioShield](tu_khoa) giúp tôi
+    - vậy giúp tôi tìm sản phẩm [Standard Chicken Food](tu_khoa) trong đơn hàng
     - ừm vậy tìm sản phẩm có tên là [Test](tu_khoa) trong đơn hàng
-    - ok ok tìm sản phẩm [Ultra Pro](tu_khoa) trong đơn hàng
+    - ok ok tìm sản phẩm [Ultra Pro](tu_khoa) trong đơn hàng của tôi
+    - lịch sử mua hàng của tôi có [Royal Canin](tu_khoa) không
+    - tôi có đặt [Kong Toy](tu_khoa) trong đơn hàng nào rồi không
+    - kiểm tra đơn hàng đã mua xem có [Me-O](tu_khoa) không
+    - tôi đã từng mua [Pedigree](tu_khoa) chưa, tìm trong đơn hàng giúp tôi
+    - tìm đơn hàng có sản phẩm [Whiskas](tu_khoa)
+    - đơn hàng của tôi có sản phẩm [Pro Plan](tu_khoa) không
+    - tìm đơn hàng đã mua có sản phẩm [Advance](tu_khoa)
+    - đơn hàng nào của tôi có [Kong](tu_khoa) vậy
+    - lịch sử đơn hàng tìm [Catsan](tu_khoa) giúp tôi
+    - tôi đã từng đặt [Hill's Science Diet](tu_khoa) trong đơn nào
+    - đơn hàng nào tôi mua [Eukanuba](tu_khoa)
+    - trong đơn hàng của tôi có [Orijen](tu_khoa) không
+    - tìm lại đơn hàng có sản phẩm [Acana](tu_khoa)
 
+# ⚠️ PHÂN BIỆT VỚI AFFIRM: Luôn kèm từ "đơn" để tránh nhầm với affirm thông thường.
 - intent: xac_nhan_tim_don
   examples: |
-    - đúng tìm cho tôi
-    - có hãy tìm
-    - đúng tôi muốn tìm
-    - ok tìm đi
-    - oke tìm đi
-    - ừm tìm đi
-    - phải đó tìm giúp tôi
-    - uh tìm giúp
-    - yes tìm đi
-    - đúng vậy tìm cho tôi
-    - đúng tìm luôn đi
+    - đúng tìm trong đơn hàng cho tôi
+    - có hãy tìm trong đơn hàng
+    - đúng tôi muốn tìm trong đơn hàng
+    - ok tìm trong đơn hàng đi
+    - oke tìm trong đơn hàng đi
+    - ừm tìm trong đơn hàng đi
+    - phải đó tìm trong đơn giúp tôi
+    - yes tìm trong đơn hàng đi
+    - đúng vậy tìm trong đơn hàng cho tôi
+    - đúng tìm luôn trong đơn đi
+    - tìm trong đơn hàng đi
+    - ừ tìm đơn hàng đã mua đi
+    - đúng rồi tìm đơn đi
+    - ok tìm đơn cho tôi
+    - tìm đơn hàng đó giúp tôi
+    - đúng tôi muốn tìm đơn hàng đã mua
+    - có tìm trong đơn đi
+    - ừa tìm trong đơn đi
+    - chính xác tìm đơn hàng cho tôi
+    - đúng đó tìm đơn hàng đi
 
 - intent: xem_don_hang_vua_dat
   examples: |
@@ -230,7 +249,6 @@ nlu:
 - intent: hoi_gia_tong_tien_don
   examples: |
     - giá đơn hàng của tôi như thế nào
-    - giá đơn hàng của tôi như thế nào?
     - đơn này hết bao nhiêu tiền
     - tổng tiền đơn hàng của tôi
     - giá tiền của các sản phẩm trong đơn
@@ -254,7 +272,6 @@ nlu:
 - intent: hoi_so_luong_san_pham_don
   examples: |
     - đơn hàng của tôi có bao nhiêu sản phẩm vậy
-    - đơn hàng của tôi có bao nhiêu sản phẩm vậy?
     - số lượng bao nhiêu
     - đơn này gồm mấy món
     - có bao nhiêu sản phẩm trong đơn
@@ -363,4 +380,3 @@ nlu:
     - cho tôi xem đơn của người bạn tên Tuấn
     - đơn hàng của ông xã tôi giao chưa
     - xem giúp đơn hàng của người thân mình với
-

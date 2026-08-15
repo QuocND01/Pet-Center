@@ -94,5 +94,61 @@ namespace PetCenterAPI.Repository
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Rasa Chatbot: Search customer orders strictly by product name (ProductName).
+        /// </summary>
+        public async Task<List<Order>> SearchOrdersByProductNameAsync(Guid customerId, string keyword)
+        {
+            var searchKw = (keyword ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(searchKw))
+                return new List<Order>();
+
+            var orders = await _db.Orders
+                .AsNoTracking()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                .Where(o => o.CustomerId == customerId)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            var tokens = searchKw.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (tokens.Length == 0) return new List<Order>();
+
+            var matchedOrders = new List<Order>();
+            foreach (var o in orders)
+            {
+                bool hasMatch = o.OrderDetails.Any(d =>
+                {
+                    if (d.Product == null || string.IsNullOrWhiteSpace(d.Product.ProductName))
+                        return false;
+
+                    var pNameLower = d.Product.ProductName.ToLower();
+
+                    // Single word match
+                    if (tokens.Length == 1)
+                        return pNameLower.Contains(tokens[0]);
+
+                    // Full exact substring match
+                    if (pNameLower.Contains(searchKw.ToLower()))
+                        return true;
+
+                    // Token overlap matching strictly against ProductName
+                    int matchCount = tokens.Count(t => pNameLower.Contains(t));
+                    double ratio = (double)matchCount / tokens.Length;
+
+                    int minWords = tokens.Length <= 4 ? Math.Max(2, tokens.Length - 1) : (int)(tokens.Length * 0.6);
+                    return matchCount >= minWords && ratio >= 0.60;
+                });
+
+                if (hasMatch)
+                {
+                    matchedOrders.Add(o);
+                }
+            }
+
+            return matchedOrders;
+        }
     }
 }
