@@ -291,7 +291,7 @@ namespace PetCenterAPI.Service
         {
             var pets = await _petRepo.GetPetsByCustomerIdAsync(customerId);
 
-            var staffs = await _appointmentRepo.GetActiveVetsAsync();
+            var staffs = await _appointmentRepo.GetActiveVetAndGroomersAsync();
 
             var services = await _serviceRepo.GetAllActiveServicesAsync();
 
