@@ -41,7 +41,7 @@ class AppointmentListModel {
         return 'Confirmed';
       case 3:
         return 'Completed';
-      case 4:
+      case 0:
         return 'Cancelled';
       default:
         return 'Unknown ($status)';
@@ -185,7 +185,7 @@ class AppointmentDetailModel {
         return 'Confirmed';
       case 3:
         return 'Completed';
-      case 4:
+      case 0:
         return 'Cancelled';
       default:
         return 'Unknown ($status)';

@@ -51,7 +51,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         return Colors.blue;
       case 3:
         return Colors.green;
-      case 4:
+      case 0:
         return Colors.red;
       default:
         return Colors.grey;
