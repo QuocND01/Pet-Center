@@ -2,15 +2,8 @@ version: "3.1"
 
 # ════════════════════════════════════════════════════════════════════════════
 #  NHÓM TÀI KHOẢN — địa chỉ.
+#  ⚠️ intent xem_dia_chi đã được chuyển toàn bộ sang guides.yml
+#     để tránh trùng lặp và tập trung toàn bộ training data address vào 1 chỗ.
 # ════════════════════════════════════════════════════════════════════════════
 
 nlu:
-
-- intent: xem_dia_chi
-  examples: |
-    - địa chỉ của tôi
-    - xem địa chỉ đã lưu
-    - địa chỉ giao hàng
-    - tôi đã lưu địa chỉ nào
-    - danh sách địa chỉ
-

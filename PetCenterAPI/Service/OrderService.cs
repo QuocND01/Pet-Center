@@ -168,6 +168,39 @@ namespace PetCenterAPI.Service
         }
 
         /// <summary>
+        /// Rasa Chatbot: Search customer orders strictly by product name (ProductName).
+        /// </summary>
+        public async Task<List<ReadOrderListWithItemsDTO>> SearchCustomerOrdersByProductNameAsync(Guid customerId, string keyword)
+        {
+            _logger.LogInformation($"[Rasa Chatbot] Search orders strictly by product name '{keyword}' for Customer ID: {customerId}");
+            var orders = await _orderRepository.SearchOrdersByProductNameAsync(customerId, keyword);
+
+            var dtoList = orders.Select(o => new ReadOrderListWithItemsDTO
+            {
+                OrderId = o.OrderId,
+                CustomerName = o.Customer?.FullName ?? "Unknown",
+                PhoneNumber = o.Customer?.PhoneNumber ?? "N/A",
+                OrderDate = o.OrderDate ?? DateTime.Now,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                PaymentMethod = o.PaymentMethod,
+                PaymentStatus = o.PaymentStatus,
+                AddressSnapshot = o.AddressSnapshot,
+                OrderItems = o.OrderDetails.Select(od => new ReadOrderItemDTO
+                {
+                    ProductId = od.ProductId,
+                    ProductName = od.Product?.ProductName ?? "Sản phẩm",
+                    ProductCategory = od.Product?.Category?.CategoryName ?? "Sản phẩm",
+                    ProductBrand = od.Product?.Brand?.BrandName ?? "PetCenter",
+                    Quantity = od.Quantity,
+                    UnitPrice = od.UnitPrice
+                }).ToList()
+            }).ToList();
+
+            return dtoList;
+        }
+
+        /// <summary>
         /// Tìm các đơn hàng có OrderId chứa một chuỗi con (dùng cho tìm kiếm partial trên UI)
         /// NOTE: Hiện thực đơn giản bằng cách load xuống và lọc tại bộ nhớ để tránh vấn đề translate GUID -> string trong EF.
         /// </summary>

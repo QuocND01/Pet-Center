@@ -20,5 +20,10 @@ namespace PetCenterAPI.Service.Interface
         /// Truy xuất lịch sử đơn hàng kèm danh sách chi tiết các sản phẩm (Dành riêng cho Rasa Chatbot).
         /// </summary>
         Task<List<OrderRequestDTO.ReadOrderListWithItemsDTO>> GetCustomerOrderHistoryWithItemsAsync(Guid customerId);
+
+        /// <summary>
+        /// Rasa Chatbot: Search customer orders strictly by product name (ProductName).
+        /// </summary>
+        Task<List<OrderRequestDTO.ReadOrderListWithItemsDTO>> SearchCustomerOrdersByProductNameAsync(Guid customerId, string keyword);
     }
 }

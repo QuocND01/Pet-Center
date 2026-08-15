@@ -630,12 +630,14 @@
         // 4. Service List & 5. Service Details (Service)
         // 6. View Order / History & 7. Order Details (Orders)
         // 8. Cart (Giỏ hàng) & 9. Addresses (Địa chỉ)
+        // 10. Appointment (Lịch hẹn) & 11. Pets (Thú cưng)
         bool isChatbotAllowed = ctrl == "home"
             || ctrl == "products" || ctrl == "category" || ctrl == "brand"
             || ctrl == "service"
             || ctrl == "orders" || ctrl == "order"
             || ctrl == "cart"
-            || ctrl == "addresses" || ctrl == "address";
+            || ctrl == "addresses" || ctrl == "address"
+            || ctrl == "appointment" || ctrl == "pets" || ctrl == "pet";
     }
 
     @if (isChatbotAllowed)

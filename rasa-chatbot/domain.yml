@@ -47,6 +47,17 @@ intents:
   - huong_dan_thanh_toan
   # — Bảo mật đơn hàng —
   - xem_don_hang_nguoi_khac
+  # — Dịch vụ & Đặt lịch & Thú cưng —
+  - hoi_dich_vu
+  - huong_dan_dat_lich
+  - xem_lich_hen_cua_toi
+  - xem_lich_hen_nguoi_khac
+  - xem_danh_sach_thu_cung
+  - xem_pet_nguoi_khac
+  - goto_service_page
+  - goto_booking_page
+  - goto_my_appointments_page
+  - goto_my_pets_page
   # — Điều hướng (từ nút bấm) —
   - goto_address_page
   - goto_orders_page
@@ -55,6 +66,7 @@ intents:
 entities:
   - tu_khoa
   - search_query
+  - service_type
   - so_luong
   - product_id_chon
   - product_name_chon
@@ -230,6 +242,15 @@ actions:
   - action_hoi_thong_tin_nguoi_nhan_dia_chi
   # Tài khoản
   - action_xem_dia_chi
+  # Dịch vụ & Đặt lịch & Thú cưng
+  - action_hoi_dich_vu
+  - action_huong_dan_dat_lich
+  - action_xem_lich_hen_cua_toi
+  - action_xem_danh_sach_thu_cung
+  - action_goto_service_page
+  - action_goto_booking_page
+  - action_goto_my_appointments_page
+  - action_goto_my_pets_page
   # Điều hướng
   - action_goto_orders_page
   - action_goto_address_page

@@ -148,3 +148,65 @@ stories:
     - action: utter_greet
     - intent: xem_don_hang_cua_toi
     - action: action_xem_don_hang
+
+# ════════════════════════════════════════════════════════════════════════════
+#  STORIES CHO LUỒNG TÌM SẢN PHẨM TRONG ĐƠN (CRITICAL - dạy context handling)
+# ════════════════════════════════════════════════════════════════════════════
+
+# Luồng 1: User nói từ lạ → hỏi 2 hướng → deny → neutral fallback
+- story: fallback_tim_san_pham_roi_deny
+  steps:
+    - intent: tim_don_hang_theo_san_pham
+    - action: action_tim_don_hang_theo_san_pham
+    - intent: deny
+    - action: utter_phan_hoi_linh_tinh
+
+# Luồng 2: User nói từ lạ → hỏi 2 hướng → xác nhận tìm đơn → kết quả
+- story: tim_san_pham_roi_xac_nhan_tim_don
+  steps:
+    - intent: tim_don_hang_theo_san_pham
+    - action: action_tim_don_hang_theo_san_pham
+    - intent: xac_nhan_tim_don
+    - action: action_xac_nhan_tim_don
+
+# Luồng 3: User nói từ lạ → hỏi 2 hướng → chọn xem sản phẩm đang bán
+- story: tim_san_pham_roi_chon_xem_san_pham
+  steps:
+    - intent: tim_don_hang_theo_san_pham
+    - action: action_tim_don_hang_theo_san_pham
+    - intent: xem_san_pham_hot
+    - action: action_xem_san_pham_hot
+
+# Luồng 4: User nói từ lạ → hỏi 2 hướng → affirm tổng quát → hỏi lại xem tìm gì
+- story: tim_san_pham_roi_affirm_khong_ro
+  steps:
+    - intent: tim_don_hang_theo_san_pham
+    - action: action_tim_don_hang_theo_san_pham
+    - intent: affirm
+    - action: utter_phan_hoi_linh_tinh
+
+# Luồng 5: NLU fallback → deny → neutral (fix lỗi bot trả lời sai sau deny)
+- story: nlu_fallback_roi_deny
+  steps:
+    - intent: nlu_fallback
+    - action: action_default_fallback
+    - intent: deny
+    - action: utter_phan_hoi_linh_tinh
+
+# Luồng 6: Tìm sản phẩm trong đơn thành công → xem chi tiết đơn
+- story: tim_san_pham_trong_don_roi_xem_chi_tiet
+  steps:
+    - intent: tim_don_hang_theo_san_pham
+    - action: action_tim_don_hang_theo_san_pham
+    - intent: xac_nhan_tim_don
+    - action: action_xac_nhan_tim_don
+    - intent: xem_chi_tiet_don
+    - action: action_chi_tiet_don
+
+# Luồng 7: Tìm theo sản phẩm có context đơn → tìm thẳng không cần xác nhận
+- story: tim_san_pham_co_context_don
+  steps:
+    - intent: xem_don_hang_cua_toi
+    - action: action_xem_don_hang
+    - intent: tim_don_hang_theo_san_pham
+    - action: action_tim_don_hang_theo_san_pham
