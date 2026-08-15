@@ -28,7 +28,7 @@ namespace PetCenterAPI.Repository.Interface
 
         Task<Staff?> GetStaffForSnapshotAsync(Guid staffId);
 
-        Task<IEnumerable<Staff>> GetActiveVetsAsync();
+        Task<IEnumerable<Staff>> GetActiveVetAndGroomersAsync();
 
         Task<List<Models.Service>> GetServicesAsync(List<Guid> serviceIds);
 

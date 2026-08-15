@@ -35,7 +35,7 @@ class _BookingScreenState extends State<BookingScreen> {
   BookingPetModel? _selectedPet;
   BookingStaffModel? _selectedStaff;
   List<BookingServiceModel> _selectedServices = [];
-  
+
   DateTime _selectedDate = DateTime.now();
   AvailableSlotModel? _selectedSlot;
   final TextEditingController _noteController = TextEditingController();
@@ -66,7 +66,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
     try {
       final data = await _apiService.getBookingData();
-      
+
       BookingPetModel? preSelectedPet;
       if (widget.initialPetId != null && data.pets.isNotEmpty) {
         try {
@@ -100,10 +100,28 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
+  // Kiểm tra Service có tương thích với Role của Staff đang chọn hay không
+  bool _isServiceCompatibleWithStaff(BookingServiceModel service) {
+    if (_selectedStaff == null) return true;
+    final role = (_selectedStaff!.role ?? '').trim().toLowerCase();
+    if (role == 'vet') {
+      return service.serviceType == 1; // Y tế
+    } else if (role == 'groomer') {
+      return service.serviceType == 2; // Grooming
+    }
+    return true;
+  }
+
+  void _resetSlots() {
+    _selectedSlot = null;
+    _availableSlots = [];
+    _hasSearchedSlots = false;
+  }
+
   // Call API for Available Time Slots at Step 4
   Future<void> _loadAvailableSlots() async {
     if (_selectedStaff == null) {
-      _showToast('Please go back and select a doctor.', isError: true);
+      _showToast('Please go back and select a specialist.', isError: true);
       return;
     }
     if (_selectedServices.isEmpty) {
@@ -287,7 +305,7 @@ class _BookingScreenState extends State<BookingScreen> {
         children: [
           _buildStepHeaderItem(1, 'Pet', Icons.pets),
           _buildStepLine(1),
-          _buildStepHeaderItem(2, 'Doctor', Icons.medical_services),
+          _buildStepHeaderItem(2, 'Specialist', Icons.medical_services),
           _buildStepLine(2),
           _buildStepHeaderItem(3, 'Service', Icons.local_hospital),
           _buildStepLine(3),
@@ -415,9 +433,15 @@ class _BookingScreenState extends State<BookingScreen> {
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: const Color(0xFF00B4D8).withAlpha(30),
-                  child: const Icon(Icons.pets, color: Color(0xFF00B4D8)),
+                  backgroundImage: (pet.petAvatar != null && pet.petAvatar!.isNotEmpty)
+                      ? NetworkImage(pet.petAvatar!)
+                      : null,
+                  child: (pet.petAvatar == null || pet.petAvatar!.isEmpty)
+                      ? const Icon(Icons.pets, color: Color(0xFF00B4D8))
+                      : null,
                 ),
                 title: Text(pet.petName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text('${pet.species ?? "Pet"}${pet.breed != null ? " • ${pet.breed}" : ""}'),
                 trailing: isSelected
                     ? const Icon(Icons.check_circle, color: Color(0xFF00B4D8))
                     : const Icon(Icons.circle_outlined, color: Colors.grey),
@@ -434,16 +458,16 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // STEP 2: Select Doctor
+  // STEP 2: Select Specialist (Vet / Groomer)
   Widget _buildStep2StaffSelection() {
     final staffs = _bookingData?.staffs ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Select Doctor / Veterinarian', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Choose Specialist', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        const Text('Choose your preferred specialist:', style: TextStyle(color: Colors.grey)),
+        const Text('Select a veterinarian or pet groomer:', style: TextStyle(color: Colors.grey)),
         const SizedBox(height: 16),
         ListView.builder(
           shrinkWrap: true,
@@ -452,6 +476,8 @@ class _BookingScreenState extends State<BookingScreen> {
           itemBuilder: (context, index) {
             final staff = staffs[index];
             final isSelected = _selectedStaff?.staffId == staff.staffId;
+            final isVet = (staff.role ?? '').toLowerCase() == 'vet';
+            final displayTitle = isVet ? 'Dr. ${staff.fullName}' : staff.fullName;
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
@@ -465,16 +491,49 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.teal.shade50,
-                  child: const Icon(Icons.person, color: Colors.teal),
+                  backgroundColor: isVet ? Colors.teal.shade50 : Colors.amber.shade50,
+                  backgroundImage: (staff.avatar != null && staff.avatar!.isNotEmpty)
+                      ? NetworkImage(staff.avatar!)
+                      : null,
+                  child: (staff.avatar == null || staff.avatar!.isEmpty)
+                      ? Icon(isVet ? Icons.medical_services : Icons.content_cut,
+                          color: isVet ? Colors.teal : Colors.amber.shade800)
+                      : null,
                 ),
-                title: Text(staff.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(displayTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isVet ? Colors.teal.shade50 : Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        staff.role ?? (isVet ? 'Vet' : 'Groomer'),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isVet ? Colors.teal : Colors.amber.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                subtitle: Text(
+                  '${staff.experienceYears != null ? "${staff.experienceYears!.toStringAsFixed(0)} Yrs Exp" : "Specialist"}${staff.phoneNumber.isNotEmpty ? " • ${staff.phoneNumber}" : ""}',
+                ),
                 trailing: isSelected
                     ? const Icon(Icons.check_circle, color: Color(0xFF00B4D8))
                     : const Icon(Icons.circle_outlined, color: Colors.grey),
                 onTap: () {
                   setState(() {
                     _selectedStaff = staff;
+                    // Lọc bỏ những dịch vụ không tương thích với chuyên môn của staff mới chọn
+                    _selectedServices.removeWhere((s) => !_isServiceCompatibleWithStaff(s));
+                    _resetSlots();
                   });
                 },
               ),
@@ -485,16 +544,23 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // STEP 3: Select Services
+  // STEP 3: Select Services (Có filter khóa theo Role của Staff)
   Widget _buildStep3ServiceSelection() {
     final services = _bookingData?.services ?? [];
+    final staffRole = _selectedStaff?.role ?? '';
+    final isVet = staffRole.toLowerCase() == 'vet';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Select Care Services', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        const Text('You can select up to 2 services per appointment:', style: TextStyle(color: Colors.grey)),
+        Text(
+          _selectedStaff != null
+              ? 'Showing services for ${_selectedStaff!.fullName} (${isVet ? "Medical Services only" : "Grooming Services only"}):'
+              : 'You can select up to 2 services of the same type:',
+          style: const TextStyle(color: Colors.grey),
+        ),
         const SizedBox(height: 16),
         ListView.builder(
           shrinkWrap: true,
@@ -503,38 +569,80 @@ class _BookingScreenState extends State<BookingScreen> {
           itemBuilder: (context, index) {
             final service = services[index];
             final isSelected = _selectedServices.any((s) => s.serviceId == service.serviceId);
+            final isCompatible = _isServiceCompatibleWithStaff(service);
+            final isMedical = service.serviceType == 1;
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              elevation: isSelected ? 3 : 1,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isSelected ? const Color(0xFF00B4D8) : Colors.transparent,
-                  width: 2,
+            return Opacity(
+              opacity: isCompatible ? 1.0 : 0.4,
+              child: Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                elevation: isSelected ? 3 : 1,
+                color: isCompatible ? Colors.white : Colors.grey.shade100,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: isSelected ? const Color(0xFF00B4D8) : Colors.transparent,
+                    width: 2,
+                  ),
                 ),
-              ),
-              child: CheckboxListTile(
-                value: isSelected,
-                activeColor: const Color(0xFF00B4D8),
-                title: Text(service.serviceName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(
-                  '${service.price.toStringAsFixed(0)}đ • ${service.duration} mins',
-                  style: const TextStyle(color: Color(0xFF00B4D8), fontWeight: FontWeight.w600),
+                child: CheckboxListTile(
+                  value: isSelected,
+                  activeColor: const Color(0xFF00B4D8),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          service.serviceName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            decoration: isCompatible ? null : TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isMedical ? Colors.blue.shade50 : Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          isMedical ? 'Medical' : 'Grooming',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isMedical ? Colors.blue.shade700 : Colors.orange.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                    '${service.price.toStringAsFixed(0)}đ • ${service.duration} mins',
+                    style: const TextStyle(color: Color(0xFF00B4D8), fontWeight: FontWeight.w600),
+                  ),
+                  onChanged: isCompatible
+                      ? (checked) {
+                          setState(() {
+                            if (checked == true) {
+                              if (_selectedServices.length >= 2) {
+                                _showToast('Maximum 2 services allowed per appointment.', isError: true);
+                                return;
+                              }
+                              // Kiểm tra cùng category nếu đã có 1 dịch vụ
+                              if (_selectedServices.isNotEmpty &&
+                                  _selectedServices.first.serviceType != service.serviceType) {
+                                _showToast('You can only select services of the same category.', isError: true);
+                                return;
+                              }
+                              _selectedServices.add(service);
+                            } else {
+                              _selectedServices.removeWhere((s) => s.serviceId == service.serviceId);
+                            }
+                            _resetSlots();
+                          });
+                        }
+                      : null,
                 ),
-                onChanged: (checked) {
-                  setState(() {
-                    if (checked == true) {
-                      if (_selectedServices.length < 2) {
-                        _selectedServices.add(service);
-                      } else {
-                        _showToast('Maximum 2 services allowed per appointment.', isError: true);
-                      }
-                    } else {
-                      _selectedServices.removeWhere((s) => s.serviceId == service.serviceId);
-                    }
-                  });
-                },
               ),
             );
           },
@@ -615,7 +723,7 @@ class _BookingScreenState extends State<BookingScreen> {
               children: [
                 Icon(Icons.info_outline, color: Colors.orange),
                 SizedBox(width: 12),
-                Expanded(child: Text('No slots available for the selected doctor/date. Please pick another date.')),
+                Expanded(child: Text('No slots available for the selected specialist/date. Please pick another date.')),
               ],
             ),
           ),
@@ -649,7 +757,7 @@ class _BookingScreenState extends State<BookingScreen> {
           controller: _noteController,
           maxLines: 2,
           decoration: InputDecoration(
-            hintText: 'Enter any symptoms or requests for the doctor...',
+            hintText: 'Enter any symptoms or requests for the specialist...',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             filled: true,
             fillColor: Colors.white,

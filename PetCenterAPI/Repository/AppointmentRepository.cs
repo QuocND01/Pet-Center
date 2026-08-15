@@ -85,11 +85,16 @@ namespace PetCenterAPI.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Staff>> GetActiveVetsAsync()
+        public async Task<IEnumerable<Staff>> GetActiveVetAndGroomersAsync()
         {
             return await _context.Staffs
                 .Include(s => s.VetProfile)
-                .Where(s => s.IsActive && s.VetProfile != null && s.VetProfile.IsActive)
+                .Include(s => s.Roles)
+                .Where(s =>
+                    s.IsActive &&
+                    s.Roles.Any(r =>
+                        r.IsActive &&
+                        (r.RoleName == "Vet" || r.RoleName == "Groomer")))
                 .ToListAsync();
         }
 

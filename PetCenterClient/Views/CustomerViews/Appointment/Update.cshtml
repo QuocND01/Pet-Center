@@ -11,7 +11,7 @@
 
 <!-- STYLE BỔ SUNG DÀNH RIÊNG CHO TRẠNG THÁI BỊ KHÓA (LOCKED / DISABLED) -->
 <style>
-    /* Card đang chọn nhưng bị khóa */
+    /* Card đang chọn nhưng bị khóa (dành cho Pet) */
     .modern-card.card-locked {
         border: 2px solid #0d6efd !important;
         background-color: #f8f9fa !important;
@@ -27,6 +27,14 @@
         cursor: not-allowed !important;
         background-color: #f1f3f5 !important;
         border-color: #dee2e6 !important;
+    }
+
+    /* Card Service bị vô hiệu hóa do sai chuyên môn (Role) */
+    .card-service.disabled-service {
+        opacity: 0.45;
+        cursor: not-allowed !important;
+        pointer-events: none;
+        filter: grayscale(80%);
     }
 
     /* Cho phép bấm nút chi tiết kể cả khi card bị khóa */
@@ -76,7 +84,7 @@
                 </a>
                 <div>
                     <h3 class="fw-bold text-dark m-0">Update Appointment</h3>
-                    <p class="text-muted small m-0">Modify your reserved time or services</p>
+                    <p class="text-muted small m-0">Modify your reserved specialist, services, or appointment time</p>
                 </div>
             </div>
             <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="fas fa-clock me-1"></i> Pending Reservation</span>
@@ -92,7 +100,7 @@
                 </div>
                 <div class="step-node" data-step="2">
                     <div class="step-icon"><i class="fas fa-user-md"></i></div>
-                    <span class="step-label">Doctor</span>
+                    <span class="step-label">Specialist</span>
                 </div>
                 <div class="step-node" data-step="3">
                     <div class="step-icon"><i class="fas fa-concierge-bell"></i></div>
@@ -128,7 +136,7 @@
                                 bool isSelected = Model.PetId == pet.PetId;
                                 <div class="modern-card card-selectable card-pet @(isSelected ? "selected-active card-locked" : "is-disabled")"
                                      data-id="@pet.PetId" data-name="@pet.PetName" data-species="@pet.Species" data-breed="@pet.Breed" data-gender="@pet.Gender" data-weight="@pet.Weight" data-avatar="@(string.IsNullOrEmpty(pet.PetAvatar) ? "https://placehold.co/100x100?text=Pet" : pet.PetAvatar)">
-                                    
+
                                     @if (isSelected)
                                     {
                                         <span class="locked-badge"><i class="fas fa-lock me-1"></i> LOCKED</span>
@@ -149,48 +157,54 @@
                         <input type="hidden" id="selectedPetId" value="@Model.PetId" />
                     </div>
 
-                    <!-- BƯỚC 2: CHỌN BÁC SĨ (ĐÃ KHÓA) -->
+                    <!-- BƯỚC 2: CHỌN SPECIALIST / BÁC SĨ (ĐÃ MỞ KHÓA) -->
                     <div class="booking-step-content" data-step-content="2">
-                        <div class="step-header mb-4 d-flex justify-content-between align-items-center">
-                            <div>
-                                <h4 class="fw-bold text-dark m-0">Assigned Doctor</h4>
-                                <p class="text-muted small m-0">Assigned specialist for this appointment (Locked).</p>
-                            </div>
-                            <span class="badge bg-secondary px-3 py-2"><i class="fas fa-lock me-1"></i> Cannot be changed</span>
+                        <div class="step-header mb-4">
+                            <h4 class="fw-bold text-dark m-0">Choose Specialist</h4>
+                            <p class="text-muted small m-0">Change specialist or doctor for this visit.</p>
                         </div>
 
                         <div class="modern-grid-select">
                             @foreach (var staff in Model.Staffs)
                             {
                                 bool isSelected = Model.StaffId == staff.StaffId;
-                                <div class="modern-card card-selectable card-staff @(isSelected ? "selected-active card-locked" : "is-disabled")"
-                                     data-id="@staff.StaffId" data-name="Dr. @staff.FullName" data-exp="@staff.ExperienceYears" data-email="@staff.Email" data-phone="@staff.PhoneNumber" data-license="@staff.LicenseNumber" data-desc="@staff.Description" data-avatar="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Vet" : staff.Avatar)">
-                                    
-                                    @if (isSelected)
-                                    {
-                                        <span class="locked-badge"><i class="fas fa-lock me-1"></i> LOCKED</span>
-                                    }
+                                var isVet = string.Equals(staff.Role, "Vet", StringComparison.OrdinalIgnoreCase);
+                                var displayPrefix = isVet ? "Dr. " : "";
+                                <div class="modern-card card-selectable card-staff @(isSelected ? "selected-active" : "")"
+                                     data-id="@staff.StaffId"
+                                     data-role="@staff.Role"
+                                     data-name="@displayPrefix@staff.FullName"
+                                     data-exp="@staff.ExperienceYears"
+                                     data-email="@staff.Email"
+                                     data-phone="@staff.PhoneNumber"
+                                     data-license="@staff.LicenseNumber"
+                                     data-desc="@staff.Description"
+                                     data-avatar="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Staff" : staff.Avatar)">
 
                                     <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
                                     <div class="card-media">
-                                        <img src="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Vet" : staff.Avatar)" alt="@staff.FullName" />
+                                        <img src="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Staff" : staff.Avatar)" alt="@staff.FullName" />
                                     </div>
                                     <div class="card-info">
-                                        <h5 class="entity-title">Dr. @staff.FullName</h5>
-                                        <span class="entity-subtitle"><i class="fas fa-star text-warning me-1"></i> @staff.ExperienceYears Yrs Experience</span>
+                                        <h5 class="entity-title">@displayPrefix@staff.FullName</h5>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="badge @(isVet ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-dark") small">@staff.Role</span>
+                                            <span class="entity-subtitle m-0"><i class="fas fa-star text-warning me-1"></i>@staff.ExperienceYears Yrs Exp</span>
+                                        </div>
                                     </div>
                                     <div class="select-indicator"><i class="fas fa-check-circle"></i></div>
                                 </div>
                             }
                         </div>
                         <input type="hidden" id="selectedStaffId" value="@Model.StaffId" />
+                        <input type="hidden" id="selectedStaffRole" />
                     </div>
 
-                    <!-- BƯỚC 3: CHỌN DỊCH VỤ (CHO PHÉP CHỌN LẠI) -->
+                    <!-- BƯỚC 3: CHỌN DỊCH VỤ (CHO PHÉP CHỌN LẠI CÙNG CATEGORY VỚI SPECIALIST) -->
                     <div class="booking-step-content" data-step-content="3">
                         <div class="step-header mb-4">
                             <h4 class="fw-bold text-dark m-0">Care Services</h4>
-                            <p class="text-muted small m-0">You can select up to 2 services of the same category.</p>
+                            <p class="text-muted small m-0">Select up to 2 services compatible with your specialist.</p>
                         </div>
 
                         <div class="modern-grid-select grid-services">
@@ -198,14 +212,19 @@
                             {
                                 bool isChecked = Model.ServiceIds.Contains(service.ServiceId);
                                 <div class="modern-card card-selectable card-service @(isChecked ? "selected-active" : "")"
-                                     data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration" data-images="@string.Join(",", service.ServiceImages)" data-type="@service.ServiceType">
+                                     data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration" data-images="@string.Join(",", service.ServiceImages)" data-type="@((int)service.ServiceType)">
                                     <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
                                     <div class="card-media service-media">
                                         <img src="@(service.ServiceImages.Any() ? service.ServiceImages.First() : "https://placehold.co/150x100?text=Service")" alt="@service.ServiceName" />
                                     </div>
                                     <div class="card-info p-3">
-                                        <h5 class="entity-title mb-2">@service.ServiceName</h5>
-                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <h5 class="entity-title m-0">@service.ServiceName</h5>
+                                            <span class="badge @((int)service.ServiceType == 1 ? "bg-info-subtle text-info" : "bg-warning-subtle text-dark") small">
+                                                @((int)service.ServiceType == 1 ? "Medical" : "Grooming")
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
                                             <span class="service-price">@service.Price.ToString("N0")<small>đ</small></span>
                                             <span class="service-duration"><i class="far fa-clock me-1"></i>@service.Duration m</span>
                                         </div>
@@ -255,7 +274,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-comment-alt me-2"></i>Notes for the Doctor (Optional)</label>
+                            <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-comment-alt me-2"></i>Notes for the Specialist (Optional)</label>
                             <textarea id="Note" class="form-control modern-textarea" rows="3" placeholder="Describe any symptoms or requirements here...">@Model.Note</textarea>
                         </div>
 
@@ -288,7 +307,7 @@
                         </div>
 
                         <div class="summary-node mb-3">
-                            <span class="label text-muted small d-block mb-1">Selected Doctor</span>
+                            <span class="label text-muted small d-block mb-1">Specialist</span>
                             <div id="summaryStaff" class="value fw-bold text-dark d-flex align-items-center gap-2">
                                 <span class="placeholder-dash text-muted">—</span>
                             </div>
@@ -353,7 +372,7 @@
             const toastMessage = document.getElementById('toastMessage');
             const toastIcon = document.getElementById('toastIcon');
 
-            toastEl.classList.remove('bg-warning', 'bg-danger', 'bg-success', 'bg-info');
+            toastEl.classList.remove('bg-warning', 'bg-danger', 'bg-success', 'bg-info', 'text-dark');
 
             if (type === 'danger') {
                 toastEl.classList.add('bg-danger');
@@ -369,6 +388,20 @@
             toastMessage.innerText = message;
             const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
             toast.show();
+        }
+
+        function resetTimeSlot() {
+            document.getElementById("SelectedStartTime").value = "";
+            document.getElementById("summarySchedule").style.display = "none";
+            document.getElementById("summarySchedule").innerHTML = "";
+            const container = document.getElementById("slotContainer");
+            if (container) {
+                container.innerHTML = `
+                        <div class="empty-slot-state text-center py-4 border rounded-3 bg-light">
+                            <i class="fas fa-calendar-day text-muted fs-3 mb-2"></i>
+                            <p class="text-muted small m-0">Click "Find Slots" to refresh available appointment times.</p>
+                        </div>`;
+            }
         }
 
         // --- HỆ THỐNG ĐIỀU HƯỚNG MULTI-STEP ---
@@ -404,7 +437,7 @@
                     showToast("Please select a pet before moving forward.", "warning"); return;
                 }
                 if (currentStep === 2 && !document.getElementById('selectedStaffId').value) {
-                    showToast("Please select a doctor before moving forward.", "warning"); return;
+                    showToast("Please select a specialist before moving forward.", "warning"); return;
                 }
                 if (currentStep === 3 && totalDuration === 0) {
                     showToast("Please select at least one service before moving forward.", "warning"); return;
@@ -412,7 +445,7 @@
                 currentStep++;
                 updateStepperUI();
                 if (currentStep === 4) {
-                    loadSlots(); // Tự động load slot khi sang Bước 4
+                    loadSlots(); // Tự động load slot khi chuyển sang Bước 4
                 }
             }
         });
@@ -449,12 +482,13 @@
                             </ul>`;
                 }
                 else if (card.classList.contains('card-staff')) {
-                    modalTitle.innerText = "Doctor Profile";
+                    modalTitle.innerText = "Specialist Profile";
                     modalBody.innerHTML = `
                             <div class="text-center mb-3">
                                 <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
                                 <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
-                                <span class="text-muted small">License: ${card.dataset.license || 'N/A'}</span>
+                                <span class="badge bg-primary-subtle text-primary mb-1">${card.dataset.role || 'Staff'}</span>
+                                <div><span class="text-muted small">License: ${card.dataset.license || 'N/A'}</span></div>
                             </div>
                             <p class="text-muted small text-center px-2 mb-3">"${card.dataset.desc || 'No description provided.'}"</p>
                             <ul class="list-group list-group-flush small">
@@ -464,9 +498,11 @@
                             </ul>`;
                 }
                 else if (card.classList.contains('card-service')) {
+                    const typeText = card.dataset.type === "1" ? "Medical Service" : "Grooming Service";
                     modalTitle.innerText = "Service Information";
                     modalBody.innerHTML = `
-                            <h4 class="fw-bold text-dark mb-2">${card.dataset.name}</h4>
+                            <h4 class="fw-bold text-dark mb-1">${card.dataset.name}</h4>
+                            <span class="badge bg-secondary-subtle text-secondary mb-3">${typeText}</span>
                             <div class="d-flex gap-3 mb-3 small">
                                 <span><i class="fas fa-tags text-success me-1"></i> Price: <strong class="text-dark">${parseFloat(card.dataset.price).toLocaleString('vi-VN')} đ</strong></span>
                                 <span><i class="far fa-clock text-success me-1"></i> Duration: <strong class="text-dark">${card.dataset.duration} mins</strong></span>
@@ -477,10 +513,9 @@
             });
         });
 
-        // --- KHÓA TÍNH NĂNG ĐỔI THÚ CƯNG (PET IS LOCKED) ---
+        // --- KHÓA TÍNH NĂNG ĐỔI THÚ CƯNG (PET IS FIXED) ---
         document.querySelectorAll('.card-pet').forEach(card => {
             card.addEventListener('click', function(e) {
-                // Ngăn cản việc chuyển chọn Pet khi bị khóa
                 if (this.classList.contains('card-locked') || this.classList.contains('is-disabled')) {
                     e.preventDefault();
                     showToast("Pet patient is fixed for this reserved appointment.", "warning");
@@ -489,22 +524,64 @@
             });
         });
 
-        // --- KHÓA TÍNH NĂNG ĐỔI BÁC SĨ (VET IS LOCKED) ---
-        document.querySelectorAll('.card-staff').forEach(card => {
-            card.addEventListener('click', function(e) {
-                // Ngăn cản việc chuyển chọn Vet khi bị khóa
-                if (this.classList.contains('card-locked') || this.classList.contains('is-disabled')) {
-                    e.preventDefault();
-                    showToast("Assigned doctor is fixed for this reserved appointment.", "warning");
-                    return;
+        // --- LỌC KHÓA SERVICE THEO CHUYÊN MÔN CỦA STAFF ---
+        const serviceCards = document.querySelectorAll('.card-service');
+
+        function applyServiceFilterByRole(staffRole) {
+            if (!staffRole) return;
+            const roleLower = staffRole.toLowerCase();
+
+            serviceCards.forEach(card => {
+                const serviceType = card.getAttribute('data-type'); // "1": Vet, "2": Groomer
+                const chk = card.querySelector('.service-checkbox-input');
+
+                let isAllowed = true;
+                if (roleLower === 'vet' && serviceType !== '1') {
+                    isAllowed = false;
+                } else if (roleLower === 'groomer' && serviceType !== '2') {
+                    isAllowed = false;
                 }
+
+                if (!isAllowed) {
+                    card.classList.add('disabled-service');
+                    if (chk.checked) {
+                        chk.checked = false;
+                        card.classList.remove('selected-active');
+                    }
+                } else {
+                    card.classList.remove('disabled-service');
+                }
+            });
+
+            updateServicesSummary();
+        }
+
+        // --- CHỌN SPECIALIST (CHO PHÉP CHỌN LẠI VÀ ĐỔI CHUYÊN MÔN) ---
+        document.querySelectorAll('.card-staff').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.card-staff').forEach(c => c.classList.remove('selected-active'));
+                this.classList.add('selected-active');
+
+                const staffId = this.getAttribute('data-id');
+                const staffRole = this.getAttribute('data-role');
+
+                document.getElementById('selectedStaffId').value = staffId;
+                document.getElementById('selectedStaffRole').value = staffRole;
+
+                document.getElementById('summaryStaff').innerHTML = `
+                        <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
+                        <span>${this.dataset.name} <small class="badge bg-secondary-subtle text-dark ms-1">${staffRole}</small></span>`;
+
+                applyServiceFilterByRole(staffRole);
+                resetTimeSlot();
             });
         });
 
         // --- LOGIC CHỌN DỊCH VỤ (RÀNG BUỘC TỐI ĐA 2 DỊCH VỤ CÙNG TYPE) ---
-        const serviceCards = document.querySelectorAll('.card-service');
         serviceCards.forEach(card => {
             card.addEventListener('click', function() {
+                if (this.classList.contains('disabled-service')) return;
+
                 const chk = this.querySelector('.service-checkbox-input');
                 const checkedCards = Array.from(serviceCards).filter(c => c.querySelector('.service-checkbox-input').checked);
 
@@ -519,20 +596,20 @@
                         const clickingType = this.getAttribute('data-type');
 
                         if (currentSelectedType !== clickingType) {
-                            showToast("You can only select services of the same category (Service Type).", "warning");
+                            showToast("You can only select services of the same category.", "warning");
                             return;
                         }
                     }
 
                     chk.checked = true;
                     this.classList.add('selected-active');
-                }
-                else {
+                } else {
                     chk.checked = false;
                     this.classList.remove('selected-active');
                 }
 
                 updateServicesSummary();
+                resetTimeSlot();
             });
         });
 
@@ -546,7 +623,7 @@
 
             serviceCards.forEach(card => {
                 const chk = card.querySelector('.service-checkbox-input');
-                if (chk.checked) {
+                if (chk && chk.checked && !card.classList.contains('disabled-service')) {
                     hasService = true;
                     const name = card.getAttribute('data-name');
                     const price = parseFloat(card.getAttribute('data-price'));
@@ -570,6 +647,11 @@
             document.getElementById('summaryPrice').innerText = `${totalPrice.toLocaleString('vi-VN')} đ`;
         }
 
+        // Thay đổi ngày cũng sẽ reset slot đã chọn
+        document.getElementById("AppointmentDate")?.addEventListener("change", function() {
+            resetTimeSlot();
+        });
+
         // --- TÁI TẠO TÓM TẮT BAN ĐẦU KHI VỪA VÀO TRANG UPDATE ---
         const initExistingState = () => {
             const selectedPetCard = document.querySelector('.card-pet.selected-active');
@@ -581,9 +663,13 @@
 
             const selectedStaffCard = document.querySelector('.card-staff.selected-active');
             if (selectedStaffCard) {
+                const staffRole = selectedStaffCard.getAttribute('data-role');
+                document.getElementById('selectedStaffRole').value = staffRole;
                 document.getElementById('summaryStaff').innerHTML = `
                         <img src="${selectedStaffCard.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
-                        <span>${selectedStaffCard.dataset.name}</span>`;
+                        <span>${selectedStaffCard.dataset.name} <small class="badge bg-secondary-subtle text-dark ms-1">${staffRole}</small></span>`;
+
+                applyServiceFilterByRole(staffRole);
             }
 
             updateServicesSummary();
@@ -594,7 +680,7 @@
                 const formatOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
                 const summarySchedule = document.getElementById('summarySchedule');
                 summarySchedule.style.display = "block";
-                summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} @@ ${start.toLocaleTimeString([], formatOptions)}`;
+                summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} - ${start.toLocaleTimeString([], formatOptions)}`;
             }
         };
         initExistingState();
@@ -609,8 +695,8 @@
             const doctorId = document.getElementById("selectedStaffId").value;
             const date = document.getElementById("AppointmentDate").value;
 
-            if (!doctorId) { showToast("Please go back and select a doctor.", "warning"); return; }
-            if (totalDuration === 0) { showToast("Please go back and select services.", "warning"); return; }
+            if (!doctorId) { showToast("Please select a specialist.", "warning"); return; }
+            if (totalDuration === 0) { showToast("Please select services.", "warning"); return; }
             if (!date) { showToast("Please choose an appointment date.", "warning"); return; }
 
             const loadingElem = document.getElementById("slotLoading");
@@ -620,7 +706,11 @@
             container.innerHTML = "";
 
             const serviceIds = [];
-            document.querySelectorAll(".service-checkbox-input:checked").forEach(x => serviceIds.push(x.value));
+            document.querySelectorAll(".service-checkbox-input:checked").forEach(x => {
+                if (!x.closest('.card-service').classList.contains('disabled-service')) {
+                    serviceIds.push(x.value);
+                }
+            });
 
             try {
                 const response = await fetch("/Appointment/GetAvailableSlots", {
@@ -683,7 +773,7 @@
 
                     const summarySchedule = document.getElementById('summarySchedule');
                     summarySchedule.style.display = "block";
-                    summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} @@ ${timeText.split('-')[0]}`;
+                    summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} - ${timeText.split('-')[0]}`;
                 };
 
                 container.appendChild(btn);
@@ -698,9 +788,13 @@
             const note = document.getElementById("Note").value;
 
             const serviceIds = [];
-            document.querySelectorAll(".service-checkbox-input:checked").forEach(x => serviceIds.push(x.value));
+            document.querySelectorAll(".service-checkbox-input:checked").forEach(x => {
+                if (!x.closest('.card-service').classList.contains('disabled-service')) {
+                    serviceIds.push(x.value);
+                }
+            });
 
-            if (!staffId) { showToast("Please select a doctor.", "warning"); return; }
+            if (!staffId) { showToast("Please select a specialist.", "warning"); return; }
             if (serviceIds.length === 0) { showToast("Please select at least one service.", "warning"); return; }
             if (!appointmentStart) { showToast("Please select a time slot.", "warning"); return; }
 

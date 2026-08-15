@@ -41,6 +41,7 @@ class BookingStaffModel {
   final double? experienceYears;
   final String? description;
   final String? licenseNumber;
+  final String role; // 'Vet' hoặc 'Groomer'
 
   BookingStaffModel({
     required this.staffId,
@@ -51,6 +52,7 @@ class BookingStaffModel {
     this.experienceYears,
     this.description,
     this.licenseNumber,
+    required this.role,
   });
 
   factory BookingStaffModel.fromJson(Map<String, dynamic> json) {
@@ -65,7 +67,33 @@ class BookingStaffModel {
           : null,
       description: json['description'] ?? json['Description'],
       licenseNumber: json['licenseNumber'] ?? json['LicenseNumber'],
+      role: json['role'] ?? json['Role'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'staffId': staffId,
+      'fullName': fullName,
+      'avatar': avatar,
+      'phoneNumber': phoneNumber,
+      'email': email,
+      'experienceYears': experienceYears,
+      'description': description,
+      'licenseNumber': licenseNumber,
+      'role': role,
+    };
+  }
+
+  // --- Các Getter tiện ích hỗ trợ lọc logic ---
+  bool get isVet => role.trim().toLowerCase() == 'vet';
+  bool get isGroomer => role.trim().toLowerCase() == 'groomer';
+
+  /// Kiểm tra xem 1 dịch vụ (serviceType: 1 là Y tế, 2 là Grooming) có phù hợp chuyên môn không
+  bool canHandleService(int serviceType) {
+    if (isVet && serviceType == 1) return true;
+    if (isGroomer && serviceType == 2) return true;
+    return false;
   }
 }
 

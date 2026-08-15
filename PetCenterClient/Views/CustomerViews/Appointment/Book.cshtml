@@ -8,7 +8,17 @@
 <link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" append-version="true" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
-<!-- CẤU TRÚC TOAST NOTIFICATION CONTAINER (NẰM GÓC TRÊN BÊN PHẢI MÀN HÌNH) -->
+<!-- CSS bổ sung để thể hiện trạng thái disabled của Service Card -->
+<style>
+    .card-service.disabled-service {
+        opacity: 0.45;
+        cursor: not-allowed !important;
+        pointer-events: none;
+        filter: grayscale(80%);
+    }
+</style>
+
+<!-- CẤU TRÚC TOAST NOTIFICATION CONTAINER -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
     <div id="bookingToast" class="toast align-items-center text-white border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex p-2">
@@ -34,7 +44,7 @@
                 </div>
                 <div class="step-node" data-step="2">
                     <div class="step-icon"><i class="fas fa-user-md"></i></div>
-                    <span class="step-label">Doctor</span>
+                    <span class="step-label">Staff / Specialist</span>
                 </div>
                 <div class="step-node" data-step="3">
                     <div class="step-icon"><i class="fas fa-concierge-bell"></i></div>
@@ -52,7 +62,7 @@
             <div class="col-lg-8">
                 <form asp-action="Book" method="post" id="bookingForm" class="booking-multistep-form bg-white p-4 rounded-4 shadow-sm">
                     @Html.AntiForgeryToken()
-                    <!-- SỬA 1: ĐÃ XÓA asp-validation-summary ĐỂ LỖI ĐẨY HOÀN TOÀN LÊN TOAST FLOATING -->
+
                     <!-- BƯỚC 1: CHỌN VÀ XEM THÚ CƯNG -->
                     <div class="booking-step-content active" data-step-content="1">
                         <div class="step-header mb-4">
@@ -80,30 +90,45 @@
                         <span asp-validation-for="PetId" class="text-danger small d-block mt-2"></span>
                     </div>
 
-                    <!-- BƯỚC 2: CHỌN VÀ XEM BÁC SĨ -->
+                    <!-- BƯỚC 2: CHỌN VÀ XEM NHÂN VIÊN / BÁC SĨ -->
                     <div class="booking-step-content" data-step-content="2">
                         <div class="step-header mb-4">
-                            <h4 class="fw-bold text-dark m-0">Choose Veterinary Doctor</h4>
-                            <p class="text-muted small m-0">Select a trusted specialist or let us assign the best one.</p>
+                            <h4 class="fw-bold text-dark m-0">Choose Specialist</h4>
+                            <p class="text-muted small m-0">Select a trusted doctor or pet groomer.</p>
                         </div>
 
                         <div class="modern-grid-select">
                             @foreach (var staff in Model.Staffs)
                             {
-                                <div class="modern-card card-selectable card-staff" data-id="@staff.StaffId" data-name="Dr. @staff.FullName" data-exp="@staff.ExperienceYears" data-email="@staff.Email" data-phone="@staff.PhoneNumber" data-license="@staff.LicenseNumber" data-desc="@staff.Description" data-avatar="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Vet" : staff.Avatar)">
+                                var isVet = string.Equals(staff.Role, "Vet", StringComparison.OrdinalIgnoreCase);
+                                var displayPrefix = isVet ? "Dr. " : "";
+                                <div class="modern-card card-selectable card-staff"
+                                     data-id="@staff.StaffId"
+                                     data-role="@staff.Role"
+                                     data-name="@displayPrefix@staff.FullName"
+                                     data-exp="@staff.ExperienceYears"
+                                     data-email="@staff.Email"
+                                     data-phone="@staff.PhoneNumber"
+                                     data-license="@staff.LicenseNumber"
+                                     data-desc="@staff.Description"
+                                     data-avatar="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Staff" : staff.Avatar)">
                                     <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
                                     <div class="card-media">
-                                        <img src="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Vet" : staff.Avatar)" alt="@staff.FullName" />
+                                        <img src="@(string.IsNullOrEmpty(staff.Avatar) ? "https://placehold.co/100x100?text=Staff" : staff.Avatar)" alt="@staff.FullName" />
                                     </div>
                                     <div class="card-info">
-                                        <h5 class="entity-title">Dr. @staff.FullName</h5>
-                                        <span class="entity-subtitle"><i class="fas fa-star text-warning me-1"></i> @staff.ExperienceYears Yrs Experience</span>
+                                        <h5 class="entity-title">@displayPrefix@staff.FullName</h5>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="badge @(isVet ? "bg-primary-subtle text-primary" : "bg-warning-subtle text-dark") small">@staff.Role</span>
+                                            <span class="entity-subtitle m-0"><i class="fas fa-star text-warning me-1"></i>@staff.ExperienceYears Yrs Exp</span>
+                                        </div>
                                     </div>
                                     <div class="select-indicator"><i class="fas fa-check-circle"></i></div>
                                 </div>
                             }
                         </div>
                         <input type="hidden" asp-for="StaffId" id="selectedStaffId" />
+                        <input type="hidden" id="selectedStaffRole" />
                         <span asp-validation-for="StaffId" class="text-danger small d-block mt-2"></span>
                     </div>
 
@@ -111,20 +136,25 @@
                     <div class="booking-step-content" data-step-content="3">
                         <div class="step-header mb-4">
                             <h4 class="fw-bold text-dark m-0">Care Services</h4>
-                            <p class="text-muted small m-0">You can select multiple specialized services for this visit.</p>
+                            <p class="text-muted small m-0">Select up to 2 services compatible with your selected specialist.</p>
                         </div>
 
                         <div class="modern-grid-select grid-services">
                             @foreach (var service in Model.Services)
                             {
-                                <div class="modern-card card-selectable card-service" data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration" data-images="@string.Join(",", service.ServiceImages)" data-type="@service.ServiceType">
+                                <div class="modern-card card-selectable card-service" data-id="@service.ServiceId" data-name="@service.ServiceName" data-price="@service.Price" data-duration="@service.Duration" data-images="@string.Join(",", service.ServiceImages)" data-type="@((int)service.ServiceType)">
                                     <button type="button" class="btn-view-detail" title="View details"><i class="fas fa-info-circle"></i></button>
                                     <div class="card-media service-media">
                                         <img src="@(service.ServiceImages.Any() ? service.ServiceImages.First() : "https://placehold.co/150x100?text=Service")" alt="@service.ServiceName" />
                                     </div>
                                     <div class="card-info p-3">
-                                        <h5 class="entity-title mb-2">@service.ServiceName</h5>
-                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <h5 class="entity-title m-0">@service.ServiceName</h5>
+                                            <span class="badge @((int)service.ServiceType == 1 ? "bg-info-subtle text-info" : "bg-warning-subtle text-dark") small">
+                                                @((int)service.ServiceType == 1 ? "Medical" : "Grooming")
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
                                             <span class="service-price">@service.Price.ToString("N0")<small>đ</small></span>
                                             <span class="service-duration"><i class="far fa-clock me-1"></i>@service.Duration m</span>
                                         </div>
@@ -173,7 +203,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-comment-alt me-2"></i>Notes for the Doctor (Optional)</label>
+                            <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-comment-alt me-2"></i>Notes for the Specialist (Optional)</label>
                             <textarea asp-for="Note" class="form-control modern-textarea" rows="3" placeholder="Describe any symptoms or requirements here..."></textarea>
                         </div>
 
@@ -206,7 +236,7 @@
                         </div>
 
                         <div class="summary-node mb-3">
-                            <span class="label text-muted small d-block mb-1">Selected Doctor</span>
+                            <span class="label text-muted small d-block mb-1">Specialist</span>
                             <div id="summaryStaff" class="value fw-bold text-dark d-flex align-items-center gap-2">
                                 <span class="placeholder-dash text-muted">—</span>
                             </div>
@@ -245,7 +275,7 @@
     </div>
 </div>
 
-<!-- MODAL CHUNG CHO TÍNH NĂNG "SELECT TO VIEW" (XEM CHI TIẾT ENTITY) -->
+<!-- MODAL CHUNG CHO TÍNH NĂNG "SELECT TO VIEW" -->
 <div class="modal fade" id="detailViewerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -253,9 +283,7 @@
                 <h5 class="modal-title fw-bold text-dark" id="detailModalTitle">Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4" id="detailModalBody">
-                <!-- Nội dung chi tiết được render động qua JS -->
-            </div>
+            <div class="modal-body p-4" id="detailModalBody"></div>
         </div>
     </div>
 </div>
@@ -267,16 +295,13 @@
         const totalSteps = 4;
         let totalDuration = 0;
 
-        // --- HÀM HỖ TRỢ HIỂN THỊ THÔNG BÁO TOAST XỊN MỊN ---
         function showToast(message, type = 'warning') {
             const toastEl = document.getElementById('bookingToast');
             const toastMessage = document.getElementById('toastMessage');
             const toastIcon = document.getElementById('toastIcon');
 
-            // Reset lớp màu cũ
             toastEl.classList.remove('bg-warning', 'bg-danger', 'bg-success', 'bg-info', 'text-dark');
 
-            // Thiết lập style và icon phù hợp theo type
             if (type === 'danger') {
                 toastEl.classList.add('bg-danger');
                 toastIcon.className = 'fas fa-exclamation-circle fs-5';
@@ -289,13 +314,10 @@
             }
 
             toastMessage.innerText = message;
-
-            // Khởi tạo và kích hoạt Bootstrap Toast
             const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
             toast.show();
         }
 
-        // SỬA 2: SỬA ĐOẠN ĐỌC LỖI TỪ MODELSTATE (ĐÃ XÓA SCRIPT LỒNG KHỦNG KHIẾP VÀ KHẮC PHỤC RAZOR ERROR)
         @if (!ViewData.ModelState.IsValid)
             {
                     foreach (var modelState in ViewData.ModelState.Values)
@@ -313,48 +335,61 @@
                 }
             }
 
-            // --- HỆ THỐNG ĐIỀU HƯỚNG MULTI-STEP ---
-            function updateStepperUI() {
-                document.querySelectorAll('.step-node').forEach(node => {
-                    const stepNum = parseInt(node.getAttribute('data-step'));
-                    if (stepNum <= currentStep) {
-                        node.classList.add('active');
-                    } else {
-                        node.classList.remove('active');
-                    }
-                });
-
-                const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
-                const progressBar = document.getElementById('stepProgressBar');
-                if (progressBar) progressBar.style.width = `${progressPercent}%`;
-
-                document.querySelectorAll('.booking-step-content').forEach(content => {
-                    if (parseInt(content.getAttribute('data-step-content')) === currentStep) {
-                        content.classList.add('active');
-                    } else {
-                        content.classList.remove('active');
-                    }
-                });
-
-                document.getElementById('btnPrevStep').style.display = currentStep === 1 ? 'none' : 'block';
-
-                if (currentStep === totalSteps) {
-                    document.getElementById('btnNextStep').style.display = 'none';
-                } else {
-                    document.getElementById('btnNextStep').style.display = 'block';
+            function resetTimeSlot() {
+                document.getElementById("SelectedStartTime").value = "";
+                document.getElementById("btnSubmitBooking").setAttribute("disabled", "disabled");
+                document.getElementById("summarySchedule").style.display = "none";
+                document.getElementById("summarySchedule").innerHTML = "";
+                const container = document.getElementById("slotContainer");
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-slot-state text-center py-4 border rounded-3 bg-light">
+                            <i class="fas fa-calendar-day text-muted fs-3 mb-2"></i>
+                            <p class="text-muted small m-0">Please set a date above and click "Find Slots".</p>
+                        </div>`;
                 }
             }
+
+        // --- MULTI-STEP NAVIGATION ---
+        function updateStepperUI() {
+            document.querySelectorAll('.step-node').forEach(node => {
+                const stepNum = parseInt(node.getAttribute('data-step'));
+                if (stepNum <= currentStep) {
+                    node.classList.add('active');
+                } else {
+                    node.classList.remove('active');
+                }
+            });
+
+            const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            const progressBar = document.getElementById('stepProgressBar');
+            if (progressBar) progressBar.style.width = `${progressPercent}%`;
+
+            document.querySelectorAll('.booking-step-content').forEach(content => {
+                if (parseInt(content.getAttribute('data-step-content')) === currentStep) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            document.getElementById('btnPrevStep').style.display = currentStep === 1 ? 'none' : 'block';
+            document.getElementById('btnNextStep').style.display = currentStep === totalSteps ? 'none' : 'block';
+        }
 
         document.getElementById('btnNextStep').addEventListener('click', function() {
             if (currentStep < totalSteps) {
                 if (currentStep === 1 && !document.getElementById('selectedPetId').value) {
-                    showToast("Please select a pet before moving forward.", "warning"); return;
+                    showToast("Please select a pet before moving forward.", "warning");
+                    return;
                 }
                 if (currentStep === 2 && !document.getElementById('selectedStaffId').value) {
-                    showToast("Please select a doctor before moving forward.", "warning"); return;
+                    showToast("Please select a specialist before moving forward.", "warning");
+                    return;
                 }
                 if (currentStep === 3 && totalDuration === 0) {
-                    showToast("Please select at least one service before moving forward.", "warning"); return;
+                    showToast("Please select at least one service before moving forward.", "warning");
+                    return;
                 }
                 currentStep++;
                 updateStepperUI();
@@ -368,8 +403,7 @@
             }
         });
 
-
-        // --- LOGIC XEM CHI TIẾT (SELECT TO VIEW) ---
+        // --- VIEW DETAIL MODAL ---
         const detailModal = new bootstrap.Modal(document.getElementById('detailViewerModal'));
         const modalTitle = document.getElementById('detailModalTitle');
         const modalBody = document.getElementById('detailModalBody');
@@ -394,12 +428,13 @@
                             </ul>`;
                 }
                 else if (card.classList.contains('card-staff')) {
-                    modalTitle.innerText = "Doctor Profile";
+                    modalTitle.innerText = "Specialist Profile";
                     modalBody.innerHTML = `
                             <div class="text-center mb-3">
                                 <img src="${card.dataset.avatar}" class="rounded-circle border" style="width:90px; height:90px; object-fit:cover;"/>
                                 <h4 class="fw-bold mt-2 mb-0">${card.dataset.name}</h4>
-                                <span class="text-muted small">License: ${card.dataset.license || 'N/A'}</span>
+                                <span class="badge bg-primary-subtle text-primary mb-1">${card.dataset.role || 'Staff'}</span>
+                                <div><span class="text-muted small">License: ${card.dataset.license || 'N/A'}</span></div>
                             </div>
                             <p class="text-muted small text-center px-2 mb-3">"${card.dataset.desc || 'No description provided.'}"</p>
                             <ul class="list-group list-group-flush small">
@@ -409,9 +444,11 @@
                             </ul>`;
                 }
                 else if (card.classList.contains('card-service')) {
+                    const typeText = card.dataset.type === "1" ? "Medical Service" : "Grooming Service";
                     modalTitle.innerText = "Service Information";
                     modalBody.innerHTML = `
-                            <h4 class="fw-bold text-dark mb-2">${card.dataset.name}</h4>
+                            <h4 class="fw-bold text-dark mb-1">${card.dataset.name}</h4>
+                            <span class="badge bg-secondary-subtle text-secondary mb-3">${typeText}</span>
                             <div class="d-flex gap-3 mb-3 small">
                                 <span><i class="fas fa-tags text-success me-1"></i> Price: <strong class="text-dark">${parseFloat(card.dataset.price).toLocaleString('vi-VN')} đ</strong></span>
                                 <span><i class="far fa-clock text-success me-1"></i> Duration: <strong class="text-dark">${card.dataset.duration} mins</strong></span>
@@ -422,8 +459,7 @@
             });
         });
 
-
-        // --- LOGIC CHỌN THÚ CƯNG (SINGLE SELECT) ---
+        // --- SELECT PET ---
         document.querySelectorAll('.card-pet').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.card-pet').forEach(c => c.classList.remove('selected-active'));
@@ -436,25 +472,66 @@
             });
         });
 
+        // --- LỌC KHÓA SERVICE THEO CHUYÊN MÔN CỦA STAFF ---
+        const serviceCards = document.querySelectorAll('.card-service');
 
-        // --- LOGIC CHỌN BÁC SĨ (SINGLE SELECT) ---
+        function applyServiceFilterByRole(staffRole) {
+            if (!staffRole) return;
+            const roleLower = staffRole.toLowerCase();
+
+            serviceCards.forEach(card => {
+                const serviceType = card.getAttribute('data-type'); // "1": Vet (Y tế), "2": Groomer (Làm đẹp)
+                const chk = card.querySelector('.service-checkbox-input');
+
+                let isAllowed = true;
+                if (roleLower === 'vet' && serviceType !== '1') {
+                    isAllowed = false;
+                } else if (roleLower === 'groomer' && serviceType !== '2') {
+                    isAllowed = false;
+                }
+
+                if (!isAllowed) {
+                    card.classList.add('disabled-service');
+                    // Tự động bỏ chọn nếu đã tích chọn trước đó
+                    if (chk.checked) {
+                        chk.checked = false;
+                        card.classList.remove('selected-active');
+                    }
+                } else {
+                    card.classList.remove('disabled-service');
+                }
+            });
+
+            updateServicesSummary();
+            resetTimeSlot();
+        }
+
+        // --- SELECT STAFF ---
         document.querySelectorAll('.card-staff').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.card-staff').forEach(c => c.classList.remove('selected-active'));
                 this.classList.add('selected-active');
-                document.getElementById('selectedStaffId').value = this.getAttribute('data-id');
+
+                const staffId = this.getAttribute('data-id');
+                const staffRole = this.getAttribute('data-role');
+
+                document.getElementById('selectedStaffId').value = staffId;
+                document.getElementById('selectedStaffRole').value = staffRole;
 
                 document.getElementById('summaryStaff').innerHTML = `
                         <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
-                        <span>${this.dataset.name}</span>`;
+                        <span>${this.dataset.name} <small class="badge bg-secondary-subtle text-dark ms-1">${staffRole}</small></span>`;
+
+                // Áp dụng khóa các service không tương ứng với Role của staff
+                applyServiceFilterByRole(staffRole);
             });
         });
 
-
-        // --- LOGIC CHỌN DỊCH VỤ VỚI RÀNG BUỘC TYPE ---
-        const serviceCards = document.querySelectorAll('.card-service');
+        // --- SELECT SERVICES ---
         serviceCards.forEach(card => {
             card.addEventListener('click', function() {
+                if (this.classList.contains('disabled-service')) return;
+
                 const chk = this.querySelector('.service-checkbox-input');
                 const checkedCards = Array.from(serviceCards).filter(c => c.querySelector('.service-checkbox-input').checked);
 
@@ -469,20 +546,20 @@
                         const clickingType = this.getAttribute('data-type');
 
                         if (currentSelectedType !== clickingType) {
-                            showToast("You can only select services of the same category (Service Type).", "warning");
+                            showToast("You can only select services of the same category.", "warning");
                             return;
                         }
                     }
 
                     chk.checked = true;
                     this.classList.add('selected-active');
-                }
-                else {
+                } else {
                     chk.checked = false;
                     this.classList.remove('selected-active');
                 }
 
                 updateServicesSummary();
+                resetTimeSlot();
             });
         });
 
@@ -496,7 +573,7 @@
 
             serviceCards.forEach(card => {
                 const chk = card.querySelector('.service-checkbox-input');
-                if (chk.checked) {
+                if (chk && chk.checked) {
                     hasService = true;
                     const name = card.getAttribute('data-name');
                     const price = parseFloat(card.getAttribute('data-price'));
@@ -520,18 +597,22 @@
             document.getElementById('summaryPrice').innerText = `${totalPrice.toLocaleString('vi-VN')} đ`;
         }
 
-
-        // --- TÁI TẠO TRẠNG THÁI KHI SỰ KIỆN VALIDATION LỖI ---
+        // --- INIT STATE ---
         const initOldState = () => {
             const oldPet = document.getElementById('selectedPetId').value;
             if (oldPet) document.querySelector(`.card-pet[data-id="${oldPet}"]`)?.click();
 
             const oldStaff = document.getElementById('selectedStaffId').value;
-            if (oldStaff) document.querySelector(`.card-staff[data-id="${oldStaff}"]`)?.click();
+            if (oldStaff) {
+                const staffCard = document.querySelector(`.card-staff[data-id="${oldStaff}"]`);
+                if (staffCard) {
+                    staffCard.click();
+                }
+            }
 
             serviceCards.forEach(card => {
                 const chk = card.querySelector('.service-checkbox-input');
-                if (chk.checked) {
+                if (chk && chk.checked && !card.classList.contains('disabled-service')) {
                     card.classList.add('selected-active');
                 }
             });
@@ -540,8 +621,7 @@
         };
         initOldState();
 
-
-        // --- THIẾT LẬP GỌI API LẤY TIME SLOTS ---
+        // --- LOAD TIME SLOTS ---
         const btnLoadSlots = document.getElementById("btnLoadSlots");
         if (btnLoadSlots) {
             btnLoadSlots.addEventListener("click", loadSlots);
@@ -551,7 +631,7 @@
             const doctorId = document.getElementById("selectedStaffId").value;
             const date = document.getElementById("AppointmentDate").value;
 
-            if (!doctorId) { showToast("Please go back and select a doctor.", "warning"); return; }
+            if (!doctorId) { showToast("Please go back and select a specialist.", "warning"); return; }
             if (totalDuration === 0) { showToast("Please go back and select services.", "warning"); return; }
             if (!date) { showToast("Please choose an appointment date.", "warning"); return; }
 
@@ -603,7 +683,6 @@
             slots.forEach(slot => {
                 const start = new Date(slot.startTime);
                 const end = new Date(slot.endTime);
-
                 const formatOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
                 const timeText = start.toLocaleTimeString([], formatOptions) + " - " + end.toLocaleTimeString([], formatOptions);
 
@@ -621,7 +700,6 @@
 
                     const summarySchedule = document.getElementById('summarySchedule');
                     summarySchedule.style.display = "block";
-                    // SỬA 3: ĐÃ THAY @@ THÀNH KÝ TỰ DẤU GẠCH MANG Ý NGHĨA KẾT NỐI VÀ TRÁNH LỖI BIÊN DỊCH RAZOR
                     summarySchedule.innerHTML = `<i class="fas fa-calendar-check text-success me-1"></i> ${document.getElementById("AppointmentDate").value} - ${timeText.split('-')[0]}`;
 
                     document.getElementById('btnSubmitBooking').removeAttribute('disabled');

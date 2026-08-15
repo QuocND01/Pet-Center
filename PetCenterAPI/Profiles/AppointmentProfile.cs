@@ -60,7 +60,11 @@ namespace PetCenterAPI.Profiles
             // Map các trường thuộc Staff sang DTO (Tự động trùng tên)
                 .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.StaffId))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
-
+                .ForMember(dest => dest.Role,
+                    opt => opt.MapFrom(src =>
+                        src.Roles.FirstOrDefault() != null
+                            ? src.Roles.FirstOrDefault()!.RoleName
+                            : null))
                 // Map các trường từ VetProfile lồng bên trong Staff
                 .ForMember(dest => dest.ExperienceYears, opt => opt.MapFrom(src => src.VetProfile != null ? src.VetProfile.ExperienceYears : null))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.VetProfile != null ? src.VetProfile.Description : null))
