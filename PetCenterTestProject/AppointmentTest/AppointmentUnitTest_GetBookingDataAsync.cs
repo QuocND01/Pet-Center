@@ -92,7 +92,7 @@ namespace PetCenterTestProject.AppointmentTest
             _petRepoMock.Setup(x => x.GetPetsByCustomerIdAsync(customerId))
                 .ReturnsAsync(mockPets);
 
-            _repositoryMock.Setup(x => x.GetActiveVetsAsync())
+            _repositoryMock.Setup(x => x.GetActiveVetAndGroomersAsync())
                 .ReturnsAsync(mockStaffs);
 
             _serviceRepoMock.Setup(x => x.GetAllActiveServicesAsync())
@@ -155,7 +155,7 @@ namespace PetCenterTestProject.AppointmentTest
             _petRepoMock.Setup(x => x.GetPetsByCustomerIdAsync(customerId))
                 .ReturnsAsync(mockPets);
 
-            _repositoryMock.Setup(x => x.GetActiveVetsAsync())
+            _repositoryMock.Setup(x => x.GetActiveVetAndGroomersAsync())
                 .ReturnsAsync(mockStaffs);
 
             _serviceRepoMock.Setup(x => x.GetAllActiveServicesAsync())
@@ -209,7 +209,7 @@ namespace PetCenterTestProject.AppointmentTest
             _petRepoMock.Setup(x => x.GetPetsByCustomerIdAsync(customerId))
                 .ReturnsAsync(mockPets);
 
-            _repositoryMock.Setup(x => x.GetActiveVetsAsync())
+            _repositoryMock.Setup(x => x.GetActiveVetAndGroomersAsync())
                 .ReturnsAsync(mockStaffs);
 
             _serviceRepoMock.Setup(x => x.GetAllActiveServicesAsync())
@@ -262,7 +262,7 @@ namespace PetCenterTestProject.AppointmentTest
             _petRepoMock.Setup(x => x.GetPetsByCustomerIdAsync(customerId))
                 .ReturnsAsync(mockPets);
 
-            _repositoryMock.Setup(x => x.GetActiveVetsAsync())
+            _repositoryMock.Setup(x => x.GetActiveVetAndGroomersAsync())
                 .ReturnsAsync(mockStaffs);
 
             _serviceRepoMock.Setup(x => x.GetAllActiveServicesAsync())
@@ -289,7 +289,7 @@ namespace PetCenterTestProject.AppointmentTest
 
             // Xác minh hệ thống gọi đủ và đúng 1 lần các Repository liên quan
             _petRepoMock.Verify(x => x.GetPetsByCustomerIdAsync(customerId), Times.Once);
-            _repositoryMock.Verify(x => x.GetActiveVetsAsync(), Times.Once);
+            _repositoryMock.Verify(x => x.GetActiveVetAndGroomersAsync(), Times.Once);
             _serviceRepoMock.Verify(x => x.GetAllActiveServicesAsync(), Times.Once);
         }
         //=========================================================
@@ -335,7 +335,7 @@ namespace PetCenterTestProject.AppointmentTest
             _petRepoMock.Setup(x => x.GetPetsByCustomerIdAsync(customerId))
                 .ReturnsAsync(mockPets);
 
-            _repositoryMock.Setup(x => x.GetActiveVetsAsync())
+            _repositoryMock.Setup(x => x.GetActiveVetAndGroomersAsync())
                 .ReturnsAsync(mockStaffs);
 
             _serviceRepoMock.Setup(x => x.GetAllActiveServicesAsync())

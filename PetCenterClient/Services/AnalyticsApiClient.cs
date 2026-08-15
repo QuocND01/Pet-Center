@@ -1,4 +1,5 @@
 ﻿using PetCenterClient.Services.Interface;
+using System;
 using PetCenterClient.ViewModels;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -25,13 +26,13 @@ namespace PetCenterClient.Services
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            // 2. Cấu hình URL gọi sang Backend API
-            var url = "https://localhost:7004/api/analytics/dashboard";
+            // 2. Sử dụng đường dẫn tương đối; BaseAddress được cấu hình khi đăng ký HttpClient
+            var url = "api/analytics/dashboard";
 
-            // Nếu có truyền tham số lọc ngày thì ghép chuỗi Query String vào URL
+            // Nếu có truyền tham số lọc ngày thì ghép chuỗi Query String vào URL (escape để an toàn)
             if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
             {
-                url += $"?startDate={startDate}&endDate={endDate}";
+                url += $"?startDate={Uri.EscapeDataString(startDate)}&endDate={Uri.EscapeDataString(endDate)}";
             }
 
             try
