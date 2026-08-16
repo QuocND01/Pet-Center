@@ -156,6 +156,17 @@ namespace PetCenterTestProject.MedicalRecordTest
                     Rating = 5,
                     VetName = vetName
                 });
+
+                context.AppointmentServices.Add(new PetCenterAPI.Models.AppointmentService
+                {
+                    AppointmentServiceId = Guid.NewGuid(),
+                    AppointmentId = appointmentId,
+                    ServiceId = Guid.NewGuid(),
+                    ServiceName = "Veterinary Examination",
+                    PriceAtBooking = 100,
+                    Duration = 30,
+                    ServiceType = 1
+                });
                 await context.SaveChangesAsync();
             }
         }
