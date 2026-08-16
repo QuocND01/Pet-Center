@@ -327,7 +327,7 @@ namespace PetCenterClient.Controllers
         public IActionResult PaymentReturn([FromQuery] bool success, [FromQuery] string? message, [FromQuery] Guid? appointmentId)
         {
             ViewBag.Success = success;
-            ViewBag.Message = message ?? (success ? "Thanh toán lịch hẹn thành công!" : "Thanh toán thất bại.");
+            ViewBag.Message = message ?? (success ? "Appointment payment successful!" : "Payment failed.");
             ViewBag.AppointmentId = appointmentId;
 
             return View("~/Views/CustomerViews/Appointment/PaymentReturn.cshtml");
@@ -351,14 +351,14 @@ namespace PetCenterClient.Controllers
                 var appointmentDetail = await _appointmentApiService.GetAppointmentDetailAsync(id);
                 if (appointmentDetail == null)
                 {
-                    TempData["Error"] = "Không tìm thấy thông tin lịch hẹn.";
+                    TempData["Error"] = "Appointment information not found.";
                     return RedirectToAction("MyAppointments");
                 }
 
                 // 2. Chỉ cho phép chỉnh sửa nếu Status = 1 (Giữ chỗ / Pending)
                 if (appointmentDetail.Status != 1)
                 {
-                    TempData["Error"] = "Chỉ có thể chỉnh sửa lịch hẹn đang ở trạng thái Giữ chỗ (Pending).";
+                    TempData["Error"] = "Only appointments with a Pending status can be edited.";
                     return RedirectToAction("Detail", new { id });
                 }
 
