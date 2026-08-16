@@ -83,22 +83,77 @@ namespace PetCenterClient.Controllers
 
             try
             {
-                var success = await _apiClient.AddAddressAsync(dto);
-                if (success)
+                var res = await _apiClient.AddAddressAsync(dto);
+                if (res.IsSuccessStatusCode)
                 {
                     _logger.LogInformation("Tạo địa chỉ mới thành công.");
-                }
-                else
-                {
-                    _logger.LogWarning("Thêm địa chỉ thất bại từ phía API Client.");
+                    return Json(new { success = true });
                 }
 
-                return Json(new { success });
+                if (res.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    var json = await res.Content.ReadAsStringAsync();
+                    var errors = new Dictionary<string, string[]>();
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(json);
+                        if (doc.RootElement.TryGetProperty("errors", out var errElem) && errElem.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            foreach (var prop in errElem.EnumerateObject())
+                            {
+                                var list = prop.Value.EnumerateArray().Select(e => e.GetString() ?? string.Empty).ToArray();
+                                // add original key
+                                errors[prop.Name] = list;
+                                // also add camelCase key for JS consumers that use camelCase
+                                var camel = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1);
+                                if (!errors.ContainsKey(camel)) errors[camel] = list;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore parse errors
+                    }
+
+                    // If errors dictionary is empty, try to extract message or fallback to a generic field error
+                    if (errors.Count == 0)
+                    {
+                        try
+                        {
+                            using var doc2 = System.Text.Json.JsonDocument.Parse(json);
+                            if (doc2.RootElement.TryGetProperty("message", out var msgElem) && msgElem.ValueKind == System.Text.Json.JsonValueKind.String)
+                            {
+                                var msg = msgElem.GetString() ?? "";
+                                errors["addressDetails"] = new[] { msg };
+                                errors["AddressDetails"] = new[] { msg };
+                            }
+                            else
+                            {
+                                // fallback: if response contains word 'address' try to use it
+                                var low = json.ToLowerInvariant();
+                                if (low.Contains("address") || low.Contains("địa chỉ") || low.Contains("dia chi"))
+                                {
+                                    errors["addressDetails"] = new[] { "Address already exists" };
+                                    errors["AddressDetails"] = new[] { "Address already exists" };
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+
+                    return Json(new { success = false, errors });
+                }
+
+                _logger.LogWarning("Add address failed from API client.");
+                return Json(new { success = false, message = "Failed to add address" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception khi gọi API thêm địa chỉ.");
-                return Json(new { success = false, message = "Đã xảy ra lỗi hệ thống" });
+                _logger.LogError(ex, "Exception when calling API to add address.");
+                return Json(new { success = false, message = "An unexpected error occurred" });
             }
         }
 
@@ -110,7 +165,7 @@ namespace PetCenterClient.Controllers
         {
             if (id == Guid.Empty)
             {
-                return Json(new { success = false, message = "ID không hợp lệ" });
+                return Json(new { success = false, message = "Invalid ID" });
             }
 
             // Trim incoming values to avoid whitespace-only values
@@ -134,14 +189,77 @@ namespace PetCenterClient.Controllers
 
             try
             {
-                var success = await _apiClient.UpdateAddressAsync(id, dto);
-                _logger.LogInformation($"Cập nhật địa chỉ {id} - Kết quả: {success}");
-                return Json(new { success });
+                var res = await _apiClient.UpdateAddressAsync(id, dto);
+                if (res.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation($"Cập nhật địa chỉ {id} thành công.");
+                    return Json(new { success = true });
+                }
+
+                if (res.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    var json = await res.Content.ReadAsStringAsync();
+                    var errors = new Dictionary<string, string[]>();
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(json);
+                        if (doc.RootElement.TryGetProperty("errors", out var errElem) && errElem.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            foreach (var prop in errElem.EnumerateObject())
+                            {
+                                var list = prop.Value.EnumerateArray().Select(e => e.GetString() ?? string.Empty).ToArray();
+                                // add original key
+                                errors[prop.Name] = list;
+                                // also add camelCase key for JS consumers that use camelCase
+                                var camel = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1);
+                                if (!errors.ContainsKey(camel)) errors[camel] = list;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore parse errors
+                    }
+
+                    // If errors dictionary is empty, try to extract message or fallback to a generic field error
+                    if (errors.Count == 0)
+                    {
+                        try
+                        {
+                            using var doc2 = System.Text.Json.JsonDocument.Parse(json);
+                            if (doc2.RootElement.TryGetProperty("message", out var msgElem) && msgElem.ValueKind == System.Text.Json.JsonValueKind.String)
+                            {
+                                var msg = msgElem.GetString() ?? "";
+                                errors["addressDetails"] = new[] { msg };
+                                errors["AddressDetails"] = new[] { msg };
+                            }
+                            else
+                            {
+                                // fallback: if response contains vietnamese word 'địa chỉ' try to use it
+                                var low = json.ToLowerInvariant();
+                                if (low.Contains("address") || low.Contains("địa chỉ") || low.Contains("dia chi"))
+                                {
+                                    errors["addressDetails"] = new[] { "Address already exists" };
+                                    errors["AddressDetails"] = new[] { "Address already exists" };
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+
+                    return Json(new { success = false, errors });
+                }
+
+                _logger.LogWarning($"Update address {id} failed from API client.");
+                return Json(new { success = false, message = "Failed to update address" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Exception khi cập nhật địa chỉ ID: {id}");
-                return Json(new { success = false, message = "Đã xảy ra lỗi hệ thống" });
+                _logger.LogError(ex, $"Exception when updating address ID: {id}");
+                return Json(new { success = false, message = "An unexpected error occurred" });
             }
         }
 
@@ -153,19 +271,48 @@ namespace PetCenterClient.Controllers
         {
             if (id == Guid.Empty)
             {
-                return Json(new { success = false, message = "ID không hợp lệ" });
+                return Json(new { success = false, message = "Invalid ID" });
             }
 
             try
             {
-                var success = await _apiClient.DeleteAddressAsync(id);
-                _logger.LogInformation($"Xóa địa chỉ {id} - Kết quả: {success}");
-                return Json(new { success });
+                var res = await _apiClient.DeleteAddressAsync(id);
+                if (res.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation($"Xóa địa chỉ {id} thành công.");
+                    return Json(new { success = true });
+                }
+
+                if (res.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    var json = await res.Content.ReadAsStringAsync();
+                    var errors = new Dictionary<string, string[]>();
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(json);
+                        if (doc.RootElement.TryGetProperty("errors", out var errElem) && errElem.ValueKind == System.Text.Json.JsonValueKind.Object)
+                        {
+                            foreach (var prop in errElem.EnumerateObject())
+                            {
+                                var list = prop.Value.EnumerateArray().Select(e => e.GetString() ?? string.Empty).ToArray();
+                                errors[prop.Name] = list;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore parse errors
+                    }
+
+                    return Json(new { success = false, errors });
+                }
+                _logger.LogWarning($"Delete address {id} failed from API client.");
+                return Json(new { success = false, message = "Failed to delete address" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Exception khi xóa địa chỉ ID: {id}");
-                return Json(new { success = false, message = "Đã xảy ra lỗi hệ thống" });
+                _logger.LogError(ex, $"Exception when deleting address ID: {id}");
+                return Json(new { success = false, message = "An unexpected error occurred" });
             }
         }
     }

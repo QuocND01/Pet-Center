@@ -4,9 +4,12 @@
     {
         // Các chỉ số KPI tổng quan
         public decimal TotalRevenue { get; set; }
-        public decimal TotalProfit { get; set; } // Đã thêm Lợi nhuận
+        public decimal TotalProfit { get; set; } // Gross Profit (Lợi nhuận gộp)
         public int TotalOrders { get; set; }
         public int TotalAppointments { get; set; }
+        // Số lượng đơn / cuộc hẹn đã hủy
+        public int CancelledOrders { get; set; }
+        public int CancelledAppointments { get; set; }
         public int TotalCustomers { get; set; }
 
         // Các mảng dữ liệu cho phiên bản Analytics Pro

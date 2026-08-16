@@ -7,6 +7,10 @@
         public decimal TotalProfit { get; set; } // DÒNG BỊ THIẾU NẰM Ở ĐÂY NÈ
         public int TotalOrders { get; set; }
         public int TotalAppointments { get; set; }
+        // Số lượng đơn hàng đã hủy trong khoảng thời gian
+        public int CancelledOrders { get; set; }
+        // Số lượng cuộc hẹn đã hủy trong khoảng thời gian
+        public int CancelledAppointments { get; set; }
         public int TotalCustomers { get; set; }
 
         // Mảng dữ liệu cho biểu đồ 6 tháng (Nếu bạn vẫn giữ logic cũ)

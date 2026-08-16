@@ -36,6 +36,22 @@ namespace PetCenterAPI.Service
             var existing = await _addressRepository.GetAddressesByCustomerIdAsync(customerId);
             var hasActive = existing != null && existing.Any();
 
+            // Prevent duplicate addresses for the same customer (compare normalized fields)
+            static string Normalize(string? s) => (s ?? string.Empty).Trim().ToLowerInvariant();
+            bool IsDuplicate(Address a, MutateAddressDTO d)
+            {
+                return Normalize(a.Province) == Normalize(d.Province)
+                    && Normalize(a.District) == Normalize(d.District)
+                    && Normalize(a.Ward) == Normalize(d.Ward)
+                    && Normalize(a.AddressDetails) == Normalize(d.AddressDetails);
+            }
+
+            if (existing != null && existing.Any(a => IsDuplicate(a, dto)))
+            {
+                // Duplicate found among active addresses - reject add
+                return false;
+            }
+
             bool isDefaultFinal = dto.IsDefault;
             if (!hasActive)
             {
@@ -69,6 +85,26 @@ namespace PetCenterAPI.Service
         {
             var address = await _addressRepository.GetAddressByIdAsync(addressId, customerId);
             if (address == null) return false;
+
+            // Prevent updating to a duplicate of another active address
+            var existing = await _addressRepository.GetAddressesByCustomerIdAsync(customerId);
+            if (existing != null && existing.Any())
+            {
+                static string Normalize(string? s) => (s ?? string.Empty).Trim().ToLowerInvariant();
+                bool IsDuplicate(Address a, MutateAddressDTO d)
+                {
+                    return Normalize(a.Province) == Normalize(d.Province)
+                        && Normalize(a.District) == Normalize(d.District)
+                        && Normalize(a.Ward) == Normalize(d.Ward)
+                        && Normalize(a.AddressDetails) == Normalize(d.AddressDetails);
+                }
+
+                if (existing.Any(a => a.AddressId != addressId && IsDuplicate(a, dto)))
+                {
+                    // Duplicate would be created - reject update
+                    return false;
+                }
+            }
 
             if (dto.IsDefault && address.IsDefault != true)
             {

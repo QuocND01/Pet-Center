@@ -1,12 +1,52 @@
 ﻿@using PetCenterClient.ViewModels
 @model ReadDiseaseViewModel
 
-<div class="modal-header bg-light">
-    <h5 class="modal-title fw-bold"><i class="bi bi-journal-medical"></i> @Model.Name</h5>
+<style>
+    /* Disease detail modal: prevent long values from overflowing */
+    .disease-detail * { box-sizing: border-box; }
+    /* Allow the title to wrap and not push the close button out of the header */
+    .disease-header {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+    }
+
+    .disease-header .modal-title,
+    .disease-header .disease-title {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+        margin: 0;
+        flex: 1 1 auto; /* allow title to shrink/grow inside header */
+        min-width: 0; /* important for flex children to allow wrapping */
+    }
+
+    .disease-detail .badge {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+    }
+
+    .disease-detail .note-box {
+        white-space: pre-wrap; /* preserve line breaks */
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        max-height: 360px;
+        overflow: auto;
+        padding-right: 8px;
+    }
+
+    /* allow modal to be wider if needed but constrained */
+    .modal-dialog { max-width: 900px; }
+</style>
+
+<div class="modal-header bg-light disease-header">
+    <h5 class="modal-title fw-bold disease-title"><i class="bi bi-journal-medical"></i> @Model.Name</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
-<div class="modal-body p-4">
-    <div class="d-flex gap-2 mb-4">
+<div class="modal-body p-4 disease-detail">
+    <div class="d-flex gap-2 mb-4 flex-wrap">
         <span class="badge bg-primary fs-6">Target: @Model.SpeciesName</span>
         @if (Model.IsSystem)
         {
@@ -15,13 +55,13 @@
     </div>
 
     <h6 class="fw-bold text-uppercase text-secondary mb-2">Description</h6>
-    <div class="p-3 bg-light rounded mb-4" style="border-left: 4px solid #0d6efd; max-height:360px; overflow:auto;">
+    <div class="p-3 bg-light rounded mb-4 note-box" style="border-left: 4px solid #0d6efd;">
         @{ var desc = Model.Description ?? string.Empty; var descDisplay = desc.Length > 600 ? desc.Substring(0, 600) + "..." : desc; }
         @descDisplay
     </div>
 
     <h6 class="fw-bold text-uppercase text-secondary mb-2">Recommendation / Treatment</h6>
-    <div class="p-3 rounded" style="background-color: #f0fdf4; border-left: 4px solid #22c55e; max-height:360px; overflow:auto;">
+    <div class="p-3 rounded note-box" style="background-color: #f0fdf4; border-left: 4px solid #22c55e;">
         @{ var rec = Model.Recommendation ?? string.Empty; var recDisplay = rec.Length > 600 ? rec.Substring(0, 600) + "..." : rec; }
         @recDisplay
     </div>

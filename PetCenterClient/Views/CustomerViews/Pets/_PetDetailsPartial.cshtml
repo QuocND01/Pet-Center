@@ -1,7 +1,31 @@
 ﻿@using PetCenterClient.ViewModels
 @model ReadPetDetailViewModel
 
-<div class="position-relative">
+<style>
+    /* Keep long notes inside a scrollable box to avoid breaking layout */
+    .pet-detail .note-box {
+        max-height: 220px;
+        overflow: auto;
+        white-space: pre-wrap; /* preserve user line breaks */
+        word-break: break-word; /* break long words/urls */
+        padding-right: 8px; /* give space for scrollbar */
+    }
+
+    .pet-detail * { box-sizing: border-box; }
+
+    /* Ensure pet name and meta wrap instead of overflowing */
+    .pet-detail .pet-name,
+    .pet-detail .pet-meta {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+    }
+
+    /* Allow content area to shrink in constrained modals */
+    .pet-detail .p-4 { min-width: 0; }
+</style>
+
+<div class="position-relative pet-detail">
     <div style="height: 180px; background: linear-gradient(135deg, #dcfce7, #86efac); display:flex; align-items:center; justify-content:center;">
         @if (!string.IsNullOrEmpty(Model.PetAvatar))
         {
@@ -16,8 +40,8 @@
     <button type="button" class="btn-close position-absolute top-0 end-0 m-3 bg-white" data-bs-dismiss="modal" style="border-radius: 50%; opacity: 0.8;"></button>
 
     <div class="p-4 bg-white">
-        <h3 class="fw-bold mb-1">@Model.PetName</h3>
-        <p class="text-muted fw-semibold mb-3">@Model.Breed • @Model.Species • @Model.Gender</p>
+        <h3 class="fw-bold mb-1 pet-name">@Model.PetName</h3>
+        <p class="text-muted fw-semibold mb-3 pet-meta">@Model.Breed • @Model.Species • @Model.Gender</p>
 
         <div class="row g-3 mb-4">
             <div class="col-6">
@@ -36,8 +60,8 @@
         </div>
 
         <div>
-            <small class="text-muted fw-bold d-block mb-1">SPECIAL NOTES</small>
-            <p class="mb-0" style="color: #334155; line-height: 1.6;">
+        <small class="text-muted fw-bold d-block mb-1">SPECIAL NOTES</small>
+            <p class="mb-0 note-box" style="color: #334155; line-height: 1.6;">
                 @(string.IsNullOrEmpty(Model.Note) ? "No special notes recorded." : Model.Note)
             </p>
         </div>

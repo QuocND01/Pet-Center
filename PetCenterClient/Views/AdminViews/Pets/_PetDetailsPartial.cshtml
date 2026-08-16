@@ -1,11 +1,62 @@
 ﻿@using PetCenterClient.ViewModels
 @model ReadVetPetDetailViewModel
 
+<style>
+    /* Prevent long/continuous text from overflowing the modal */
+    .pet-detail * {
+        box-sizing: border-box;
+    }
+
+    .pet-detail .wrap,
+    .pet-detail p,
+    .pet-detail span,
+    .pet-detail h3 {
+        overflow-wrap: anywhere; /* allow long words to break */
+        word-break: break-word;
+        white-space: normal; /* allow wrapping */
+    }
+
+    /* Specific rules for pet name and meta to avoid overflowing the header area */
+    .pet-detail .pet-name {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+        margin-bottom: 0.25rem;
+    }
+
+    .pet-detail .pet-meta {
+        color: #6b7280;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Allow the right column to shrink so long names don't push out the avatar */
+    .pet-detail .col-md-9 { min-width: 0; }
+
+    /* Preserve line breaks and spacing inside notes, but still allow long words to break.
+       Limit height and show scrollbar when content is large to avoid breaking modal layout. */
+    .pet-detail .note-box {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        max-height: 240px;
+        overflow: auto;
+        padding-right: 8px; /* spacing for scrollbar */
+    }
+
+    /* Make sure the modal content scrolls instead of overflowing the viewport */
+    .modal-dialog {
+        max-width: 900px;
+    }
+</style>
+
 <div class="modal-header bg-light">
     <h5 class="modal-title fw-bold">🏥 Patient Medical Profile</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
-<div class="modal-body p-4">
+<div class="modal-body p-4 pet-detail">
     <div class="row mb-4">
         <div class="col-md-3 text-center">
             <div style="width:120px; height:120px; border-radius:50%; background:#e2e8f0; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
@@ -20,8 +71,8 @@
             </div>
         </div>
         <div class="col-md-9 d-flex flex-column justify-content-center">
-            <h3 class="fw-bold text-dark mb-1">@Model.PetName</h3>
-            <p class="text-muted mb-2">@Model.Breed • @Model.Species • @Model.Gender • @Model.Age</p>
+            <h3 class="fw-bold text-dark mb-1 pet-name">@Model.PetName</h3>
+            <p class="text-muted mb-2 pet-meta">@Model.Breed • @Model.Species • @Model.Gender • @Model.Age</p>
             <div class="d-flex gap-3">
                 <span class="badge bg-primary fs-6">DOB: @(Model.DateOfBirth?.ToString("MMM dd, yyyy") ?? "Unknown")</span>
                 <span class="badge bg-success fs-6">Weight: @(Model.Weight?.ToString("0.0") ?? "--") kg</span>
@@ -47,7 +98,7 @@
 
     <div>
         <h6 class="fw-bold text-uppercase text-secondary mb-2"><i class="bi bi-journal-medical"></i> Medical Notes / Alerts</h6>
-        <div class="p-3 border rounded-3" style="background: #fffbea; border-color: #fef08a !important;">
+        <div class="p-3 border rounded-3 note-box" style="background: #fffbea; border-color: #fef08a !important;">
             <p class="mb-0 text-dark" style="line-height: 1.6;">
                 @(string.IsNullOrEmpty(Model.Note) ? "No medical alerts or notes recorded for this patient." : Model.Note)
             </p>
