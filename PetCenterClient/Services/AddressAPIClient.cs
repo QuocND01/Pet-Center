@@ -1,4 +1,5 @@
 ﻿using PetCenterClient.ViewModels;
+using PetCenterClient.ViewModels;
 using PetCenterClient.Services.Interface;
 using System.Net.Http.Json;
 
@@ -35,26 +36,22 @@ namespace PetCenterClient.Services
             }
             return new List<ReadAddressViewModel>();
         }
-
-        public async Task<bool> AddAddressAsync(MutateAddressViewModel dto)
+        public async Task<System.Net.Http.HttpResponseMessage> AddAddressAsync(MutateAddressViewModel dto)
         {
             AddAuthorizationHeader();
-            var res = await _http.PostAsJsonAsync("api/Addresses", dto);
-            return res.IsSuccessStatusCode;
+            return await _http.PostAsJsonAsync("api/Addresses", dto);
         }
 
-        public async Task<bool> UpdateAddressAsync(Guid id, MutateAddressViewModel dto)
+        public async Task<System.Net.Http.HttpResponseMessage> UpdateAddressAsync(Guid id, MutateAddressViewModel dto)
         {
             AddAuthorizationHeader();
-            var res = await _http.PutAsJsonAsync($"api/Addresses/{id}", dto);
-            return res.IsSuccessStatusCode;
+            return await _http.PutAsJsonAsync($"api/Addresses/{id}", dto);
         }
 
-        public async Task<bool> DeleteAddressAsync(Guid id)
+        public async Task<System.Net.Http.HttpResponseMessage> DeleteAddressAsync(Guid id)
         {
             AddAuthorizationHeader();
-            var res = await _http.DeleteAsync($"api/Addresses/{id}");
-            return res.IsSuccessStatusCode;
+            return await _http.DeleteAsync($"api/Addresses/{id}");
         }
     }
 }

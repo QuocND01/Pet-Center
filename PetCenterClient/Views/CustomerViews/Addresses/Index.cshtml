@@ -212,14 +212,17 @@
             'District': 'addrDistrict', 'district': 'addrDistrict',
             'Province': 'addrProvince', 'province': 'addrProvince'
         };
-
+        var firstInvalid = null;
         Object.keys(errors).forEach(key => {
             var msgs = errors[key];
             var inputId = map[key] || map[key.split('.').pop()];
             if (inputId) {
                 var el = document.getElementById(inputId);
                 var err = document.getElementById('error-' + inputId);
-                if (el) el.classList.add('is-invalid');
+                if (el) {
+                    el.classList.add('is-invalid');
+                    if (!firstInvalid) firstInvalid = el;
+                }
                 if (err) err.innerText = Array.isArray(msgs) ? msgs.join(' ') : msgs;
             } else {
                 // unknown field -> show form-level error
@@ -227,9 +230,15 @@
                 if (formErr) {
                     formErr.classList.remove('d-none');
                     formErr.innerText = Array.isArray(msgs) ? msgs.join(' ') : msgs;
+                    if (!firstInvalid) firstInvalid = formErr;
                 }
             }
         });
+
+        // focus first invalid element to draw user's attention
+        if (firstInvalid) {
+            try { firstInvalid.focus(); } catch { }
+        }
     }
 
     // Hàm gửi dữ liệu đi lưu
@@ -283,23 +292,30 @@
         .then(data => {
             if (data.success) {
                 location.reload(); // F5 lại trang nếu lưu thành công
-            } else {
-                // If server returned field errors
-                if (data.errors) {
-                    showFieldErrors(data.errors);
-                } else if (data.message) {
-                    var formErr = document.getElementById('addressFormError');
-                    if (formErr) {
-                        formErr.classList.remove('d-none');
-                        formErr.innerText = data.message;
-                    }
-                } else {
-                    var formErr = document.getElementById('addressFormError');
-                    if (formErr) {
-                        formErr.classList.remove('d-none');
-                        formErr.innerText = 'Action failed. Please try again.';
-                    }
+                return;
+            }
+
+            // If server returned field errors and not empty
+            if (data.errors && Object.keys(data.errors).length > 0) {
+                showFieldErrors(data.errors);
+                return;
+            }
+
+            // If server returned a message, show it
+            if (data.message) {
+                var formErr = document.getElementById('addressFormError');
+                if (formErr) {
+                    formErr.classList.remove('d-none');
+                    formErr.innerText = data.message;
                 }
+                return;
+            }
+
+            // Fallback: generic message
+            var formErr = document.getElementById('addressFormError');
+            if (formErr) {
+                formErr.classList.remove('d-none');
+                formErr.innerText = 'Action failed. Please try again.';
             }
         }).catch(err => {
             var formErr = document.getElementById('addressFormError');

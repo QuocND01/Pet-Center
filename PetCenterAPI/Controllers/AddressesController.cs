@@ -48,6 +48,23 @@ namespace PetCenterAPI.Controllers
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
+                // Kiểm tra trùng địa chỉ trước khi gọi service
+                var existing = await _addressService.GetCustomerAddressesAsync(GetCustomerId());
+                static string Normalize(string? s) => (s ?? string.Empty).Trim().ToLowerInvariant();
+                bool IsDuplicate(ReadAddressDTO a, MutateAddressDTO d)
+                {
+                    return Normalize(a.Province) == Normalize(d.Province)
+                        && Normalize(a.District) == Normalize(d.District)
+                        && Normalize(a.Ward) == Normalize(d.Ward)
+                        && Normalize(a.AddressDetails) == Normalize(d.AddressDetails);
+                }
+
+                if (existing != null && existing.Any(a => IsDuplicate(a, dto)))
+                {
+                    ModelState.AddModelError("AddressDetails", "Address already exists");
+                    return BadRequest(ModelState);
+                }
+
                 var success = await _addressService.AddAddressAsync(GetCustomerId(), dto);
 
                 if (success)
@@ -68,6 +85,23 @@ namespace PetCenterAPI.Controllers
             try
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                // Kiểm tra trùng địa chỉ trước khi cập nhật
+                var existing = await _addressService.GetCustomerAddressesAsync(GetCustomerId());
+                static string Normalize(string? s) => (s ?? string.Empty).Trim().ToLowerInvariant();
+                bool IsDuplicate(ReadAddressDTO a, MutateAddressDTO d)
+                {
+                    return Normalize(a.Province) == Normalize(d.Province)
+                        && Normalize(a.District) == Normalize(d.District)
+                        && Normalize(a.Ward) == Normalize(d.Ward)
+                        && Normalize(a.AddressDetails) == Normalize(d.AddressDetails);
+                }
+
+                if (existing != null && existing.Any(a => a.AddressId != id && IsDuplicate(a, dto)))
+                {
+                    ModelState.AddModelError("AddressDetails", "Address already exists");
+                    return BadRequest(ModelState);
+                }
 
                 var success = await _addressService.UpdateAddressAsync(GetCustomerId(), id, dto);
 
