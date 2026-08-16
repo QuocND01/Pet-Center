@@ -35,6 +35,12 @@ namespace PetCenterAPI.Service
 
             await EnsureRecordEditableAsync(dto.RecordId);
 
+            var existingItems = await _repo.GetByRecordIdAsync(dto.RecordId);
+            if (existingItems.Any(i => string.Equals(i.MedicineName.Trim(), dto.MedicineName.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException("The medicine name already exists in this prescription.");
+            }
+
             var item = new PrescriptionItem
             {
                 PrescriptionItemId = Guid.NewGuid(),
@@ -58,6 +64,12 @@ namespace PetCenterAPI.Service
                 ?? throw new Exception("Prescription item not found");
 
             await EnsureRecordEditableAsync(item.RecordId);
+
+            var existingItems = await _repo.GetByRecordIdAsync(item.RecordId);
+            if (existingItems.Any(i => i.PrescriptionItemId != id && string.Equals(i.MedicineName.Trim(), dto.MedicineName.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException("The medicine name already exists in this prescription.");
+            }
 
             item.MedicineName = dto.MedicineName;
             item.Dosage = dto.Dosage;

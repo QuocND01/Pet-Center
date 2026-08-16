@@ -241,7 +241,7 @@ namespace PetCenterAPI.Service
         #region Order Status & Inventory Management
 
         /// <summary>
-        /// Hủy đơn hàng và xử lý hoàn trả số lượng sản phẩm về kho
+        /// Hủy đơn hàng và xử lý hoàn trả số lượng sản phẩm về kho (nếu đã từng giữ/trừ kho)
         /// </summary>
         public async Task<bool> CancelOrderAsync(Guid orderId)
         {
@@ -260,26 +260,45 @@ namespace PetCenterAPI.Service
                 throw new InvalidOperationException("Cannot cancel an order that is shipping or completed.");
             }
 
-            // Cập nhật trạng thái đơn hàng
+            if (order.Status == 0)
+            {
+                _logger.LogInformation($"Đơn hàng {orderId} đã ở trạng thái Hủy từ trước.");
+                return true;
+            }
+
+            // Kiểm tra xem đơn hàng có cần hoàn kho hay không:
+            // Đơn Online chưa thanh toán (PaymentMethod != COD && PaymentStatus == 1) KHÔNG từng giữ/trừ kho,
+            // nên KHÔNG thực hiện thao tác hoàn trả kho để tránh âm kho hoặc tăng ảo tồn kho.
+            bool isUnpaidOnlineOrder = !string.Equals(order.PaymentMethod, "COD", StringComparison.OrdinalIgnoreCase) && order.PaymentStatus == 1;
+
+            // Cập nhật trạng thái đơn hàng và trạng thái thanh toán
             order.Status = 0; // 0 = Cancelled
+            order.PaymentStatus = order.PaymentStatus == 2 ? 4 : 3; // 3 = Failed, 4 = RefundRequired (nếu đã thanh toán)
             order.UpdateAt = DateTime.Now;
 
-            // Xử lý logic hoàn kho
-            _logger.LogInformation($"Tiến hành hoàn trả số lượng cho {order.OrderDetails.Count} loại sản phẩm trong đơn hàng {orderId}");
-            foreach (var detail in order.OrderDetails)
+            // Xử lý logic hoàn kho (chỉ thực hiện khi đơn thực sự đã từng giữ/trừ kho)
+            if (!isUnpaidOnlineOrder)
             {
-                var inventory = await _inventoryRepository.GetInventoryByProductIdAsync(detail.ProductId);
-                if (inventory != null)
+                _logger.LogInformation($"Tiến hành hoàn trả số lượng cho {order.OrderDetails.Count} loại sản phẩm trong đơn hàng {orderId}");
+                foreach (var detail in order.OrderDetails)
                 {
-                    inventory.QuantityReserved -= detail.Quantity;
-                    inventory.QuantityAvailable += detail.Quantity;
-                    inventory.LastUpdated = DateTime.Now;
-                    _logger.LogInformation($"Đã hoàn {detail.Quantity} sản phẩm (Product ID: {detail.ProductId}) về kho Available.");
+                    var inventory = await _inventoryRepository.GetInventoryByProductIdAsync(detail.ProductId);
+                    if (inventory != null)
+                    {
+                        inventory.QuantityReserved -= detail.Quantity;
+                        inventory.QuantityAvailable += detail.Quantity;
+                        inventory.LastUpdated = DateTime.Now;
+                        _logger.LogInformation($"Đã hoàn {detail.Quantity} sản phẩm (Product ID: {detail.ProductId}) về kho Available.");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Không tìm thấy Inventory record cho Product ID: {detail.ProductId} khi hủy đơn.");
+                    }
                 }
-                else
-                {
-                    _logger.LogWarning($"Không tìm thấy Inventory record cho Product ID: {detail.ProductId} khi hủy đơn.");
-                }
+            }
+            else
+            {
+                _logger.LogInformation($"Đơn hàng {orderId} là đơn online chưa thanh toán (Pending). Bỏ qua bước hoàn kho vì chưa từng trừ/giữ kho.");
             }
 
             await _orderRepository.SaveAsync();

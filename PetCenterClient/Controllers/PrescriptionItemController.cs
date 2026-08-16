@@ -45,7 +45,7 @@ namespace PetCenterClient.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                ModelState.AddModelError("MedicineName", ex.Message);
                 return PartialView("~/Views/AdminViews/PrescriptionItem/_Create.cshtml", model);
             }
         }
@@ -97,7 +97,7 @@ namespace PetCenterClient.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                ModelState.AddModelError("MedicineName", ex.Message);
                 return PartialView("~/Views/AdminViews/PrescriptionItem/_Edit.cshtml", model);
             }
         }
