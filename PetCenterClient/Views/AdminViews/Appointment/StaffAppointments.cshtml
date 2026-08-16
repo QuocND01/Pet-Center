@@ -2,11 +2,11 @@
 @model IEnumerable<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
 
 @{
-    ViewData["Title"] = "Staff Console - Appointments";
+    ViewData["Title"] = "Appointments";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
     // 🔑 Lấy StaffId trực tiếp từ Session
-    var staffIdSession = Context.Session.GetString("StaffId") 
+    var staffIdSession = Context.Session.GetString("StaffId")
                       ?? Context.Session.GetString("UserId");
 
     Guid currentStaffId = Guid.TryParse(staffIdSession, out var parsedGuid) ? parsedGuid : Guid.Empty;
@@ -18,6 +18,10 @@
         .Distinct()
         .OrderBy(x => x)
         .ToList() ?? new List<string>();
+
+    // Chuẩn bị mốc thời gian Hôm nay và Ngày mai (so sánh theo Date)
+    var today = DateTime.Today;
+    var tomorrow = today.AddDays(1);
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -63,10 +67,10 @@
         font-weight: bold;
     }
 
-    .btn-emerald-outline:hover {
-        background-color: #198754;
-        color: white;
-    }
+        .btn-emerald-outline:hover {
+            background-color: #198754;
+            color: white;
+        }
 
     .sticky-sidebar {
         position: sticky;
@@ -76,6 +80,25 @@
 
     .my-assigned-row {
         background-color: #f0fdf4 !important; /* Highlight lịch phân công cho mình */
+    }
+
+    /* Tag đánh dấu Today / Tomorrow */
+    .schedule-tag-today {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #a3cfbb;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .schedule-tag-tomorrow {
+        background-color: #cff4fc;
+        color: #055160;
+        border: 1px solid #9eeaf9;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
     }
 </style>
 
@@ -93,7 +116,7 @@
 
         <!-- HEADER CONSOLE -->
         <div class="mb-4">
-            <h3 class="fw-bold text-dark m-0"><i class="fas fa-layer-group text-success me-2"></i>Appointment Console</h3>
+            <h3 class="fw-bold text-dark m-0"><i class="fas fa-layer-group text-success me-2"></i>Appointments Management</h3>
             <p class="text-muted small m-0">Monitor workspace operations, patient tracking, and shift workflows.</p>
         </div>
 
@@ -103,9 +126,9 @@
                 <div class="bg-white rounded-4 shadow-sm p-4 border-0">
 
                     <!-- THANH CÔNG CỤ LỌC PHÍA TRÊN TABLE -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4 pb-3 border-bottom">
                         <!-- TỪ KHÓA TÌM KIẾM -->
-                        <div class="flex-grow-1" style="min-width: 240px; max-width: 350px;">
+                        <div class="flex-grow-1" style="min-width: 240px;">
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
                                 <input type="text" id="consoleSearchInput" class="form-control rounded-end-3 bg-light border-0 small" placeholder="Search Pet or Doctor...">
@@ -123,17 +146,9 @@
                             </select>
                         </div>
 
-                        <!-- LỌC THEO NGÀY CỤ THỂ -->
+                        <!-- LỌC THEO NGÀY -->
                         <div style="min-width: 160px;">
                             <input type="date" id="dateInputFilter" class="form-control bg-light border-0 small rounded-3" title="Filter by Schedule Date" />
-                        </div>
-
-                        <!-- TOGGLE SWITCH - LỊCH CỦA TÔI -->
-                        <div class="form-check form-switch bg-light p-2 px-3 rounded-3 border mb-0">
-                            <input class="form-check-input ms-0 me-2" type="checkbox" id="myAssignedOnlyToggle">
-                            <label class="form-check-label small fw-bold text-dark" for="myAssignedOnlyToggle">
-                                <i class="fas fa-user-check text-success me-1"></i> Only Mine
-                            </label>
                         </div>
                     </div>
 
@@ -155,6 +170,9 @@
                                     foreach (var app in Model)
                                     {
                                         bool isMyAssignment = (currentStaffId != Guid.Empty && app.StaffId == currentStaffId);
+                                        var appDate = app.AppointmentStart.Date;
+                                        bool isToday = (appDate == today);
+                                        bool isTomorrow = (appDate == tomorrow);
 
                                         string statusText = app.Status switch
                                         {
@@ -165,14 +183,14 @@
                                             _ => "Unknown"
                                         };
 
-                                        <tr class="appointment-row @(isMyAssignment ? "my-assigned-row" : "")" 
-                                            data-status="@app.Status" 
+                                        <tr class="appointment-row @(isMyAssignment ? "my-assigned-row" : "")"
+                                            data-status="@app.Status"
                                             data-staff-id="@app.StaffId.ToString()"
                                             data-vet="@(app.VetName?.ToLower() ?? "")"
                                             data-date="@app.AppointmentStart.ToString("yyyy-MM-dd")"
                                             data-price="@app.Total"
                                             data-search="@app.PetName.ToLower() @(app.VetName?.ToLower() ?? "")">
-                                            
+
                                             <td class="fw-bold text-dark fs-6">
                                                 @app.PetName
                                                 @if (isMyAssignment)
@@ -186,7 +204,21 @@
                                                 <i class="fas fa-user-md text-success me-1"></i>Dr. @(app.VetName ?? "Unassigned")
                                             </td>
                                             <td>
-                                                <div class="fw-bold text-dark">@app.AppointmentStart.ToString("dd/MM/yyyy")</div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="fw-bold text-dark">@app.AppointmentStart.ToString("dd/MM/yyyy")</span>
+                                                    @if (isToday)
+                                                    {
+                                                        <span class="badge schedule-tag-today rounded-pill px-2 py-1">
+                                                            <i class="fas fa-bolt me-1"></i>TODAY
+                                                        </span>
+                                                    }
+                                                    else if (isTomorrow)
+                                                    {
+                                                        <span class="badge schedule-tag-tomorrow rounded-pill px-2 py-1">
+                                                            <i class="far fa-clock me-1"></i>TOMORROW
+                                                        </span>
+                                                    }
+                                                </div>
                                                 <div class="text-muted small">@app.AppointmentStart.ToString("HH:mm") - @app.AppointmentEnd.ToString("HH:mm")</div>
                                             </td>
                                             <td class="fw-bold text-success">
@@ -217,7 +249,7 @@
                 </div>
             </div>
 
-            <!-- CỘT PHẢI: SIDEBAR BỘ LỌC TRẠNG THÁI & TÙY CHỌN NÂNG CAO -->
+            <!-- CỘT PHẢI: SIDEBAR BỘ LỌC TRẠNG THÁI & KHOẢNG GIÁ -->
             <div class="col-lg-3">
                 <div class="bg-white rounded-4 shadow-sm p-4 sticky-sidebar border-0">
                     <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
@@ -227,14 +259,7 @@
                         </button>
                     </div>
 
-                    <!-- LỌC NHANH THEO NGÀY HÔM NAY -->
-                    <div class="mb-3">
-                        <button id="btnTodayFilter" class="btn btn-outline-success w-100 rounded-3 text-start fw-bold p-2 px-3 small">
-                            <i class="far fa-calendar-check me-2"></i> Today's Schedule
-                        </button>
-                    </div>
-
-                    <!-- PIPELINE STATE BUTTON GROUP -->
+                    <!-- WORKFLOW STATUS & ASSIGNMENT -->
                     <label class="text-muted small fw-bold mb-2">Workflow Status</label>
                     <div class="d-flex flex-column gap-2 mb-4" id="filterButtonGroup">
                         <button class="btn btn-light text-start fw-bold text-dark p-3 rounded-3 active border-start border-success border-4" data-target-status="all">
@@ -284,25 +309,21 @@
         const searchInput = document.getElementById("consoleSearchInput");
         const doctorSelectFilter = document.getElementById("doctorSelectFilter");
         const dateInputFilter = document.getElementById("dateInputFilter");
-        const myAssignedOnlyToggle = document.getElementById("myAssignedOnlyToggle");
         const minPriceInput = document.getElementById("minPriceInput");
         const maxPriceInput = document.getElementById("maxPriceInput");
-        const btnTodayFilter = document.getElementById("btnTodayFilter");
         const btnResetFilters = document.getElementById("btnResetFilters");
-        
+
         const rows = document.querySelectorAll(".appointment-row");
-        const currentStaffId = "@currentStaffId.ToString()";
 
         function filterTable() {
             const activeBtn = document.querySelector("#filterButtonGroup button.active");
             const targetStatus = activeBtn ? activeBtn.getAttribute("data-target-status") : "all";
             const targetStaff = activeBtn ? activeBtn.getAttribute("data-target-staff") : null;
-            
+
             const selectedDoctor = doctorSelectFilter.value;
             const selectedDate = dateInputFilter.value;
-            const isToggleMyAssigned = myAssignedOnlyToggle.checked;
             const query = searchInput.value.toLowerCase().trim();
-            
+
             const minPrice = parseFloat(minPriceInput.value) || 0;
             const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
 
@@ -320,12 +341,10 @@
                     matchesStatus = (status === targetStatus);
                 }
 
-                // 2. Kiểm tra Staff Assignment
+                // 2. Kiểm tra Staff Assignment (My Assigned Tracks)
                 let matchesStaff = true;
                 if (targetStaff) {
                     matchesStaff = (staffId === targetStaff);
-                } else if (isToggleMyAssigned) {
-                    matchesStaff = (staffId === currentStaffId);
                 }
 
                 // 3. Kiểm tra Doctor Select
@@ -348,20 +367,13 @@
             });
         }
 
-        // Sự kiện click Button Group
+        // Sự kiện click Button Group bên Sidebar
         filterButtons.forEach(btn => {
             btn.addEventListener("click", function() {
                 filterButtons.forEach(b => b.classList.remove("active", "border-start", "border-success", "border-4"));
                 this.classList.add("active", "border-start", "border-success", "border-4");
                 filterTable();
             });
-        });
-
-        // Nút lọc lịch Hôm Nay
-        btnTodayFilter.addEventListener("click", function() {
-            const today = new Date().toISOString().split('T')[0];
-            dateInputFilter.value = today;
-            filterTable();
         });
 
         // Nút Reset tất cả bộ lọc
@@ -371,11 +383,10 @@
             dateInputFilter.value = "";
             minPriceInput.value = "";
             maxPriceInput.value = "";
-            myAssignedOnlyToggle.checked = false;
 
             filterButtons.forEach(b => b.classList.remove("active", "border-start", "border-success", "border-4"));
             filterButtons[0].classList.add("active", "border-start", "border-success", "border-4");
-            
+
             filterTable();
         });
 
@@ -383,7 +394,6 @@
         searchInput.addEventListener("input", filterTable);
         doctorSelectFilter.addEventListener("change", filterTable);
         dateInputFilter.addEventListener("change", filterTable);
-        myAssignedOnlyToggle.addEventListener("change", filterTable);
         minPriceInput.addEventListener("input", filterTable);
         maxPriceInput.addEventListener("input", filterTable);
     });
