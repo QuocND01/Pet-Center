@@ -192,7 +192,11 @@
             success: function (res) {
                 if (res && res.success) {
                     $rxModal.modal('hide');
-                    location.reload();
+                    var recordId = '@Model.RecordId';
+                    var detailsUrl = '@Url.Action("Details", "MedicalRecord")' + '?id=' + recordId;
+                    $('#mrModalBody').load(detailsUrl, function () {
+                        $.validator.unobtrusive.parse($('#mrModalBody').find('form'));
+                    });
                 } else {
                     $rxModalBody.html(res);
                     $.validator.unobtrusive.parse($rxModalBody.find('form'));
@@ -200,6 +204,13 @@
             },
             error: function () { alert('An error occurred. Please try again.'); }
         });
+    });
+
+    // Ensure body retains modal-open class when closing rxModal if mrModal is still open
+    $rxModal.off('hidden.bs.modal.keepBody').on('hidden.bs.modal.keepBody', function () {
+        if ($('#mrModal').hasClass('show')) {
+            $('body').addClass('modal-open');
+        }
     });
 }());
 </script>
