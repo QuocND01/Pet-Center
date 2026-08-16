@@ -1,16 +1,17 @@
-@model List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
+﻿@model List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
 
 @{
     ViewData["Title"] = "My Appointments";
-    // Sắp xếp danh sách lịch hẹn mặc định từ mới nhất đến cũ nhất
     var sortedAppointments = Model?.OrderByDescending(a => a.AppointmentStart).ToList() ?? new List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>();
     var pendingPayments = sortedAppointments.Where(a => a.Status == 1).ToList();
+    var totalCount = sortedAppointments.Count;
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 <div class="appointment-container py-4" data-bs-theme="light">
     <div class="container-fluid px-lg-4">
+
         <!-- PAGE HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
             <div>
@@ -24,10 +25,10 @@
             </a>
         </div>
 
-        <!-- BANNER NHẮC NHỞ THANH TOÁN (COMPACT) -->
+        <!-- PAYMENT REMINDER BANNER -->
         @if (pendingPayments.Any())
         {
-            <div class="alert alert-warning border-0 shadow-sm rounded-3 py-2 px-3 mb-3 d-flex align-items-center justify-content-between" style="background: #fff8e1; border-left: 4px solid #ffb300 !important;">
+            <div class="alert alert-warning border-0 shadow-sm rounded-3 py-2 px-3 mb-4 d-flex align-items-center justify-content-between" style="background: #fff8e1; border-left: 4px solid #ffb300 !important;">
                 <div class="d-flex align-items-center gap-2 small">
                     <i class="fas fa-exclamation-circle text-warning fs-6"></i>
                     <span class="text-dark">
@@ -59,32 +60,71 @@
             </div>
         }
 
-        <!-- MODERN SEARCH & FILTER CONTROL BAR -->
-        <div class="filter-control-card bg-white p-3 rounded-3 shadow-sm border mb-3">
-            <div class="row align-items-center g-2">
-                <!-- Date Picker Filter -->
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label xsmall-text fw-bold text-secondary mb-1">
-                        <i class="fas fa-calendar-day me-1"></i>Filter by Date
-                    </label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0 rounded-start-2" style="border-color: var(--border-color);">
-                            <i class="far fa-calendar-alt text-muted"></i>
-                        </span>
-                        <input type="date" id="searchDateInput" class="form-control border-start-0 px-2 fw-semibold" style="border-color: var(--border-color);" />
-                    </div>
-                </div>
+        <!-- MAIN LAYOUT: SIDEBAR FILTER (LEFT) + APPOINTMENTS GRID (RIGHT) -->
+        <div class="row g-4">
 
-                <!-- Status Dropdown Filter -->
-                <div class="col-md-4 col-sm-6">
-                    <label class="form-label xsmall-text fw-bold text-secondary mb-1">
-                        <i class="fas fa-filter me-1"></i>Filter by Status
-                    </label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0 rounded-start-2" style="border-color: var(--border-color);">
-                            <i class="fas fa-tasks text-muted"></i>
-                        </span>
-                        <select id="statusFilterSelect" class="form-select border-start-0 px-2 fw-semibold" style="border-color: var(--border-color);">
+            <!-- LEFT SIDEBAR: FILTERS -->
+            <div class="col-lg-3 col-md-4">
+                <div class="filter-sidebar bg-white p-3 rounded-4 shadow-sm border sticky-top" style="top: 20px; z-index: 10;">
+
+                    <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
+                        <span class="fw-bold text-dark"><i class="fas fa-sliders-h text-success me-2"></i>Filters</span>
+                        <button type="button" id="btnResetAllFilters" class="btn btn-link btn-sm text-muted text-decoration-none p-0 xsmall-text" title="Reset all">
+                            <i class="fas fa-undo-alt me-1"></i>Reset
+                        </button>
+                    </div>
+
+                    <!-- 1. Search by Keyword -->
+                    <div class="filter-group mb-3">
+                        <label class="form-label xsmall-text fw-bold text-secondary text-uppercase mb-1">Search</label>
+                        <div class="search-input-wrapper position-relative">
+                            <i class="fas fa-search text-muted position-absolute top-50 start-0 translate-middle-y ms-3 small"></i>
+                            <input type="text"
+                                   id="keywordSearchInput"
+                                   class="form-control form-control-sm ps-5 pe-4 rounded-3 border-light-subtle"
+                                   placeholder="Pet or Doctor..." />
+                            <button type="button" id="btnClearKeyword" class="btn-clear-search position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent text-muted p-0" style="display: none;">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Date Presets -->
+                    <div class="filter-group mb-3">
+                        <label class="form-label xsmall-text fw-bold text-secondary text-uppercase mb-1">Timeline</label>
+                        <div class="d-flex flex-column gap-1" id="datePresetList">
+                            <button type="button" class="btn btn-filter-sidebar-pill active text-start" data-preset="all">
+                                <i class="fas fa-globe-americas me-2"></i>All Appointments
+                            </button>
+                            <button type="button" class="btn btn-filter-sidebar-pill text-start" data-preset="today">
+                                <i class="fas fa-calendar-day me-2"></i>Today
+                            </button>
+                            <button type="button" class="btn btn-filter-sidebar-pill text-start" data-preset="upcoming">
+                                <i class="fas fa-calendar-plus me-2"></i>Upcoming
+                            </button>
+                            <button type="button" class="btn btn-filter-sidebar-pill text-start" data-preset="past">
+                                <i class="fas fa-history me-2"></i>Past History
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Specific Date Picker -->
+                    <div class="filter-group mb-3">
+                        <label class="form-label xsmall-text fw-bold text-secondary text-uppercase mb-1">Pick Exact Date</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light border-light-subtle text-secondary rounded-start-3">
+                                <i class="far fa-calendar-alt"></i>
+                            </span>
+                            <input type="date"
+                                   id="specificDatePicker"
+                                   class="form-control form-control-sm border-light-subtle rounded-end-3 text-secondary fw-semibold" />
+                        </div>
+                    </div>
+
+                    <!-- 4. Status Filter -->
+                    <div class="filter-group mb-3">
+                        <label class="form-label xsmall-text fw-bold text-secondary text-uppercase mb-1">Status</label>
+                        <select id="statusFilterSelect" class="form-select form-select-sm border-light-subtle rounded-3 text-secondary fw-semibold">
                             <option value="all">All Statuses</option>
                             <option value="1">Reserved (Pending)</option>
                             <option value="2">Confirmed</option>
@@ -92,123 +132,124 @@
                             <option value="0">Cancelled</option>
                         </select>
                     </div>
-                </div>
 
-                <!-- Quick Action Buttons -->
-                <div class="col-md-4 d-flex gap-2 align-items-end mt-md-3">
-                    <button type="button" id="btnFilterToday" class="btn btn-filter-pill px-3 py-1 fw-bold active">
-                        <i class="fas fa-clock me-1"></i>Today
-                    </button>
-                    <button type="button" id="btnFilterAll" class="btn btn-filter-pill px-3 py-1 fw-bold">
-                        <i class="fas fa-globe me-1"></i>View All
-                    </button>
+                    <!-- Summary Info in Sidebar -->
+                    <div class="pt-2 border-top xsmall-text text-muted">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Matching:</span>
+                            <strong class="text-success"><span id="visibleCount">@totalCount</span> / @totalCount</strong>
+                        </div>
+                        <div class="text-truncate">
+                            <span>Filter: </span><span id="activeFilterTags" class="text-dark fw-semibold">All</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-        </div>
 
-        <!-- APPOINTMENTS CONTAINER -->
-        @if (!sortedAppointments.Any())
-        {
-            <div class="text-center py-5 bg-white rounded-3 shadow-sm border">
-                <div class="mb-3">
-                    <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
-                </div>
-                <h6 class="fw-bold text-dark">No appointments found</h6>
-                <p class="text-muted small px-3">You haven't scheduled any visits yet.</p>
-                <a asp-controller="Appointment"
-                   asp-action="Book"
-                   class="btn btn-modern-success btn-sm shadow-sm">
-                    <i class="fas fa-plus me-1"></i>Book Now
-                </a>
-            </div>
-        }
-        else
-        {
-            <!-- Lưới Grid 4 cột đồng nhất, liền mạch từ trái sang phải -->
-            <div id="gridAppointmentsContainer" class="row g-3">
-                <!-- Thẻ lịch hẹn sẽ được kết xuất động vào đây -->
-            </div>
-
-            <!-- Vòng lặp chứa dữ liệu gốc ẩn (Raw Data Pool) -->
-            <div id="rawAppointmentsPool" style="display: none !important;">
-                @foreach (var apt in sortedAppointments)
+            <!-- RIGHT COLUMN: APPOINTMENTS LIST GRID -->
+            <div class="col-lg-9 col-md-8">
+                @if (!sortedAppointments.Any())
                 {
-                    <div class="raw-appointment-item"
-                         data-date-iso="@apt.AppointmentStart.ToString("yyyy-MM-dd")"
-                         data-status="@apt.Status">
+                    <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
+                        <div class="mb-3">
+                            <i class="fas fa-calendar-times text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark">No appointments found</h6>
+                        <p class="text-muted small px-3">You haven't scheduled any visits yet.</p>
+                        <a asp-controller="Appointment"
+                           asp-action="Book"
+                           class="btn btn-modern-success btn-sm shadow-sm">
+                            <i class="fas fa-plus me-1"></i>Book Now
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div id="gridAppointmentsContainer" class="row g-3">
+                        @foreach (var apt in sortedAppointments)
+                        {
+                            <div class="col-xl-4 col-md-6 appointment-item-col"
+                                 data-pet-name="@apt.PetName.ToLower()"
+                                 data-doctor-name="@(apt.VetName?.ToLower() ?? "")"
+                                 data-date-iso="@apt.AppointmentStart.ToString("yyyy-MM-dd")"
+                                 data-status="@apt.Status">
 
-                        <div class="col-xl-3 col-lg-4 col-sm-6 d-flex">
-                            <div class="appointment-card bg-white rounded-3 p-3 shadow-sm border d-flex flex-column w-100 position-relative">
+                                <div class="appointment-card bg-white rounded-3 p-3 shadow-sm border d-flex flex-column h-100 position-relative">
 
-                                <!-- Header thẻ: Tên Pet & Trạng thái -->
-                                <div class="d-flex justify-content-between align-items-start gap-1 mb-2 pb-2 border-bottom">
-                                    <div class="text-truncate">
-                                        <span class="text-muted xsmall-text d-block"><i class="fas fa-paw text-success me-1"></i>Pet</span>
-                                        <h6 class="fw-bold text-dark text-truncate mb-0 fs-6" title="@apt.PetName">@apt.PetName</h6>
+                                    <!-- Header: Pet Name & Status -->
+                                    <div class="d-flex justify-content-between align-items-start gap-1 mb-2 pb-2 border-bottom">
+                                        <div class="text-truncate">
+                                            <span class="text-muted xsmall-text d-block"><i class="fas fa-paw text-success me-1"></i>Pet</span>
+                                            <h6 class="fw-bold text-dark text-truncate mb-0 fs-6" title="@apt.PetName">@apt.PetName</h6>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            @switch (apt.Status)
+                                            {
+                                                case 1:
+                                                    <span class="badge badge-custom bg-warning-subtle text-warning"><i class="far fa-clock me-1"></i>Reserved</span>
+                                                    break;
+                                                case 2:
+                                                    <span class="badge badge-custom bg-info-subtle text-info"><i class="fas fa-calendar-check me-1"></i>Confirmed</span>
+                                                    break;
+                                                case 3:
+                                                    <span class="badge badge-custom bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                                                    break;
+                                                case 0:
+                                                    <span class="badge badge-custom bg-danger-subtle text-danger"><i class="fas fa-times-circle me-1"></i>Cancelled</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge badge-custom bg-secondary-subtle text-secondary">Status (@apt.Status)</span>
+                                                    break;
+                                            }
+                                        </div>
                                     </div>
-                                    <div class="flex-shrink-0">
-                                        @switch (apt.Status)
-                                        {
-                                            case 1:
-                                                <span class="badge badge-custom bg-warning-subtle text-warning"><i class="far fa-clock me-1"></i>Reserved</span>
-                                                break;
-                                            case 2:
-                                                <span class="badge badge-custom bg-info-subtle text-info"><i class="fas fa-calendar-check me-1"></i>Confirmed</span>
-                                                break;
-                                            case 3:
-                                                <span class="badge badge-custom bg-success-subtle text-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
-                                                break;
-                                            case 0:
-                                                <span class="badge badge-custom bg-danger-subtle text-danger"><i class="fas fa-times-circle me-1"></i>Cancelled</span>
-                                                break;
-                                            default:
-                                                <span class="badge badge-custom bg-secondary-subtle text-secondary">Status (@apt.Status)</span>
-                                                break;
-                                        }
-                                    </div>
-                                </div>
 
-                                <!-- Body thẻ: Tích hợp Ngày + Giờ trực tiếp -->
-                                <div class="card-body-details flex-grow-1 mb-2">
-                                    <div class="d-flex justify-content-between align-items-center py-1">
-                                        <span class="text-muted xsmall-text">Schedule:</span>
-                                        <span class="fw-bold text-dark xsmall-text bg-light px-2 py-1 rounded border">
-                                            <i class="far fa-calendar-alt text-success me-1"></i>@apt.AppointmentStart.ToString("dd/MM/yyyy") • @apt.AppointmentStart.ToString("HH:mm")
-                                        </span>
+                                    <!-- Body: Details -->
+                                    <div class="card-body-details flex-grow-1 mb-2">
+                                        <div class="d-flex justify-content-between align-items-center py-1">
+                                            <span class="text-muted xsmall-text">Schedule:</span>
+                                            <span class="fw-bold text-dark xsmall-text bg-light px-2 py-1 rounded border">
+                                                <i class="far fa-calendar-alt text-success me-1"></i>@apt.AppointmentStart.ToString("dd/MM/yyyy") • @apt.AppointmentStart.ToString("HH:mm")
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center py-1">
+                                            <span class="text-muted xsmall-text">Doctor:</span>
+                                            <span class="fw-semibold text-dark text-truncate ms-2 xsmall-text" title="Dr. @apt.VetName">
+                                                <i class="fas fa-user-md text-muted me-1"></i>Dr. @apt.VetName
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center py-1 border-top mt-1 pt-1">
+                                            <span class="text-muted xsmall-text">Total:</span>
+                                            <span class="text-success fw-bold small">$@apt.Total.ToString("N2")</span>
+                                        </div>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center py-1">
-                                        <span class="text-muted xsmall-text">Doctor:</span>
-                                        <span class="fw-semibold text-dark text-truncate ms-2 xsmall-text" title="Dr. @apt.VetName">
-                                            <i class="fas fa-user-md text-muted me-1"></i>Dr. @apt.VetName
-                                        </span>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center py-1 border-top mt-1 pt-1">
-                                        <span class="text-muted xsmall-text">Total:</span>
-                                        <span class="text-success fw-bold small">@apt.Total.ToString("N0") đ</span>
-                                    </div>
-                                </div>
 
-                                <!-- Footer thẻ: Button Action -->
-                                <div class="mt-auto">
-                                    <a href="@Url.Action("Detail", "Appointment", new { id = apt.AppointmentId })" class="btn btn-outline-modern btn-sm w-100 fw-semibold py-1">
-                                        Details <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i>
-                                    </a>
+                                    <!-- Footer: Button -->
+                                    <div class="mt-auto">
+                                        <a href="@Url.Action("Detail", "Appointment", new { id = apt.AppointmentId })" class="btn btn-outline-modern btn-sm w-100 fw-semibold py-1">
+                                            Details <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
+                        }
+                    </div>
+
+                    <!-- NO RESULTS MATCH SCREEN -->
+                    <div id="noResultsScreen" class="text-center py-5 bg-white rounded-4 shadow-sm border" style="display: none;">
+                        <div class="mb-3">
+                            <i class="fas fa-search-minus text-muted" style="font-size: 3rem;"></i>
                         </div>
+                        <h6 class="fw-bold text-dark">No matching appointments found</h6>
+                        <p class="text-muted small px-3">Try adjusting or clearing your sidebar filters.</p>
+                        <button type="button" id="btnResetSearchInline" class="btn btn-modern-success btn-sm px-3 mt-1">
+                            <i class="fas fa-redo-alt me-1"></i>Clear All Filters
+                        </button>
                     </div>
                 }
             </div>
-        }
 
-        <!-- NO RESULTS MATCH SCREEN -->
-        <div id="noResultsScreen" class="text-center py-5 bg-white rounded-3 shadow-sm border" style="display: none;">
-            <div class="mb-3">
-                <i class="fas fa-search-minus text-muted" style="font-size: 3rem;"></i>
-            </div>
-            <h6 class="fw-bold text-dark">No matching appointments</h6>
-            <p class="text-muted small px-3">There are no scheduled visits matching your selected filters.</p>
-            <button type="button" id="btnResetSearch" class="btn btn-modern-success btn-sm px-3 mt-1">Clear Filters & View All</button>
         </div>
 
     </div>
@@ -219,12 +260,10 @@
         --primary-green: #10b981;
         --primary-green-hover: #059669;
         --light-green-bg: #f0fdf4;
-        --accent-light-green: #d1fae5;
+        --border-color: #e5e7eb;
         --dark-theme: #1f2937;
         --text-muted: #6b7280;
-        --border-color: #e5e7eb;
         --bg-main: #f9fafb;
-        --white: #ffffff;
     }
 
     body {
@@ -233,7 +272,7 @@
 
     .btn-modern-success {
         background-color: var(--primary-green);
-        color: var(--white);
+        color: #fff;
         border: none;
         border-radius: 8px;
         font-weight: 600;
@@ -242,11 +281,35 @@
 
         .btn-modern-success:hover {
             background-color: var(--primary-green-hover);
-            color: var(--white);
+            color: #fff;
             transform: translateY(-1px);
             box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);
         }
 
+    /* Sidebar Filter Pills */
+    .btn-filter-sidebar-pill {
+        border: 1px solid transparent;
+        background-color: transparent;
+        color: var(--text-muted);
+        font-size: 12.5px;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 6px 12px;
+        transition: all 0.15s ease;
+    }
+
+        .btn-filter-sidebar-pill:hover {
+            background-color: #f3f4f6;
+            color: var(--dark-theme);
+        }
+
+        .btn-filter-sidebar-pill.active {
+            background-color: var(--light-green-bg);
+            color: var(--primary-green);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+    /* Appointment Card */
     .appointment-card {
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         border-color: var(--border-color) !important;
@@ -258,8 +321,9 @@
             box-shadow: 0 6px 16px -2px rgba(16, 185, 129, 0.12) !important;
         }
 
+    /* Badges */
     .badge-custom {
-        padding: 3px 8px;
+        padding: 4px 8px;
         border-radius: 12px;
         font-weight: 600;
         font-size: 10px;
@@ -273,10 +337,6 @@
         background-color: #f0f9ff;
     }
 
-    .bg-primary-subtle {
-        background-color: #eff6ff;
-    }
-
     .bg-success-subtle {
         background-color: #f0fdf4;
     }
@@ -284,21 +344,6 @@
     .bg-danger-subtle {
         background-color: #fef2f2;
     }
-
-    .btn-filter-pill {
-        background-color: var(--white);
-        color: var(--text-muted);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        font-size: 12px;
-        transition: all 0.2s ease;
-    }
-
-        .btn-filter-pill:hover, .btn-filter-pill.active {
-            background-color: var(--light-green-bg);
-            border-color: var(--primary-green);
-            color: var(--primary-green);
-        }
 
     .btn-outline-modern {
         border: 1px solid var(--border-color);
@@ -315,121 +360,162 @@
         }
 
     .xsmall-text {
-        font-size: 11px;
+        font-size: 11.5px;
     }
 </style>
 
-<!-- CLIENT-SIDE FILTER SCRIPT -->
+<!-- CLIENT-SIDE FILTER CONTROLLER -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const searchDateInput = document.getElementById("searchDateInput");
-        const statusFilterSelect = document.getElementById("statusFilterSelect");
-        const btnFilterToday = document.getElementById("btnFilterToday");
-        const btnFilterAll = document.getElementById("btnFilterAll");
-        const btnResetSearch = document.getElementById("btnResetSearch");
-        const gridContainer = document.getElementById("gridAppointmentsContainer");
+        const keywordInput = document.getElementById("keywordSearchInput");
+        const btnClearKeyword = document.getElementById("btnClearKeyword");
+        const statusSelect = document.getElementById("statusFilterSelect");
+        const datePresetButtons = document.querySelectorAll(".btn-filter-sidebar-pill");
+        const specificDatePicker = document.getElementById("specificDatePicker");
+        const btnResetAll = document.getElementById("btnResetAllFilters");
+        const btnResetInline = document.getElementById("btnResetSearchInline");
+        const items = document.querySelectorAll(".appointment-item-col");
         const noResultsScreen = document.getElementById("noResultsScreen");
+        const visibleCountSpan = document.getElementById("visibleCount");
+        const activeFilterTags = document.getElementById("activeFilterTags");
 
-        let currentDateMode = 'today';
-        const rawItems = Array.from(document.querySelectorAll(".raw-appointment-item"));
+        const now = new Date();
+        const todayISO = now.toISOString().split('T')[0];
 
-        const todayISOStr = new Date().toISOString().split('T')[0];
+        const filterState = {
+            keyword: "",
+            status: "all",
+            datePreset: "all",
+            specificDate: ""
+        };
 
-        // Đảm bảo cuộn lên đầu trang mượt mà khi load trang từ Chatbot
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        function applyFilters() {
+            let visibleCount = 0;
+            const filterDescriptions = [];
 
-        // Đọc tham số từ URL (ví dụ: ?filter=all hoặc ?filter=confirmed&status=2)
-        const urlParams = new URLSearchParams(window.location.search);
-        const filterParam = (urlParams.get('filter') || '').toLowerCase();
-        const statusParam = (urlParams.get('status') || '').toLowerCase();
+            // 1. Keyword
+            const term = filterState.keyword.trim().toLowerCase();
+            if (term) filterDescriptions.push(`"${term}"`);
 
-        if (filterParam === 'today') {
-            currentDateMode = 'today';
-            searchDateInput.value = todayISOStr;
-        } else {
-            currentDateMode = 'all';
-            searchDateInput.value = ''; // Để TRỐNG ô ngày khi View All / Confirmed
-        }
-
-        if (statusParam === '2' || filterParam === 'confirmed' || statusParam === 'confirmed') {
-            statusFilterSelect.value = '2';
-        } else if (statusParam && ['0','1','2','3','all'].includes(statusParam)) {
-            statusFilterSelect.value = statusParam;
-        } else {
-            statusFilterSelect.value = 'all';
-        }
-
-        function filterAndGroupAppointments() {
-            if (!gridContainer) return;
-
-            // Xóa sạch grid hiện tại
-            gridContainer.innerHTML = "";
-
-            // Toggle trạng thái nút bấm
-            if (currentDateMode === 'today') {
-                btnFilterToday.classList.add("active");
-                btnFilterAll.classList.remove("active");
-            } else {
-                btnFilterToday.classList.remove("active");
-                btnFilterAll.classList.add("active");
+            // 2. Status
+            if (filterState.status !== "all") {
+                const statusName = statusSelect.options[statusSelect.selectedIndex].text;
+                filterDescriptions.push(statusName);
             }
 
-            const selectedDate = searchDateInput.value;
-            const selectedStatus = statusFilterSelect.value;
-            let hasVisibleItems = false;
+            // 3. Date
+            if (filterState.specificDate) {
+                filterDescriptions.push(`Date: ${filterState.specificDate}`);
+            } else if (filterState.datePreset !== "all") {
+                filterDescriptions.push(filterState.datePreset.toUpperCase());
+            }
 
-            rawItems.forEach(item => {
-                const itemDateISO = item.getAttribute("data-date-iso");
-                const itemStatus = item.getAttribute("data-status");
+            if (activeFilterTags) {
+                activeFilterTags.innerText = filterDescriptions.length > 0 ? filterDescriptions.join(" • ") : "All";
+            }
 
-                let dateMatches = (currentDateMode === 'all') || (itemDateISO === selectedDate);
-                let statusMatches = (selectedStatus === 'all') || (itemStatus === selectedStatus);
+            items.forEach(item => {
+                const pet = item.getAttribute("data-pet-name") || "";
+                const doctor = item.getAttribute("data-doctor-name") || "";
+                const dateISO = item.getAttribute("data-date-iso") || "";
+                const status = item.getAttribute("data-status") || "";
 
-                if (dateMatches && statusMatches) {
-                    hasVisibleItems = true;
-                    // Nối thẻ lịch hẹn liên tục vào Grid (1 2 3 4 / 5 6...)
-                    const clonedCardCol = item.firstElementChild.cloneNode(true);
-                    gridContainer.appendChild(clonedCardCol);
+                const matchKeyword = !term || pet.includes(term) || doctor.includes(term);
+                const matchStatus = (filterState.status === "all") || (status === filterState.status);
+
+                let matchDate = true;
+                if (filterState.specificDate) {
+                    matchDate = (dateISO === filterState.specificDate);
+                } else {
+                    if (filterState.datePreset === "today") {
+                        matchDate = (dateISO === todayISO);
+                    } else if (filterState.datePreset === "upcoming") {
+                        matchDate = (dateISO >= todayISO);
+                    } else if (filterState.datePreset === "past") {
+                        matchDate = (dateISO < todayISO);
+                    }
+                }
+
+                if (matchKeyword && matchStatus && matchDate) {
+                    item.classList.remove("d-none");
+                    visibleCount++;
+                } else {
+                    item.classList.add("d-none");
                 }
             });
 
-            if (!hasVisibleItems) {
-                noResultsScreen.style.display = "block";
-            } else {
-                noResultsScreen.style.display = "none";
-            }
+            if (visibleCountSpan) visibleCountSpan.innerText = visibleCount;
+            if (noResultsScreen) noResultsScreen.style.display = (visibleCount === 0) ? "block" : "none";
         }
 
-        searchDateInput.addEventListener("change", function() {
-            if (searchDateInput.value) {
-                currentDateMode = 'today';
+        // Keyword events
+        keywordInput.addEventListener("input", function() {
+            filterState.keyword = this.value;
+            btnClearKeyword.style.display = this.value.length > 0 ? "block" : "none";
+            applyFilters();
+        });
+
+        btnClearKeyword.addEventListener("click", function() {
+            keywordInput.value = "";
+            filterState.keyword = "";
+            this.style.display = "none";
+            applyFilters();
+        });
+
+        // Status select event
+        statusSelect.addEventListener("change", function() {
+            filterState.status = this.value;
+            applyFilters();
+        });
+
+        // Date Preset events
+        datePresetButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                datePresetButtons.forEach(b => b.classList.remove("active"));
+                this.classList.add("active");
+
+                filterState.datePreset = this.getAttribute("data-preset");
+                filterState.specificDate = "";
+                specificDatePicker.value = "";
+
+                applyFilters();
+            });
+        });
+
+        // Specific Date Picker event
+        specificDatePicker.addEventListener("change", function() {
+            if (this.value) {
+                datePresetButtons.forEach(b => b.classList.remove("active"));
+                filterState.specificDate = this.value;
+                filterState.datePreset = "custom";
+            } else {
+                document.querySelector('.btn-filter-sidebar-pill[data-preset="all"]')?.click();
+                return;
             }
-            filterAndGroupAppointments();
+            applyFilters();
         });
 
-        statusFilterSelect.addEventListener("change", function() {
-            filterAndGroupAppointments();
-        });
+        // Reset
+        function resetAll() {
+            filterState.keyword = "";
+            filterState.status = "all";
+            filterState.datePreset = "all";
+            filterState.specificDate = "";
 
-        btnFilterToday.addEventListener("click", function() {
-            currentDateMode = 'today';
-            searchDateInput.value = todayISOStr;
-            filterAndGroupAppointments();
-        });
+            keywordInput.value = "";
+            btnClearKeyword.style.display = "none";
+            statusSelect.value = "all";
+            specificDatePicker.value = "";
 
-        btnFilterAll.addEventListener("click", function() {
-            currentDateMode = 'all';
-            searchDateInput.value = '';
-            filterAndGroupAppointments();
-        });
+            datePresetButtons.forEach(b => b.classList.remove("active"));
+            document.querySelector('.btn-filter-sidebar-pill[data-preset="all"]')?.classList.add("active");
 
-        btnResetSearch.addEventListener("click", function() {
-            currentDateMode = 'all';
-            statusFilterSelect.value = 'all';
-            searchDateInput.value = '';
-            filterAndGroupAppointments();
-        });
+            applyFilters();
+        }
 
-        filterAndGroupAppointments();
+        btnResetAll.addEventListener("click", resetAll);
+        if (btnResetInline) btnResetInline.addEventListener("click", resetAll);
+
+        applyFilters();
     });
 </script>

@@ -38,7 +38,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-0 h-100" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
                 <div class="card-body">
-                    <h6 class="fw-bold text-uppercase opacity-75">Net Profit</h6>
+                    <h6 class="fw-bold text-uppercase opacity-75">Gross Profit</h6>
                     <h3 class="fw-bold mb-0" id="lblProfit">Loading...</h3>
                 </div>
             </div>
@@ -56,6 +56,25 @@
                 <div class="card-body">
                     <h6 class="text-muted fw-bold text-uppercase">Appointments</h6>
                     <h3 class="fw-bold mb-0 text-dark" id="lblAppointments">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 bg-white border-start border-secondary border-4">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase">Cancelled Orders</h6>
+                    <h3 class="fw-bold mb-0 text-dark" id="lblCancelledOrders">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 bg-white border-start border-secondary border-4">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase">Cancelled Appointments</h6>
+                    <h3 class="fw-bold mb-0 text-dark" id="lblCancelledAppointments">0</h3>
                 </div>
             </div>
         </div>
@@ -154,6 +173,9 @@
     document.getElementById("lblProfit").innerText = fmt.format(data.totalProfit);
     document.getElementById("lblOrders").innerText = data.totalOrders;
     document.getElementById("lblAppointments").innerText = data.totalAppointments;
+    // Cancelled counts
+    if(document.getElementById("lblCancelledOrders")) document.getElementById("lblCancelledOrders").innerText = data.cancelledOrders ?? data.cancelledOrdersCount ?? 0;
+    if(document.getElementById("lblCancelledAppointments")) document.getElementById("lblCancelledAppointments").innerText = data.cancelledAppointments ?? data.cancelledAppointmentsCount ?? 0;
 
     // 2. Vẽ biểu đồ Đường
     drawRevenueChart(data.revenueTimeline);

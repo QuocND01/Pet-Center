@@ -6,44 +6,44 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
-<div class="appointment-detail-wrapper py-5" data-bs-theme="light">
+<div class="appointment-detail-wrapper py-4 py-lg-5" data-bs-theme="light">
     <div class="container">
 
         <!-- BACK BUTTON -->
-        <div class="mb-4">
-            <a href="@Url.Action("MyAppointments", "Appointment")" class="text-decoration-none text-muted small fw-bold">
+        <div class="mb-3 mb-lg-4">
+            <a href="@Url.Action("MyAppointments", "Appointment")" class="text-decoration-none text-muted small fw-bold d-inline-flex align-items-center">
                 <i class="fas fa-chevron-left me-2"></i>Back to List
             </a>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-4 align-items-start">
             <!-- LEFT COLUMN: DETAILS & SERVICES -->
-            <div class="col-lg-8">
-                <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
+            <div class="col-lg-8 min-w-0">
+                <div class="bg-white p-3 p-md-4 rounded-4 shadow-sm border mb-4">
 
                     <!-- BLOCK HEADER -->
-                    <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
-                        <div>
-                            <span class="text-muted xsmall-text d-block">APPOINTMENT ID: @Model.AppointmentId.ToString().ToUpper().Substring(0, 8)</span>
-                            <h4 class="fw-bold text-dark m-0 mt-1">Appointment Information</h4>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom pb-3 mb-4">
+                        <div class="min-w-0">
+                            <span class="text-muted xsmall-text d-block text-uppercase text-truncate">APPOINTMENT ID: @Model.AppointmentId.ToString().ToUpper().Substring(0, 8)</span>
+                            <h4 class="fw-bold text-dark m-0 mt-1 text-break">Appointment Information</h4>
                         </div>
-                        <div>
+                        <div class="flex-shrink-0">
                             @switch (Model.Status)
                             {
                                 case 1:
-                                    <span class="badge badge-lg bg-warning text-dark rounded-pill fw-bold px-3 py-2"><i class="far fa-clock me-1"></i>Reserved / Pending Payment</span>
+                                    <span class="badge badge-status bg-warning text-dark rounded-pill fw-bold px-3 py-2 text-wrap text-start"><i class="far fa-clock me-1"></i>Reserved / Pending Payment</span>
                                     break;
                                 case 2:
-                                    <span class="badge badge-lg bg-info text-white rounded-pill fw-bold px-3 py-2"><i class="fas fa-calendar-check me-1"></i>Confirmed</span>
+                                    <span class="badge badge-status bg-info text-white rounded-pill fw-bold px-3 py-2"><i class="fas fa-calendar-check me-1"></i>Confirmed</span>
                                     break;
                                 case 3:
-                                    <span class="badge badge-lg bg-success text-white rounded-pill fw-bold px-3 py-2"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                                    <span class="badge badge-status bg-success text-white rounded-pill fw-bold px-3 py-2"><i class="fas fa-check-circle me-1"></i>Completed</span>
                                     break;
                                 case 0:
-                                    <span class="badge badge-lg bg-danger text-white rounded-pill fw-bold px-3 py-2"><i class="fas fa-times-circle me-1"></i>Cancelled</span>
+                                    <span class="badge badge-status bg-danger text-white rounded-pill fw-bold px-3 py-2"><i class="fas fa-times-circle me-1"></i>Cancelled</span>
                                     break;
                                 default:
-                                    <span class="badge badge-lg bg-secondary text-white rounded-pill fw-bold px-3 py-2">Unknown</span>
+                                    <span class="badge badge-status bg-secondary text-white rounded-pill fw-bold px-3 py-2">Unknown</span>
                                     break;
                             }
                         </div>
@@ -51,21 +51,21 @@
 
                     <!-- PROFILE PET & VET SIDE-BY-SIDE -->
                     <div class="row g-3 mb-4">
-                        <div class="col-sm-6">
-                            <div class="profile-mini-card p-3 rounded-3 border d-flex align-items-center gap-3">
-                                <img src="@(string.IsNullOrEmpty(Model.PetAvatar) ? "https://placehold.co/60x60?text=Pet" : Model.PetAvatar)" class="rounded-circle border" alt="@Model.PetName" style="width: 50px; height: 50px; object-fit: cover;" />
-                                <div>
-                                    <span class="text-muted small d-block">Pet Patient</span>
-                                    <strong class="text-dark fs-6">@Model.PetName</strong>
+                        <div class="col-sm-6 min-w-0">
+                            <div class="profile-mini-card p-3 rounded-3 border d-flex align-items-center gap-3 h-100">
+                                <img src="@(string.IsNullOrEmpty(Model.PetAvatar) ? "https://placehold.co/60x60?text=Pet" : Model.PetAvatar)" class="rounded-circle border flex-shrink-0" alt="@Model.PetName" style="width: 50px; height: 50px; object-fit: cover;" />
+                                <div class="min-w-0 flex-grow-1">
+                                    <span class="text-muted small d-block text-truncate">Pet Patient</span>
+                                    <strong class="text-dark fs-6 d-block text-truncate" title="@Model.PetName">@Model.PetName</strong>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-6">
-                            <div class="profile-mini-card p-3 rounded-3 border d-flex align-items-center gap-3">
-                                <img src="@(string.IsNullOrEmpty(Model.VetAvatar) ? "https://placehold.co/60x60?text=Vet" : Model.VetAvatar)" class="rounded-circle border" alt="@Model.VetName" style="width: 50px; height: 50px; object-fit: cover;" />
-                                <div>
-                                    <span class="text-muted small d-block">Veterinary Doctor</span>
-                                    <strong class="text-dark fs-6">Dr. @Model.VetName</strong>
+                        <div class="col-sm-6 min-w-0">
+                            <div class="profile-mini-card p-3 rounded-3 border d-flex align-items-center gap-3 h-100">
+                                <img src="@(string.IsNullOrEmpty(Model.VetAvatar) ? "https://placehold.co/60x60?text=Vet" : Model.VetAvatar)" class="rounded-circle border flex-shrink-0" alt="@Model.VetName" style="width: 50px; height: 50px; object-fit: cover;" />
+                                <div class="min-w-0 flex-grow-1">
+                                    <span class="text-muted small d-block text-truncate">Veterinary Doctor</span>
+                                    <strong class="text-dark fs-6 d-block text-truncate" title="Dr. @Model.VetName">Dr. @Model.VetName</strong>
                                 </div>
                             </div>
                         </div>
@@ -74,24 +74,24 @@
                     <!-- CLINICAL SNAPSHOT SUB-BLOCK -->
                     @if (Model.Snapshot != null)
                     {
-                        <div class="row g-3 mb-4 bg-light p-3 rounded-3 mx-1 small border">
-                            <div class="col-6 col-sm-3">Species: <strong>@Model.Snapshot.Species</strong></div>
-                            <div class="col-6 col-sm-3">Breed: <strong>@Model.Snapshot.Breed</strong></div>
-                            <div class="col-6 col-sm-3">Gender: <strong>@Model.Snapshot.Gender</strong></div>
-                            <div class="col-6 col-sm-3">Weight: <strong>@Model.Snapshot.Weight kg</strong></div>
+                        <div class="row g-2 g-sm-3 mb-4 bg-light p-3 rounded-3 mx-0 small border">
+                            <div class="col-6 col-sm-3 text-truncate">Species: <strong class="text-dark">@Model.Snapshot.Species</strong></div>
+                            <div class="col-6 col-sm-3 text-truncate">Breed: <strong class="text-dark">@Model.Snapshot.Breed</strong></div>
+                            <div class="col-6 col-sm-3 text-truncate">Gender: <strong class="text-dark">@Model.Snapshot.Gender</strong></div>
+                            <div class="col-6 col-sm-3 text-truncate">Weight: <strong class="text-dark">@Model.Snapshot.Weight kg</strong></div>
                         </div>
                     }
 
                     <!-- SCHEDULED TIME -->
-                    <div class="time-block p-3 rounded-3 mb-4 d-flex flex-wrap gap-4 border">
-                        <div>
+                    <div class="time-block p-3 rounded-3 mb-4 d-flex flex-column flex-sm-row justify-content-between gap-3 border">
+                        <div class="min-w-0">
                             <span class="text-muted small d-block"><i class="far fa-calendar-alt text-success me-1"></i> Start Time</span>
-                            <strong class="text-dark">@Model.AppointmentStart.ToString("dd/MM/yyyy 'at' HH:mm")</strong>
+                            <strong class="text-dark text-break">@Model.AppointmentStart.ToString("dd/MM/yyyy 'at' HH:mm")</strong>
                         </div>
-                        <div class="border-start ps-4 display-desktop-only"></div>
-                        <div>
+                        <div class="border-start d-none d-sm-block"></div>
+                        <div class="min-w-0">
                             <span class="text-muted small d-block"><i class="far fa-clock text-success me-1"></i> Estimated End</span>
-                            <strong class="text-dark">@Model.AppointmentEnd.ToString("dd/MM/yyyy 'at' HH:mm")</strong>
+                            <strong class="text-dark text-break">@Model.AppointmentEnd.ToString("dd/MM/yyyy 'at' HH:mm")</strong>
                         </div>
                     </div>
 
@@ -100,7 +100,7 @@
                     {
                         <div class="mb-4">
                             <label class="fw-bold text-secondary small mb-1"><i class="far fa-comment-dots me-1"></i> Your Notes:</label>
-                            <div class="p-3 bg-light rounded-3 text-muted small italic">"@Model.Note"</div>
+                            <div class="p-3 bg-light rounded-3 text-muted small text-break safe-text-box">@Model.Note</div>
                         </div>
                     }
 
@@ -108,27 +108,27 @@
                     <div class="services-list-section mt-4">
                         <h5 class="fw-bold text-dark mb-3"><i class="fas fa-concierge-bell text-success me-2"></i>Selected Services</h5>
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle custom-modern-table">
+                            <table class="table table-hover align-middle custom-modern-table mb-0 w-100">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Service Name</th>
-                                        <th class="text-center">Duration</th>
-                                        <th class="text-end">Price</th>
+                                        <th style="min-width: 180px;">Service Name</th>
+                                        <th class="text-center" style="width: 100px;">Duration</th>
+                                        <th class="text-end" style="width: 120px;">Price</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var srv in Model.AppointmentServices)
                                     {
                                         <tr>
-                                            <td>
-                                                <div class="fw-bold text-dark">@srv.ServiceName</div>
+                                            <td class="text-break">
+                                                <div class="fw-bold text-dark text-break">@srv.ServiceName</div>
                                                 @if (srv.CompleteAt.HasValue)
                                                 {
-                                                    <span class="xsmall-text text-success"><i class="fas fa-check me-1"></i> Completed at: @srv.CompleteAt.Value.ToString("HH:mm")</span>
+                                                    <span class="xsmall-text text-success d-block"><i class="fas fa-check me-1"></i> Completed at: @srv.CompleteAt.Value.ToString("HH:mm")</span>
                                                 }
                                             </td>
-                                            <td class="text-center text-muted small">@srv.Duration mins</td>
-                                            <td class="text-end fw-bold text-dark">@srv.Price.ToString("N0") đ</td>
+                                            <td class="text-center text-muted small text-nowrap">@srv.Duration min</td>
+                                            <td class="text-end fw-bold text-dark text-nowrap">$@srv.Price.ToString("N2")</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -138,15 +138,15 @@
 
                 </div>
 
-                <!-- CLINICAL RESULTS & USER REVIEW SECTION (ĐỒNG BỘ SANG STATUS = 3: COMPLETED) -->
+                <!-- CLINICAL RESULTS & USER REVIEW SECTION (STATUS = 3: COMPLETED) -->
                 @if (Model.Status == 3)
                 {
-                    <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-star text-warning me-2"></i>Your Appointment Review</h5>
+                    <div class="bg-white p-3 p-md-4 rounded-4 shadow-sm border mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 gap-2">
+                            <h5 class="fw-bold text-dark m-0 text-truncate"><i class="fas fa-star text-warning me-2"></i>Your Appointment Review</h5>
                             @if (Model.Snapshot != null && Model.Snapshot.Rating > 0)
                             {
-                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="toggleReviewForm()">
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold flex-shrink-0" onclick="toggleReviewForm()">
                                     <i class="fas fa-edit me-1"></i>Edit Review
                                 </button>
                             }
@@ -162,14 +162,14 @@
                                     }
                                     <span class="text-dark small ms-2">(@Model.Snapshot.Rating / 5.0)</span>
                                 </div>
-                                <div class="p-3 bg-light rounded-3 text-muted small italic border-start border-success border-3">
-                                    " @Model.Snapshot.Feedback "
+                                <div class="p-3 bg-light rounded-3 text-muted small border-start border-success border-3 text-break safe-text-box">
+                                    @Model.Snapshot.Feedback
                                 </div>
                             </div>
                         }
 
                         <div id="reviewFormContainer" style="@(Model.Snapshot != null && Model.Snapshot.Rating > 0 ? "display: none;" : "")" class="mt-2">
-                            <form asp-action="SubmitReview" method="post">
+                            <form asp-action="SubmitReview" method="post" id="feedbackForm">
                                 <input type="hidden" name="AppointmentId" value="@Model.AppointmentId" />
 
                                 <div class="mb-3">
@@ -184,10 +184,19 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label small text-muted mb-1 fw-bold">Your Feedback Comments:</label>
-                                    <textarea name="Feedback" class="form-control form-control-sm rounded-3 px-3 py-2" rows="3" required placeholder="Share your experience about the doctor and service here...">@(Model.Snapshot?.Feedback ?? "")</textarea>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label small text-muted m-0 fw-bold">Your Feedback Comments:</label>
+                                        <small id="feedbackCharCount" class="text-muted xsmall-text">@(Model.Snapshot?.Feedback?.Length ?? 0) / 500</small>
+                                    </div>
+                                    <textarea name="Feedback" 
+                                              id="feedbackTextarea" 
+                                              class="form-control rounded-3 px-3 py-2 modern-auto-textarea" 
+                                              rows="3" 
+                                              maxlength="500" 
+                                              required 
+                                              placeholder="Share your experience about the doctor and service here (max 500 characters)...">@(Model.Snapshot?.Feedback ?? "")</textarea>
                                 </div>
-                                <div class="d-flex gap-2">
+                                <div class="d-flex flex-wrap gap-2">
                                     <button type="submit" class="btn btn-modern-success font-weight-bold px-4 py-2 shadow-sm">Submit Review</button>
                                     @if (Model.Snapshot != null && Model.Snapshot.Rating > 0)
                                     {
@@ -201,23 +210,23 @@
             </div>
 
             <!-- RIGHT COLUMN: INVOICE SUMMARY & ACTIONS -->
-            <div class="col-lg-4">
-                <div class="bg-white p-4 rounded-4 shadow-sm border sticky-top">
+            <div class="col-lg-4 min-w-0">
+                <div class="bg-white p-3 p-md-4 rounded-4 shadow-sm border sticky-sidebar">
                     <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom"><i class="fas fa-receipt text-success me-2"></i>Invoice Summary</h5>
 
-                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                        <span class="text-muted">Customer:</span>
-                        <strong class="text-dark">@Model.CustomerName</strong>
+                    <div class="d-flex justify-content-between align-items-center mb-2 small gap-2">
+                        <span class="text-muted text-nowrap">Customer:</span>
+                        <strong class="text-dark text-truncate" title="@Model.CustomerName">@Model.CustomerName</strong>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-4 small">
-                        <span class="text-muted">Total Services:</span>
+                    <div class="d-flex justify-content-between align-items-center mb-4 small gap-2">
+                        <span class="text-muted text-nowrap">Total Services:</span>
                         <strong class="text-dark">@Model.AppointmentServices.Count</strong>
                     </div>
 
                     <div class="p-3 rounded-3 bg-light-green-box border-green-dash mb-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-secondary">Total Amount</span>
-                            <span class="fs-4 fw-black text-success">@Model.Total.ToString("N0") đ</span>
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <span class="fw-bold text-secondary text-nowrap">Total Amount</span>
+                            <span class="fs-4 fw-black text-success text-break">$@Model.Total.ToString("N2")</span>
                         </div>
                     </div>
 
@@ -230,30 +239,30 @@
                             <div class="d-flex flex-column gap-2">
                                 <!-- VNPAY OPTION -->
                                 <label class="payment-option-card p-3 rounded-3 border d-flex align-items-center justify-content-between cursor-pointer">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <input type="radio" name="paymentGateway" value="VNPAY" id="payVnPay" checked class="form-check-input mt-0" />
-                                        <div class="d-flex align-items-center gap-2">
-                                            <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo.svg" alt="VnPay" style="height: 24px; object-fit: contain;" />
-                                            <span class="fw-bold text-dark small">VNPay QR / ATM</span>
+                                    <div class="d-flex align-items-center gap-3 min-w-0">
+                                        <input type="radio" name="paymentGateway" value="VNPAY" id="payVnPay" checked class="form-check-input mt-0 flex-shrink-0" />
+                                        <div class="d-flex align-items-center gap-2 min-w-0">
+                                            <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo.svg" alt="VnPay" style="height: 22px; max-width: 75px; object-fit: contain;" />
+                                            <span class="fw-bold text-dark small text-truncate">VNPay QR / ATM</span>
                                         </div>
                                     </div>
                                 </label>
 
                                 <!-- MOMO OPTION -->
                                 <label class="payment-option-card p-3 rounded-3 border d-flex align-items-center justify-content-between cursor-pointer">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <input type="radio" name="paymentGateway" value="MOMO" id="payMoMo" class="form-check-input mt-0" />
-                                        <div class="d-flex align-items-center gap-2">
-                                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/MoMo_Logo_App.svg" alt="MoMo" style="height: 24px; width: 24px; object-fit: contain;" />
-                                            <span class="fw-bold text-dark small">MoMo Wallet</span>
+                                    <div class="d-flex align-items-center gap-3 min-w-0">
+                                        <input type="radio" name="paymentGateway" value="MOMO" id="payMoMo" class="form-check-input mt-0 flex-shrink-0" />
+                                        <div class="d-flex align-items-center gap-2 min-w-0">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/MoMo_Logo_App.svg" alt="MoMo" style="height: 22px; width: 22px; object-fit: contain;" />
+                                            <span class="fw-bold text-dark small text-truncate">MoMo Wallet</span>
                                         </div>
                                     </div>
                                 </label>
                             </div>
 
                             <!-- PAY NOW BUTTON -->
-                            <button type="button" id="btnPayNow" onclick="processAppointmentPayment()" class="btn btn-modern-success w-100 fw-bold py-2 mt-3 shadow-sm">
-                                <i class="fas fa-credit-card me-2"></i>Pay Now (@Model.Total.ToString("N0") đ)
+                            <button type="button" id="btnPayNow" onclick="processAppointmentPayment()" class="btn btn-modern-success w-100 fw-bold py-2 mt-3 shadow-sm text-truncate">
+                                <i class="fas fa-credit-card me-2"></i>Pay Now ($@Model.Total.ToString("N2"))
                             </button>
                         </div>
                     }
@@ -261,36 +270,36 @@
                     <!-- ACTION BUTTONS -->
                     @if (Model.Status == 1)
                     {
-                        <button type="button" class="btn btn-outline-danger w-100 fw-bold py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#cancelConfirmModal">
+                        <button type="button" class="btn btn-outline-danger w-100 fw-bold py-2 rounded-3 text-truncate" data-bs-toggle="modal" data-bs-target="#cancelConfirmModal">
                             <i class="far fa-calendar-times me-2"></i>Cancel Appointment
                         </button>
                         <a href="@Url.Action("Update", "Appointment", new { id = Model.AppointmentId })"
-                           class="btn btn-outline-primary w-100 fw-bold py-2 mt-2 mb-3 rounded-3 shadow-sm">
-                            <i class="fas fa-edit me-2"></i>Update Appointment Details
+                           class="btn btn-outline-primary w-100 fw-bold py-2 mt-2 mb-0 rounded-3 shadow-sm text-truncate">
+                            <i class="fas fa-edit me-2"></i>Update Details
                         </a>
                     }
                     else if (Model.Status == 0)
                     {
                         <div class="alert alert-secondary small text-center rounded-3 m-0 py-2">
-                            <i class="fas fa-ban me-1"></i> This appointment was cancelled
+                            <i class="fas fa-ban me-1"></i> Cancelled
                         </div>
                     }
                     else if (Model.Status == 2)
                     {
                         <div class="alert alert-info small text-center rounded-3 m-0 py-2">
-                            <i class="fas fa-check-circle me-1"></i> Appointment Confirmed & Paid
+                            <i class="fas fa-check-circle me-1"></i> Confirmed & Paid
                         </div>
                     }
                     else if (Model.Status == 3)
                     {
                         <div class="alert alert-success small text-center rounded-3 m-0 py-2">
-                            <i class="fas fa-check-circle me-1"></i> Appointment Completed
+                            <i class="fas fa-check-circle me-1"></i> Completed
                         </div>
                     }
                     else
                     {
                         <div class="alert alert-secondary small text-center rounded-3 m-0 py-2">
-                            <i class="fas fa-lock me-1"></i> Appointment profile is locked
+                            <i class="fas fa-lock me-1"></i> Locked
                         </div>
                     }
                 </div>
@@ -300,24 +309,24 @@
     </div>
 </div>
 
-<!-- MODERN CANCEL CONFIRMATION MODAL -->
+<!-- CANCEL CONFIRMATION MODAL -->
 <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-confirm">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 flex-column text-center pt-4">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 flex-column text-center pt-4 pb-0">
                 <div class="icon-box-danger text-danger mb-3">
-                    <i class="fas fa-exclamation-triangle fa-3x animate-pulse"></i>
+                    <i class="fas fa-exclamation-triangle fa-3x fa-beat" style="--fa-animation-duration: 1.5s;"></i>
                 </div>
                 <h4 class="modal-title fw-bold text-dark w-100" id="cancelModalLabel">Are you sure?</h4>
             </div>
             <div class="modal-body text-center text-muted px-4 py-2">
-                <p class="m-0 small">Do you really want to cancel this appointment? This action cannot be undone and your slot will be released immediately.</p>
+                <p class="m-0 small text-break">Do you really want to cancel this appointment? This action cannot be undone and your reserved slot will be released immediately.</p>
             </div>
-            <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4 pt-3">
-                <button type="button" class="btn btn-modern-secondary px-4 rounded-3 fw-bold" data-bs-dismiss="modal">Keep Appointment</button>
-                <form asp-action="Cancel" method="post" class="d-inline">
+            <div class="modal-footer border-0 d-flex justify-content-center gap-2 pb-4 pt-3 flex-wrap">
+                <button type="button" class="btn btn-modern-secondary px-4 rounded-3 fw-bold" data-bs-dismiss="modal">Keep</button>
+                <form asp-action="Cancel" method="post" class="d-inline m-0">
                     <input type="hidden" name="id" value="@Model.AppointmentId" />
-                    <button type="submit" class="btn btn-modern-danger px-4 rounded-3 fw-bold">Yes, Cancel It</button>
+                    <button type="submit" class="btn btn-modern-danger px-4 rounded-3 fw-bold">Yes, Cancel</button>
                 </form>
             </div>
         </div>
@@ -337,6 +346,39 @@
         --bg-main: #f9fafb;
     }
 
+    .min-w-0 {
+        min-width: 0 !important;
+    }
+
+    .safe-text-box {
+        white-space: pre-line;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        line-height: 1.55;
+    }
+
+    .modern-auto-textarea {
+        resize: vertical;
+        min-height: 85px;
+        max-height: 260px;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        overflow-y: auto;
+        line-height: 1.5;
+    }
+
+    .sticky-sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 24px;
+        z-index: 5;
+    }
+
+    .badge-status {
+        font-size: 11.5px;
+        letter-spacing: 0.2px;
+    }
+
     .cursor-pointer {
         cursor: pointer;
     }
@@ -346,25 +388,23 @@
         transition: all 0.2s ease;
     }
 
-        .payment-option-card:hover {
-            border-color: var(--primary-green) !important;
-            background-color: var(--light-green-bg);
-        }
+    .payment-option-card:hover {
+        border-color: var(--primary-green) !important;
+        background-color: var(--light-green-bg);
+    }
 
     .profile-mini-card {
         background-color: var(--white);
         border-color: var(--border-color) !important;
     }
 
-        .profile-mini-card img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-        }
-
     .time-block {
         background-color: var(--bg-main);
         border-color: var(--border-color) !important;
+    }
+
+    .custom-modern-table {
+        table-layout: auto;
     }
 
     .custom-modern-table th {
@@ -372,11 +412,13 @@
         font-size: 13px;
         color: var(--dark-theme);
         padding: 12px;
+        white-space: nowrap;
     }
 
     .custom-modern-table td {
-        padding: 14px 12px;
+        padding: 12px;
         border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
     }
 
     .bg-light-green-box {
@@ -395,10 +437,10 @@
         transition: all 0.2s ease;
     }
 
-        .btn-modern-success:hover {
-            background-color: var(--primary-green-hover);
-            color: var(--white);
-        }
+    .btn-modern-success:hover {
+        background-color: var(--primary-green-hover);
+        color: var(--white);
+    }
 
     .rating-stars-input {
         display: flex;
@@ -413,7 +455,9 @@
         transition: color 0.15s ease;
     }
 
-    .rating-stars-input input:checked ~ label, .rating-stars-input label:hover, .rating-stars-input label:hover ~ label {
+    .rating-stars-input input:checked ~ label,
+    .rating-stars-input label:hover,
+    .rating-stars-input label:hover ~ label {
         color: #f59e0b;
     }
 
@@ -421,32 +465,19 @@
         font-size: 11px;
     }
 
-    .italic {
-        font-style: italic;
-    }
-
     .fw-black {
         font-weight: 900;
     }
 
-    @Html.Raw("@") media (max-width: 576px) {
-        .display-desktop-only {
-            display: none !important;
-        }
-    }
-
-    .col-lg-4 > .sticky-top {
-        top: 90px !important;
-        z-index: 10 !important;
-    }
-
     .modal-confirm {
-        max-width: 380px;
+        max-width: 400px;
+        width: 92%;
+        margin: auto;
     }
 
     .icon-box-danger {
-        width: 80px;
-        height: 80px;
+        width: 72px;
+        height: 72px;
         background-color: #fef2f2;
         border-radius: 50%;
         display: flex;
@@ -459,56 +490,72 @@
         background-color: #f3f4f6;
         color: #4b5563;
         border: none;
-        padding: 10px 18px;
+        padding: 9px 18px;
         transition: all 0.2s;
     }
 
-        .btn-modern-secondary:hover {
-            background-color: #e5e7eb;
-            color: #1f2937;
-        }
+    .btn-modern-secondary:hover {
+        background-color: #e5e7eb;
+        color: #1f2937;
+    }
 
     .btn-modern-danger {
         background-color: #ef4444;
         color: #ffffff;
         border: none;
-        padding: 10px 18px;
+        padding: 9px 18px;
         transition: all 0.2s;
     }
 
-        .btn-modern-danger:hover {
-            background-color: #dc2626;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-        }
-
-    .animate-pulse {
-        animation: pulse 2s infinite linear;
-    }
-
-    @Html.Raw("@") keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.08);
-        }
-
-        100% {
-            transform: scale(1);
-        }
+    .btn-modern-danger:hover {
+        background-color: #dc2626;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
     }
 </style>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const textarea = document.getElementById("feedbackTextarea");
+        const charCount = document.getElementById("feedbackCharCount");
+
+        function autoResize(el) {
+            el.style.height = "auto";
+            el.style.height = Math.min(el.scrollHeight, 260) + "px";
+        }
+
+        if (textarea && charCount) {
+            autoResize(textarea);
+
+            textarea.addEventListener("input", function () {
+                const len = this.value.length;
+                charCount.innerText = `${len} / 500`;
+
+                if (len >= 500) {
+                    charCount.classList.add("text-danger", "fw-bold");
+                } else {
+                    charCount.classList.remove("text-danger", "fw-bold");
+                }
+
+                autoResize(this);
+            });
+        }
+    });
+
     function toggleReviewForm() {
         const formContainer = document.getElementById("reviewFormContainer");
         const displayContainer = document.getElementById("existingReviewContainer");
+        const textarea = document.getElementById("feedbackTextarea");
 
         if (formContainer && displayContainer) {
-            if (formContainer.style.display === "none") {
+            if (formContainer.style.display === "none" || formContainer.style.display === "") {
                 formContainer.style.display = "block";
                 displayContainer.style.display = "none";
+                if (textarea) {
+                    setTimeout(() => {
+                        textarea.style.height = "auto";
+                        textarea.style.height = Math.min(textarea.scrollHeight, 260) + "px";
+                    }, 50);
+                }
             } else {
                 formContainer.style.display = "none";
                 displayContainer.style.display = "block";
@@ -522,12 +569,12 @@
         const btnPay = document.getElementById("btnPayNow");
 
         if (!selectedMethod) {
-            alert("Vui lòng chọn phương thức thanh toán.");
+            alert("Please select a payment method.");
             return;
         }
 
         btnPay.disabled = true;
-        btnPay.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang khởi tạo...';
+        btnPay.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
 
         try {
             const response = await fetch('/Appointment/CreatePayment', {
@@ -547,13 +594,13 @@
             } else {
                 alert(resData.message || "Payment initiation failed.");
                 btnPay.disabled = false;
-                btnPay.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
+                btnPay.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now ($@Model.Total.ToString("N2"))';
             }
         } catch (error) {
             console.error("Payment error:", error);
             alert("Unable to connect to the server.");
             btnPay.disabled = false;
-            btnPay.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now';
+            btnPay.innerHTML = '<i class="fas fa-credit-card me-2"></i>Pay Now ($@Model.Total.ToString("N2"))';
         }
     }
 </script>

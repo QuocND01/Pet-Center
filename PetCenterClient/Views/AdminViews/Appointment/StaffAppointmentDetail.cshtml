@@ -144,7 +144,7 @@
             <!-- CỘT TRÁI: THÔNG TIN PATIENT, VET, LOGS DỊCH VỤ & RATING FEEDBACK -->
             <div class="col-lg-8">
 
-                <!-- BANNER THÔNG TIN CHUNG (BỔ SUNG PET AVATAR & SNAPSHOT INFO) -->
+                <!-- BANNER THÔNG TIN CHUNG -->
                 <div class="status-banner p-4 rounded-4 shadow-sm mb-4">
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <img src="@petAvatarUrl" alt="@Model.PetName" class="avatar-pet shadow-sm" onerror="this.src='@defaultPetImg';" />
@@ -157,7 +157,7 @@
                         </div>
                     </div>
 
-                    <!-- HIỂN THỊ CHI TIẾT THÔNG TIN PET TỪ SNAPSHOT -->
+                    <!-- CHI TIẾT THÔNG TIN PET TỪ SNAPSHOT -->
                     @if (Model.Snapshot != null)
                     {
                         <div class="row g-2 bg-light p-3 rounded-3 text-dark small mb-3 border">
@@ -176,7 +176,7 @@
                         </div>
                     }
 
-                    <!-- HIỂN THỊ THÔNG TIN VET PHỤ TRÁCH -->
+                    <!-- THÔNG TIN VET PHỤ TRÁCH -->
                     <div class="d-flex align-items-center gap-3 p-3 bg-success-subtle rounded-3 border border-success-subtle">
                         <img src="@vetAvatarUrl" alt="@assignedVetName" class="avatar-vet shadow-sm" onerror="this.src='@defaultVetImg';" />
                         <div>
@@ -204,11 +204,26 @@
                             {
                                 bool isSrvDone = srv.CompleteAt.HasValue;
 
+                                // Xử lý text và màu badge theo ServiceType (1 = Veterinary, 2 = Grooming)
+                                string typeName = srv.ServiceType switch
+                                {
+                                    1 => "Veterinary",
+                                    2 => "Grooming",
+                                    _ => "General"
+                                };
+
+                                string typeBadgeClass = srv.ServiceType switch
+                                {
+                                    1 => "bg-primary-subtle text-primary border-primary-subtle",
+                                    2 => "bg-info-subtle text-info-emphasis border-info-subtle",
+                                    _ => "bg-secondary-subtle text-secondary"
+                                };
+
                                 <div class="p-3 rounded-3 border service-card-item @(isSrvDone ? "completed-state" : "") shadow-sm d-flex justify-content-between align-items-center">
                                     <div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <h6 class="fw-bold text-dark m-0">@srv.ServiceName</h6>
-                                            <span class="badge bg-secondary-subtle text-secondary border small">Type @srv.ServiceType</span>
+                                            <span class="badge border small @typeBadgeClass">@typeName</span>
                                         </div>
                                         <span class="text-muted small">@srv.Price.ToString("N0") đ • <i class="far fa-clock me-1"></i>@srv.Duration min</span>
                                     </div>
@@ -230,7 +245,8 @@
                                             }
                                             else if (Model.Status == 2)
                                             {
-                                                <form asp-action="CompleteAppointmentService" method="post" class="d-inline">
+                                                <!-- ĐÃ GẮN CLASS form-pending-service ĐỂ TỰ ĐỘNG TRIGGER KHI COMPLETE APPOINTMENT -->
+                                                <form asp-action="CompleteAppointmentService" method="post" class="d-inline form-pending-service">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
                                                     <input type="hidden" name="appointmentServiceId" value="@srv.AppointmentServiceId" />
@@ -255,7 +271,7 @@
                     </div>
                 </div>
 
-                <!-- KHỐI HIỂN THỊ ĐÁNH GIÁ VÀ PHẢN HỒI CỦA KHÁCH HÀNG -->
+                <!-- KHỐI HIỂN THỊ ĐÁNH GIÁ VÀ PHẢN HỒI -->
                 <div class="bg-white rounded-4 shadow-sm p-4 border-0">
                     <h5 class="fw-bold text-dark mb-3">
                         <i class="fas fa-star text-warning me-2"></i>Customer Rating &amp; Feedback
@@ -310,7 +326,7 @@
 
             </div>
 
-            <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN TRẠNG THÁI (PIPELINE PROCESSOR) -->
+            <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN TRẠNG THÁI -->
             <div class="col-lg-4">
                 <div class="bg-white rounded-4 shadow-sm p-4 border-0 text-center sticky-top" style="top: 24px;">
                     <h5 class="fw-bold text-dark pb-2 mb-3 border-bottom text-start"><i class="fas fa-shield-alt text-success me-2"></i>Workflow Action</h5>
@@ -323,14 +339,14 @@
                         </div>
                     </div>
 
-                    <!-- THỜI GIAN LÀM VIỆC & BẢO HIỂM / TỔNG TIỀN (BỔ SUNG TOTAL) -->
+                    <!-- THỜI GIAN LÀM VIỆC & BẢO HIỂM / TỔNG TIỀN -->
                     <div class="text-start p-3 bg-light rounded-3 mb-4 small">
                         <div class="mb-2"><strong><i class="far fa-calendar-alt text-success me-2"></i>Date:</strong> @Model.AppointmentStart.ToString("dd MMMM, yyyy")</div>
                         <div class="mb-2"><strong><i class="far fa-clock text-success me-2"></i>Time Window:</strong> @Model.AppointmentStart.ToString("HH:mm") - @Model.AppointmentEnd.ToString("HH:mm")</div>
                         <div class="pt-2 border-top"><strong><i class="fas fa-receipt text-success me-2"></i>Total Payment:</strong> <span class="fs-6 fw-bold text-success">@Model.Total.ToString("N0") đ</span></div>
                     </div>
 
-                    <!-- FORM SUBMIT TIẾN TRÌNH TIẾP THEO (CHỈ MỞ Ở STATE 2 - PAID) -->
+                    <!-- FORM SUBMIT TIẾN TRÌNH TIẾP THEO -->
                     @if (Model.Status == 2)
                     {
                         <form asp-action="ForwardAppointment" method="post" id="forwardWorkflowForm">
@@ -362,15 +378,15 @@
 </div>
 
 <!-- MODAL CONFIRMATION -->
-<div class="modal fade" id="confirmForwardModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmForwardModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-body p-4 text-center">
                 <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
                 <h5 class="fw-bold text-dark">Complete Appointment?</h5>
-                <p class="text-muted small">Are you sure you want to mark this appointment as fully completed?</p>
+                <p class="text-muted small">Are you sure you want to mark all remaining services as done and complete this appointment?</p>
                 <div class="d-flex gap-2 justify-content-center mt-3">
-                    <button type="button" class="btn btn-light btn-sm px-3 rounded-3 fw-bold" data-bs-dismiss="modal">Abort</button>
+                    <button type="button" class="btn btn-light btn-sm px-3 rounded-3 fw-bold" data-bs-dismiss="modal" id="btnModalAbort">Abort</button>
                     <button type="button" class="btn btn-emerald btn-sm px-3 rounded-3 fw-bold" id="btnModalConfirmSubmit">Execute</button>
                 </div>
             </div>
@@ -385,8 +401,41 @@
         workflowModal.show();
     }
 
-    document.getElementById('btnModalConfirmSubmit').addEventListener('click', function() {
-        workflowModal.hide();
-        document.getElementById('forwardWorkflowForm').submit();
+    document.getElementById('btnModalConfirmSubmit').addEventListener('click', async function() {
+        const btnConfirm = this;
+        const btnAbort = document.getElementById('btnModalAbort');
+
+        // Khóa các nút và hiển thị trạng thái loading
+        btnConfirm.disabled = true;
+        btnAbort.disabled = true;
+        btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Processing...';
+
+        try {
+            // Lấy tất cả các form của những dịch vụ chưa được Done
+            const pendingForms = document.querySelectorAll('.form-pending-service');
+
+            if (pendingForms.length > 0) {
+                // Tạo mảng promise gọi song song API hoàn thành từng dịch vụ
+                const requestPromises = Array.from(pendingForms).map(form => {
+                    const formData = new FormData(form);
+                    return fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                });
+
+                // Đợi tất cả request CompleteAppointmentService hoàn tất
+                await Promise.all(requestPromises);
+            }
+
+            // Gửi form Complete Appointment
+            document.getElementById('forwardWorkflowForm').submit();
+        } catch (error) {
+            console.error('Error during auto-complete services:', error);
+            alert('An error occurred while marking services as completed. Please check your connection and try again.');
+            btnConfirm.disabled = false;
+            btnAbort.disabled = false;
+            btnConfirm.innerHTML = 'Execute';
+        }
     });
 </script>

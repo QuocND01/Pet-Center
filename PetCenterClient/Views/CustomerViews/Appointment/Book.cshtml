@@ -4,11 +4,11 @@
     ViewData["Title"] = "Modern Booking Experience";
 }
 
-<!-- Liên kết CSS & Icon -->
+<!-- CSS & Icon Links -->
 <link rel="stylesheet" href="~/css/UserViews/Appointment/booking.css" append-version="true" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
-<!-- CSS bổ sung để thể hiện trạng thái disabled của Service Card -->
+<!-- Additional CSS for Disabled State of Service Card -->
 <style>
     .card-service.disabled-service {
         opacity: 0.45;
@@ -18,7 +18,7 @@
     }
 </style>
 
-<!-- CẤU TRÚC TOAST NOTIFICATION CONTAINER -->
+<!-- TOAST NOTIFICATION CONTAINER -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
     <div id="bookingToast" class="toast align-items-center text-white border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex p-2">
@@ -34,7 +34,7 @@
 <div class="booking-wrapper py-5" data-bs-theme="light">
     <div class="container">
 
-        <!-- THANH TIẾN TRÌNH (STEPPER) -->
+        <!-- PROGRESS STEPPER -->
         <div class="stepper-container mb-5">
             <div class="stepper-wrapper">
                 <div class="step-progress-bar" id="stepProgressBar"></div>
@@ -58,12 +58,12 @@
         </div>
 
         <div class="row g-4">
-            <!-- CỘT TRÁI: KHU VỰC ĐIỀU HƯỚNG CÁC BƯỚC FORM -->
+            <!-- LEFT COLUMN: MULTI-STEP FORM -->
             <div class="col-lg-8">
                 <form asp-action="Book" method="post" id="bookingForm" class="booking-multistep-form bg-white p-4 rounded-4 shadow-sm">
                     @Html.AntiForgeryToken()
 
-                    <!-- BƯỚC 1: CHỌN VÀ XEM THÚ CƯNG -->
+                    <!-- STEP 1: SELECT PET -->
                     <div class="booking-step-content active" data-step-content="1">
                         <div class="step-header mb-4">
                             <h4 class="fw-bold text-dark m-0">Select Your Pet</h4>
@@ -90,7 +90,7 @@
                         <span asp-validation-for="PetId" class="text-danger small d-block mt-2"></span>
                     </div>
 
-                    <!-- BƯỚC 2: CHỌN VÀ XEM NHÂN VIÊN / BÁC SĨ -->
+                    <!-- STEP 2: SELECT SPECIALIST -->
                     <div class="booking-step-content" data-step-content="2">
                         <div class="step-header mb-4">
                             <h4 class="fw-bold text-dark m-0">Choose Specialist</h4>
@@ -132,7 +132,7 @@
                         <span asp-validation-for="StaffId" class="text-danger small d-block mt-2"></span>
                     </div>
 
-                    <!-- BƯỚC 3: CHỌN VÀ XEM DỊCH VỤ -->
+                    <!-- STEP 3: SELECT SERVICES -->
                     <div class="booking-step-content" data-step-content="3">
                         <div class="step-header mb-4">
                             <h4 class="fw-bold text-dark m-0">Care Services</h4>
@@ -155,8 +155,8 @@
                                             </span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mt-3">
-                                            <span class="service-price">@service.Price.ToString("N0")<small>đ</small></span>
-                                            <span class="service-duration"><i class="far fa-clock me-1"></i>@service.Duration m</span>
+                                            <span class="service-price">$@service.Price.ToString("N2")</span>
+                                            <span class="service-duration"><i class="far fa-clock me-1"></i>@service.Duration min</span>
                                         </div>
                                     </div>
                                     <div class="select-indicator"><i class="fas fa-check-circle"></i></div>
@@ -167,7 +167,7 @@
                         <span asp-validation-for="ServiceIds" class="text-danger small d-block mt-2"></span>
                     </div>
 
-                    <!-- BƯỚC 4: CHỌN THỜI GIAN & SLOT LỊCH -->
+                    <!-- STEP 4: TIME SLOT & SCHEDULE -->
                     <div class="booking-step-content" data-step-content="4">
                         <div class="step-header mb-4">
                             <h4 class="fw-bold text-dark m-0">Appointment Schedule</h4>
@@ -203,14 +203,17 @@
                         </div>
 
                         <div class="mt-4">
-                            <label class="form-label fw-bold text-secondary small mb-2"><i class="far fa-comment-alt me-2"></i>Notes for the Specialist (Optional)</label>
-                            <textarea asp-for="Note" class="form-control modern-textarea" rows="3" placeholder="Describe any symptoms or requirements here..."></textarea>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold text-secondary small m-0"><i class="far fa-comment-alt me-2"></i>Notes for the Specialist (Optional)</label>
+                                <small id="noteCharCounter" class="text-muted">0 / 255</small>
+                            </div>
+                            <textarea asp-for="Note" id="AppointmentNote" class="form-control modern-textarea" rows="3" maxlength="255" placeholder="Describe any symptoms or specific requirements (max 255 characters)..."></textarea>
                         </div>
 
                         <input type="hidden" id="SelectedStartTime" name="AppointmentStart" />
                     </div>
 
-                    <!-- THANH ĐIỀU HƯỚNG CONTROL BUTTONS -->
+                    <!-- FORM NAVIGATION BUTTONS -->
                     <div class="form-actions-wrapper d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                         <button type="button" class="btn btn-control-prev px-4 py-2 fw-bold" id="btnPrevStep" style="display: none;">
                             <i class="fas fa-chevron-left me-2"></i> Back
@@ -222,7 +225,7 @@
                 </form>
             </div>
 
-            <!-- CỘT PHẢI: SIDEBAR TỔNG HỢP (SUMMARY) -->
+            <!-- RIGHT COLUMN: SUMMARY SIDEBAR -->
             <div class="col-lg-4">
                 <div class="booking-sidebar bg-white p-4 rounded-4 shadow-sm sticky-top" style="top: 24px; z-index: 10;">
                     <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom"><i class="fas fa-receipt text-success me-2"></i>Booking Summary</h5>
@@ -261,7 +264,7 @@
                     <div class="price-summary-box p-3 rounded-3 mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-secondary">Total Price</span>
-                            <span class="fs-4 fw-black text-success" id="summaryPrice">0 đ</span>
+                            <span class="fs-4 fw-black text-success" id="summaryPrice">$0.00</span>
                         </div>
                     </div>
 
@@ -275,7 +278,7 @@
     </div>
 </div>
 
-<!-- MODAL CHUNG CHO TÍNH NĂNG "SELECT TO VIEW" -->
+<!-- MODAL FOR DETAIL VIEWER -->
 <div class="modal fade" id="detailViewerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -316,6 +319,24 @@
             toastMessage.innerText = message;
             const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
             toast.show();
+        }
+
+        // NOTE CHARACTER LIMIT & WARNING
+        const noteTextarea = document.getElementById('AppointmentNote');
+        const noteCharCounter = document.getElementById('noteCharCounter');
+
+        if (noteTextarea && noteCharCounter) {
+            noteTextarea.addEventListener('input', function() {
+                const currentLength = this.value.length;
+                noteCharCounter.innerText = `${currentLength} / 255`;
+
+                if (currentLength >= 255) {
+                    noteCharCounter.classList.add('text-danger', 'fw-bold');
+                    showToast("Note cannot exceed 255 characters.", "warning");
+                } else {
+                    noteCharCounter.classList.remove('text-danger', 'fw-bold');
+                }
+            });
         }
 
         @if (!ViewData.ModelState.IsValid)
@@ -450,7 +471,7 @@
                             <h4 class="fw-bold text-dark mb-1">${card.dataset.name}</h4>
                             <span class="badge bg-secondary-subtle text-secondary mb-3">${typeText}</span>
                             <div class="d-flex gap-3 mb-3 small">
-                                <span><i class="fas fa-tags text-success me-1"></i> Price: <strong class="text-dark">${parseFloat(card.dataset.price).toLocaleString('vi-VN')} đ</strong></span>
+                                <span><i class="fas fa-tags text-success me-1"></i> Price: <strong class="text-dark">$${parseFloat(card.dataset.price).toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></span>
                                 <span><i class="far fa-clock text-success me-1"></i> Duration: <strong class="text-dark">${card.dataset.duration} mins</strong></span>
                             </div>
                             <p class="text-muted small">Professional healthcare service optimized for your pet comfort and medical requirements.</p>`;
@@ -472,7 +493,7 @@
             });
         });
 
-        // --- LỌC KHÓA SERVICE THEO CHUYÊN MÔN CỦA STAFF ---
+        // --- FILTER SERVICES BY SPECIALIST ROLE ---
         const serviceCards = document.querySelectorAll('.card-service');
 
         function applyServiceFilterByRole(staffRole) {
@@ -480,7 +501,7 @@
             const roleLower = staffRole.toLowerCase();
 
             serviceCards.forEach(card => {
-                const serviceType = card.getAttribute('data-type'); // "1": Vet (Y tế), "2": Groomer (Làm đẹp)
+                const serviceType = card.getAttribute('data-type'); // "1": Vet, "2": Groomer
                 const chk = card.querySelector('.service-checkbox-input');
 
                 let isAllowed = true;
@@ -492,7 +513,6 @@
 
                 if (!isAllowed) {
                     card.classList.add('disabled-service');
-                    // Tự động bỏ chọn nếu đã tích chọn trước đó
                     if (chk.checked) {
                         chk.checked = false;
                         card.classList.remove('selected-active');
@@ -522,7 +542,6 @@
                         <img src="${this.dataset.avatar}" class="rounded-circle" style="width:24px; height:24px; object-fit:cover;" />
                         <span>${this.dataset.name} <small class="badge bg-secondary-subtle text-dark ms-1">${staffRole}</small></span>`;
 
-                // Áp dụng khóa các service không tương ứng với Role của staff
                 applyServiceFilterByRole(staffRole);
             });
         });
@@ -594,7 +613,7 @@
             }
 
             document.getElementById('summaryDuration').innerHTML = `<i class="far fa-clock text-secondary me-1"></i> Total time: ${totalDuration} minutes`;
-            document.getElementById('summaryPrice').innerText = `${totalPrice.toLocaleString('vi-VN')} đ`;
+            document.getElementById('summaryPrice').innerText = `$${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
         }
 
         // --- INIT STATE ---
