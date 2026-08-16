@@ -116,8 +116,8 @@ namespace PetCenterClient.Controllers
             var record = await _service.GetByIdAsync(id);
             if (record == null) return NotFound();
 
-            if (record.Status == 2) // Completed
-                return Json(new { error = "Cannot edit a completed medical record" });
+            if (record.Status != 1) // Only Drafted (Status == 1) records can be edited
+                return Json(new { error = "Cannot edit a medical record that is completed or cancelled" });
 
             var model = new UpdateMedicalRecordViewModel
             {

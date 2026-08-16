@@ -77,7 +77,7 @@ namespace PetCenterClient.Services
                 new StringContent(json, Encoding.UTF8, "application/json"));
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception(await response.Content.ReadAsStringAsync());
+                throw new Exception(await GetErrorMessageAsync(response));
         }
 
         public async Task UpdateAsync(Guid id, UpdateMedicalRecordViewModel model)
@@ -95,7 +95,38 @@ namespace PetCenterClient.Services
                 new StringContent(json, Encoding.UTF8, "application/json"));
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception(await response.Content.ReadAsStringAsync());
+                throw new Exception(await GetErrorMessageAsync(response));
+        }
+
+        private static async Task<string> GetErrorMessageAsync(HttpResponseMessage response)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(content))
+                return $"An error occurred (Status {response.StatusCode})";
+
+            try
+            {
+                using var doc = JsonDocument.Parse(content);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    if (doc.RootElement.TryGetProperty("message", out var msgProp) && msgProp.ValueKind == JsonValueKind.String)
+                    {
+                        var msg = msgProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(msg)) return msg;
+                    }
+                    if (doc.RootElement.TryGetProperty("Message", out var msgPropPascal) && msgPropPascal.ValueKind == JsonValueKind.String)
+                    {
+                        var msg = msgPropPascal.GetString();
+                        if (!string.IsNullOrWhiteSpace(msg)) return msg;
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                // Not JSON, fall back to returning content
+            }
+
+            return content;
         }
 
         public async Task ChangeStatusAsync(Guid id, int status)
