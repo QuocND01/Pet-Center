@@ -170,34 +170,19 @@ nlu:
   examples: |
     - bạn là chat bot vậy thì bạn có đơn hàng nào không
     - bot có đơn hàng nào không
-    - bạn có mua hàng bao giờ chưa
     - bạn có nuôi chó mèo không
-    - bot có cần mua thức ăn chó không
     - hôm nay thời tiết thế nào
+    - hôm nay ngày mấy
+    - mấy ngày nữa đến tết
+    - thứ 6 ngày 1 tháng sau là tết đúng không
+    - hôm nay là thứ mấy
+    - khi nào đến tết nguyên đán
     - kể chuyện cười đi
     - bạn ăn cơm chưa
-    - bạn có người yêu chưa
-    - tôi buồn quá
     - giá vàng hôm nay
     - 1 cộng 1 bằng mấy
     - 1+1
-    - 1-1
-    - 1*1
-    - 1/1
-    - 1 + 1
-    - 1 - 1
-    - 1 * 1
-    - 2 + 2
-    - 10 + 5
-    - 1+1 bằng mấy
-    - tính 1+1
-    - hát một bài đi
-    - bạn thích ăn gì
-    - ai là tổng thống Mỹ
     - thời tiết hôm nay sao
-    - kể cho tôi nghe một câu chuyện
-    - bạn có biết yêu không
-    - chứng khoán hôm nay thế nào
     - tâm sự với mình đi
     - hôm nay bao nhiêu âm lịch
     - hôm nay là ngày mấy

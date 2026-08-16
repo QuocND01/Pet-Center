@@ -27,6 +27,7 @@ namespace PetCenterAPI.DTOs.Requests.ManageVoucher
         [Range(1, 500, ErrorMessage = "Usage limit must be between 1 and 500.")]
         public int? UseageLimit { get; set; }
 
+        [Required(ErrorMessage = "Expiry date is required.")]
         public DateTime? ExpiredDate { get; set; }
     }
 }

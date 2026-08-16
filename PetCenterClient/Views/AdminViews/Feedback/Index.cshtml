@@ -161,11 +161,11 @@
     }
 
     .fb-table col.col-no {
-        width: 44px;
+        width: 40px;
     }
 
     .fb-table col.col-customer {
-        width: 130px;
+        width: 140px;
     }
 
     .fb-table col.col-product {
@@ -173,22 +173,23 @@
     }
 
     .fb-table col.col-stars {
-        width: 90px;
+        width: 95px;
     }
 
     .fb-table col.col-content {
         width: auto;
     }
+
     .fb-table col.col-status {
-        width: 130px;
+        width: 125px;
     }
 
     .fb-table col.col-date {
-        width: 120px;
+        width: 115px;
     }
 
     .fb-table col.col-actions {
-        width: 230px;
+        width: 220px;
     }
 
     /* Stars */
@@ -543,6 +544,29 @@
             font-weight: 500;
         }
 
+    .fb-customer-name {
+        display: block;
+        width: 100%;
+        max-width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--fb-ink2);
+        cursor: pointer;
+    }
+
+    .fb-product-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        text-align: center;
+        width: 100%;
+        min-width: 0;
+    }
+
     .fb-product-name {
         display: block;
         width: 100%;
@@ -553,7 +577,7 @@
         font-size: 12px;
         font-weight: 600;
         color: var(--fb-ink2);
-        cursor: default;
+        cursor: pointer;
     }
 
     .fb-detail-content-text {
@@ -913,22 +937,25 @@
                 const date    = formatDate(f.createdDate);
                 const actions = renderActions(f);
 
+                const custName = escHtml(f.customerName || 'Customer');
+                const prodName = escHtml(f.productName || '–');
+
                 // ── Cột Product: ảnh + tên ────────────────────────────
                 const productCell = f.productImage
-                        ? `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
-                        <img src="${f.productImage}"
-                        style="width:44px;height:44px;object-fit:cover;
-                           border-radius:6px;border:1px solid var(--fb-border)"
-                        onerror="this.style.display='none'">
-                <span class="fb-product-name" title="${escHtml(f.productName||'')}">
-                   ${escHtml(f.productName || '–')}
-               </span>
-           </div>`
-        : `<div style="text-align:center">
-               <span class="fb-product-name" title="${escHtml(f.productName||'')}">
-                   ${escHtml(f.productName || '–')}
-               </span>
-           </div>`;
+                    ? `<div class="fb-product-wrapper">
+                           <img src="${f.productImage}"
+                                style="width:44px;height:44px;object-fit:cover;
+                                       border-radius:6px;border:1px solid var(--fb-border)"
+                                onerror="this.style.display='none'">
+                           <span class="fb-product-name" title="${prodName}">
+                              ${prodName}
+                           </span>
+                       </div>`
+                    : `<div class="fb-product-wrapper">
+                           <span class="fb-product-name" title="${prodName}">
+                               ${prodName}
+                           </span>
+                       </div>`;
 
                 return `
                 <tr>
@@ -938,8 +965,8 @@
                         </span>
                     </td>
                     <td>
-                        <span style="font-size:13px;font-weight:700;color:var(--fb-ink2)">
-                            ${escHtml(f.customerName || 'Customer')}
+                        <span class="fb-customer-name" title="${custName}">
+                            ${custName}
                         </span>
                     </td>
                     <td>${productCell}</td>

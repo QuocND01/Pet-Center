@@ -741,11 +741,40 @@ namespace PetCenterTestProject.VoucherTest
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal("Expiry date must be in the future.", result.Message);
+            Assert.Equal("Expiry date must be at least 1 hour in the future.", result.Message);
 
             var saved = await context.Vouchers
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.Code == "SALE13");
+            Assert.Null(saved);
+        }
+
+        //=========================================================
+        // UTCID13B - ExpiredDate > 365 days
+        // Expected: (false, "Expiry date cannot exceed 365 days (1 year) from today.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID13B_CreateAsync_ExpiredDateExceeds365Days_ReturnExpiryExceedError()
+        {
+            using var context = CreateContext();
+            await ClearDatabaseAsync(context);
+
+            var request = BuildCreateVoucherRequest(
+                code: "SALE13B",
+                expiredDate: DateTime.Now.AddDays(366));
+
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.CreateAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Expiry date cannot exceed 365 days (1 year) from today.", result.Message);
+
+            var saved = await context.Vouchers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Code == "SALE13B");
             Assert.Null(saved);
         }
 

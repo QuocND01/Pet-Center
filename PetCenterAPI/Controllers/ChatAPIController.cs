@@ -23,7 +23,6 @@ namespace PetCenterAPI.Controllers
 
         private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        // 1. Lấy lịch sử tin nhắn giữa 2 người
         [HttpGet("history/{partnerId:guid}")]
         public async Task<IActionResult> GetChatHistory(Guid partnerId)
         {
@@ -31,7 +30,7 @@ namespace PetCenterAPI.Controllers
             var messages = await _db.ChatMessages
                 .Where(m => (m.SenderId == myId && m.ReceiverId == partnerId) ||
                             (m.SenderId == partnerId && m.ReceiverId == myId))
-                .OrderBy(m => m.CreatedAt) // Sắp xếp cũ -> mới
+                .OrderBy(m => m.CreatedAt)
                 .Select(m => new {
                     m.MessageId,
                     m.SenderId,
@@ -43,7 +42,6 @@ namespace PetCenterAPI.Controllers
             return Ok(messages);
         }
 
-        // 2. Lấy danh sách khách hàng (Có kèm tin nhắn cuối và trạng thái chưa đọc)
         [HttpGet("my-customers")]
         [Authorize(Roles = "Admin,Vet,Sale Staff,Groomer")]
         public async Task<IActionResult> GetMyCustomers()
@@ -71,7 +69,6 @@ namespace PetCenterAPI.Controllers
                                           .OrderByDescending(m => m.CreatedAt).ToList();
                 var lastMsg = chatHistory.FirstOrDefault();
 
-                // Đếm tin nhắn KHÁCH gửi mà MÌNH chưa đọc
                 var unreadCount = chatHistory.Count(m => m.SenderId == c.CustomerId && !m.IsRead);
 
                 result.Add(new
@@ -85,13 +82,11 @@ namespace PetCenterAPI.Controllers
                 });
             }
 
-            // Sắp xếp ai vừa nhắn lên đầu tiên
             var sortedResult = result.OrderByDescending(x => (x as dynamic).LastMessageTime).ToList();
 
             return Ok(sortedResult);
         }
 
-        // THÊM MỚI: API đánh dấu đã đọc
         [HttpPost("mark-read/{customerId:guid}")]
         [Authorize(Roles = "Admin,Vet,Sale Staff,Groomer")]
         public async Task<IActionResult> MarkAsRead(Guid customerId)
@@ -109,14 +104,13 @@ namespace PetCenterAPI.Controllers
             return Ok();
         }
 
-        // 3. Dành cho Khách hàng: Lấy toàn bộ lịch sử chat của mình
         [HttpGet("my-history")]
         public async Task<IActionResult> GetMyHistory()
         {
             var myId = GetUserId();
             var messages = await _db.ChatMessages
                 .Where(m => m.SenderId == myId || m.ReceiverId == myId)
-                .OrderBy(m => m.CreatedAt) // Sắp xếp cũ -> mới
+                .OrderBy(m => m.CreatedAt) 
                 .Select(m => new {
                     m.MessageId,
                     m.SenderId,
@@ -129,7 +123,6 @@ namespace PetCenterAPI.Controllers
         }
 
         /// <summary>
-        /// 4. Dành riêng cho Rasa Chatbot: Lấy danh sách đơn hàng của khách hàng đang đăng nhập kèm chi tiết các sản phẩm trong đơn.
         /// Endpoint: GET /api/chat/my-orders-with-items
         /// </summary>
         [HttpGet("my-orders-with-items")]
@@ -148,7 +141,6 @@ namespace PetCenterAPI.Controllers
         }
 
         /// <summary>
-        /// Rasa Chatbot: Search customer orders strictly by product name (ProductName).
         /// Endpoint: GET /api/chat/my-orders-search?keyword=...
         /// </summary>
         [HttpGet("my-orders-search")]
@@ -162,6 +154,45 @@ namespace PetCenterAPI.Controllers
 
                 var orders = await _orderService.SearchCustomerOrdersByProductNameAsync(customerId, keyword);
                 return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Endpoint: GET /api/chat/my-appointments
+        /// </summary>
+        [HttpGet("my-appointments")]
+        public async Task<IActionResult> GetMyAppointments()
+        {
+            try
+            {
+                var customerId = GetUserId();
+                var appointments = await _db.Appointments
+                    .Where(a => a.CustomerId == customerId)
+                    .Include(a => a.Pet)
+                    .Include(a => a.Staff)
+                    .Include(a => a.AppointmentServices)
+                        .ThenInclude(aps => aps.Service)
+                    .OrderByDescending(a => a.AppointmentStart)
+                    .Select(a => new
+                    {
+                        a.AppointmentId,
+                        a.AppointmentStart,
+                        a.AppointmentEnd,
+                        a.Status,
+                        StatusName = a.Status == 2 ? "Confirmed" : (a.Status == 1 ? "Reserved" : (a.Status == 3 ? "Completed" : "Cancelled")),
+                        PetName = a.Pet != null ? a.Pet.PetName : "",
+                        StaffName = a.Staff != null ? a.Staff.FullName : "",
+                        ServiceNames = a.AppointmentServices.Select(s => s.Service.ServiceName).ToList(),
+                        a.Total,
+                        a.Note
+                    })
+                    .ToListAsync();
+
+                return Ok(appointments);
             }
             catch (Exception ex)
             {

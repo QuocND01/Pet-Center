@@ -842,6 +842,24 @@
             color: #fff;
         }
 
+    .btn-expiry-preset {
+        border: 1px solid var(--border);
+        background: #f8fafc;
+        color: var(--ink2);
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .15s;
+    }
+
+        .btn-expiry-preset:hover {
+            background: var(--v-gold-light);
+            border-color: var(--v-gold);
+            color: var(--v-gold-dark);
+        }
+
     /* ── LOADING SPINNER ── */
     .spin {
         display: inline-block;
@@ -1189,10 +1207,20 @@
                         <span class="form-help">Required. Total redemptions allowed across all customers (max 500).</span>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Expiry Date <span class="req">*</span></label>
+                        <label class="form-label">
+                            Expiry Date <span class="req">*</span>
+                            <span class="hint" id="expiryHint">Max 365 days</span>
+                        </label>
                         <input type="datetime-local" class="form-control-v" id="fExpiry"
                                oninput="validateExpiry()" onchange="validateExpiry()" />
+                        <div class="expiry-presets" style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+                            <button type="button" class="btn-expiry-preset" onclick="setExpiryPreset(7)">+7 Days</button>
+                            <button type="button" class="btn-expiry-preset" onclick="setExpiryPreset(30)">+30 Days</button>
+                            <button type="button" class="btn-expiry-preset" onclick="setExpiryPreset(90)">+90 Days</button>
+                            <button type="button" class="btn-expiry-preset" onclick="setExpiryPreset(365)">+1 Year</button>
+                        </div>
                         <span class="form-error" id="errExpiry"></span>
+                        <span class="form-help">Must be between 1 hour and 365 days (1 year) from now.</span>
                     </div>
                 </div>
             </div>
@@ -1490,8 +1518,18 @@
 
         const now = new Date();
         now.setSeconds(0, 0);
-        const localMin = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        document.getElementById('fExpiry').min = localMin;
+        const minDate = new Date(now.getTime() + 60 * 60 * 1000);
+        const localMin = new Date(minDate - minDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+        const maxDate = new Date(now);
+        maxDate.setDate(maxDate.getDate() + 365);
+        const localMax = new Date(maxDate - maxDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+        const expInput = document.getElementById('fExpiry');
+        expInput.min = localMin;
+        expInput.max = localMax;
+
+        setExpiryPreset(30);
 
         document.getElementById('voucherModal').classList.add('open');
         document.getElementById('fCode').focus();
@@ -1662,22 +1700,48 @@
         el.value = cleaned;
     }
 
+    function setExpiryPreset(days) {
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        d.setSeconds(0, 0);
+        const localStr = new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('fExpiry').value = localStr;
+        validateExpiry();
+    }
+
     function validateExpiry() {
         const raw     = document.getElementById('fExpiry').value;
         const inputEl = document.getElementById('fExpiry');
         const errEl   = document.getElementById('errExpiry');
+        const hintEl  = document.getElementById('expiryHint');
 
         let errMsg = '';
         if (raw === '') {
             errMsg = 'Expiry date is required.';
-        } else if (new Date(raw) <= new Date()) {
-        errMsg = 'Expiry date must be in the future.';
-    }
+        } else {
+            const selected = new Date(raw);
+            const now = new Date();
+            const minAllowed = new Date(now.getTime() + 59 * 60 * 1000);
+            const maxDate = new Date();
+            maxDate.setDate(maxDate.getDate() + 365);
+
+            if (selected < minAllowed) {
+                errMsg = 'Expiry date must be at least 1 hour in the future.';
+            } else if (selected > maxDate) {
+                errMsg = 'Expiry date cannot exceed 365 days (1 year) from today.';
+            }
+        }
 
         const ok = errMsg === '';
         inputEl.classList.toggle('error', !ok);
         errEl.textContent   = errMsg;
         errEl.style.display = ok ? 'none' : 'block';
+
+        if (hintEl) {
+            const isExceeding365 = !ok && errMsg.includes('365 days');
+            hintEl.classList.toggle('hint-error', isExceeding365);
+        }
+
         return ok;
     }
 
@@ -1758,7 +1822,7 @@
             minOrderAmount:    parseFloat(document.getElementById('fMinOrder').value),
             maxDiscountAmount: parseFloat(document.getElementById('fMaxDiscount').value),
             useageLimit:       parseInt(document.getElementById('fUsageLimit').value, 10),
-            expiredDate:       expiryVal ? new Date(expiryVal).toISOString() : null,
+            expiredDate:       expiryVal ? expiryVal + ':00' : null,
             isActive:          true
         };
 

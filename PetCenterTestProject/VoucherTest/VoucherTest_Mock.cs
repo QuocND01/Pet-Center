@@ -578,6 +578,7 @@ namespace PetCenterTestProject.VoucherTest
             Assert.Contains("Discount must be between 1% and 80%.", messages);
             Assert.Contains("Min order amount must be between 1₫ and 10,000,000₫.", messages);
             Assert.Contains("Max discount must be between 1₫ and 10,000,000₫.", messages);
+            Assert.Contains("Expiry date is required.", messages);
         }
 
         //=========================================================
@@ -927,7 +928,28 @@ namespace PetCenterTestProject.VoucherTest
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal("Expiry date must be in the future.", result.Message);
+            Assert.Equal("Expiry date must be at least 1 hour in the future.", result.Message);
+            _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
+        }
+
+        //=========================================================
+        // UTCID13B - CodeExists = false, ExpiredDate > 365 days
+        // Expected: (false, "Expiry date cannot exceed 365 days (1 year) from today.")
+        //=========================================================
+        [Fact]
+        public async Task UTCID13B_CreateAsync_ExpiredDateExceeds365Days_ReturnExpiryExceedError()
+        {
+            // Arrange
+            var request = BuildCreateVoucherRequest(expiredDate: DateTime.Now.AddDays(366));
+
+            SetupCodeExists(false);
+
+            // Act
+            var result = await _service.CreateAsync(request);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Equal("Expiry date cannot exceed 365 days (1 year) from today.", result.Message);
             _voucherRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Voucher>()), Times.Never);
         }
 
