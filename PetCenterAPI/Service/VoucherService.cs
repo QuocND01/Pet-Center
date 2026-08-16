@@ -1,4 +1,4 @@
-﻿using PetCenterAPI.DTOs.Requests.ManageVoucher;
+using PetCenterAPI.DTOs.Requests.ManageVoucher;
 using PetCenterAPI.DTOs.Responses.ManageVoucher;
 using PetCenterAPI.Models;
 using PetCenterAPI.Repository.Interface;
@@ -56,8 +56,19 @@ namespace PetCenterAPI.Service
                         null);
             }
 
-            if (request.ExpiredDate.HasValue && request.ExpiredDate.Value <= DateTime.Now)
-                return (false, "Expiry date must be in the future.", null);
+            if (!request.ExpiredDate.HasValue)
+                return (false, "Expiry date is required.", null);
+
+            var expiry = request.ExpiredDate.Value.Kind == DateTimeKind.Utc
+                ? request.ExpiredDate.Value.ToLocalTime()
+                : request.ExpiredDate.Value;
+
+            var now = DateTime.Now;
+            if (expiry < now.AddMinutes(59))
+                return (false, "Expiry date must be at least 1 hour in the future.", null);
+
+            if (expiry > now.AddDays(365))
+                return (false, "Expiry date cannot exceed 365 days (1 year) from today.", null);
 
             var entity = new Voucher
             {
@@ -67,9 +78,7 @@ namespace PetCenterAPI.Service
                 MinOrderAmount = request.MinOrderAmount,
                 MaxDiscountAmount = request.MaxDiscountAmount,
                 UseageLimit = request.UseageLimit,
-                ExpiredDate = request.ExpiredDate.HasValue
-                    ? DateTime.SpecifyKind(request.ExpiredDate.Value, DateTimeKind.Utc)
-                    : null,
+                ExpiredDate = expiry,
                 IsActive = true,
                 CreateAt = DateTime.Now
             };

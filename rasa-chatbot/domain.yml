@@ -54,6 +54,7 @@ intents:
   - xem_lich_hen_nguoi_khac
   - xem_danh_sach_thu_cung
   - xem_pet_nguoi_khac
+  - tra_cuu_lich_hen
   - goto_service_page
   - goto_booking_page
   - goto_my_appointments_page
@@ -72,6 +73,8 @@ entities:
   - product_name_chon
   - cart_detail_id_chon
   - order_id
+  - filter
+  - status
 
 slots:
   tu_khoa:
@@ -247,6 +250,7 @@ actions:
   - action_huong_dan_dat_lich
   - action_xem_lich_hen_cua_toi
   - action_xem_danh_sach_thu_cung
+  - action_tra_cuu_lich_hen
   - action_goto_service_page
   - action_goto_booking_page
   - action_goto_my_appointments_page

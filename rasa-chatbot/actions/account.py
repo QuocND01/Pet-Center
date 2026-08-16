@@ -5,9 +5,14 @@ Intents phục vụ:
   - xem_dia_chi     -> action_xem_dia_chi      (Pattern A, cần JWT)
 """
 
+import json
+import logging
 from typing import Text, Dict, Any, List
+from datetime import datetime
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
+
+logger = logging.getLogger(__name__)
 
 from .common import (
     api_get, extract_list, get_field,
@@ -253,7 +258,7 @@ class ActionXemLichHenCuaToi(Action):
                 "Tôi không thể truy cập hoặc hiển thị lịch hẹn của các tài khoản hoặc người dùng khác ạ.\n\n"
                 "Nếu bạn muốn kiểm tra lịch hẹn của chính mình, hãy bấm nút bên dưới nhé:"
             )
-            buttons = [{"title": "📅 Sổ lịch hẹn của tôi", "payload": "/goto_my_appointments_page"}]
+            buttons = [{"title": "📅 Sổ lịch hẹn của tôi", "payload": '/goto_my_appointments_page{"filter": "all", "status": "all"}'}]
             dispatcher.utter_message(text=msg, buttons=buttons)
             return []
 
@@ -263,7 +268,7 @@ class ActionXemLichHenCuaToi(Action):
             "💡 **Mẹo nhỏ:** Khi vào trang lịch hẹn, bạn có thể sử dụng **bộ lọc thời gian (Filter by Date)** hoặc nút **\"View All\"** để dễ dàng theo dõi các lịch hẹn sắp tới trong tương lai gần nhất!\n\n"
             "👉 Bấm nút bên dưới để mở ngay trang quản lý lịch hẹn nhé:"
         )
-        buttons = [{"title": "📅 Sổ lịch hẹn của tôi", "payload": "/goto_my_appointments_page"}]
+        buttons = [{"title": "📅 Sổ lịch hẹn của tôi", "payload": '/goto_my_appointments_page{"filter": "all", "status": "all"}'}]
         dispatcher.utter_message(text=msg, buttons=buttons)
         return []
 
@@ -281,9 +286,37 @@ class ActionGotoMyAppointmentsPage(Action):
             )
             return []
 
+        # 1. Thử lấy từ entities trong tracker
+        filter_mode = "all"
+        status_mode = "all"
+        for e in tracker.latest_message.get("entities", []):
+            ent_name = e.get("entity")
+            ent_val = str(e.get("value") or "").strip().lower()
+            if ent_name == "filter" and ent_val:
+                filter_mode = ent_val
+            elif ent_name == "status" and ent_val:
+                status_mode = ent_val
+
+        # 2. Dự phòng 2 lớp: Parse trực tiếp chuỗi JSON trong text payload nếu entities bị Rasa strip
+        user_text = tracker.latest_message.get("text") or ""
+        if "{" in user_text and "}" in user_text:
+            try:
+                json_str = user_text[user_text.find("{"):user_text.rfind("}")+1]
+                payload_data = json.loads(json_str)
+                if isinstance(payload_data, dict):
+                    if "filter" in payload_data:
+                        filter_mode = str(payload_data["filter"]).strip().lower()
+                    if "status" in payload_data:
+                        status_mode = str(payload_data["status"]).strip().lower()
+            except Exception as ex:
+                logger.warning("Failed to parse JSON payload in text: %s", ex)
+
+        # 3. Tạo URL chuyển trang tuyệt đối KHÔNG có thẻ hash (#) để trang luôn ở ĐẦU TRANG
+        url = f"/Appointment/MyAppointments?filter={filter_mode}&status={status_mode}"
+
         dispatcher.utter_message(
             text="Dạ có ngay! 🐾 Đang chuyển hướng bạn đến trang Quản lý Lịch hẹn (My Appointments)...",
-            json_message={"type": "navigate", "url": "/Appointment/MyAppointments"}
+            json_message={"type": "navigate", "url": url}
         )
         return []
 
@@ -356,3 +389,126 @@ class ActionGotoMyPetsPage(Action):
             json_message={"type": "navigate", "url": "/Pets"}
         )
         return []
+
+
+class ActionTraCuuLichHen(Action):
+    """
+    Xử lý tra cứu lịch hẹn đã xác nhận (Confirmed) hôm nay hoặc tương lai:
+    - Nếu hỏi về HÔM NAY:
+      + Có đúng 1 lịch: Hiển thị chi tiết lịch hẹn đó.
+      + Có > 1 lịch (hoặc > 3): Hiển thị 2 lịch sớm nhất + Nút bấm lọc Lịch hôm nay trên Web.
+      + Không có lịch: Báo hôm nay không có lịch + Nút xem lịch tương lai.
+    - Nếu hỏi về TƯƠNG LAI / CHUNG:
+      + Báo số lượng lịch hẹn Confirmed sắp tới + Hiển thị 2 lịch gần nhất + Nút bấm lọc Lịch Confirmed tương lai trên Web.
+    """
+    def name(self) -> Text:
+        return "action_tra_cuu_lich_hen"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        if not is_logged_in(tracker):
+            msg = (
+                "🔒 **BẠN CẦN ĐĂNG NHẬP ĐỂ TRA CỨU LỊCH HẸN**\n\n"
+                "Dạ! 🐾 Vì lý do bảo mật thông tin cá nhân, danh sách lịch hẹn chỉ hiển thị khi bạn đã đăng nhập tài khoản PetCenter.\n\n"
+                "👉 Hãy bấm nút **\"🔑 Login\"** bên dưới để đăng nhập tài khoản nhé!"
+            )
+            buttons = [{"title": "🔑 Login", "payload": "/goto_login_page"}]
+            dispatcher.utter_message(text=msg, buttons=buttons)
+            return []
+
+        ok, data = api_get("/api/chat/my-appointments", tracker)
+        appointments = extract_list(data) if ok else []
+
+        user_text = (tracker.latest_message.get("text") or "").lower()
+        is_today_query = any(k in user_text for k in ["hôm nay", "hom nay", "today"])
+
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        # Lọc lịch đã được xác nhận (Status == 2 hoặc StatusName == Confirmed)
+        confirmed_appointments = []
+        for a in appointments:
+            status = get_field(a, "status", "Status", default=None)
+            status_name = str(get_field(a, "statusName", "StatusName", default="")).lower()
+            if status == 2 or status_name == "confirmed":
+                confirmed_appointments.append(a)
+
+        if is_today_query:
+            today_apps = []
+            for a in confirmed_appointments:
+                start_raw = get_field(a, "appointmentStart", "AppointmentStart", default="")
+                if start_raw and str(start_raw).startswith(today_str):
+                    today_apps.append(a)
+
+            if len(today_apps) == 1:
+                app = today_apps[0]
+                pet_name = get_field(app, "petName", "PetName", default="Thú cưng")
+                staff_name = get_field(app, "staffName", "StaffName", default="Bác sĩ/Chuyên viên")
+                service_names = get_field(app, "serviceNames", "ServiceNames", default=[])
+                services_str = ", ".join(service_names) if isinstance(service_names, list) else str(service_names)
+                start_raw = get_field(app, "appointmentStart", "AppointmentStart", default="")
+                time_str = str(start_raw).split("T")[1][:5] if "T" in str(start_raw) else str(start_raw)
+
+                msg = (
+                    f"Dạ! 🐾 Hôm nay bạn có **1 lịch hẹn** đã được xác nhận:\n\n"
+                    f"⏰ **Thời gian:** {time_str} (Hôm nay)\n"
+                    f"🐾 **Thú cưng:** {pet_name}\n"
+                    f"👨‍⚕️ **Phụ trách:** {staff_name}\n"
+                    f"✂️ **Dịch vụ:** {services_str}\n\n"
+                    f"👉 Bạn có thể bấm nút bên dưới để mở trang quản lý lịch hẹn nhé:"
+                )
+                buttons = [{"title": "📅 Xem tất cả lịch hôm nay", "payload": '/goto_my_appointments_page{"filter": "today", "status": "2"}'}]
+                dispatcher.utter_message(text=msg, buttons=buttons)
+                return []
+
+            elif len(today_apps) > 1:
+                lines = [f"Dạ! 🐾 Hôm nay bạn có **{len(today_apps)} lịch hẹn** đã được xác nhận. Dưới đây là 2 lịch hẹn sớm nhất:\n"]
+                for i, app in enumerate(today_apps[:2], 1):
+                    pet_name = get_field(app, "petName", "PetName", default="Thú cưng")
+                    start_raw = get_field(app, "appointmentStart", "AppointmentStart", default="")
+                    time_str = str(start_raw).split("T")[1][:5] if "T" in str(start_raw) else str(start_raw)
+                    lines.append(f"• **Lịch {i}:** Lúc {time_str} - Dành cho bé {pet_name}")
+
+                lines.append("\n👉 Bấm nút bên dưới để mở trang web và xem toàn bộ lịch hôm nay nhé:")
+                buttons = [{"title": "📅 Xem tất cả lịch hôm nay", "payload": '/goto_my_appointments_page{"filter": "today", "status": "2"}'}]
+                dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+                return []
+
+            else:
+                msg = (
+                    "Dạ! 🐾 Hôm nay bạn **chưa có lịch hẹn nào** được xác nhận.\n\n"
+                    "👉 Bạn có thể bấm nút bên dưới để kiểm tra các lịch hẹn sắp tới trong tương lai nhé:"
+                )
+                buttons = [{"title": "📅 Xem lịch hẹn sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "confirmed", "status": "2"}'}]
+                dispatcher.utter_message(text=msg, buttons=buttons)
+                return []
+
+        # TH Tương lai / Chung
+        upcoming_apps = []
+        for a in confirmed_appointments:
+            start_raw = get_field(a, "appointmentStart", "AppointmentStart", default="")
+            if start_raw and str(start_raw)[:10] >= today_str:
+                upcoming_apps.append(a)
+
+        if upcoming_apps:
+            lines = [f"Dạ! 🐾 Bạn đang có **{len(upcoming_apps)} lịch hẹn** đã được xác nhận trong thời gian tới:\n"]
+            for i, app in enumerate(upcoming_apps[:2], 1):
+                pet_name = get_field(app, "petName", "PetName", default="Thú cưng")
+                start_raw = get_field(app, "appointmentStart", "AppointmentStart", default="")
+                date_part = str(start_raw)[:10]
+                time_part = str(start_raw).split("T")[1][:5] if "T" in str(start_raw) else ""
+                lines.append(f"• **Lịch {i}:** Ngày {date_part} ({time_part}) - Bé {pet_name}")
+
+            lines.append("\n👉 Bạn có thể bấm nút bên dưới để mở trang web xem đầy đủ các lịch hẹn đã xác nhận nhé:")
+            buttons = [{"title": "📅 Lịch hẹn sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "confirmed", "status": "2"}'}]
+            dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
+            return []
+        else:
+            msg = (
+                "Dạ! 🐾 Bạn hiện chưa có lịch hẹn nào được xác nhận trong thời gian tới.\n\n"
+                "👉 Bạn có thể chọn bấm nút bên dưới để đặt lịch hẹn mới nhé:"
+            )
+            buttons = [
+                {"title": "📅 Đặt lịch hẹn mới", "payload": "/goto_booking_page"},
+                {"title": "📋 Xem danh sách Dịch vụ", "payload": "/goto_service_page"}
+            ]
+            dispatcher.utter_message(text=msg, buttons=buttons)
+            return []

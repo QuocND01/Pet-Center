@@ -33,11 +33,6 @@ rules:
     - intent: ask_human
     - action: utter_ask_human
 
-- rule: Ngoài phạm vi
-  steps:
-    - intent: out_of_scope
-    - action: utter_out_of_scope
-
 - rule: Phản hồi khi affirm mà không có context form
   steps:
     - intent: affirm
@@ -248,6 +243,16 @@ rules:
   steps:
     - intent: goto_my_pets_page
     - action: action_goto_my_pets_page
+
+- rule: Tra cứu lịch hẹn hôm nay và tương lai
+  steps:
+    - intent: tra_cuu_lich_hen
+    - action: action_tra_cuu_lich_hen
+
+- rule: Xử lý out of scope với fallback thống nhất
+  steps:
+    - intent: out_of_scope
+    - action: action_default_fallback
 
 # — Bảo mật: từ chối xem đơn hàng người khác —
 - rule: Từ chối xem đơn hàng của người khác

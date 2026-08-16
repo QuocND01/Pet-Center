@@ -255,22 +255,19 @@ class ActionDefaultFallback(Action):
             )
             return []
 
-        # ── Tầng 2: Fallback tổng quát (neutral) ─────────────────────────────────
-        if logged_in:
-            buttons = [
-                {"title": "📦 Đơn hàng của tôi", "payload": "/xem_don_hang_cua_toi"},
-                {"title": "💳 Hướng dẫn thanh toán", "payload": "/huong_dan_thanh_toan"},
-                {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
-            ]
-        else:
-            buttons = [
-                {"title": "🔥 Sản phẩm bán chạy", "payload": "/xem_san_pham_hot"},
-                {"title": "🆕 Hàng mới về", "payload": "/xem_san_pham_moi"},
-                {"title": "📞 Gặp tư vấn viên", "payload": "/ask_human"},
-            ]
+        # ── Tầng 2: Fallback tổng quát chuẩn hóa toàn hệ thống (Neutral) ───────────────
+        buttons = [
+            {"title": "🛍️ Sản phẩm & Mua hàng", "payload": "/xem_san_pham_moi"},
+            {"title": "🩺 Dịch vụ & Đặt lịch hẹn", "payload": "/hoi_dich_vu"},
+            {"title": "📦 Kiểm tra Đơn hàng", "payload": "/xem_don_hang_cua_toi"},
+            {"title": "🐾 Quản lý Hồ sơ Thú cưng", "payload": "/xem_danh_sach_thu_cung"},
+        ]
 
         dispatcher.utter_message(
-            text="Tôi chưa hiểu rõ ý bạn lắm. Bạn có thể bấm chọn nhanh một trong các chủ đề dưới đây để tôi hỗ trợ ngay nhé: 🐾",
+            text=(
+                "Dạ! 🐾 Xin lỗi bạn, tôi chưa hiểu rõ ý của bạn hoặc câu hỏi nằm ngoài phạm vi hỗ trợ của tôi.\n\n"
+                "Tôi là Trợ lý AI của **PetCenter**, bạn có thể chọn nhanh các chủ đề tôi hỗ trợ bên dưới nhé:"
+            ),
             buttons=buttons
         )
         return []

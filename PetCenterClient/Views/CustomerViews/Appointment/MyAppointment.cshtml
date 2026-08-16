@@ -1,4 +1,4 @@
-﻿@model List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
+@model List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
 
 @{
     ViewData["Title"] = "My Appointments";
@@ -334,7 +334,30 @@
         const rawItems = Array.from(document.querySelectorAll(".raw-appointment-item"));
 
         const todayISOStr = new Date().toISOString().split('T')[0];
-        searchDateInput.value = todayISOStr;
+
+        // Đảm bảo cuộn lên đầu trang mượt mà khi load trang từ Chatbot
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Đọc tham số từ URL (ví dụ: ?filter=all hoặc ?filter=confirmed&status=2)
+        const urlParams = new URLSearchParams(window.location.search);
+        const filterParam = (urlParams.get('filter') || '').toLowerCase();
+        const statusParam = (urlParams.get('status') || '').toLowerCase();
+
+        if (filterParam === 'today') {
+            currentDateMode = 'today';
+            searchDateInput.value = todayISOStr;
+        } else {
+            currentDateMode = 'all';
+            searchDateInput.value = ''; // Để TRỐNG ô ngày khi View All / Confirmed
+        }
+
+        if (statusParam === '2' || filterParam === 'confirmed' || statusParam === 'confirmed') {
+            statusFilterSelect.value = '2';
+        } else if (statusParam && ['0','1','2','3','all'].includes(statusParam)) {
+            statusFilterSelect.value = statusParam;
+        } else {
+            statusFilterSelect.value = 'all';
+        }
 
         function filterAndGroupAppointments() {
             if (!gridContainer) return;
@@ -378,7 +401,9 @@
         }
 
         searchDateInput.addEventListener("change", function() {
-            currentDateMode = 'today';
+            if (searchDateInput.value) {
+                currentDateMode = 'today';
+            }
             filterAndGroupAppointments();
         });
 
@@ -388,17 +413,20 @@
 
         btnFilterToday.addEventListener("click", function() {
             currentDateMode = 'today';
+            searchDateInput.value = todayISOStr;
             filterAndGroupAppointments();
         });
 
         btnFilterAll.addEventListener("click", function() {
             currentDateMode = 'all';
+            searchDateInput.value = '';
             filterAndGroupAppointments();
         });
 
         btnResetSearch.addEventListener("click", function() {
             currentDateMode = 'all';
             statusFilterSelect.value = 'all';
+            searchDateInput.value = '';
             filterAndGroupAppointments();
         });
 

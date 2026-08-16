@@ -187,6 +187,20 @@ nlu:
     - xem các lịch hẹn hiện tại của tôi
     - tôi đã đặt lịch hẹn nào rồi
     - cho tôi xem lịch hẹn của mình
+    - xem lịch hẹn như thế nào
+    - cách xem lịch hẹn
+    - chỉ tôi cách xem lịch hẹn
+    - hướng dẫn xem lịch hẹn
+    - làm sao để xem lịch hẹn
+    - xem lịch hẹn ở đâu
+    - chỗ nào để xem lịch hẹn
+    - coi lịch hẹn như thế nào
+    - cách kiểm tra lịch hẹn đã đặt
+    - làm thế nào để coi lịch hẹn
+    - xem danh sách lịch hẹn ở đâu
+    - chỉ cách xem lịch hẹn
+    - hướng dẫn coi lịch hẹn
+    - làm thế nào để xem các lịch hẹn đã book
 
 # ⚠️ BẢO MẬT: Từ chối xem lịch hẹn của người khác / tài khoản khác
 # ⛔ KHÔNG thêm từ "Bác sĩ", "Vet", "Chuyên viên" vào đây để tránh xung đột NLU tương lai!
@@ -262,6 +276,48 @@ nlu:
     - mở trang thú cưng
     - danh sách pet của tôi
     - sang trang quản lý thú cưng
+
+# ════════════════════════════════════════════════════════════════════════════
+#  TRA CỨU LỊCH HẸN HÔM NAY VÀ TƯƠNG LAI (1 INTENT HỢP NHẤT + ANCHOR WORDS)
+# ════════════════════════════════════════════════════════════════════════════
+
+- intent: tra_cuu_lich_hen
+  examples: |
+    - hôm nay tôi có lịch hẹn nào không
+    - hôm nay tôi có lịch hẹn không
+    - cho xem lịch hẹn hôm nay
+    - lịch hẹn hôm nay của tôi
+    - kiểm tra lịch hẹn hôm nay
+    - lịch khám hôm nay của tôi
+    - hôm nay có lịch spa nào không
+    - tôi có lịch hẹn nào sắp tới không
+    - các lịch hẹn sắp tới của tôi
+    - lịch hẹn tương lai của tôi
+    - kiểm tra lịch hẹn chưa diễn ra
+    - lịch hẹn đã được xác nhận
+    - xem các lịch hẹn sắp tới
+    - tôi có lịch hẹn nào vào thời gian tới không
+    - danh sách lịch hẹn sắp tới
+    - xem lịch hẹn đã confirm
+    - cho tôi xem lịch hẹn ngày mai
+    - ngày mai tôi có lịch hẹn nào không
+    - xem lịch hẹn ngày mai của tôi
+    - lịch hẹn ngày mai
+    - kiểm tra lịch hẹn ngày mai
+    - cho tôi xem lịch hẹn ngày mốt
+    - ngày mốt có lịch hẹn nào không
+    - lịch hẹn ngày mốt
+    - lịch hẹn ngày 16
+    - cho xem lịch hẹn ngày 16
+    - tôi có lịch hẹn vào ngày 16 không
+    - xem lịch hẹn ngày 20/08
+    - kiểm tra lịch hẹn ngày 20
+    - xem lịch hẹn tuần sau
+    - lịch hẹn tuần này của tôi
+    - thứ 6 tuần này có lịch hẹn nào không
+    - thứ 6 tuần sau tôi có lịch hẹn không
+    - khi nào đến lịch hẹn của tôi
+
 
 
 

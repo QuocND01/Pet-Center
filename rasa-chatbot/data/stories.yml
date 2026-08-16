@@ -44,7 +44,7 @@ stories:
 - story: hỏi ngoài phạm vi rồi xem giỏ
   steps:
     - intent: out_of_scope
-    - action: utter_out_of_scope
+    - action: action_default_fallback
     - intent: xem_gio_hang
     - action: action_xem_gio_hang
 
