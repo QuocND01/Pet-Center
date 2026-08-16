@@ -564,8 +564,13 @@ namespace PetCenterTestProject.SupplierTest
 
             var supplier = new Supplier();
 
-            _repositoryMock.Setup(x => x.GetByTaxIdAsync(dto.TaxId))
-                .ReturnsAsync(false);
+            _repositoryMock.Setup(x => x.FindDuplicateAsync(
+        dto.TaxId,
+        dto.SupplierName,
+        dto.SupplierEmail,
+        dto.SupplierPhoneNumber,
+        null))
+    .ReturnsAsync((Supplier?)null);
 
             _mapperMock.Setup(x => x.Map<Supplier>(dto))
                 .Returns(supplier);
@@ -590,8 +595,22 @@ namespace PetCenterTestProject.SupplierTest
                 TaxId = "0101234567"
             };
 
-            _repositoryMock.Setup(x => x.GetByTaxIdAsync(dto.TaxId))
-                .ReturnsAsync(true);
+            _repositoryMock
+    .Setup(x => x.FindDuplicateAsync(
+        dto.TaxId,
+        dto.SupplierName,
+        dto.SupplierEmail,
+        dto.SupplierPhoneNumber,
+        null))
+    .ReturnsAsync(new Supplier
+    {
+        SupplierId = Guid.NewGuid(),
+        TaxId = dto.TaxId,
+        SupplierName = dto.SupplierName,
+        SupplierEmail = dto.SupplierEmail,
+        SupplierPhoneNumber = dto.SupplierPhoneNumber,
+        IsActive = true
+    });
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _service.CreateAsync(dto));
@@ -617,7 +636,12 @@ namespace PetCenterTestProject.SupplierTest
             await _service.CreateAsync(dto);
 
             _repositoryMock.Verify(
-                x => x.GetByTaxIdAsync(It.IsAny<string>()),
+                x => x.FindDuplicateAsync(
+                    It.IsAny<string?>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>()),
                 Times.Never);
         }
         [Fact]
@@ -637,7 +661,12 @@ namespace PetCenterTestProject.SupplierTest
             await _service.CreateAsync(dto);
 
             _repositoryMock.Verify(
-                x => x.GetByTaxIdAsync(It.IsAny<string>()),
+                x => x.FindDuplicateAsync(
+                    It.IsAny<string?>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid?>()),
                 Times.Never);
         }
         [Fact]
@@ -650,8 +679,14 @@ namespace PetCenterTestProject.SupplierTest
 
             var supplier = new Supplier();
 
-            _repositoryMock.Setup(x => x.GetByTaxIdAsync(dto.TaxId))
-                .ReturnsAsync(false);
+            _repositoryMock
+                .Setup(x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    null))
+                .ReturnsAsync((Supplier?)null);
 
             _mapperMock.Setup(x => x.Map<Supplier>(dto))
                 .Returns(supplier);

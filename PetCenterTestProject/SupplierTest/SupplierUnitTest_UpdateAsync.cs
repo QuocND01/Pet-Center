@@ -43,8 +43,14 @@ namespace PetCenterTestProject.SupplierTest
             _repositoryMock.Setup(x => x.GetByIdAsync(id))
                 .ReturnsAsync(supplier);
 
-            _repositoryMock.Setup(x => x.GetByTaxIdAsync(dto.TaxId))
-                .ReturnsAsync(false);
+            _repositoryMock
+                .Setup(x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    id))
+                .ReturnsAsync((Supplier?)null);
 
             var result = await _service.UpdateAsync(id, dto);
 
@@ -79,47 +85,114 @@ namespace PetCenterTestProject.SupplierTest
             _repositoryMock.Setup(x => x.GetByIdAsync(id))
                 .ReturnsAsync(new Supplier());
 
-            _repositoryMock.Setup(x => x.GetByTaxIdAsync(dto.TaxId))
-                .ReturnsAsync(true);
+            _repositoryMock
+                .Setup(x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    id))
+                .ReturnsAsync(new Supplier
+                {
+                    SupplierId = Guid.NewGuid(),
+                    TaxId = dto.TaxId,
+                    IsActive = true
+                });
 
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _service.UpdateAsync(id, dto));
         }
         [Fact]
-        public async Task UTCID04_UpdateSupplier_NullTaxId_ShouldSkipDuplicateCheck()
+        public async Task UTCID04_UpdateSupplier_NullTaxId_ShouldCheckOtherDuplicateFields()
         {
             var id = Guid.NewGuid();
 
-            _repositoryMock.Setup(x => x.GetByIdAsync(id))
-                .ReturnsAsync(new Supplier());
+            var dto = new UpdateSupplierRequestDTO
+            {
+                TaxId = null,
+                SupplierName = "ABC Supplier",
+                SupplierEmail = "abc@gmail.com",
+                SupplierPhoneNumber = "0123456789"
+            };
 
-            await _service.UpdateAsync(id,
-                new UpdateSupplierRequestDTO
-                {
-                    TaxId = null
-                });
+            var supplier = new Supplier();
+
+            _repositoryMock.Setup(x => x.GetByIdAsync(id))
+                .ReturnsAsync(supplier);
+
+            _repositoryMock
+                .Setup(x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    id))
+                .ReturnsAsync((Supplier?)null);
+
+            var result = await _service.UpdateAsync(id, dto);
+
+            Assert.True(result);
 
             _repositoryMock.Verify(
-                x => x.GetByTaxIdAsync(It.IsAny<string>()),
-                Times.Never);
+                x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    id),
+                Times.Once);
+
+            _repositoryMock.Verify(x => x.Update(supplier), Times.Once);
+            _repositoryMock.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
         [Fact]
-        public async Task UTCID05_UpdateSupplier_EmptyTaxId_ShouldSkipDuplicateCheck()
+        public async Task UTCID05_UpdateSupplier_EmptyTaxId_ShouldCheckDuplicateFields()
         {
             var id = Guid.NewGuid();
 
-            _repositoryMock.Setup(x => x.GetByIdAsync(id))
-                .ReturnsAsync(new Supplier());
+            var dto = new UpdateSupplierRequestDTO
+            {
+                TaxId = "",
+                SupplierName = "ABC Supplier",
+                SupplierEmail = "abc@gmail.com",
+                SupplierPhoneNumber = "0123456789"
+            };
 
-            await _service.UpdateAsync(id,
-                new UpdateSupplierRequestDTO
-                {
-                    TaxId = ""
-                });
+            var supplier = new Supplier();
+
+            _repositoryMock
+                .Setup(x => x.GetByIdAsync(id))
+                .ReturnsAsync(supplier);
+
+            _repositoryMock
+                .Setup(x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    id))
+                .ReturnsAsync((Supplier?)null);
+
+            var result = await _service.UpdateAsync(id, dto);
+
+            Assert.True(result);
 
             _repositoryMock.Verify(
-                x => x.GetByTaxIdAsync(It.IsAny<string>()),
-                Times.Never);
+                x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    id),
+                Times.Once);
+
+            _repositoryMock.Verify(
+                x => x.Update(supplier),
+                Times.Once);
+
+            _repositoryMock.Verify(
+                x => x.SaveChangesAsync(),
+                Times.Once);
         }
         [Fact]
         public async Task UTCID06_UpdateSupplier_SaveChangesException_ShouldThrow()
@@ -136,8 +209,14 @@ namespace PetCenterTestProject.SupplierTest
             _repositoryMock.Setup(x => x.GetByIdAsync(id))
                 .ReturnsAsync(supplier);
 
-            _repositoryMock.Setup(x => x.GetByTaxIdAsync(dto.TaxId))
-                .ReturnsAsync(false);
+            _repositoryMock
+                .Setup(x => x.FindDuplicateAsync(
+                    dto.TaxId,
+                    dto.SupplierName,
+                    dto.SupplierEmail,
+                    dto.SupplierPhoneNumber,
+                    id))
+                .ReturnsAsync((Supplier?)null);
 
             _repositoryMock.Setup(x => x.SaveChangesAsync())
                 .ThrowsAsync(new Exception());
@@ -556,14 +635,14 @@ namespace PetCenterTestProject.SupplierTest
                 SupplierName = "ABC",
                 SupplierEmail = "abc@gmail.com",
                 SupplierPhoneNumber = "0912345678",
-                SupplierAddress = new string('A', 201)
+                SupplierAddress = new string('A', 256)
             };
 
             var result = Validate(dto);
 
             Assert.Contains(result,
                 x => x.ErrorMessage ==
-                "Address cannot exceed 200 characters");
+                "Address cannot exceed 255 characters");
         }
         [Fact]
         public void UTCID25_ContactPersonNull_ShouldPassValidation()
@@ -606,14 +685,14 @@ namespace PetCenterTestProject.SupplierTest
                 SupplierEmail = "abc@gmail.com",
                 SupplierPhoneNumber = "0912345678",
                 SupplierAddress = "Can Tho",
-                ContactPerson = new string('A', 201)
+                ContactPerson = new string('A', 51)
             };
 
             var result = Validate(dto);
 
             Assert.Contains(result,
                 x => x.ErrorMessage ==
-                "Contact person cannot exceed 200 characters");
+                    "Contact person cannot exceed 50 characters");
         }
         [Fact]
         public void UTCID28_SupplierDescriptionNull_ShouldPassValidation()
@@ -656,14 +735,14 @@ namespace PetCenterTestProject.SupplierTest
                 SupplierEmail = "abc@gmail.com",
                 SupplierPhoneNumber = "0912345678",
                 SupplierAddress = "Can Tho",
-                SupplierDescription = new string('A', 201)
+                SupplierDescription = new string('A', 256)
             };
 
             var result = Validate(dto);
 
             Assert.Contains(result,
                 x => x.ErrorMessage ==
-                "Supplier description cannot exceed 200 characters");
+                "Supplier description cannot exceed 255 characters");
         }
         #endregion
 
