@@ -265,10 +265,13 @@ class ActionXemLichHenCuaToi(Action):
         # TH3: Đã đăng nhập & Hỏi lịch hẹn của mình (xem_lich_hen_cua_toi)
         msg = (
             "Dạ! 🐾 Để kiểm tra và quản lý các lịch hẹn khám bệnh hoặc spa đã đặt cho thú cưng, bạn có thể xem trực tiếp tại mục **My Appointments** của tài khoản nhé.\n\n"
-            "💡 **Mẹo nhỏ:** Khi vào trang lịch hẹn, bạn có thể sử dụng **bộ lọc thời gian (Filter by Date)** hoặc nút **\"View All\"** để dễ dàng theo dõi các lịch hẹn sắp tới trong tương lai gần nhất!\n\n"
-            "👉 Bấm nút bên dưới để mở ngay trang quản lý lịch hẹn nhé:"
+            "💡 **Mẹo nhỏ:** Khi vào trang lịch hẹn, bạn có thể chọn nút **\"Sổ lịch hẹn\"** để xem toàn bộ, hoặc nút **\"Lịch sử Khám & Spa\"** để xem các lịch hẹn trong quá khứ!\n\n"
+            "👉 Bấm các nút bên dưới để mở ngay trang quản lý lịch hẹn nhé:"
         )
-        buttons = [{"title": "📅 Sổ lịch hẹn của tôi", "payload": '/goto_my_appointments_page{"filter": "all", "status": "all"}'}]
+        buttons = [
+            {"title": "📅 Sổ lịch hẹn của tôi", "payload": '/goto_my_appointments_page{"filter": "all", "status": "all"}'},
+            {"title": "📜 Xem Lịch sử Khám & Spa", "payload": '/goto_my_appointments_page{"filter": "past", "status": "all"}'}
+        ]
         dispatcher.utter_message(text=msg, buttons=buttons)
         return []
 
@@ -441,9 +444,12 @@ class ActionTraCuuLichHen(Action):
                     f"🐾 **Thú cưng:** {pet_name}\n"
                     f"👨‍⚕️ **Phụ trách:** {staff_name}\n"
                     f"✂️ **Dịch vụ:** {services_str}\n\n"
-                    f"👉 Bạn có thể bấm nút bên dưới để mở trang quản lý lịch hẹn nhé:"
+                    f"👉 Bạn có thể bấm chọn xem Lịch hẹn Hôm nay hoặc Lịch sử Khám & Spa ở các nút bên dưới nhé:"
                 )
-                buttons = [{"title": "📅 Xem tất cả lịch hôm nay", "payload": '/goto_my_appointments_page{"filter": "today", "status": "2"}'}]
+                buttons = [
+                    {"title": "📅 Xem tất cả lịch hôm nay", "payload": '/goto_my_appointments_page{"filter": "today", "status": "2"}'},
+                    {"title": "📜 Xem Lịch sử Khám & Spa", "payload": '/goto_my_appointments_page{"filter": "past", "status": "all"}'}
+                ]
                 dispatcher.utter_message(text=msg, buttons=buttons)
                 return []
 
@@ -460,17 +466,23 @@ class ActionTraCuuLichHen(Action):
                 if count > 3:
                     lines.append(f"\n*(Và còn {count - 3} lịch hẹn khác...)*")
 
-                lines.append("\n👉 Bấm nút bên dưới để mở trang web và xem toàn bộ lịch hôm nay nhé:")
-                buttons = [{"title": "📅 Xem tất cả lịch hôm nay", "payload": '/goto_my_appointments_page{"filter": "today", "status": "2"}'}]
+                lines.append("\n👉 Bạn có thể bấm chọn xem Lịch hẹn Hôm nay hoặc Lịch sử Khám & Spa ở các nút bên dưới nhé:")
+                buttons = [
+                    {"title": "📅 Xem tất cả lịch hôm nay", "payload": '/goto_my_appointments_page{"filter": "today", "status": "2"}'},
+                    {"title": "📜 Xem Lịch sử Khám & Spa", "payload": '/goto_my_appointments_page{"filter": "past", "status": "all"}'}
+                ]
                 dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
                 return []
 
             else:
                 msg = (
                     "Dạ! 🐾 Hôm nay bạn **chưa có lịch hẹn nào** được xác nhận.\n\n"
-                    "👉 Bạn có thể bấm nút bên dưới để kiểm tra các lịch hẹn sắp tới trong tương lai nhé:"
+                    "👉 Bạn có thể bấm chọn xem Lịch hẹn Sắp tới hoặc Lịch sử Khám & Spa ở các nút bên dưới nhé:"
                 )
-                buttons = [{"title": "📅 Xem lịch hẹn sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "upcoming", "status": "2"}'}]
+                buttons = [
+                    {"title": "📅 Xem lịch hẹn sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "upcoming", "status": "2"}'},
+                    {"title": "📜 Xem Lịch sử Khám & Spa", "payload": '/goto_my_appointments_page{"filter": "past", "status": "all"}'}
+                ]
                 dispatcher.utter_message(text=msg, buttons=buttons)
                 return []
 
@@ -502,9 +514,12 @@ class ActionTraCuuLichHen(Action):
                 f"🐾 **Thú cưng:** {pet_name}\n"
                 f"👨‍⚕️ **Phụ trách:** {staff_name}\n"
                 f"✂️ **Dịch vụ:** {services_str}\n\n"
-                f"👉 Bạn có thể bấm nút bên dưới để mở trang quản lý lịch hẹn nhé:"
+                f"👉 Bạn có thể bấm chọn xem Lịch hẹn Sắp tới hoặc Lịch sử Khám & Spa ở các nút bên dưới nhé:"
             )
-            buttons = [{"title": "📅 Xem lịch hẹn sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "upcoming", "status": "2"}'}]
+            buttons = [
+                {"title": "📅 Xem lịch hẹn sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "upcoming", "status": "2"}'},
+                {"title": "📜 Xem Lịch sử Khám & Spa", "payload": '/goto_my_appointments_page{"filter": "past", "status": "all"}'}
+            ]
             dispatcher.utter_message(text=msg, buttons=buttons)
             return []
 
@@ -523,18 +538,21 @@ class ActionTraCuuLichHen(Action):
             if count > 3:
                 lines.append(f"\n*(Và còn {count - 3} lịch hẹn khác...)*")
 
-            lines.append("\n👉 Bấm nút bên dưới để mở trang web xem đầy đủ các lịch hẹn đã xác nhận nhé:")
-            buttons = [{"title": "📅 Xem tất cả lịch sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "upcoming", "status": "2"}'}]
+            lines.append("\n👉 Bạn có thể bấm chọn xem Lịch hẹn Sắp tới hoặc Lịch sử Khám & Spa ở các nút bên dưới nhé:")
+            buttons = [
+                {"title": "📅 Xem tất cả lịch sắp tới (Confirmed)", "payload": '/goto_my_appointments_page{"filter": "upcoming", "status": "2"}'},
+                {"title": "📜 Xem Lịch sử Khám & Spa", "payload": '/goto_my_appointments_page{"filter": "past", "status": "all"}'}
+            ]
             dispatcher.utter_message(text="\n".join(lines), buttons=buttons)
             return []
         else:
             msg = (
                 "Dạ! 🐾 Bạn hiện chưa có lịch hẹn nào được xác nhận trong thời gian tới.\n\n"
-                "👉 Bạn có thể chọn bấm nút bên dưới để đặt lịch hẹn mới nhé:"
+                "👉 Bạn có thể bấm chọn xem Lịch sử Khám & Spa hoặc Đặt lịch hẹn mới ở các nút bên dưới nhé:"
             )
             buttons = [
-                {"title": "📅 Đặt lịch hẹn mới", "payload": "/goto_booking_page"},
-                {"title": "📋 Xem danh sách Dịch vụ", "payload": "/goto_service_page"}
+                {"title": "📜 Xem Lịch sử Khám & Spa", "payload": '/goto_my_appointments_page{"filter": "past", "status": "all"}'},
+                {"title": "📅 Đặt lịch hẹn mới", "payload": "/goto_booking_page"}
             ]
             dispatcher.utter_message(text=msg, buttons=buttons)
             return []

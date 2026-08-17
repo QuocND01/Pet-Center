@@ -404,6 +404,9 @@
         } else if (filterParam === 'upcoming' || filterParam === 'confirmed') {
             filterState.datePreset = 'upcoming';
             datePresetButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-preset') === 'upcoming'));
+        } else if (filterParam === 'past' || filterParam === 'history') {
+            filterState.datePreset = 'past';
+            datePresetButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-preset') === 'past'));
         } else if (dateParam) {
             filterState.specificDate = dateParam;
             filterState.datePreset = 'custom';
@@ -414,7 +417,10 @@
             datePresetButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-preset') === 'all'));
         }
 
-        if (statusParam === '2' || statusParam === 'confirmed' || filterParam === 'confirmed' || filterParam === 'upcoming') {
+        if (filterParam === 'past' || filterParam === 'history') {
+            filterState.status = 'all';
+            if (statusSelect) statusSelect.value = 'all';
+        } else if (statusParam === '2' || statusParam === 'confirmed' || filterParam === 'confirmed' || filterParam === 'upcoming') {
             filterState.status = '2';
             if (statusSelect) statusSelect.value = '2';
         } else if (statusParam && ['0','1','2','3','all'].includes(statusParam)) {
