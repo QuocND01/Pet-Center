@@ -1,4 +1,4 @@
-﻿@model List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
+@model List<PetCenterClient.ViewModels.Appointment.AppointmentListViewModel>
 
 @{
     ViewData["Title"] = "My Appointments";
@@ -388,6 +388,40 @@
             datePreset: "all",
             specificDate: ""
         };
+
+        // ── Chatbot URL Parameter Initializer ──────────────────────────────────────
+        // Đảm bảo cuộn lên ĐẦU TRANG mượt mà khi load trang từ Chatbot
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const filterParam = (urlParams.get('filter') || '').toLowerCase();
+        const statusParam = (urlParams.get('status') || '').toLowerCase();
+        const dateParam = urlParams.get('date') || '';
+
+        if (filterParam === 'today') {
+            filterState.datePreset = 'today';
+            datePresetButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-preset') === 'today'));
+        } else if (filterParam === 'upcoming' || filterParam === 'confirmed') {
+            filterState.datePreset = 'upcoming';
+            datePresetButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-preset') === 'upcoming'));
+        } else if (dateParam) {
+            filterState.specificDate = dateParam;
+            filterState.datePreset = 'custom';
+            if (specificDatePicker) specificDatePicker.value = dateParam;
+            datePresetButtons.forEach(b => b.classList.remove('active'));
+        } else if (filterParam === 'all') {
+            filterState.datePreset = 'all';
+            datePresetButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-preset') === 'all'));
+        }
+
+        if (statusParam === '2' || statusParam === 'confirmed' || filterParam === 'confirmed' || filterParam === 'upcoming') {
+            filterState.status = '2';
+            if (statusSelect) statusSelect.value = '2';
+        } else if (statusParam && ['0','1','2','3','all'].includes(statusParam)) {
+            filterState.status = statusParam;
+            if (statusSelect) statusSelect.value = statusParam;
+        }
+        // ────────────────────────────────────────────────────────────────────────────
 
         function applyFilters() {
             let visibleCount = 0;
